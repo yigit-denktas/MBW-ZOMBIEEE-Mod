@@ -43,6 +43,8 @@ class SoloAssistTests(unittest.TestCase):
         self.assertEqual(after[p+1:p+26], before[p+1:p+26])
         with self.assertRaises(PatchError):
             patch_text(patched)
+        with self.assertRaises(PatchError):
+            patch_text(patched, period=30)
 
     @unittest.skipUnless(ORIGINAL.is_dir(), "Set ZOMBIEEE_ORIGINAL_MODULE")
     def test_unsupported_mission_count_fails(self):
