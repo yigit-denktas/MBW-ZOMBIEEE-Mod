@@ -331,7 +331,7 @@
       "groupId": "Diagnostics",
       "milestoneId": "M1",
       "state": "active",
-      "sourceState": "source implementation prototype; runtime not accepted",
+      "sourceState": "First implementation slice in draft PR #12; code review pending; runtime acceptance not observed",
       "required": true,
       "blocked": true,
       "dependsOn": [
@@ -342,6 +342,13 @@
         {
           "kind": "github-issue",
           "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6"
+        },
+        {
+          "kind": "draft-pull-request",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12",
+          "revision": "e069c59d10352f363161e15eda3fad86e2c4bcc2",
+          "observedOn": "2026-10-23",
+          "acceptance": "pending-code-review-and-test"
         }
       ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
@@ -350,17 +357,27 @@
       "priority": "P0",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
       "criterion": "Bounded, versioned wave, spawn, team and combat events recorded in one actual session with explicit unknown fields",
-      "note": "Prototype exists in v0.1.8; engine acceptance pending",
+      "note": "C instrumented optional WSE2 getter capability declarations and unavailable metrics. New PR #12 tests not run; actual Lua bindings and game sampling unobserved.",
       "deferReason": null,
-      "implementationLane": "C"
+      "implementationLane": "C",
+      "review": {
+        "status": "changes-requested-in-conversation",
+        "reviewer": "Agent A",
+        "date": "2026-10-23",
+        "comment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12#issuecomment-6373897277",
+        "blockers": [
+          "offline test execution missing",
+          "WSE2 getter runtime unknown"
+        ]
+      }
     },
     {
       "id": "ZOM-OBS-02",
       "title": "Collect crash-resistant external host evidence",
       "groupId": "Diagnostics",
       "milestoneId": "M1",
-      "state": "backlog",
-      "sourceState": "new scoped proposal; not accepted",
+      "state": "active",
+      "sourceState": "First implementation slice in draft PR #12; code review pending; runtime acceptance not observed",
       "required": true,
       "blocked": true,
       "dependsOn": [
@@ -371,6 +388,13 @@
         {
           "kind": "github-issue",
           "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6"
+        },
+        {
+          "kind": "draft-pull-request",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12",
+          "revision": "e069c59d10352f363161e15eda3fad86e2c4bcc2",
+          "observedOn": "2026-10-23",
+          "acceptance": "pending-code-review-and-test"
         }
       ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
@@ -379,57 +403,103 @@
       "priority": "P0",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
       "criterion": "Separate recorder retains startup/crash context when game or Lua exits, plus CPU/memory/process status where measurable",
-      "note": "Implementation prep may proceed offline in separate agent branch; runtime acceptance awaits Windows/WSE2.",
+      "note": "C implemented bounded external local recorder with simulated process/crash events. A review requires preserving crash log tail after >2MiB, a readiness acknowledgment before host spawn, and safe evidence-root ancestor traversal. Actual Windows process behavior unverified.",
       "deferReason": null,
-      "implementationLane": "C"
+      "implementationLane": "C",
+      "review": {
+        "status": "changes-requested-in-conversation",
+        "reviewer": "Agent A",
+        "date": "2026-10-23",
+        "comment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12#issuecomment-6373897277",
+        "blockers": [
+          "C-1 end-of-log preservation",
+          "C-2 readiness handshake",
+          "C-3 symlink/reparse safety"
+        ]
+      }
     },
     {
       "id": "ZOM-WIN-01",
       "title": "Discover installed licensed Warband and WSE2",
       "groupId": "Setup",
       "milestoneId": "M2",
-      "state": "backlog",
-      "sourceState": "new scoped proposal; not accepted",
+      "state": "active",
+      "sourceState": "First implementation slice in draft PR #11; code review pending; runtime acceptance not observed",
       "required": true,
       "blocked": true,
       "dependsOn": [
         "ZOM-ENG-01"
       ],
       "unmappedDependencies": [],
-      "evidence": [],
+      "evidence": [
+        {
+          "kind": "draft-pull-request",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11",
+          "revision": "d096c21f43d6ed0988e2d4a0ebd669eaad48f24c",
+          "observedOn": "2026-10-23",
+          "acceptance": "pending-code-review-and-test"
+        }
+      ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
       "kind": "work-item",
       "owner": "Agent B — implementation; user retains release acceptance",
       "priority": "P1",
       "issueUrl": null,
       "criterion": "Windows 11 detector finds supported Steam/custom locations, validates engine and reports ambiguity without false confidence",
-      "note": "Implementation prep may proceed offline in separate agent branch; runtime acceptance awaits Windows/WSE2.",
+      "note": "B produced bounded read-only Steam/Warband/WSE2 discovery and evidence-rich ambiguity reports in PR #11. B reports 97 passing offline tests / 30 asset skips across suite, not independently rerun by Agent A; acceptance requires real Windows detection/ownership and verified WSE2 version.",
       "deferReason": null,
-      "implementationLane": "B"
+      "implementationLane": "B",
+      "review": {
+        "status": "changes-requested-in-conversation",
+        "reviewer": "Agent A",
+        "date": "2026-10-23",
+        "comment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11#issuecomment-6373896560",
+        "blockers": [
+          "real-installation-owned-game-observation-pending"
+        ]
+      }
     },
     {
       "id": "ZOM-WIN-02",
       "title": "Deliver safe install, repair and rollback",
       "groupId": "Setup",
       "milestoneId": "M2",
-      "state": "backlog",
-      "sourceState": "new scoped proposal; not accepted",
+      "state": "active",
+      "sourceState": "First implementation slice in draft PR #11; code review pending; runtime acceptance not observed",
       "required": true,
       "blocked": true,
       "dependsOn": [
         "ZOM-WIN-01"
       ],
       "unmappedDependencies": [],
-      "evidence": [],
+      "evidence": [
+        {
+          "kind": "draft-pull-request",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11",
+          "revision": "d096c21f43d6ed0988e2d4a0ebd669eaad48f24c",
+          "observedOn": "2026-10-23",
+          "acceptance": "pending-code-review-and-test"
+        }
+      ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
       "kind": "work-item",
       "owner": "Agent B — implementation; user retains release acceptance",
       "priority": "P1",
       "issueUrl": null,
       "criterion": "Installer validates original files and pinned dependencies; supports dry run, repair, rollback and uninstall without deleting owned game data",
-      "note": null,
+      "note": "B drafted inert install plan with stage, rollback and journal paths. A review found top-level input reparse/junction detection can be masked by early Path.resolve(); B must harden raw path components and create negative fixtures. No real installation performed.",
       "deferReason": null,
-      "implementationLane": "B"
+      "implementationLane": "B",
+      "review": {
+        "status": "changes-requested-in-conversation",
+        "reviewer": "Agent A",
+        "date": "2026-10-23",
+        "comment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11#issuecomment-6373896560",
+        "blockers": [
+          "B-3 path redirects before resolution",
+          "transactional execution not implemented"
+        ]
+      }
     },
     {
       "id": "ZOM-WIN-03",
@@ -460,8 +530,8 @@
       "title": "Automatically start private invasion host",
       "groupId": "Solo",
       "milestoneId": "M2",
-      "state": "backlog",
-      "sourceState": "new scoped proposal; not accepted",
+      "state": "active",
+      "sourceState": "First implementation slice in draft PR #11; code review pending; runtime acceptance not observed",
       "required": true,
       "blocked": true,
       "dependsOn": [
@@ -469,16 +539,34 @@
         "ZOM-WIN-02"
       ],
       "unmappedDependencies": [],
-      "evidence": [],
+      "evidence": [
+        {
+          "kind": "draft-pull-request",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11",
+          "revision": "d096c21f43d6ed0988e2d4a0ebd669eaad48f24c",
+          "observedOn": "2026-10-23",
+          "acceptance": "pending-code-review-and-test"
+        }
+      ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
       "kind": "work-item",
       "owner": "Agent B — implementation; user retains release acceptance",
       "priority": "P1",
       "issueUrl": null,
       "criterion": "Launcher starts/stops an isolated local listen-server or managed dedicated host without port forwarding",
-      "note": null,
+      "note": "B simulated local host lifecycle. A review found game is started in same action as recorder and listen-ready can become playing without join evidence. Must implement recorder-ready handshake and distinct host/join/mission states. No actual network listener or local game startup.",
       "deferReason": null,
-      "implementationLane": "B"
+      "implementationLane": "B",
+      "review": {
+        "status": "changes-requested-in-conversation",
+        "reviewer": "Agent A",
+        "date": "2026-10-23",
+        "comment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11#issuecomment-6373896560",
+        "blockers": [
+          "B-1 recorder-before-game handshake",
+          "B-2 distinguish ready from joined"
+        ]
+      }
     },
     {
       "id": "ZOM-SOLO-02",
@@ -690,7 +778,7 @@
       "groupId": "Quality",
       "milestoneId": "M4",
       "state": "active",
-      "sourceState": "source implementation prototype; runtime not accepted",
+      "sourceState": "First implementation slice in draft PR #12; code review pending; runtime acceptance not observed",
       "required": true,
       "blocked": true,
       "dependsOn": [
@@ -702,6 +790,13 @@
         {
           "kind": "github-issue",
           "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6"
+        },
+        {
+          "kind": "draft-pull-request",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12",
+          "revision": "e069c59d10352f363161e15eda3fad86e2c4bcc2",
+          "observedOn": "2026-10-23",
+          "acceptance": "pending-code-review-and-test"
         }
       ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
@@ -710,9 +805,20 @@
       "priority": "P2",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
       "criterion": "Checksummed, redacted evidence bundle and rule report explain observed/unknown game outcomes and actionable failures",
-      "note": "Prototype exists in v0.1.8; engine acceptance pending",
+      "note": "C added verified SHA256 evidence snapshots, redaction and collector ingestion in PR #12; tests are authored but have not been executed in the connected checkout. A requests regression execution and safe evidence integrity checks.",
       "deferReason": null,
-      "implementationLane": "C"
+      "implementationLane": "C",
+      "review": {
+        "status": "changes-requested-in-conversation",
+        "reviewer": "Agent A",
+        "date": "2026-10-23",
+        "comment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12#issuecomment-6373897277",
+        "blockers": [
+          "execute offline tests",
+          "audit ancestor symlinks",
+          "manual privacy review still necessary"
+        ]
+      }
     },
     {
       "id": "ZOM-QA-02",
@@ -837,7 +943,10 @@
     "Owner chose City-first release 2026-10-23; 23 required outcome leaves (not yet accepted), one retained optional five-map expansion leaf.",
     "No Warband/WSE2 runtime evidence yet. Existing v0.1.8 scripts are experimental.",
     "Original 0.4 assets and WSE2 redistributability unresolved. Friends/co-op excluded from required solo scope.",
-    "No source kit ZIP bytes independently verified in this runtime."
+    "No source kit ZIP bytes independently verified in this runtime.",
+    "PR #11 reports 127 offline tests (97 passed, 30 skipped) from B; not independently reproduced by Agent A; major session-order issues still open.",
+    "PR #12 tests are authored but explicitly unexecuted; crash-tail retention and recorder-ready synchronization are pending.",
+    "Review status is a code-integration gate, not a release acceptance measure; 0/23 City outcomes remain accepted."
   ],
   "governance": {
     "purpose": "City-first private solo Windows 11 remaster, verified flight-recorder diagnostics; four other original maps deferred until later release.",

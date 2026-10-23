@@ -76,6 +76,24 @@ d.append(el('p','Dependencies: '+(it.dependsOn.length?it.dependsOn.join(', '):'n
 d.append(el('p','Implementation lead: Agent '+(it.implementationLane||'not assigned')+' · '+it.owner,'meta'));
 d.append(el('p','Primary gate: '+it.milestoneId+' · Priority: '+(it.priority||'not assigned'),'meta'));
 if(it.issueUrl){const a=el('a','Open original GitHub issue');a.href=it.issueUrl; a.rel='noopener noreferrer';d.append(a)}
+if(it.review){
+  d.append(el('p','Code review: '+it.review.status.replaceAll('-',' '),'status'));
+  const reviewUrl=it.review.comment;
+  if(typeof reviewUrl==='string' && reviewUrl.startsWith('https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/')){
+    const reviewLink=el('a','Read integration review');reviewLink.href=reviewUrl;reviewLink.rel='noopener noreferrer';d.append(reviewLink)
+  }
+  if(Array.isArray(it.review.blockers) && it.review.blockers.length){
+    const title=el('h4','Outstanding integration checks');d.append(title);
+    const list=el('ul');
+    for(const note of it.review.blockers){const li=el('li',note);list.append(li)}
+    d.append(list)
+  }
+}
+if(Array.isArray(it.evidence))for(const source of it.evidence){
+ if(source.kind==='draft-pull-request' && typeof source.source==='string' && source.source.startsWith('https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/')){
+   const a=el('a','Open implementation pull request');a.href=source.source;a.rel='noopener noreferrer';d.append(a)
+ }
+}
 if(focus)d.focus();
 }
 function render(){if(!record)return;const q=$('search').value.trim().toLowerCase(),m=$('milestone').value,s=$('status').value,a=$('agent').value;
