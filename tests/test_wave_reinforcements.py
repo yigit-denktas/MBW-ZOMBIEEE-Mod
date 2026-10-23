@@ -14,7 +14,7 @@ from patch_defenders import index_troops, patch_text as spawn_allies, mission_bo
 from city_defense import patch_orders as city_order, scene_index
 from wave_reinforcements import (
     globals_from_original, initialize_wave_state, reinforce_on_wave,
-    patch_text as patch_waves, apply_module, SENTINEL, GLOBAL_BASE,
+    patch_text as patch_waves, apply_module, SENTINEL, GLOBAL_BASE, WAVE_CHANGED,
 )
 ORIGINAL = Path(os.environ.get("ZOMBIEEE_ORIGINAL_MODULE", "/missing/ZOMBIEEE"))
 
@@ -40,6 +40,14 @@ class WaveReinforcementTests(unittest.TestCase):
         for opcode in ("417", "1702", "1707", "1765", "1770", "2119", "1265"):
             self.assertIn(opcode, values)
         self.assertEqual(values.count("1265"), 4)
+
+    def test_wave_gate_recognizes_new_round_at_lower_wave_number(self):
+        from ai_wave_contract import decode_trigger
+        conditions, _ = decode_trigger(reinforce_on_wave(
+            globals_from_original(self.variables), self.troops))
+        g = globals_from_original(self.variables)
+        self.assertIn((WAVE_CHANGED, (g['wave_number'], g[SENTINEL])), conditions)
+        self.assertNotIn((32, (g['wave_number'], g[SENTINEL])), conditions)
 
     def test_patch_preserves_original_triggers(self):
         changed, names = patch_waves(self.tactical, self.variables, self.troops)
