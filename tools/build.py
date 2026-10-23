@@ -19,6 +19,7 @@ from patch_defenders import patch_file
 from city_defense import apply_module as apply_city_defense
 from all_map_defense import apply_module as apply_all_maps
 from wave_reinforcements import apply_module as apply_wave_support
+from tactical_recovery import apply_module as apply_tactical_recovery
 
 ROOT = Path(__file__).resolve().parent.parent
 ORIGINAL_SHA256 = "9be100ff41ce6f8ebadd4aa27377f70f402883fab271999a8cab8cc1da001d1e"
@@ -77,9 +78,13 @@ def apply_overlay(module_dir: Path) -> None:
 
 def build(archive: Path, out: Path, replace: bool = False, experimental_defenders: int = 0,
           city_guardposts: bool = False, all_map_defenses: bool = False,
-          wave_reinforcements: bool = False) -> dict:
+          wave_reinforcements: bool = False, tactical_recovery: bool = False) -> dict:
     if not 0 <= experimental_defenders <= 8:
         raise ValueError("--experimental-defenders must be between 0 and 8")
+    if tactical_recovery and not wave_reinforcements:
+        raise ValueError("--tactical-recovery requires --wave-reinforcements")
+    if tactical_recovery and experimental_defenders < 3:
+        raise ValueError("--tactical-recovery requires at least 3 experimental defenders")
     if wave_reinforcements and not all_map_defenses:
         raise ValueError("--wave-reinforcements requires --all-map-defenses")
     city_guardposts = city_guardposts or all_map_defenses
@@ -136,6 +141,12 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
             updated = report_for_module(source)
             if not updated["ok"] or updated["mission"]["triggers"] != 29:
                 raise RuntimeError("Wave reinforcement failed static post-apply validation")
+        recovery_report = None
+        if tactical_recovery:
+            recovery_report = apply_tactical_recovery(source, low_water=1, high_water=3)
+            updated = report_for_module(source)
+            if not updated["ok"] or updated["mission"]["triggers"] != 31:
+                raise RuntimeError("Tactical recovery failed static post-apply validation")
         if not inspect_module(source)["core_ok"] or not (source / "lua" / "main.lua").is_file():
             raise RuntimeError("Module overlay failed static validation")
         (source / "ZOMBIEEE_REMASTER.json").write_text(json.dumps({
@@ -145,12 +156,13 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
             "runtime_verified": False,
             "archive_crc_verified": True,
             "original_mission_trigger_count": preflight["mission"]["triggers"],
-            "final_trigger_count": 29 if wave_reinforcements else 27 if city_guardposts else 26 if experimental_defenders else 25,
+            "final_trigger_count": 31 if tactical_recovery else 29 if wave_reinforcements else 27 if city_guardposts else 26 if experimental_defenders else 25,
             "preflight": preflight,
             "experimental_defender_patch": defender_report,
             "experimental_city_guardposts": city_report,
             "experimental_all_map_defenses": all_maps_report,
             "experimental_wave_reinforcements": wave_report,
+            "experimental_tactical_recovery": recovery_report,
         }, indent=2) + "\n", encoding="utf-8")
 
         # Stage the final copy on the destination volume and replace atomically.
@@ -173,7 +185,7 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
                 if previous:
                     print(f"Previous module retained at {previous}")
     return {"module": str(out), "source_sha256": digest, "static_validation": "PASS", "experimental_defenders": experimental_defenders, "city_guardposts": city_guardposts, "all_map_defenses": all_map_defenses,
-            "wave_reinforcements": wave_reinforcements, "runtime_verified": False}
+            "wave_reinforcements": wave_reinforcements, "tactical_recovery": tactical_recovery, "runtime_verified": False}
 
 
 def main():
@@ -185,10 +197,12 @@ def main():
     parser.add_argument("--city-guardposts", action="store_true", help="Optional guarded City tactical post overlay")
     parser.add_argument("--all-map-defenses", action="store_true", help="Experimental original five-map tactical overlays; implies City posts")
     parser.add_argument("--wave-reinforcements", action="store_true", help="Replenish living defenders to requested cap once per new wave (requires all maps)")
+    parser.add_argument("--tactical-recovery", action="store_true", help="Fallback/regroup server AI with hysteresis (requires 3+ defenders and wave reinforcements)")
     args = parser.parse_args()
     try:
         print(json.dumps(build(args.archive, args.out, args.replace, args.experimental_defenders,
-                         args.city_guardposts, args.all_map_defenses, args.wave_reinforcements), indent=2))
+                         args.city_guardposts, args.all_map_defenses, args.wave_reinforcements,
+                         args.tactical_recovery), indent=2))
     except (RuntimeError, FileNotFoundError, FileExistsError, ValueError, subprocess.CalledProcessError) as exc:
         print(f"Build refused: {exc}", file=sys.stderr)
         raise SystemExit(2)
