@@ -18,7 +18,7 @@ import sys
 import zipfile
 from tactical_analysis import analyze_tactical_events
 from combat_analysis import analyze_combat_events
-from evidence_readiness import matrix_for_session, capability_snapshot
+from evidence_readiness import matrix_for_session, capability_snapshot, observed_server_invasion
 from city_incidents import incident_for_session
 
 SCHEMA = 1
@@ -452,9 +452,9 @@ def analyze(payload: dict[str, bytes]) -> dict:
     for event in events:
         if event.get("event") not in ("mission_enter", "heartbeat"):
             continue
-        fields = event.get("fields", {})
-        if fields.get("role") != "server":
+        if not observed_server_invasion(event):
             continue
+        fields = event.get("fields", {})
         scene = str(fields.get("scene", ""))
         normalized = scene[4:] if scene.startswith("scn_") else scene
         if re.fullmatch(r"tbfc_invasion_[1-5]", normalized):
@@ -474,7 +474,7 @@ def analyze(payload: dict[str, bytes]) -> dict:
                    "mismatch_observed" if expected_scene and
                    any(scene != expected_scene for scene in observed_scenes) else
                    "observed"),
-        "caveat": "Only explicit server-side scene fields are scene evidence; mission template and launcher intent do not count.",
+        "caveat": "Only explicit server-side invasion-template scene fields are scene evidence; launcher intent does not count.",
     }
     if expected_scene and any(scene != expected_scene for scene in observed_scenes):
         findings.append({
