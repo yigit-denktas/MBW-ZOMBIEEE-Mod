@@ -22,7 +22,7 @@ CLONES = (
 # Four weapon slots at most (including ammunition). Clothing remains equipped.
 LOADOUTS = (
     ("itm_m16a2", "itm_cartridges", "itm_cartridges", "itm_beretta_92fs",
-     "itm_leather_gloves", "itm_boots"),
+     "itm_police_uniform_a", "itm_leather_gloves", "itm_boots"),
     ("itm_remington_model_700", "itm_cartridges", "itm_cartridges",
      "itm_beretta_92fs", "itm_police_uniform_b", "itm_brogans_a"),
     ("itm_mp5", "itm_cartridges_1", "itm_cartridges_1", "itm_sw_5904",
