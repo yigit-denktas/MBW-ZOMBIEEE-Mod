@@ -111,7 +111,7 @@ def verified_flight(root: Path) -> tuple[dict, list[Path], bytes]:
         raise ValueError("Flight-recorder entry mismatch")
     for name, expected in hashes.items():
         if (not isinstance(name, str) or name.startswith("/")
-                or "\\\\" in name or ".." in Path(name).parts):
+                or "\\" in name or ".." in Path(name).parts):
             raise ValueError("Unsafe flight-recorder path")
         file = root / name
         if file.is_symlink() or not file.is_file() or sha256(file.read_bytes()) != expected:
@@ -151,7 +151,12 @@ def collect(game_root: Path | None, module: Path | None, output: Path,
         extra_logs = [*recorder_logs, *extra_logs]
     sources = candidate_logs(game_root, extra_logs)
     if flight is not None:
-        entries["flight_recorder.json"] = (json.dumps(flight, indent=2, sort_keys=True) + "\\n").encode()
+        # The external recorder's hashed snapshots are first-class evidence.
+        # Include them ahead of older auto-discovered engine logs.
+        snapshots = [p.resolve() for p in recorder_logs if p.is_file()]
+        sources = (snapshots + [p for p in sources if p not in snapshots])[:MAX_FILES]
+    if flight is not None:
+        entries["flight_recorder.json"] = (json.dumps(flight, indent=2, sort_keys=True) + "\n").encode()
         entries["flight_events.jsonl"] = flight_events
     if module:
         marker = module / "ZOMBIEEE_REMASTER.json"
