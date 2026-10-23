@@ -4,7 +4,7 @@
 
 ## What is recorded
 
-- Versioned ZDB1 events written by the Lua overlay to WSE2's existing engine log: startup, compiled trigger count, hook registration, invasion mission entry, host/client role, total agent count when supported, and a heartbeat every 15 seconds (maximum 480). The probe is read-only.
+- Versioned ZDB1 events written by the Lua overlay to WSE2's existing engine log: startup, compiled trigger count, hook registration, invasion mission entry, host/client role, total agent count and optional survivor team-0 / zombie team-1 counts when WSE2 exposes the team getter, and a heartbeat every 15 seconds (maximum 480). The probe is read-only.
 - Up to 25 existing engine logs from WSE2/Warband game and Documents folders, plus explicitly supplied custom logs. Last 8 MiB per log; source filenames, modification times and truncation are recorded.
 - OS version/architecture, Python version, remaster version, source archive SHA-256, WSE2 target, experimental defender count, and installed module file SHA-256 hashes (without distributing mod assets).
 - Session metadata, extracted events.jsonl, SHA-256 manifest, and integrity verification that rejects altered ZIP entries.
@@ -44,7 +44,15 @@ Pass comparison ZIP paths explicitly, in chronological order. Comparison reports
 | R014 | Wrong trigger count (25 original, 26 with experimental defenders) |
 | R015 | Logs older than seven days, potentially unrelated |
 | R016 | WSE2 Lua diagnostic hook failed to register |
+| R017 | Installed module manifest missing; cannot correlate build and runtime |
+| R018 | Experimental allied team absent across sampled server frames while zombies exist |
 
 **Conservative interpretation:** errors are evidence; an error-free report is inconclusive, not proof that zombies, friendly bots, waves, weapons, or multiplayer work. Final gameplay verification is still required once the implementation is complete.
 
 Local tests: python -m unittest discover -s tests -v. No CI. Original Beta 0.4 only; ZOMBIEEE2 excluded.
+
+## Team-count limitations
+
+The mission probe uses WSE2's documented agent iterator. If the optional native team getter is unavailable, team0/team1 are reported as -1, **not zero**. The analyzer records team-data availability and never diagnoses missing allies from unavailable metrics. When at least two server-side samples show team 0 empty while team 1 is populated, it flags a *candidate* ally-spawn issue (R018), not a proven cause. Bot combat competence, navigation and wave victory still require the final game session.
+
+The guarded installer also stores `archive_crc_verified`, `original_mission_trigger_count` and `final_trigger_count`. The evidence pack includes only allowlisted build metadata plus SHA-256 hashes of installed module files, so a later report can distinguish an unknown archive from a modified installation. None of the mod assets are included.
