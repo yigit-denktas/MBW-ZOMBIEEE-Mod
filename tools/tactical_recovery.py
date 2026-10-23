@@ -45,8 +45,11 @@ def recovery_trigger(globals_: dict[str, int], scenes: dict[int, int],
                      low_water: int = 1, high_water: int = 3) -> str:
     if not (0 <= low_water < high_water <= 8):
         raise PatchError("Require 0 <= low_water < high_water <= 8")
-    if set(scenes) != set(range(1, 6)) or len(set(scenes.values())) != 5:
-        raise PatchError("All five original invasion scene indices required")
+    supported = set(scenes)
+    if supported not in ({4}, set(range(1, 6))):
+        raise PatchError("Recovery requires original City only or all five map indices")
+    if len(set(scenes.values())) != len(scenes):
+        raise PatchError("Duplicate scene indices")
     local = [LOCAL_BASE + i for i in range(6)]
     conditions = [
         encode(417),  # server only
@@ -54,6 +57,11 @@ def recovery_trigger(globals_: dict[str, int], scenes: dict[int, int],
         encode(31, globals_["g_round_ended"], 0),
         encode(30, globals_["wave_number"], 1),
     ]
+    if supported == {4}:
+        conditions.extend([
+            encode(2211, LOCAL_BASE + 8),  # store current scene
+            encode(31, LOCAL_BASE + 8, SCENE_BASE + scenes[4]),
+        ])
     body = [
         encode(2133, local[0], 0),
         encode(12, local[1]),       # for agents
@@ -84,7 +92,7 @@ def recovery_trigger(globals_: dict[str, int], scenes: dict[int, int],
         encode(2211, local[4]),  # current scene
         encode(4),  # map switch
     ])
-    for index, map_number in enumerate(range(1, 6)):
+    for index, map_number in enumerate(sorted(scenes)):
         if index:
             body.append(encode(5))
         body.append(encode(31, local[4], SCENE_BASE + scenes[map_number]))
@@ -124,11 +132,13 @@ def patch_text(mission: str, variables: str, scenes: dict[int, int],
     return result, variables.rstrip("\r\n") + variable_newline + TACTICAL_GLOBAL + variable_newline
 
 
-def apply_module(module: Path, low_water: int = 1, high_water: int = 3) -> dict:
+def apply_module(module: Path, low_water: int = 1, high_water: int = 3,
+                 city_only: bool = False) -> dict:
     module = Path(module)
     mission_path, variables_path = module / "mission_templates.txt", module / "variables.txt"
+    chosen = (4,) if city_only else range(1, 6)
     scenes = {i: scene_index(module / "scenes.txt", f"scn_tbfc_invasion_{i}")
-              for i in range(1, 6)}
+              for i in chosen}
     original_m = mission_path.read_bytes()
     original_v = variables_path.read_bytes()
     changed_m, changed_v = patch_text(
@@ -142,6 +152,8 @@ def apply_module(module: Path, low_water: int = 1, high_water: int = 3) -> dict:
         raise
     return {
         "enabled": True,
+        "city_only": bool(city_only),
+        "scene_indices": scenes,
         "state_global": TACTICAL_GLOBAL,
         "low_water": low_water,
         "high_water": high_water,
