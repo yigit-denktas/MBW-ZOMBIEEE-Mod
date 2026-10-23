@@ -19,6 +19,7 @@ import zipfile
 
 SCHEMA = 1
 MAX_LOG_BYTES = 8 * 1024 * 1024
+HEAD_LOG_BYTES = 256 * 1024
 MAX_FILES = 25
 EVENT_PREFIX = "ZDB1|"
 LOG_NAMES = ("rgl_log.txt", "wse2_log.txt", "server_log.txt", "server_config.log", "crash.log")
@@ -135,13 +136,21 @@ def collect(game_root: Path | None, module: Path | None, output: Path,
         with path.open("rb") as fh:
             fh.seek(0, 2)
             length = fh.tell()
-            fh.seek(max(0, length - MAX_LOG_BYTES))
-            data = fh.read(MAX_LOG_BYTES)
+            if length > MAX_LOG_BYTES:
+                fh.seek(0)
+                head = fh.read(HEAD_LOG_BYTES)
+                fh.seek(length - (MAX_LOG_BYTES - HEAD_LOG_BYTES))
+                tail = fh.read(MAX_LOG_BYTES - HEAD_LOG_BYTES)
+                gap = length - MAX_LOG_BYTES
+                data = head + (f"\n[ZDB1-TRUNCATED {gap} BYTES BETWEEN HEAD AND TAIL]\n").encode() + tail
+            else:
+                fh.seek(0)
+                data = fh.read()
         text = scrub(data.decode("utf-8-sig", errors="replace"))
         stored = f"logs/log_{i+1:02d}.txt"
         entries[stored] = text.encode("utf-8")
         fileinfo.append({"file": stored, "source_kind": path.name.lower(),
-                         "original_bytes": length, "truncated_to_tail": length > MAX_LOG_BYTES,
+                         "original_bytes": length, "truncation": "head_and_tail" if length > MAX_LOG_BYTES else "none",
                          "modified_utc": datetime.fromtimestamp(path.stat().st_mtime, timezone.utc).isoformat()})
     event_records = []
     for info in fileinfo:
