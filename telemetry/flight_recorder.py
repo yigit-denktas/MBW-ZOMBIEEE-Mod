@@ -21,6 +21,7 @@ import threading
 import time
 
 from .privacy import scrub
+from .identity import process_start_identity
 
 SCHEMA = "zombieee.flight.v1"
 MAX_LOG_BYTES = 2 * 1024 * 1024
@@ -221,7 +222,8 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
                    launcher_receipt: Path | None = None,
                    attempt_id: str = "1", passive: bool = False,
                    recorder_start_id: str | None = None,
-                   control_key: bytes | None = None) -> dict:
+                   control_key: bytes | None = None,
+                   simulation: bool = False) -> dict:
     if not SESSION_PATTERN.fullmatch(session_id) or session_id in (".", ".."):
         raise ValueError("Invalid session ID")
     if not SESSION_PATTERN.fullmatch(attempt_id) or attempt_id in (".", ".."):
@@ -354,6 +356,9 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
 
     attached = False
     attached_pids: list[int] = []
+    attached_start_identities: dict[int, str | None] = {}
+    pid_identity_uncertain = False
+    pid_reuse_suspected = False
     premature_stop_reported = False
     last_control_hash = {}
 
@@ -457,6 +462,8 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
                     ):
                         attached = True
                         attached_pids = allowed
+                        attached_start_identities = {pid: process_start_identity(pid) for pid in allowed}
+                        pid_identity_uncertain = any(value is None for value in attached_start_identities.values())
                         event("process_attached", claimed_process_count=len(allowed),
                               alive_process_count=sum(alive(pid) is True for pid in allowed))
                         atomic_write(root / "recorder-attachment-ack.json", json_bytes({
@@ -474,11 +481,21 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
                     # B must stop *its* game processes first. C independently
                     # declines to seal an apparently live/unknown process;
                     # a signed early stop remains retryable after game exit.
+                    # A new process can reuse the old PID. Compare its locally
+                    # observed start identity without altering v1 wire fields.
+                    # We never claim that an externally owned PID implies
+                    # ownership, an exit code or successful gameplay.
+                    for pid in attached_pids:
+                        before = attached_start_identities.get(pid)
+                        now_identity = process_start_identity(pid)
+                        if before is not None and now_identity is not None and before != now_identity:
+                            pid_reuse_suspected = True
                     running = [pid for pid in attached_pids if alive(pid) is not False]
-                    if running:
+                    if running or pid_reuse_suspected:
                         if not premature_stop_reported:
                             event("control_rejected", kind="stop",
-                                  reason="game_process_not_confirmed_exited")
+                                  reason=("pid_reuse_suspected" if pid_reuse_suspected
+                                          else "game_process_not_confirmed_exited"))
                             premature_stop_reported = True
                         last_control_hash.pop("stop", None)
                     else:
@@ -535,6 +552,10 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
         event("process_finished", outcome=outcome, exit_code=exit_code)
         safe = {
             "schema": SCHEMA, "session_id": session_id, "attempt_id": attempt_id,
+            "simulation": bool(simulation), "game_runtime": "unknown",
+            "pid_start_identity_status": ("reused_suspected" if pid_reuse_suspected else
+                                          "unknown" if (not attached or pid_identity_uncertain) else
+                                          "measured_at_attachment"),
             "watch_mode": "passive" if passive else "owned_child" if child is not None else "external_pid",
             "start_utc": began, "end_utc": end, "outcome": outcome,
             "exit_code": exit_code if child is not None else None,
@@ -596,6 +617,7 @@ def main() -> int:
     p.add_argument("--session", required=True)
     p.add_argument("--attempt", default="1", help="Opaque launcher retry ID")
     p.add_argument("--passive", action="store_true", help="Arm before B starts game; local attachment/stop control")
+    p.add_argument("--simulation", action="store_true", help="Mark fake-process experiment only; never imply WSE2 run")
     p.add_argument("--recorder-start-id", help="B-supplied opaque process-start correlation")
     # B supplies this only in the spawned recorder's private environment.
     # Never persist or print it, and never pass it to an owned game child.
@@ -620,7 +642,8 @@ def main() -> int:
                                 attempt_id=args.attempt,
                                 passive=args.passive,
                                 recorder_start_id=args.recorder_start_id,
-                                control_key=control_key)
+                                control_key=control_key,
+                                simulation=args.simulation)
         print(json.dumps(result, indent=2))
         return 0 if result["outcome"] in ("exited", "disappeared_exit_code_unknown",
                                            "stopped", "stopped_without_attachment") else 2
