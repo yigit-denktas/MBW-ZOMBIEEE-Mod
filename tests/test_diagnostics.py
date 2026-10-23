@@ -111,6 +111,24 @@ class DiagnosticsTests(unittest.TestCase):
             self.assertEqual(manifest["sha256"]["events.jsonl"],
                              hashlib.sha256(files["events.jsonl"]).hexdigest())
 
+    def test_oversized_log_retains_boot_and_crash(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            game = root / "game"
+            game.mkdir()
+            text = ("ZDB1|boot|triggers=26\n" + "harmless filler\n" * 610000 +
+                    "FATAL ERROR: ACCESS VIOLATION\n")
+            (game / "rgl_log.txt").write_text(text, encoding="utf-8")
+            bundle = root / "oversized.zip"
+            collect(game, None, bundle, [])
+            files = read_bundle(bundle)
+            log = files["logs/log_01.txt"].decode()
+            self.assertIn("ZDB1|boot|triggers=26", log)
+            self.assertIn("FATAL ERROR", log)
+            self.assertIn("ZDB1-TRUNCATED", log)
+            metadata = json.loads(files["session.json"])
+            self.assertEqual(metadata["files"][0]["truncation"], "head_and_tail")
+
     def test_compare_reports_resolved_faults(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
