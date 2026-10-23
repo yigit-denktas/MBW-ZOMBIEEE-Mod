@@ -76,7 +76,7 @@ def _clone_record(rows: list[str], start: int, stop: int,
     if len(record) < 6 or not record[0].startswith("trp_"):
         raise PatchError("Unexpected troop record structure")
     header = record[0].split()
-    if len(header) < 11:
+    if len(header) < 10:
         raise PatchError("Malformed troop header")
     header[:3] = [new_name, new_name[4:].upper(), new_name[4:].upper()]
     copied = list(record)
