@@ -81,7 +81,7 @@ def build_hotkey(key: int, counter: int, effect: str) -> str:
 
 def patch_text(mission: str, variables: str) -> tuple[str, str]:
     existing = variables.splitlines()
-    if len(existing) != 1222 or existing[-1] != "zdr_defence_mode":
+    if len(existing) != 1223 or existing[-1] != "zdr_defence_mode":
         raise PatchError("Private commands require the 31-trigger tactical-recovery build")
     if any(name in existing for name in COUNTERS):
         raise PatchError("Private command counters already installed")
