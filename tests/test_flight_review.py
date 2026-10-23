@@ -53,7 +53,7 @@ class AgentAReviewTests(unittest.TestCase):
             script = (
                 "import json,pathlib,os,sys;"
                 "ready=json.loads(pathlib.Path(sys.argv[1]).read_text());"
-                "assert ready['schema']=='zombieee.recorder_ready.v1';"
+                "assert ready['schema']=='zombieee.recorder-ready.v1';"
                 "assert ready['attempt_id']=='attempt-03';"
                 "assert ready['log_offsets_captured'] is True;"
                 "assert ready['engine_ready'] is False;"
