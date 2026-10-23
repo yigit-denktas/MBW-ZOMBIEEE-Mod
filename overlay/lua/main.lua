@@ -80,6 +80,10 @@ local function state_fields()
         .. "|round=" .. global_int("g_round_ended")
         .. "|mode=" .. global_int("zdr_defence_mode")
         .. "|refilled=" .. global_int("zdr_last_reinforced_wave")
+        -- These are engine global reads, NOT inferred from source receipt.
+        -- -1 means getter unavailable / pre-round-aware build.
+        .. "|round_start=" .. global_int("g_round_start_time")
+        .. "|refilled_round_start=" .. global_int("zdr_last_reinforced_round_start")
         .. "|cmdheal=" .. global_int("zdr_cmd_heal")
         .. "|cmdammo=" .. global_int("zdr_cmd_ammo")
         .. "|cmdsquad=" .. global_int("zdr_cmd_squad")
@@ -188,7 +192,9 @@ local function heartbeat()
             .. "|template=" .. current_mission() .. state_fields())
         if role == "server" then
             if wave >= 0 and wave ~= previous_wave then
-                emit("wave_change", "|wave=" .. wave .. "|mode=" .. mode)
+                emit("wave_change", "|role=server|wave=" .. wave .. "|mode=" .. mode
+                     .. "|round_start=" .. global_int("g_round_start_time")
+                     .. "|refilled_round_start=" .. global_int("zdr_last_reinforced_round_start"))
                 previous_wave = wave
             end
             if mode >= 0 and mode ~= previous_mode then
