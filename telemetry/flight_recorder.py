@@ -67,9 +67,14 @@ def safe_launcher_receipt(path: Path | None) -> dict | None:
     clean = {}
     for key in RECEIPT_KEYS:
         value = raw.get(key)
-        if value is None or isinstance(value, (str, int, float, bool)):
-            # Redact unexpected identifiers even in allowlisted text fields.
-            clean[key] = scrub(value) if isinstance(value, str) else value
+        if value is None:
+            clean[key] = None
+        elif isinstance(value, str):
+            if len(value) > 256:
+                raise ValueError("Oversized launcher receipt field")
+            clean[key] = scrub(value)
+        elif isinstance(value, (int, float, bool)):
+            clean[key] = value
     return clean
 
 
@@ -87,17 +92,13 @@ def alive(pid: int) -> bool | None:
 
 
 def child_metrics() -> dict:
-    """Only publish measured child usage, never estimated Windows CPU/RAM."""
-    try:
-        import resource  # unavailable on standard Windows Python
-        usage = resource.getrusage(resource.RUSAGE_CHILDREN)
-        return {
-            "cpu_seconds": round(usage.ru_utime + usage.ru_stime, 3),
-            "peak_memory_kib": usage.ru_maxrss if sys.platform.startswith("linux") else None,
-            "source": "resource.RUSAGE_CHILDREN",
-        }
-    except (ImportError, OSError, ValueError):
-        return {"cpu_seconds": None, "peak_memory_kib": None, "source": "unavailable"}
+    """Do not report cumulative system/other-child metrics as game usage.
+
+    A future OS-specific sampler may populate these values only when it has
+    measured the owned process itself. A null is deliberately 'unknown'.
+    """
+    return {"cpu_seconds": None, "peak_memory_kib": None,
+            "source": "per-process-sampler-unavailable"}
 
 
 def record_session(output_root: Path, session_id: str, logs: list[Path],
@@ -186,9 +187,14 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
         if command is not None:
             if not command:
                 raise ValueError("Empty child command")
-            child = subprocess.Popen(command, stdin=subprocess.DEVNULL,
-                                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                                     shell=False)
+            try:
+                child = subprocess.Popen(command, stdin=subprocess.DEVNULL,
+                                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                                         shell=False)
+            except OSError as exc:
+                outcome = "start_failed"
+                event("process_start_failed", error_type=type(exc).__name__)
+                raise
             event("process_started", owned=True)
         else:
             event("process_observed", owned=False,
@@ -231,6 +237,7 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
             "exit_code_observed": child is not None and exit_code is not None,
             "log_count": len(source_paths), "log_bytes_limit_each": max_log_bytes,
             "log_truncated": truncated, "event_count": len(events),
+            "duration_seconds": round(time.monotonic() - start, 3),
             "event_drops": event_drops,
             "metrics": child_metrics() if child is not None else {
                 "cpu_seconds": None, "peak_memory_kib": None, "source": "unavailable"},
@@ -262,6 +269,8 @@ def verify_recording(root: Path) -> dict:
     for name, h in expected.items():
         if name.startswith("/") or "\\" in name or ".." in Path(name).parts:
             raise ValueError("Unsafe recorder manifest path")
+        if (root / name).is_symlink():
+            raise ValueError("Unsafe recorder manifest symlink")
         if digest((root / name).read_bytes()) != h:
             raise ValueError("Recorder SHA-256 integrity failure: " + name)
     receipt = json.loads((root / "recorder.json").read_text(encoding="utf-8"))
