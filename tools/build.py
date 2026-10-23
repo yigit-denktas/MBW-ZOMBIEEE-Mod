@@ -25,6 +25,7 @@ from solo_assist import apply_module as apply_solo_assist
 from private_commands import apply_module as apply_private_commands
 from difficulty import profile, PROFILES
 from archive_audit import inspect_original_archive
+from city_acceptance import audit_city
 
 ROOT = Path(__file__).resolve().parent.parent
 ORIGINAL_SHA256 = "9be100ff41ce6f8ebadd4aa27377f70f402883fab271999a8cab8cc1da001d1e"
@@ -137,6 +138,21 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         if not preflight["ok"]:
             raise RuntimeError("Mission/resource preflight failed: " +
                                str(preflight.get("problems", preflight.get("error"))))
+        # Preserve a minimal, private source evidence copy BEFORE applying
+        # any gameplay overlay. The stage and evidence are both deleted on
+        # failure; original user files remain untouched. Use this for the
+        # complete City tactical profile, including optional host controls.
+        audit_city_profile = city_guardposts and tactical_recovery and not all_map_defenses
+        original_evidence = None
+        if audit_city_profile:
+            original_evidence = stage / "original-city-evidence"
+            (original_evidence / "SceneObj").mkdir(parents=True)
+            for name in ("mission_templates.txt", "scenes.txt", "variables.txt"):
+                shutil.copy2(source / name, original_evidence / name)
+            for n in range(1, 6):
+                scene_name = f"scn_tbfc_invasion_{n}.sco"
+                shutil.copy2(source / "SceneObj" / scene_name,
+                             original_evidence / "SceneObj" / scene_name)
         apply_overlay(source)
         balanced = defender_loadouts == "balanced-ai"
         loadout_report = apply_balanced_ai_loadouts(source) if balanced else None
@@ -178,6 +194,17 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
             updated = report_for_module(source)
             if not updated["ok"] or updated["mission"]["triggers"] != 31:
                 raise RuntimeError("Tactical recovery failed static post-apply validation")
+        # Fail closed on a structurally damaged City patch BEFORE adding the
+        # optional private controls. At this point the complete native City
+        # build must have 31 triggers. The checker also ensures that the
+        # original 25 triggers, all four non-City scenes, and the canonical
+        # City SCO geometry still match the original source.
+        city_static_report = None
+        if audit_city_profile:
+            city_static_report = audit_city(source, original_evidence)
+            if not city_static_report["city_accepted"]:
+                raise RuntimeError("City static acceptance failed: " +
+                                   ", ".join(city_static_report["problems"]))
         solo_report = None
         if solo_assist:
             solo_report = apply_solo_assist(source)
@@ -201,6 +228,10 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
             "runtime_verified": False,
             "archive_crc_verified": True,
             "archive_identity": identity,
+            "city_static_acceptance": ({"checks": city_static_report["checks"],
+                "city_overlay_expected_sha256": city_static_report.get("city_overlay_expected_sha256"),
+                "city_overlay_actual_sha256": city_static_report.get("city_overlay_actual_sha256"),
+                "runtime_verified": False} if city_static_report else None),
             "original_mission_trigger_count": preflight["mission"]["triggers"],
             "final_trigger_count": (31 if tactical_recovery else 29 if wave_reinforcements else 27 if city_guardposts else 26 if experimental_defenders else 25) + int(solo_assist) + (4 if private_commands else 0),
             "preflight": preflight,
