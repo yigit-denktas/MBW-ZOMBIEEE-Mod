@@ -42,6 +42,10 @@ def scrub(text: str) -> str:
     text = re.sub(r"\b[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}\b", "<EMAIL>", text)
     text = re.sub(r"(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?::\d{1,5})?(?![\d.])", "<IP_ADDRESS>", text)
     text = re.sub(r"(?i)\b(?:Bearer\s+)[A-Za-z0-9._~+/\-]{12,}", "Bearer <REDACTED>", text)
+    text = re.sub(r"(?im)^.*(?:\b(?:global|team|private)[ _-]?chat\b|\bchat(?:_message)?\s*[:=]|\[chat\]).*$",
+                  "[REDACTED CHAT]", text)
+    text = re.sub(r"(?i)\b(password|passwd|token|api[_-]?key|auth[_-]?token)\s*[:=]\s*[\w.+/~\-]{3,}",
+                  r"\1=<REDACTED>", text)
     return text
 
 
