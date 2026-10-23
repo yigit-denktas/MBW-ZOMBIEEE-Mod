@@ -28,3 +28,7 @@
 ## Coordination update 2026-10-23
 
 Three implementation lanes were created from v0.1.8 `main`, with [stable ownership and critical path](agent-handoff.md). Agent A coordinates engine/integration (12 leaves including the optional deferred map), B owns Windows/solo installation (7), C owns telemetry/forensics/QA evidence (5). Six original issues remain; #8/#9 were added for B's new work. The required City release no longer depends on optional `ZOM-MAP-01`. This is delegation/preparation, not game acceptance.
+
+## Integration review status — 2026-10-23
+
+Agent B opened [PR #11](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11) (discovery, inert install plan and simulated host), with **B-reported** 97/127 tests passed, 30 asset skips. Agent C opened [PR #12](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12) (crash recorder and forensic report), with code/tests committed but tests explicitly not executed. Agent A reviewed both; startup-recorder ordering, reliable crash tail, symlink safety and test execution remain blocking. No PR merged and no City gameplay acceptance awarded. See [coordination board](agent-handoff.md).

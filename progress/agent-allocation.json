@@ -15,7 +15,8 @@
     "branchesFrom": "main at 048564a526de9b36abd55874271c7b80f36e5cf5",
     "approval": "Agents may implement/review in own branch; no blind automatic merge, no CI, no Pages edits by agents B/C.",
     "updates": "Only Agent A edits progress/ledger.json and republishes public gh-pages snapshot after scope/evidence review; others propose updates in PR.",
-    "privacy": "Never commit original RAR, game assets, Windows user paths, logs containing identity, secrets or private readiness assessments."
+    "privacy": "Never commit original RAR, game assets, Windows user paths, logs containing identity, secrets or private readiness assessments.",
+    "integrationRule": "No merge PR #10/#11/#12 until exact branch suite is exercised and identified blockers fixed. Merge then as offline implementation only, never release acceptance."
   },
   "lanes": {
     "A": {
@@ -104,6 +105,11 @@
       "existingIssues": [
         8,
         9
+      ],
+      "currentNext": [
+        "B-1: recorder-ready handshake before game process; tests for start failure/stale marker",
+        "B-2: host-ready vs joined vs actual mission entered; preserve unknown runtime outcome",
+        "B-3: raw path and reparse safety before reversible installation, fixture tests"
       ]
     },
     "C": {
@@ -148,6 +154,11 @@
       ],
       "existingIssues": [
         6
+      ],
+      "currentNext": [
+        "C-1: bounded head+tail crash evidence with explicit gap metadata",
+        "C-2: versioned recorder-ready acknowledgement for B's state machine",
+        "C-3: executed offline tests + reject ancestor symlinks in verified evidence"
       ]
     }
   },
@@ -190,5 +201,53 @@
       ],
       "userAction": "Owner acceptance after evidence"
     }
-  ]
+  ],
+  "integrationReviews": {
+    "PR11": {
+      "branch": "agent/b-windows-launcher",
+      "head": "d096c21f43d6ed0988e2d4a0ebd669eaad48f24c",
+      "reviewedOn": "2026-10-23",
+      "status": "changes-needed",
+      "reportedTests": {
+        "total": 127,
+        "pass": 97,
+        "skipped": 30,
+        "independentlyReproduced": false
+      },
+      "blockers": [
+        "recorder not ready before game launch",
+        "listen host ready incorrectly means playing",
+        "symlink/junction raw game root not reliably rejected"
+      ],
+      "reviewComment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11#issuecomment-6373896560",
+      "safeToMerge": false
+    },
+    "PR12": {
+      "branch": "agent/c-flight-recorder",
+      "head": "e069c59d10352f363161e15eda3fad86e2c4bcc2",
+      "reviewedOn": "2026-10-23",
+      "status": "changes-needed",
+      "reportedTests": {
+        "executed": false
+      },
+      "blockers": [
+        "first-only log cap omits late crash text",
+        "missing recorder-ready handshake",
+        "ancestor-directory symlink/reparse protection requires tests"
+      ],
+      "reviewComment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12#issuecomment-6373897277",
+      "safeToMerge": false
+    },
+    "PR10": {
+      "branch": "agent/a-city-engine",
+      "head": "542da76da1381734ebd59ef8a32ff1b2b9818ecd",
+      "status": "draft-tests-pending",
+      "safeToMerge": false
+    },
+    "PR7": {
+      "branch": "project-record-setup-v041",
+      "status": "draft-toolkit-validation-pending",
+      "safeToMerge": false
+    }
+  }
 }

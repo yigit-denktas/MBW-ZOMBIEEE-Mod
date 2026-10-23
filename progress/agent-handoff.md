@@ -36,3 +36,18 @@ The owner has approved **City first** and autonomous coding delegation; readines
 - No verified WSE2/Warband runtime session yet; loader semantics, multiplayer host initiation and Lua APIs remain unknown.
 - Browser interaction/screen-reader accessibility beyond static checks has not yet been demonstrated; Pages content is public and its JSON fetched successfully.
 - Installer redistribution permissions, original OSP assets and final user-local repair prompts need explicit evidence.
+
+## Code review and next tasks — 2026-10-23
+
+| PR | Lane | Evidence | Current merge decision | Immediate next tasks |
+| --- | --- | --- | --- | --- |
+| [#10](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/10) | A | Source integrity and City native guard code; complete branch offline tests outstanding | **Hold** | Execute full City-only compiled patch suite, check integration contracts |
+| [#11](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11) | B | **B-reported** 97 passes, 30 asset skips; fixture-only process lifecycle | **Changes required** | Recorder ready **before** host/client; host-ready distinct from joined; raw game-root junction safety |
+| [#12](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12) | C | Flight recorder and ZIP analyzer; author explicitly says tests not run | **Changes required** | Bounded crash tail; recorder-ready acknowledgment; validate symlink ancestors and run full test suite |
+| [#7](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/7) | tracking | Published public Pages view; v0.4.1 release ZIP not independently verified | **Hold** | Complete toolkit verification and record integrity before merge |
+
+[Review #11](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11#issuecomment-6373896560) · [Review #12](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12#issuecomment-6373897277) · [B issue #8](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/8) · [B issue #9](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/9) · [C issue #6](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6).
+
+**Critical interface handshake, jointly B/C:** B starts recorder only, receives C-issued versioned readiness for the correct session/attempt after durable log offsets are captured, *then* starts the game. Host-ready/client-joined/mission-entered are separate observations. Recorder remains alive until all owned child processes exit. Unknown stays unknown. No Windows game claims are supported by mocked events.
+
+Status remains **0/23 required City outcome leaves accepted, 0/5 milestones accepted**. Code review labels and active prototypes never increase acceptance. The other four maps remain optional/deferred.
