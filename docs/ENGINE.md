@@ -1,3 +1,7 @@
+## Current 2026-10-24 native state contract
+
+The latest **140/140 local original-asset tests** cover the source-derived original Invasion mode **7** and a new **round-aware** wave-top-up guard: `g_round_start_time` plus `wave_number`. Append-only globals: `zdr_last_reinforced_wave`, `zdr_last_reinforced_round_start`, `zdr_defence_mode`, yielding **1,223 globals (City core)** / **1,226 globals (private hotkeys)**. Full City 25→26→27→29→31→35 replay passes without WSE2 execution; all prior 131/134/139 test counts are historical. See [round-aware source verification](../reference/CITY_ROUND_AWARE_REINFORCEMENT_2026-10-24.md). A clean static receipt **never** substitutes for live wave/AI observation.
+
 
 ## Current integration checkpoint — 2026-10-24 (supersedes earlier unverified test notes)
 
