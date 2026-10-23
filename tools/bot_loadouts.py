@@ -41,9 +41,19 @@ def index_items(text: str) -> dict[str, int]:
     except ValueError as exc:
         raise PatchError("Invalid item count") from exc
     names = [line.split()[0] for line in lines if line.lstrip().startswith("itm_")]
-    if declared != SOURCE_ITEM_COUNT or len(names) != declared or len(set(names)) != len(names):
-        raise PatchError("Items are missing, changed or duplicated")
-    return {name: i for i, name in enumerate(names)}
+    if declared != SOURCE_ITEM_COUNT or len(names) != declared:
+        raise PatchError("Original item table count has changed")
+    # The 2012 release itself contains 16 duplicate item identifiers. Their
+    # positional numeric IDs are canonical; never deduplicate or renumber them.
+    # Require only selected defender equipment to have an unambiguous ID.
+    selected = {name for loadout in LOADOUTS for name in loadout}
+    for name in selected:
+        if names.count(name) != 1:
+            raise PatchError("Missing or ambiguous defender item: " + name)
+    mapping = {}
+    for i, name in enumerate(names):
+        mapping.setdefault(name, i)
+    return mapping
 
 
 def _parse_troops(text: str):
