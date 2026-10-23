@@ -12,7 +12,7 @@ State changes once per transition to avoid thrashing and order spam.
 from pathlib import Path
 from patch_defenders import PatchError, mission_bounds
 from city_defense import scene_index, SCENE_BASE, POS_BASE, DIVISIONS
-from wave_reinforcements import GLOBAL_BASE, LOCAL_BASE, SENTINEL
+from wave_reinforcements import GLOBAL_BASE, LOCAL_BASE, SENTINEL, INVASION_GAME_TYPE
 
 TACTICAL_GLOBAL = "zdr_defence_mode"
 EXPECTED_PREVIOUS_GLOBALS = 1221
@@ -53,7 +53,7 @@ def recovery_trigger(globals_: dict[str, int], scenes: dict[int, int],
     local = [LOCAL_BASE + i for i in range(6)]
     conditions = [
         encode(417),  # server only
-        encode(31, globals_["g_multiplayer_game_type"], 6),  # Invasion
+        encode(31, globals_["g_multiplayer_game_type"], INVASION_GAME_TYPE),  # original Invasion
         encode(31, globals_["g_round_ended"], 0),
         encode(30, globals_["wave_number"], 1),
     ]
