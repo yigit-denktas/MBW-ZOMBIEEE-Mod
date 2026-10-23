@@ -377,7 +377,7 @@ RULES = (
     ("R003", "high", re.compile(r"(?i)(script error|invalid opcode|illegal operation|stack overflow|invalid troop|invalid agent)"), "Compiled script or operation error", "Locate the first failing opcode and its associated mission trigger."),
     ("R004", "high", re.compile(r"(?i)(error.*lua|lua.*error|main\.lua:\d+)"), "WSE2 Lua startup or trigger failure", "Inspect bootstrap and WSE2 Lua support/version."),
     ("R005", "medium", re.compile(r"(?i)(missing (?:texture|sound|mesh|resource)|could not load (?:texture|sound))"), "Missing media reference", "Inspect resource paths and original archive integrity."),
-    ("R030", "high", re.compile(r"(?i)\\binvalid\\s+faction\\s+id\\s*:\\s*-1\\b"),
+    ("R030", "high", re.compile(r"(?i)\binvalid\s+faction\s+id\s*:\s*-1\b"),
      "Engine reported invalid faction ID (-1)",
      "Review the exact local WSE2 mission/trigger/opcode context and compare the pinned original with the staged remaster. A log match alone cannot establish root cause or effect on waves."),
 )
