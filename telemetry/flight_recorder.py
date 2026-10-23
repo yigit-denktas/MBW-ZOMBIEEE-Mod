@@ -372,6 +372,7 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
             if thread.is_alive():
                 output_capture_complete = False
         pipe_omitted = {}
+        pipe_scrub_omitted = {}
         for name, stream in pipe_buffers.items():
             # If a descendant keeps an inherited pipe open, this is a
             # partial capture; do not certify it complete.
@@ -379,11 +380,13 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
                 saved, omitted = stream.snapshot()
                 clean, scrub_extra = scrub_bounded(saved, max_log_bytes)
                 atomic_write(root / "logs" / (name + ".txt"), clean)
-                pipe_omitted[name] = omitted + scrub_extra
+                pipe_omitted[name] = omitted
+                pipe_scrub_omitted[name] = scrub_extra
                 if omitted:
                     event("process_output_truncated", stream=name, omitted_bytes=omitted)
             else:
                 pipe_omitted[name] = 0
+                pipe_scrub_omitted[name] = 0
         end = utcnow()
         event("process_finished", outcome=outcome, exit_code=exit_code)
         safe = {
@@ -395,6 +398,7 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
             "log_truncated": truncated, "log_omitted_bytes": omitted_bytes,
             "post_redaction_log_omitted_bytes": scrub_omitted_bytes,
             "process_output_omitted_bytes": pipe_omitted,
+            "post_redaction_output_omitted_bytes": pipe_scrub_omitted,
             "process_output_capture_complete": output_capture_complete,
             "log_seen_bytes": seen_bytes, "event_count": len(events),
             "duration_seconds": round(time.monotonic() - start, 3),
