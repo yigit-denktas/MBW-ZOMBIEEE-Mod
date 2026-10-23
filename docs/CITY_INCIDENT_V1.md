@@ -27,6 +27,17 @@ selected local module and allowlists only these bounded City fields:
   control mode, which attests A's post-control source consistency.
 - `experimental_map_scope=city-only` and existing safe build flags.
 
+The ZIP keeps the original static audit's bounded numeric `check_count`,
+`passed_checks`, `failed_checks`, `checks_valid` and **one**
+`all_checks_passed` boolean. The incident report does **not** confuse that
+single summary bit with the number of original source checks. It validates
+integer types (excluding booleans), positive bounded counts, exact
+passed+failed totals, and agreement between the summary bit and the failures.
+Malformed or inconsistent summaries produce `source_check_failed`,
+`static_summary_consistent=false` and no accepted source claim. Such data
+cannot be promoted to independent verification even if a ZIP's SHA-256
+manifest is internally consistent.
+
 It deliberately **discards raw checks, raw problems, filenames, local source
 paths, raw command lines and private process IDs**. A complete set of
 self-reported source receipts yields `build.source_receipt_claims_passed=true`,
