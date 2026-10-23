@@ -9,7 +9,8 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools'))
 from ai_wave_contract import decode_trigger, inspect_city_ai
-from wave_reinforcements import INVASION_GAME_TYPE, GLOBAL_BASE, WAVE_CHANGED
+from wave_reinforcements import (INVASION_GAME_TYPE, GLOBAL_BASE, WAVE_CHANGED,
+                                 ROUND_STAMP, ROUND_OR_WAVE_CHANGED)
 from patch_defenders import patch_file, mission_bounds
 from city_defense import apply_module as apply_city
 from wave_reinforcements import apply_module as apply_wave
@@ -125,19 +126,35 @@ class OriginalInvasionModeTests(unittest.TestCase):
     def test_reinforcement_guard_handles_second_round_before_previous_max(self):
         g_wave = GLOBAL_BASE + self.old_vars.index('wave_number')
         g_last = GLOBAL_BASE + self.new_vars.index('zdr_last_reinforced_wave')
+        g_round = GLOBAL_BASE + self.old_vars.index('g_round_start_time')
+        g_stamp = GLOBAL_BASE + self.new_vars.index(ROUND_STAMP)
         conditions, effects = decode_trigger(self.after[28])
+        self.assertIn((ROUND_OR_WAVE_CHANGED, (g_round, g_stamp)), conditions)
         self.assertIn((WAVE_CHANGED, (g_wave, g_last)), conditions)
         self.assertIn((2133, (g_last, g_wave)), effects)
-        sentinel = 0
+        self.assertIn((2133, (g_stamp, g_round)), effects)
+        sentinel, last_round = 0, -1
         attempts = []
         # The original mission resets wave_number to zero between rounds.
-        # With a GT guard, round 2 wave 2/3 would be skipped after round 1 wave 4.
+        # Crucial equal-last-wave case: each round can end at the same wave.
         for round_number, wave in [(1, 2), (1, 2), (1, 3), (1, 4),
-                                   (2, 0), (2, 1), (2, 2), (2, 2), (2, 3)]:
-            if wave >= 2 and wave != sentinel:
-                sentinel = wave
+                                   (2, 0), (2, 1), (2, 2), (2, 2), (2, 3),
+                                   (3, 0), (3, 2), (3, 2)]:
+            if wave >= 2 and (round_number != last_round or wave != sentinel):
+                sentinel, last_round = wave, round_number
                 attempts.append((round_number, wave))
-        self.assertEqual(attempts, [(1, 2), (1, 3), (1, 4), (2, 2), (2, 3)])
+        self.assertEqual(attempts, [(1, 2), (1, 3), (1, 4), (2, 2),
+                                    (2, 3), (3, 2)])
+
+    def test_missing_round_identity_guard_is_rejected(self):
+        round_start = GLOBAL_BASE + self.old_vars.index('g_round_start_time')
+        stamp = GLOBAL_BASE + self.new_vars.index(ROUND_STAMP)
+        marker = f'{ROUND_OR_WAVE_CHANGED} 2 {round_start} {stamp}'
+        changed = self.after.copy()
+        self.assertIn(marker, changed[28])
+        changed[28] = changed[28].replace(marker,
+            f'{WAVE_CHANGED} 2 {round_start} {stamp}', 1)
+        self.assertFalse(self.inspect(new=changed)['checks']['reinforcement_once_per_wave'])
 
     def test_old_strict_gt_guard_is_rejected(self):
         g_wave = GLOBAL_BASE + self.old_vars.index('wave_number')
