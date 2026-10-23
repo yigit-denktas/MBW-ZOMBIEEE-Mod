@@ -8,3 +8,23 @@
 WSE2 is a third-party modified runtime, **not** a successor official Warband game release and not Bannerlord. The target version is pinned for reproducibility and may be updated after regression testing.
 
 The old mod's Python `module_*.py` source was not included. Prefer reversible overlays, Lua instrumentation and selective reconstruction. Mod compatibility with WSE2, scene loading, actual bot spawning and wave completion remain **unverified** until recorded in Windows gameplay evidence. Do not infer performance benefits solely from the engine's changelog.
+
+## Agent A: original archive + compiled native preflight (offline evidence only)
+
+The first integration slice adds `tools/archive_audit.py`, a read-only identity/CRC probe for the historical 2012 Beta 0.4 source. It checks RAR4 signature, file size and SHA-256 (pinned in `reference/ARCHIVE.txt`) without copying assets. Its `--verify-crc` mode runs an optional Windows 7-Zip member integrity test and **never extracts the RAR**.
+
+```powershell
+# Identity only (works without 7-Zip; not a full member CRC test)
+py -3 tools\archive_audit.py --archive "C:\Downloads\ZOMBIEEEBeta04.rar" --json
+
+# Full member CRC with installed 7-Zip. Returns status=verified only after exit code 0.
+py -3 tools\archive_audit.py --archive "C:\Downloads\ZOMBIEEEBeta04.rar" --verify-crc --json
+```
+
+Machine-readable outcomes distinguish `identity_ok` from `crc_status: not_checked | verified | failed | unavailable | timeout | blocked_identity`. The output omits full filesystem paths and 7-Zip raw stdout. `tools/build.py` now uses the shared identity inspector before invoking the existing 7-Zip CRC/extraction sequence and stores the identity result in the installed build receipt. No game file or 2012 asset is published.
+
+The mission preflight now also decodes the **complete compiled operation arities** for each condition and consequence, instead of trusting trigger header timing/count alone. This helps catch truncated native script bodies **before** attempting to start WSE2. It is still a static parser, not a validator of every native opcode's semantics.
+
+**Evidence currently available:** the locally provided source archive matched RAR4 signature, expected 167,493,071 bytes and pinned SHA-256. A standalone copy of this preflight decoded the supplied partially extracted original `mst_multiplayer_iv` as 64 entries, 25 native triggers and 30/30 nonempty mod BRFs. Synthetic tests passed for invalid body arity, wrong archive hash/signature, missing 7-Zip and CRC error/timeout handling.
+
+**Unverified and blocking:** a full original-member `7z t` run (7-Zip not available in this development container); a clean Windows 11 original extraction; actual WSE2 game boot, automatic hosting, agent behaviour and a completed City wave. These should be captured in the consolidated final Windows run rather than asserted from file parsing.
