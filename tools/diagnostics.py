@@ -411,6 +411,46 @@ def analyze(payload: dict[str, bytes]) -> dict:
             except ValueError:
                 pass
             break
+    # City-only is a build scope, not proof that City was loaded.
+    # A mission template name or intended launch destination is NOT scene
+    # evidence. Only an explicit runtime scene field is considered, and
+    # unknown/malformed scene strings never produce a mismatch allegation.
+    scene_samples = []
+    for event in events:
+        if event.get("event") not in ("mission_enter", "heartbeat"):
+            continue
+        fields = event.get("fields", {})
+        if fields.get("role") != "server":
+            continue
+        scene = str(fields.get("scene", ""))
+        normalized = scene[4:] if scene.startswith("scn_") else scene
+        if re.fullmatch(r"tbfc_invasion_[1-5]", normalized):
+            scene_samples.append({
+                "scene": normalized, "source": event.get("source", "unknown"),
+                "line": event.get("line"), "event": event.get("event"),
+            })
+    observed_scenes = sorted({sample["scene"] for sample in scene_samples})
+    expected_scene = ("tbfc_invasion_4"
+                      if installed.get("experimental_map_scope") == "city-only"
+                      else None)
+    scene_evidence = {
+        "available": bool(scene_samples),
+        "observed_scenes": observed_scenes,
+        "expected_scene": expected_scene,
+        "status": ("unknown" if not scene_samples else
+                   "mismatch_observed" if expected_scene and
+                   any(scene != expected_scene for scene in observed_scenes) else
+                   "observed"),
+        "caveat": "Only explicit server-side scene fields are scene evidence; mission template and launcher intent do not count.",
+    }
+    if expected_scene and any(scene != expected_scene for scene in observed_scenes):
+        findings.append({
+            "id": "R029", "severity": "medium",
+            "title": "Observed scene differs from City-only build scope",
+            "confidence": "observed_scene_field; cause_unknown",
+            "action": "Check source build flags, selected scene, host launch receipt and the WSE2 scene getter before diagnosing map-specific AI behavior.",
+            "examples": scene_samples[:5],
+        })
     known_sides = []
     for event in events:
         fields = event.get("fields", {})
@@ -452,6 +492,7 @@ def analyze(payload: dict[str, bytes]) -> dict:
     capabilities = capability_snapshot(events)
     return {"session": session.get("session", "unknown"), "module": installed,
             "flight_recorder": flight, "privacy": privacy,
+            "scene_evidence": scene_evidence,
             "capability_evidence": capabilities,
             "event_counts": dict(eventcounts), "events": events[:500], "team_evidence": team_evidence,
             "tactical_evidence": {k: v for k, v in tactical_report.items() if k != "findings"},
@@ -494,6 +535,7 @@ def to_markdown(report: dict) -> str:
              f"- Event counts: {json.dumps(report['event_counts'], sort_keys=True)}",
              f"- External recorder: {json.dumps(report.get('flight_recorder', {}), sort_keys=True)}",
              f"- WSE2 binding declarations: {json.dumps(report.get('capability_evidence', {}), sort_keys=True)}",
+             f"- Observed runtime scene: {json.dumps(report.get('scene_evidence', {}), sort_keys=True)}",
              f"- Privacy inspection: {json.dumps(report.get('privacy', {}), sort_keys=True)}",
              f"- Tactical evidence: {json.dumps(report.get('tactical_evidence', {}), sort_keys=True)}",
              f"- Combat evidence: {json.dumps(report.get('combat_evidence', {}), sort_keys=True)}",
