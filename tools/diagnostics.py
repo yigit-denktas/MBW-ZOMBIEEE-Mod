@@ -16,6 +16,7 @@ import platform
 import re
 import sys
 import zipfile
+from tactical_analysis import analyze_tactical_events
 
 SCHEMA = 1
 MAX_LOG_BYTES = 8 * 1024 * 1024
@@ -119,6 +120,12 @@ def collect(game_root: Path | None, module: Path | None, output: Path,
                     safe["preflight_ok"] = preflight.get("ok")
                     mission = preflight.get("mission") or {}
                     safe["original_trigger_count"] = mission.get("triggers")
+                tactical = parsed.get("experimental_tactical_recovery")
+                if isinstance(tactical, dict):
+                    safe["tactical_recovery"] = {
+                        key: tactical.get(key) for key in
+                        ("enabled", "low_water", "high_water", "fallback_entry", "reevaluation_seconds")
+                    }
                 entries["module.json"] = (json.dumps(safe, indent=2, sort_keys=True) + "\n").encode()
             except (OSError, ValueError, TypeError):
                 pass
@@ -294,8 +301,12 @@ def analyze(payload: dict[str, bytes]) -> dict:
             findings.append({"id": "R018", "severity": "medium",
                              "title": "Allied survivor team absent in sampled server frames",
                              "action": "Check mission-start visitor spawns, team assignment, and WSE2 team-query availability. Samples alone cannot prove why."})
+    tactical_report = analyze_tactical_events(events, installed)
+    findings.extend(tactical_report["findings"])
     return {"session": session.get("session", "unknown"), "module": installed,
-            "event_counts": dict(eventcounts), "events": events[:500], "team_evidence": team_evidence, "findings": findings,
+            "event_counts": dict(eventcounts), "events": events[:500], "team_evidence": team_evidence,
+            "tactical_evidence": {k: v for k, v in tactical_report.items() if k != "findings"},
+            "findings": findings,
             "evidence": {"logs": len(logs), "events": len(events)},
             "status": "critical" if any(f["severity"] == "critical" for f in findings) else
                       "warning" if findings else "inconclusive_no_errors_detected",
@@ -329,7 +340,9 @@ def to_markdown(report: dict) -> str:
     lines = ["# ZOMBIEEE diagnostic report", "", f"Session: {report['session']}",
              f"Status: **{report['status']}**", "", "## Evidence", "",
              f"- Log files: {report['evidence']['logs']}", f"- Parsed telemetry events: {report['evidence']['events']}",
-             f"- Event counts: {json.dumps(report['event_counts'], sort_keys=True)}", "", "## Findings", ""]
+             f"- Event counts: {json.dumps(report['event_counts'], sort_keys=True)}",
+             f"- Tactical evidence: {json.dumps(report.get('tactical_evidence', {}), sort_keys=True)}",
+             "", "## Findings", ""]
     if not report["findings"]:
         lines.append("No known error pattern detected; runtime remains unverified.")
     for f in report["findings"]:
