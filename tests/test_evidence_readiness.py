@@ -22,9 +22,10 @@ class EvidenceReadinessTests(unittest.TestCase):
         self.assertEqual(self.state(report, "fatal_error_in_log"), "unknown")
 
     def test_observed_progression_is_not_claimed_wave_completion(self):
-        events = [ev("boot"), ev("mission_enter")]
-        events += [ev("heartbeat", role="server", count=i, wave=i,
-                      team0=4, team1=20) for i in (1, 2, 3)]
+        events = [ev("boot"), ev("mission_enter", role="server",
+                                template="multiplayer_iv")]
+        events += [ev("heartbeat", role="server", template="multiplayer_iv",
+                      count=i, wave=i, team0=4, team1=20) for i in (1, 2, 3)]
         report = matrix_for_session(events, [], {}, 1,
                                     {"observability": {"combat_samples": 0},
                                      "observed_kill_increments": 0})

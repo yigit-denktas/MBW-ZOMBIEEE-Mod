@@ -59,11 +59,20 @@ class CityIncidentTests(unittest.TestCase):
 
 
     def test_scene_mismatch_requires_measured_scene(self):
-        wrong = [event("mission_enter", 1, role="server", scene="scn_tbfc_invasion_3")]
+        # Scene evidence requires an explicit server-role invasion mission
+        # marker; a role=server event with no invasion template is not scene
+        # evidence (and must not raise CITY-I07 on its own).
+        wrong = [event("mission_enter", 1, role="server",
+                       template="multiplayer_iv", scene="scn_tbfc_invasion_3")]
         city = analyze(payload(wrong, source()))["city_incident"]
         self.assertIn("CITY-I07", {x["code"] for x in city["incident_leads"]})
-        desired = [event("mission_enter", 1, role="server", template="multiplayer_iv")]
-        city = analyze(payload(desired, source()))["city_incident"]
+        templated_only = [event("mission_enter", 1, role="server",
+                                template="multiplayer_iv")]
+        city = analyze(payload(templated_only, source()))["city_incident"]
+        self.assertNotIn("CITY-I07", {x["code"] for x in city["incident_leads"]})
+        no_template = [event("mission_enter", 1, role="server",
+                             scene="scn_tbfc_invasion_3")]
+        city = analyze(payload(no_template, source()))["city_incident"]
         self.assertNotIn("CITY-I07", {x["code"] for x in city["incident_leads"]})
 
 

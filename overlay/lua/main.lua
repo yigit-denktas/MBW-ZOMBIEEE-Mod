@@ -19,11 +19,18 @@ if type(game) ~= "table" or type(game.addTrigger) ~= "function" then
     emit("probe_unavailable", "|reason=no_game_trigger_api")
     return
 end
+-- multiplayer_is_server (opcode 417) is a can_fail condition: WSE2 only returns
+-- its boolean result when the operation is listed in
+-- msfiles/header_operations.py can_fail_operations. A missing binding or an
+-- unrecognized result stays "unknown" instead of silently reading as client.
+-- Live evidence 2026-10-24: the dedicated host logged role=client because the
+-- can_fail metadata was absent; server-only sampling never ran.
 local function resolve_role()
-    if type(game.multiplayer_is_server) == "function" then
-        local value = guarded_call(game.multiplayer_is_server, nil)
-        if value ~= nil then return (value == true or value == 1) and "server" or "client" end
-    end
+    if type(game.multiplayer_is_server) ~= "function" then return "unknown" end
+    local ok, value = pcall(game.multiplayer_is_server)
+    if not ok then return "unknown" end
+    if value == true or value == 1 then return "server" end
+    if value == false or value == 0 then return "client" end
     return "unknown"
 end
 -- One-time declaration reports binding presence, NOT successful engine operation.
@@ -31,8 +38,12 @@ end
 local function binding_flag(name)
     return type(game[name]) == "function" and 1 or 0
 end
+-- opmeta=1 marks an overlay whose msfiles/header_operations.py declares the
+-- WSE2 operation-class lists (lhs_operations / can_fail_operations). Live
+-- evidence without this marker predates that fix, so its role/team fields are
+-- not a measured composition.
 emit("recorder_capabilities",
-    "|sampling_interval_s=15|max_heartbeats=480|max_defenders=16"
+    "|sampling_interval_s=15|max_heartbeats=480|max_defenders=16|opmeta=1"
     .. "|agents_it=" .. binding_flag("agentsIt")
     .. "|team_getter=" .. binding_flag("agent_get_team")
     .. "|group_getter=" .. binding_flag("agent_get_group")
@@ -51,17 +62,27 @@ local function sample_agents()
     if type(game.agentsIt) ~= "function" then return -1, -1, -1 end
     local supports_team = type(game.agent_get_team) == "function"
     local ok, total, team0, team1 = pcall(function()
-        local n, a, z = 0, 0, 0
+        local n, a, z, measured = 0, 0, 0, true
         for agent in game.agentsIt() do
             n = n + 1
             if supports_team then
-                local side = guarded_call(function() return game.agent_get_team(0, agent) end, nil)
-                if side == 0 then a = a + 1 end
-                if side == 1 then z = z + 1 end
+                -- agent_get_team is an lhs operation (destination register
+                -- first). Only a successful store is a measurement: a failed
+                -- operation must stay unknown, never be counted as team 0.
+                local ok_team, side, op_error = pcall(function()
+                    return game.agent_get_team(0, agent)
+                end)
+                if ok_team and (op_error == nil or op_error == 0)
+                    and (side == 0 or side == 1) then
+                    if side == 0 then a = a + 1 else z = z + 1 end
+                else
+                    measured = false
+                end
             end
             if n >= 4096 then break end
         end
-        return n, supports_team and a or -1, supports_team and z or -1
+        if not supports_team then return n, -1, -1 end
+        return n, measured and a or -1, measured and z or -1
     end)
     if not ok then return -1, -1, -1 end
     return total, team0, team1
@@ -78,12 +99,19 @@ end
 local function state_fields()
     return "|wave=" .. global_int("wave_number")
         .. "|round=" .. global_int("g_round_ended")
+        -- mode is the tactical zdr_defence_mode, NOT the multiplayer game type.
         .. "|mode=" .. global_int("zdr_defence_mode")
+        -- g_multiplayer_game_type is the original invasion type (expected 7).
+        .. "|game_type=" .. global_int("g_multiplayer_game_type")
         .. "|refilled=" .. global_int("zdr_last_reinforced_wave")
         -- These are engine global reads, NOT inferred from source receipt.
         -- -1 means getter unavailable / pre-round-aware build.
         .. "|round_start=" .. global_int("g_round_start_time")
         .. "|refilled_round_start=" .. global_int("zdr_last_reinforced_round_start")
+        -- Spawn gating and team-1 bot population are separate globals; absent
+        -- getters must stay -1 (unknown) rather than be inferred from source.
+        .. "|ready_for_spawn=" .. global_int("g_multiplayer_ready_for_spawning_agent")
+        .. "|bots_team1=" .. global_int("g_multiplayer_num_bots_team_1")
         .. "|cmdheal=" .. global_int("zdr_cmd_heal")
         .. "|cmdammo=" .. global_int("zdr_cmd_ammo")
         .. "|cmdsquad=" .. global_int("zdr_cmd_squad")
@@ -193,8 +221,11 @@ local function heartbeat()
         if role == "server" then
             if wave >= 0 and wave ~= previous_wave then
                 emit("wave_change", "|role=server|wave=" .. wave .. "|mode=" .. mode
+                     .. "|game_type=" .. global_int("g_multiplayer_game_type")
                      .. "|round_start=" .. global_int("g_round_start_time")
-                     .. "|refilled_round_start=" .. global_int("zdr_last_reinforced_round_start"))
+                     .. "|refilled_round_start=" .. global_int("zdr_last_reinforced_round_start")
+                     .. "|ready_for_spawn=" .. global_int("g_multiplayer_ready_for_spawning_agent")
+                     .. "|bots_team1=" .. global_int("g_multiplayer_num_bots_team_1"))
                 previous_wave = wave
             end
             if mode >= 0 and mode ~= previous_mode then

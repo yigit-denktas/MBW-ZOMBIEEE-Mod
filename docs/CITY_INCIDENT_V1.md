@@ -170,6 +170,64 @@ must seal its own evidence manifest after owned game processes exit;
 until then, the final incident bundle and verified gameplay remain unknown.
 Only path-free observations may be published; local raw logs stay private.
 
+## Live trigger-32 Lua lvalue error: C overlay defect, fixed offline
+
+The first live WSE2 City session logged the following on **both** host and
+client, once per 15 s:
+
+```
+SCRIPT ERROR: Illegal lvalue in statement
+- Lua (line 0, opcode 1770, modifier 0x0)
+- Mission Template [44] mst_multiplayer_iv Trigger [32] Conditions (Lua) (line 0, opcode 5113, modifier 0x0)
+```
+
+The same session's ZDB1 lines bind the index without guessing: the original
+`mst_multiplayer_iv` reports `boot|triggers=31`, so the overlay's appended entry
+trigger is `probe_registered|kind=entry|index=31` and its 15 s heartbeat is
+`probe_registered|kind=heartbeat|index=32`. Trigger [32] is therefore Agent C's
+read-only heartbeat, not an original mission trigger. Opcode 5113 is WSE2's
+`lua_triggerCallback` and opcode 1770 is `agent_get_team`.
+
+**Root cause (fixed in `overlay/lua/msfiles/header_operations.py`):** WSE2's
+Lua bridge learns each module-system operation's calling convention only from
+the trailing `lhs_operations` / `can_fail_operations` lists required by its
+luaGuide. The header had the opcode constants but not those lists, so
+`game.agent_get_team(0, agent)` sent the destination register number to the
+script VM as a plain constant and the VM rejected the store with "Illegal
+lvalue in statement". This is C-owned telemetry only; the VM aborted that store,
+so the probe cannot have changed gameplay state. Agent A still owns the
+original-versus-patched question of why no team-1 agents or waves appeared.
+
+**Two evidence-hygiene consequences of the same omission:**
+
+1. `multiplayer_is_server` (opcode 417, a bare can-fail condition in the
+   original compiled mission templates) returned an error code instead of a
+   boolean, so the **dedicated host logged `role=client`**. The whole
+   `role == "server"` branch (`wave_change`, `tactical_change`, defender and
+   command samples) never ran in any live session so far.
+2. Because `agent_get_team` failed, the heartbeat's `team0`/`team1` values can
+   coincide with the failed call's zero result. The attempt-4 line
+   `agents=1 team0=1 team1=0` is therefore **not a measured team composition**
+   and stays `unknown` until it is re-observed with the fixed overlay.
+
+The failed team read now yields `-1` (unknown) instead of being counted as team
+0, and an unrecognized role result stays `unknown` instead of defaulting to
+client. The fixed overlay also emits `|opmeta=1` in `recorder_capabilities` and
+adds explicit, separately named guarded reads — `game_type`
+(`g_multiplayer_game_type`), `ready_for_spawn`
+(`g_multiplayer_ready_for_spawning_agent`), `bots_team1`
+(`g_multiplayer_num_bots_team_1`) and `round_start`
+(`g_round_start_time`) — while `mode` remains the tactical
+`zdr_defence_mode`. Every absent getter is `-1`/unknown, never an inferred zero.
+
+**Version boundary:** the 2026-10-24 evidence was produced by Lua overlay
+`version=0.1.8` **without** the `opmeta=1` marker, i.e. before this fix; the
+Lua string version is intentionally unchanged. `tests/test_flight_lua_msfiles.py`
+now statically rejects any header that omits the operation-class lists or any
+overlay call to an unclassified operation. R030/CITY-I08 (`Invalid Faction ID:
+-1`, trigger [14] opcode 502) is untouched: it is original Beta 0.4 content and
+remains a **noncausal** lead.
+
 ## Verification and privacy
 
 Synthetic regression tests cover source/runtime claims, the original game
