@@ -403,18 +403,18 @@
       "priority": "P0",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
       "criterion": "Separate recorder retains startup/crash context when game or Lua exits, plus CPU/memory/process status where measurable",
-      "note": "C implemented bounded external local recorder with simulated process/crash events. A review requires preserving crash log tail after >2MiB, a readiness acknowledgment before host spawn, and safe evidence-root ancestor traversal. Actual Windows process behavior unverified.",
+      "note": "PR #12 has since added bounded head/tail capture, symlink ancestor checks and a recorder-ready JSON marker. Integration remains blocked: passive pre-launch watcher vs owned child model and exact ready schema disagree with B; updated tests not observed. No real-game evidence.",
       "deferReason": null,
       "implementationLane": "C",
       "review": {
         "status": "changes-requested-in-conversation",
         "reviewer": "Agent A",
         "date": "2026-10-23",
-        "comment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12#issuecomment-6373897277",
+        "comment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12#issuecomment-6374021323",
         "blockers": [
-          "C-1 end-of-log preservation",
-          "C-2 readiness handshake",
-          "C-3 symlink/reparse safety"
+          "agree passive vs C-owned process-supervisor model with B",
+          "unify readiness schema hyphen/underscore and watcher id",
+          "execute tests covering >2MiB late crash/ancestor link and cross-agent handshake"
         ]
       }
     },
@@ -554,17 +554,18 @@
       "priority": "P1",
       "issueUrl": null,
       "criterion": "Launcher starts/stops an isolated local listen-server or managed dedicated host without port forwarding",
-      "note": "B simulated local host lifecycle. A review found game is started in same action as recorder and listen-ready can become playing without join evidence. Must implement recorder-ready handshake and distinct host/join/mission states. No actual network listener or local game startup.",
+      "note": "B has tested fake host lifecycle, but recorder-first ordering fails and its state machine cannot yet consume C's current marker/process ownership; exact schema disagreement documented in cross-agent PR reviews.",
       "deferReason": null,
       "implementationLane": "B",
       "review": {
         "status": "changes-requested-in-conversation",
         "reviewer": "Agent A",
         "date": "2026-10-23",
-        "comment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11#issuecomment-6373896560",
+        "comment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11#issuecomment-6374020607",
         "blockers": [
-          "B-1 recorder-before-game handshake",
-          "B-2 distinguish ready from joined"
+          "recorder before game with authenticated session/attempt and live recorder identity",
+          "distinct game-ready/client-joined/mission-entered transitions",
+          "safe raw input link/junction detection"
         ]
       }
     },
@@ -805,18 +806,18 @@
       "priority": "P2",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
       "criterion": "Checksummed, redacted evidence bundle and rule report explain observed/unknown game outcomes and actionable failures",
-      "note": "C added verified SHA256 evidence snapshots, redaction and collector ingestion in PR #12; tests are authored but have not been executed in the connected checkout. A requests regression execution and safe evidence integrity checks.",
+      "note": "PR #12 has since added bounded head/tail capture, symlink ancestor checks and a recorder-ready JSON marker. Integration remains blocked: passive pre-launch watcher vs owned child model and exact ready schema disagree with B; updated tests not observed. No real-game evidence.",
       "deferReason": null,
       "implementationLane": "C",
       "review": {
         "status": "changes-requested-in-conversation",
         "reviewer": "Agent A",
         "date": "2026-10-23",
-        "comment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12#issuecomment-6373897277",
+        "comment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12#issuecomment-6374021323",
         "blockers": [
-          "execute offline tests",
-          "audit ancestor symlinks",
-          "manual privacy review still necessary"
+          "agree passive vs C-owned process-supervisor model with B",
+          "unify readiness schema hyphen/underscore and watcher id",
+          "execute tests covering >2MiB late crash/ancestor link and cross-agent handshake"
         ]
       }
     },
