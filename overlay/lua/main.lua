@@ -26,6 +26,21 @@ local function resolve_role()
     end
     return "unknown"
 end
+-- One-time declaration reports binding presence, NOT successful engine operation.
+-- No names/coordinates or other private player data in these fields.
+local function binding_flag(name)
+    return type(game[name]) == "function" and 1 or 0
+end
+emit("recorder_capabilities",
+    "|sampling_interval_s=15|max_heartbeats=480|max_defenders=16"
+    .. "|agents_it=" .. binding_flag("agentsIt")
+    .. "|team_getter=" .. binding_flag("agent_get_team")
+    .. "|group_getter=" .. binding_flag("agent_get_group")
+    .. "|npc_getter=" .. binding_flag("agent_is_non_player")
+    .. "|position_getter=" .. binding_flag("agent_get_position")
+    .. "|weapon_getter=" .. binding_flag("agent_get_wielded_item")
+    .. "|ammo_getter=" .. binding_flag("agent_get_ammo")
+    .. "|kills_getter=" .. binding_flag("agent_get_kill_count"))
 local mission_seen = false
 local heartbeat_count = 0
 local function current_mission()
