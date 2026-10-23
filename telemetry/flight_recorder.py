@@ -565,7 +565,8 @@ def main() -> int:
                                 recorder_start_id=args.recorder_start_id,
                                 control_key=control_key)
         print(json.dumps(result, indent=2))
-        return 0 if result["outcome"] in ("exited", "disappeared_exit_code_unknown") else 2
+        return 0 if result["outcome"] in ("exited", "disappeared_exit_code_unknown",
+                                           "stopped", "stopped_without_attachment") else 2
     except (OSError, ValueError, json.JSONDecodeError) as error:
         print(f"Recorder error: {type(error).__name__}", file=sys.stderr)
         return 2
