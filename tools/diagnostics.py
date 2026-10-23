@@ -84,7 +84,7 @@ def extract_events(log: str, log_file: str) -> list[dict]:
             if "=" not in part:
                 continue
             key, value = part.split("=", 1)
-            if re.fullmatch(r"[a-z_]{1,32}", key):
+            if re.fullmatch(r"[a-z][a-z0-9_]{0,31}", key):
                 fields[key] = value[:128]
         events.append({"event": parts[0], "fields": fields, "source": log_file, "line": line_num})
     return events
