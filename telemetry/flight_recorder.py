@@ -432,7 +432,7 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
                 if exit_code is not None:
                     outcome = "exited"
                     break
-            else:
+            elif not passive:
                 state = alive(observe_pid)
                 if state is False:
                     outcome = "disappeared_exit_code_unknown"
