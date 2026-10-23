@@ -6,7 +6,7 @@ working gameplay merely because its byte stream decodes successfully.
 """
 from __future__ import annotations
 
-from wave_reinforcements import GLOBAL_BASE, ORIGINAL_GLOBALS, GROUPS, SENTINEL, INVASION_GAME_TYPE
+from wave_reinforcements import GLOBAL_BASE, ORIGINAL_GLOBALS, GROUPS, SENTINEL, INVASION_GAME_TYPE, WAVE_CHANGED
 from tactical_recovery import TACTICAL_GLOBAL
 
 
@@ -95,10 +95,23 @@ def inspect_city_ai(original_triggers: list[str], final_triggers: list[str],
     g_ended = GLOBAL_BASE + original_variables.index('g_round_ended')
     g_last = GLOBAL_BASE + final_variables.index(SENTINEL)
     g_mode = GLOBAL_BASE + final_variables.index(TACTICAL_GLOBAL)
+    # Unlike a new mission, starting a new invasion round does not reliably
+    # re-run our one-shot after_mission_start initializer. The untouched game
+    # resets wave_number to zero in original triggers 7 and 10, but our
+    # append-only sentinel otherwise retains last round's largest wave.
+    # A strict wave_number > sentinel would strand all reinforcements in a
+    # later round until it exceeded the *previous* round's max wave.
+    original_round_reset_points = (7, 10)
+    require('original_wave_resets_between_rounds',
+            all((2133, (g_wave, 0)) in decode_trigger(original_triggers[i])[1]
+                for i in original_round_reset_points),
+            'The historical mission no longer resets wave_number as expected')
     require('reinforcement_once_per_wave',
-            (32, (g_wave, g_last)) in wave_conditions and
-            (2133, (g_last, g_wave)) in wave_ops,
-            'Reinforcement sentinel is not correlated to advancing original waves')
+            [(opcode, args) for opcode, args in wave_conditions
+             if g_last in args] == [(WAVE_CHANGED, (g_wave, g_last))] and
+            [(opcode, args) for opcode, args in wave_ops
+             if g_last in args] == [(2133, (g_last, g_wave))],
+            'Reinforcements must follow a changed wave including round resets')
     require('reinforcement_round_active', (31, (g_ended, 0)) in wave_conditions,
             'Reinforcements could run after the round ended')
     require('recovery_round_active', (31, (g_ended, 0)) in recovery_conditions,
