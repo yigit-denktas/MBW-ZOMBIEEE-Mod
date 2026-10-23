@@ -76,5 +76,21 @@ class CityEvidencePrivacyTests(unittest.TestCase):
         self.assertIn("synthetic_session_not_gameplay", city["unknowns"])
 
 
+    def test_tampered_evidence_never_reaches_incident_analysis(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            valid = root / "valid.zip"
+            collect(None, None, valid, [], "synthetic")
+            with zipfile.ZipFile(valid) as z:
+                content = {name: z.read(name) for name in z.namelist()}
+            content["module.json"] = b'{"city_final_acceptance":{"passed":true}}'
+            forged = root / "forged.zip"
+            with zipfile.ZipFile(forged, "w") as z:
+                for name, value in content.items():
+                    z.writestr(name, value)
+            with self.assertRaisesRegex(ValueError, "entry mismatch"):
+                read_bundle(forged)
+
+
 if __name__ == "__main__":
     unittest.main()
