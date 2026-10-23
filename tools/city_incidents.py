@@ -75,7 +75,8 @@ def build_status(installed):
               "static": "unknown", "final": "unknown",
               "original_invasion_game_type": None,
               "source_receipt_claims_passed": False,
-              "independently_reverified": False, "game_runtime": "unknown"}
+              "independently_reverified": False, "game_runtime": "unknown",
+              "round_aware_source_contract_verified": False}
     static = installed.get("city_static_acceptance")
     if isinstance(static, dict):
         checks = static.get("checks")
@@ -155,6 +156,11 @@ def incident_for_session(events, recorder_events, installed, flight, findings,
     teams = {"allies_max": None, "zombies_max": None}
     mode_seen = set()
     refilled = set()
+    # Native round identities must be read from WSE2 runtime globals.
+    # "round" alone is g_round_ended (boolean), NOT a round identity.
+    rounds = set()
+    reinforced_rounds = set()
+    waves_in_round = {}
     observed_scenes = set()
     observed_server_mission = False
     observed_boot = False
@@ -196,15 +202,38 @@ def incident_for_session(events, recorder_events, installed, flight, findings,
                 v = measured(fields.get(key))
                 if v is not None:
                     teams[target] = max(v, teams[target]) if teams[target] is not None else v
-        if kind in ("heartbeat", "wave_change") and (is_server or kind == "wave_change"):
+        # wave_change was server-only in the old Lua probe (and is now
+        # explicitly role=server). Do not accept optional round identities
+        # from unauthenticated client-side events.
+        server_wave = kind == "wave_change" and fields.get("role") in (None, "server")
+        round_sample = ((kind in ("mission_enter", "heartbeat") and is_server)
+                        or server_wave)
+        round_start = measured(fields.get("round_start")) if round_sample else None
+        reinforced_round_start = (
+            measured(fields.get("refilled_round_start")) if round_sample else None)
+        if round_start is not None:
+            rounds.add(round_start)
+            point["round_start"] = round_start
+        if reinforced_round_start is not None:
+            reinforced_rounds.add(reinforced_round_start)
+            point["refilled_round_start"] = reinforced_round_start
+        if kind in ("heartbeat", "wave_change") and (is_server or server_wave):
             wave = measured(fields.get("wave"), minimum=1)
             if wave is not None:
                 waves.add(wave)
-                # Wave regression is only comparable within ONE log source.
+                if round_start is not None:
+                    waves_in_round.setdefault(round_start, set()).add(wave)
+                # A's original mission resets wave_number at round changes.
+                # A lower wave in the SAME observed round is suspicious;
+                # a lower wave with an observed new round is normal.
+                # Missing round identity leaves only a noncausal candidate.
                 prev = wave_sequence.get(source)
-                if prev is not None and wave < prev:
+                if (prev is not None and wave < prev[0]
+                        and not (prev[1] is not None
+                                 and round_start is not None
+                                 and prev[1] != round_start)):
                     suspected_wave_regression = True
-                wave_sequence[source] = wave
+                wave_sequence[source] = (wave, round_start)
         if kind in ("heartbeat", "tactical_change") and (is_server or kind == "tactical_change"):
             mode = measured(fields.get("mode"), maximum=1)
             if mode is not None:
@@ -260,6 +289,11 @@ def incident_for_session(events, recorder_events, installed, flight, findings,
     gap = (log_gap or receipt_gap or dropped_events or log_omitted > 0
            or engine_unread > 0 or recorder_unread > 0)
 
+    repeated_across_rounds = sorted({
+        wave for markers in waves_in_round.values() for wave in markers
+        if sum(wave in other for other in waves_in_round.values()) >= 2
+    })
+    within_round_progress = any(len(seen) >= 2 for seen in waves_in_round.values())
     runtime = {
         "boot": "observed_marker" if observed_boot else "unknown",
         "server_city_entry": ("observed_marker" if observed_server_mission and CITY in observed_scenes
@@ -269,6 +303,16 @@ def incident_for_session(events, recorder_events, installed, flight, findings,
         "wave_numbers": sorted(waves), "wave_progression":
             "observed_markers" if len(waves) >= 2 else "unknown",
         "last_reinforced_waves": sorted(refilled) if refilled else None,
+        "round_start_observations": sorted(rounds)[:24] if rounds else None,
+        "round_start_observation_count": len(rounds),
+        "last_reinforced_round_starts": (
+            sorted(reinforced_rounds)[:24] if reinforced_rounds else None),
+        "round_identity": "observed_engine_global" if rounds else "unknown",
+        "round_aware_reinforcement_verified": False,
+        "wave_progression_within_one_round": (
+            "observed_markers" if within_round_progress else "unknown"),
+        "repeated_wave_across_distinct_rounds": (
+            repeated_across_rounds[:24] if rounds else None),
         "tactical_modes": sorted(mode_seen) if mode_seen else None,
         "survivor_team0_max": teams["allies_max"],
         "zombie_team1_max": teams["zombies_max"],
@@ -301,7 +345,7 @@ def incident_for_session(events, recorder_events, installed, flight, findings,
             ["recording_gap_or_bounded_timeline"], "missing_evidence_known",
             "Avoid asserting event absence across the gap")
     if suspected_wave_regression:
-        add("CITY-I04", "Wave number decreased in a single log source",
+        add("CITY-I04", "Wave number decreased without a measured new round",
             ["ZDB1:wave"], "sampled_sequence_cause_unknown",
             "Check intentional wave restart, rematch and stale log concatenation")
     if build["static"] == "source_check_failed" or build["final"] == "source_check_failed":
@@ -320,6 +364,10 @@ def incident_for_session(events, recorder_events, installed, flight, findings,
             "Verify loaded scene getter, module selection and session correlation")
 
     unknowns = []
+    if not rounds:
+        unknowns.append("round_start_global_unobserved")
+    if not reinforced_rounds:
+        unknowns.append("last_reinforced_round_start_global_unobserved")
     if runtime["scene"] is None:
         unknowns.append("actual_runtime_scene_unobserved")
     if len(waves) < 2:
@@ -359,5 +407,7 @@ def incident_for_session(events, recorder_events, installed, flight, findings,
         "caveat": ("Incident leads are source-backed hypotheses, not causal findings. "
                    "Installer source receipts are claims unless independently replayed; " 
                    "build static checks are not WSE2 runtime observations. "
-                   "Log-source order and recorder UTC are not a common clock."),
+                   "Log-source order and recorder UTC are not a common clock. "
+                   "Wave resets may be legitimate new rounds; source contracts "
+                   "cannot substitute for instrumented round globals."),
     }
