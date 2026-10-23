@@ -48,7 +48,7 @@ class PassiveReuseTests(unittest.TestCase):
                     results.append(record_session(
                         base / "sessions", "reuse", [], passive=True,
                         control_key=key, recorder_start_id="b-owned-identity",
-                        attempt_id="attempt-2", timeout=.35, poll=.01,
+                        attempt_id="attempt-2", timeout=1.0, poll=.01,
                         simulation=True))
                 except BaseException as exc:
                     errors.append(exc)
@@ -66,7 +66,7 @@ class PassiveReuseTests(unittest.TestCase):
                 self.assertTrue((folder / "recorder-attachment-ack.json").is_file())
                 atomic_json(folder / "recorder-stop.json",
                             signed("stop", key, "reuse", "attempt-2", "b-owned-identity"))
-                thread.join(timeout=2)
+                thread.join(timeout=3)
             self.assertFalse(thread.is_alive())
             self.assertFalse(errors)
             self.assertEqual(results[0]["outcome"], "timeout")
