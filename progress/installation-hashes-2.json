@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "sourceCommit": "ebc6afb0b977ff3d7605893c73ac63021775c4d3",
+  "digests": {
+    ".agents/skills/update-project-progress/SKILL.md": "ecbfd830a3f201e1625c05d78627e0cacff4daea9e02a2e11085a331c58a8d65",
+    ".agents/skills/update-project-progress/agents/openai.yaml": "78e2eb770001c315c796f2771173a1198ed866761ec2fcecc7d56529e186457f",
+    ".agents/skills/answer-project-status/SKILL.md": "dc23f3fedd40edf94472bf2c404b57d3aacc25f96d8f69f3f15a91cf4385098c",
+    ".agents/skills/answer-project-status/agents/openai.yaml": "3c999036797ca2821a2105360e379526c79c91051fca3f672d49e906a9fc6a69",
+    ".agents/skills/govern-project-scope/SKILL.md": "a8c9f91560c1817203bae7b1e7821dfad77b82db68c147a1a4ec047be96efd25",
+    ".agents/skills/govern-project-scope/agents/openai.yaml": "78c02078b3606efa52e01f63f9665cafa3ed00f959d92345dd7f15b596f0c9df",
+    ".agents/skills/connect-github-tracking/SKILL.md": "0b0a8614eb942c2234cfe5c244ee858422ad740c1984e09edc3b61a7418e7bbd",
+    ".agents/skills/connect-github-tracking/agents/openai.yaml": "6b6c3bd8a49f1050b5c9d2613e1fbf75c43179f08cee2b93687211976d8ec277",
+    ".agents/skills/connect-github-tracking/assets/icon.svg": "8936b24f674a1250d999e2c2b5901374fb4240426f32bd1ae340c352a90d617d"
+  }
+}

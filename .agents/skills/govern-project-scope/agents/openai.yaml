@@ -1,0 +1,4 @@
+interface:
+  display_name: "Govern project scope"
+  short_description: "Structure scope, priorities and project decisions"
+  default_prompt: "Use $govern-project-scope to structure or revise this project’s scoped plan."
