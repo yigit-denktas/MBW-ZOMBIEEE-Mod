@@ -5,7 +5,7 @@
 - Original 0.4 compiled items contain 16 duplicated names. Preserved original positional IDs; cloned four AI-only troops using unambiguous original weapons/ammo.
 - Wave replacement class rotates by original wave number and replacement ordinal; original wave cap and server guard preserved.
 - Added guarded non-dedicated single-player host-only HP/ammo assist, disabled by default and rejected on repeat patching.
-- Verified 985 troops, 1,222 variables and 32 valid compiled mission triggers on a temporary original-data patch chain; 37 existing tests passed locally.
+- Verified 985 troops, 1,222 variables and 32 valid compiled mission triggers on a temporary original-data patch chain; reran 48 offline local tests (37 previous + 11 new original-data tests), all passed.
 - Actual Windows/WSE2 operation unverified; no CI or intermediate user tests.
 
 ## 2026-10-23 — 0.1.6: fall-back/regroup under pressure
