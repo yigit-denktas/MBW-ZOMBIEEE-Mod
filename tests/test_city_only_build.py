@@ -43,8 +43,10 @@ class CityOnlyIntegration(unittest.TestCase):
             self.assertTrue(tactical["city_only"])
             self.assertEqual(wave["final_trigger_count"], 29)
             self.assertEqual(tactical["final_trigger_count"], 31)
-            self.assertEqual((root / "variables.txt").read_text().splitlines()[-2:],
-                             ["zdr_last_reinforced_wave", "zdr_defence_mode"])
+            self.assertEqual((root / "variables.txt").read_text().splitlines()[-3:],
+                             ["zdr_last_reinforced_wave",
+                              "zdr_last_reinforced_round_start",
+                              "zdr_defence_mode"])
             result = (root / "mission_templates.txt").read_bytes().decode()
             before = original_mission.decode()
             p, count, _ = mission_bounds(result.splitlines(keepends=True))
