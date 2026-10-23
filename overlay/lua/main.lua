@@ -1,50 +1,73 @@
--- ZOMBIEEE Remaster 0.1.2: non-invasive WSE2 runtime diagnostics.
--- Observe WSE2 startup and invasion mission entry. Do not modify original triggers.
-local VERSION = "0.1.2"
+-- ZOMBIEEE Remaster 0.1.3: bounded, read-only engine telemetry.
+-- Messages go to WSE2's existing game log; no network or file I/O.
+-- ZDB1|event|key=value|...; no player names, IPs or chat.
+local VERSION = "0.1.3"
 local MISSION = "mst_multiplayer_iv"
-local prefix = "[ZOMBIEEE Remaster " .. VERSION .. "] "
+local function emit(event, details)
+    print("ZDB1|" .. event .. "|version=" .. VERSION .. (details or ""))
+end
+local function guarded_call(fn, default)
+    if type(fn) ~= "function" then return default end
+    local ok, value = pcall(fn)
+    if not ok then return default end
+    return value
+end
+local trigger_count = guarded_call(function() return game.getNumTriggers(MISSION) end, -1)
+emit("boot", "|triggers=" .. tostring(trigger_count))
 
-print(prefix .. "Lua bootstrap loaded")
-
-if not game then
-    print(prefix .. "game API unavailable; diagnostics disabled")
+if type(game) ~= "table" or type(game.addTrigger) ~= "function" then
+    emit("probe_unavailable", "|reason=no_game_trigger_api")
     return
 end
-
-if type(game.getNumTriggers) == "function" then
-    local ok, value = pcall(game.getNumTriggers, MISSION)
-    if ok then
-        print(prefix .. "compiled invasion trigger count: " .. tostring(value))
-    else
-        print(prefix .. "trigger inspection failed: " .. tostring(value))
+local function resolve_role()
+    if type(game.multiplayer_is_server) == "function" then
+        local value = guarded_call(game.multiplayer_is_server, nil)
+        if value ~= nil then return value and "server" or "client" end
     end
+    return "unknown"
 end
-
--- WSE2 SDK: addTrigger(strTemplateId, checkTime, delay, rearm, conditionsCallback).
--- The callback logs once on entry and intentionally has no gameplay operations.
-if type(game.addTrigger) == "function" then
-    local reported = false
-    local function mission_probe()
-        if reported then
-            return false
+local mission_seen = false
+local heartbeat_count = 0
+local function current_mission()
+    local value = guarded_call(game.getCurTemplateId, "unknown")
+    return tostring(value):gsub("[^%w_]", "_"):sub(1, 60)
+end
+local function count_agents()
+    if type(game.agentsIt) ~= "function" then return -1 end
+    return guarded_call(function()
+        local count = 0
+        for _ in game.agentsIt() do
+            count = count + 1
+            if count >= 4096 then break end
         end
-        reported = true
-        local mission_name = "unknown"
-        if type(game.getCurTemplateId) == "function" then
-            local ok, value = pcall(game.getCurTemplateId)
-            if ok then
-                mission_name = tostring(value)
-            end
-        end
-        print(prefix .. "invasion mission entered; template=" .. mission_name)
-        return false
-    end
-    local ok, index = pcall(game.addTrigger, MISSION, 1.0, 0, 0, mission_probe)
-    if ok then
-        print(prefix .. "mission entry probe registered: " .. tostring(index))
-    else
-        print(prefix .. "mission entry probe failed: " .. tostring(index))
-    end
+        return count
+    end, -1)
+end
+local function first_entry()
+    if mission_seen then return false end
+    mission_seen = true
+    emit("mission_enter", "|role=" .. resolve_role() ..
+         "|template=" .. current_mission() .. "|agents=" .. count_agents())
+    return false
+end
+local ok_entry, idx = pcall(game.addTrigger, MISSION, 1.0, 0, 0, first_entry)
+if ok_entry then
+    emit("probe_registered", "|kind=entry|index=" .. tostring(idx))
 else
-    print(prefix .. "addTrigger unavailable; mission entry probe skipped")
+    emit("probe_failed", "|kind=entry")
+end
+local function heartbeat()
+    heartbeat_count = heartbeat_count + 1
+    -- At most 480 periodic records (~2 h at 15 s each).
+    if heartbeat_count <= 480 then
+        emit("heartbeat", "|count=" .. heartbeat_count .. "|role=" .. resolve_role()
+            .. "|agents=" .. count_agents() .. "|template=" .. current_mission())
+    end
+    return false
+end
+local ok_heart, heart_idx = pcall(game.addTrigger, MISSION, 15.0, 0, 0, heartbeat)
+if ok_heart then
+    emit("probe_registered", "|kind=heartbeat|index=" .. tostring(heart_idx))
+else
+    emit("probe_failed", "|kind=heartbeat")
 end
