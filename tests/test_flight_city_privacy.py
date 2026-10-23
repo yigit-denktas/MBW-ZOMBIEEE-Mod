@@ -1,4 +1,5 @@
 """Synthetic City incident privacy and collector tests."""
+import hashlib
 import json
 from pathlib import Path
 import sys
@@ -65,6 +66,43 @@ class CityEvidencePrivacyTests(unittest.TestCase):
             self.assertEqual(report["static_failed_checks"], 1)
             self.assertEqual(report["static"], "source_check_failed")
             self.assertFalse(report["source_receipt_claims_passed"])
+
+    def test_changed_summary_count_fails_closed_even_with_valid_zip_hashes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            module = root / "module"
+            module.mkdir()
+            receipt = {
+                "experimental_map_scope": "city-only",
+                "city_static_acceptance": {
+                    "checks": {"source_%02d" % i: True for i in range(8)},
+                    "original_invasion_game_type": 7},
+                "city_final_acceptance": {"passed": True},
+            }
+            (module / "ZOMBIEEE_REMASTER.json").write_text(json.dumps(receipt))
+            original = root / "complete.zip"
+            collect(None, module, original, [], "counter-test")
+            with zipfile.ZipFile(original) as archive:
+                base = {name: archive.read(name) for name in archive.namelist()}
+            for bad_count in (1, 7, 200, True):
+                with self.subTest(bad_count=bad_count):
+                    files = dict(base)
+                    safe = json.loads(files["module.json"])
+                    safe["city_static_acceptance"]["check_count"] = bad_count
+                    files["module.json"] = json.dumps(safe).encode()
+                    manifest = json.loads(files["manifest.json"])
+                    manifest["sha256"]["module.json"] = hashlib.sha256(
+                        files["module.json"]).hexdigest()
+                    files["manifest.json"] = json.dumps(manifest).encode()
+                    altered = root / ("changed-%s.zip" % str(bad_count))
+                    with zipfile.ZipFile(altered, "w") as archive:
+                        for name, data in files.items():
+                            archive.writestr(name, data)
+                    result = analyze(read_bundle(altered))["city_incident"]["build"]
+                    self.assertFalse(result["source_receipt_claims_passed"])
+                    self.assertFalse(result["static_summary_consistent"])
+                    self.assertIsNone(result["static_check_count"])
+                    self.assertEqual(result["static"], "source_check_failed")
 
     def test_arbitrary_event_fields_and_paths_are_removed(self):
         event = {"event": "command_exec", "source": "private/user/location",
