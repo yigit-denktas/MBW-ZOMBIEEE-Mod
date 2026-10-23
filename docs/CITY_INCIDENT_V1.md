@@ -56,6 +56,54 @@ expected value. Actual `wave_number`, `zdr_last_reinforced_wave`,
 `zdr_defence_mode`, reserved defender combat, host/scene and process outcomes
 are individually *observed marker* or *unknown*.
 
+## Round-aware reinforcement: source contract versus observed globals
+
+Agent A's latest **source** revision adds `zdr_last_reinforced_round_start`
+to remember the original `g_round_start_time` alongside the unchanged
+`zdr_last_reinforced_wave`. The native top-up guard now distinguishes
+`(round_start, wave)`, because original invasion rounds reset
+`wave_number=0` and successive rounds may reach the same wave number.
+This is a source-native correctness condition, not evidence that top-ups or
+pathfinding worked in WSE2. It is **not** independently attested by this
+report's collapsed source audit counters:
+`build.round_aware_source_contract_verified=false`.
+
+Agent C's optional Lua event probe now attempts **read-only engine global
+reads** on the server at mission entry and each heartbeat:
+
+- `round_start` = `g_round_start_time`, a mission-timer global and
+  *runtime round identity candidate*, **not a UTC timestamp**.
+- `refilled_round_start` = `zdr_last_reinforced_round_start`, the
+  last stored top-up round identity. It can lag the current round; this
+  is not automatically a fault.
+- `refilled` remains `zdr_last_reinforced_wave`; it is a wave number,
+  never a round identifier.
+- Existing `round` is `g_round_ended` (0/1), **not** round identity.
+
+The safe getter returns -1 when absent/unknown, which the incident
+report excludes. Only actual server ZDB1 event fields can populate
+`runtime.round_start_observations`,
+`runtime.last_reinforced_round_starts` or
+`runtime.wave_progression_within_one_round`. If no getter/field was
+observed, those remain `unknown`/`null`, regardless of how green the
+build receipt looks.
+
+`CITY-I04` is a **noncausal lead** for wave number decreasing in the same
+log *without an explicitly measured changed round*. A lower wave with
+different measured `round_start` is an expected new-round pattern, so it
+does not raise that lead. Distinct rounds that both show wave 2 are
+reported as repeated wave numbers **across observed rounds**, not as
+progression within one round. Even paired round and reinforced-round
+samples never certify that bots spawned or fought:
+`runtime.round_aware_reinforcement_verified=false`.
+
+**Version boundary:** B's first owner-authorized live City attempt uses
+older A `2643321` and C `53c2f88` source, whereas A's round-aware
+source fix is at `141a7926` and C's newer round probe is subsequent.
+Any evidence from that first attempt is historical-candidate evidence
+only. Do not retroactively infer either new global was instrumented or
+the latest source changes were exercised by that attempt.
+
 ## Two timeline lanes, not one fabricated chronology
 
 1. **Engine observations:** ZDB1 lines reference the safe ZIP member
@@ -83,7 +131,7 @@ do not establish working bot combat, total wave completion or player controls.
 | CITY-I01 | diagnostic R002 | Fatal text **pattern** detected; root cause unknown |
 | CITY-I02 | timeout/interruption/start failure receipt | Abnormal recorder session; engine status unknown |
 | CITY-I03 | omitted interval or bounded timeline | Some potentially relevant events were not preserved |
-| CITY-I04 | wave number decreased in one log | Candidate regression; rematch/restart still possible |
+| CITY-I04 | wave number decreased without measured new round | Candidate observation gap or regression; rematch/restart still possible |
 | CITY-I05 | City source receipt check returned false | Build-source consistency lead, not game observation |
 | CITY-I06 | declared original invasion type other than 7 | Source-contract inconsistency, no assumed runtime |
 | CITY-I07 | observed non-City scene vs City-only build | Scene/build mismatch candidate, cause unknown |
