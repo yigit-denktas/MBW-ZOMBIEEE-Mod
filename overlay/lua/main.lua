@@ -22,7 +22,7 @@ end
 local function resolve_role()
     if type(game.multiplayer_is_server) == "function" then
         local value = guarded_call(game.multiplayer_is_server, nil)
-        if value ~= nil then return value and "server" or "client" end
+        if value ~= nil then return (value == true or value == 1) and "server" or "client" end
     end
     return "unknown"
 end
