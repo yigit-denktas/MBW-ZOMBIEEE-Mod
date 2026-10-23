@@ -53,6 +53,14 @@ def clean_scene(value):
     return value.removeprefix("scn_")
 
 
+def bounded_source(items, limit=MAX_OBSERVATIONS):
+    """Inspect beginning and end of long input, accounting for missing middle."""
+    if len(items) <= limit:
+        return items, 0
+    early = max(1, limit // 4)
+    return items[:early] + items[-(limit - early):], len(items) - limit
+
+
 def limited_timeline(items, limit=MAX_TRACKED):
     """Preserve early boot and late crash/exit while making dropped count explicit."""
     if len(items) <= limit:
@@ -117,7 +125,9 @@ def incident_for_session(events, recorder_events, installed, flight, findings,
     commands = 0
     suspected_wave_regression = False
 
-    for event in events[:MAX_OBSERVATIONS]:
+    engine_input, engine_unread = bounded_source(events)
+    recorder_input, recorder_unread = bounded_source(recorder_events)
+    for event in engine_input:
         if not isinstance(event, dict):
             continue
         kind = event.get("event")
@@ -163,7 +173,7 @@ def incident_for_session(events, recorder_events, installed, flight, findings,
             if mode is not None:
                 mode_seen.add(mode)
         if kind == "heartbeat" and is_server:
-            fill = measured(fields.get("refilled"))
+            fill = measured(fields.get("refilled"), minimum=1)
             if fill is not None:
                 refilled.add(fill)
         if kind == "combat_sample":
@@ -184,7 +194,7 @@ def incident_for_session(events, recorder_events, installed, flight, findings,
         log_entries.append(point)
 
     recorder_entries = []
-    for event in recorder_events[:MAX_OBSERVATIONS]:
+    for event in recorder_input:
         if not isinstance(event, dict) or event.get("event") not in RECORDER_TRACKED:
             continue
         point = {"kind": event["event"], "clock": "recorder_utc"}
@@ -210,7 +220,8 @@ def incident_for_session(events, recorder_events, installed, flight, findings,
     receipt_gap = (any(measured(v, minimum=1) is not None for v in omitted_sizes)
                    if isinstance(omitted_sizes, list) else False)
     dropped_events = measured(flight.get("event_drops"), minimum=1) is not None
-    gap = log_gap or receipt_gap or dropped_events or log_omitted > 0
+    gap = (log_gap or receipt_gap or dropped_events or log_omitted > 0
+           or engine_unread > 0 or recorder_unread > 0)
 
     runtime = {
         "boot": "observed_marker" if observed_boot else "unknown",
@@ -299,9 +310,11 @@ def incident_for_session(events, recorder_events, installed, flight, findings,
         "unknowns": sorted(set(unknowns)), "recording_gap": gap,
         "timeline": {
             "engine": {"ordering": "per_file_line_only",
-                       "events": log_timeline, "omitted_middle": log_omitted},
+                       "events": log_timeline, "omitted_middle": log_omitted,
+                       "uninspected_input_records": engine_unread},
             "recorder": {"ordering": "recorder_utc_only",
-                         "events": recorder_timeline, "omitted_middle": recorder_omitted},
+                         "events": recorder_timeline, "omitted_middle": recorder_omitted,
+                         "uninspected_input_records": recorder_unread},
             "cross_lane_order": "unknown_without_shared_clock",
         },
         "privacy": {"raw_paths": False, "raw_log_excerpts": False,
