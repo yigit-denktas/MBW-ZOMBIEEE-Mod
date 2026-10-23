@@ -345,6 +345,10 @@ def incident_for_session(events, recorder_events, installed, flight, findings,
         add("CITY-I01", "Fatal text pattern in bounded log",
             ["diagnostics:R002"], "direct_text_match_cause_unknown",
             "Inspect local original crash context, then compare native/engine versions")
+    if "R030" in codes:
+        add("CITY-I08", "WSE2 invalid faction ID (-1) text observed",
+            ["diagnostics:R030"], "engine_log_text_cause_unknown",
+            "Inspect the logged native mission, trigger and opcode against pinned original and remaster; coordinate source-level diagnosis with Agent A")
     if flight.get("outcome") in ("timeout", "interrupted", "start_failed"):
         add("CITY-I02", "Recorder did not finish an ordinary session",
             ["flight_recorder.json:outcome"], "recorder_receipt_only",
