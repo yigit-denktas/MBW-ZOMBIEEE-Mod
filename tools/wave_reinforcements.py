@@ -6,12 +6,14 @@ from patch_defenders import PatchError, mission_bounds, SURVIVOR_CLASSES, TROOP_
 GLOBAL_BASE = 144115188075855872
 LOCAL_BASE = 1224979098644774912
 SENTINEL = "zdr_last_reinforced_wave"
+ROUND_STAMP = "zdr_last_reinforced_round_start"
 ORIGINAL_GLOBALS = 1220
 # Verified in original mst_multiplayer_iv ti_before_mission_start (-19).
 INVASION_GAME_TYPE = 7
 # Warband native neq = neg|eq = 0x80000000|31.
 # A round restart resets wave_number to zero while the sentinel survives.
 WAVE_CHANGED = 2147483679
+ROUND_OR_WAVE_CHANGED = (1 << 30) | WAVE_CHANGED  # this_or_next|neq
 GROUPS = (5, 6, 7)
 
 
@@ -21,19 +23,24 @@ def op(code, *args):
 
 def globals_from_original(raw):
     names = raw.splitlines()
-    if len(names) != ORIGINAL_GLOBALS or SENTINEL in names or len(set(names)) != len(names):
+    if (len(names) != ORIGINAL_GLOBALS or
+            any(key in names for key in (SENTINEL, ROUND_STAMP)) or
+            len(set(names)) != len(names)):
         raise PatchError("Expected unchanged original Beta 0.4 global variable table")
-    required = ("wave_number", "g_multiplayer_game_type", "g_round_ended")
+    required = ("wave_number", "g_multiplayer_game_type", "g_round_ended",
+                "g_round_start_time")
     if any(key not in names for key in required):
         raise PatchError("Original wave/game state variables missing")
     result = {key: GLOBAL_BASE + names.index(key) for key in required}
     result[SENTINEL] = GLOBAL_BASE + len(names)
+    result[ROUND_STAMP] = GLOBAL_BASE + len(names) + 1
     return result
 
 
-def initialize_wave_state(sentinel):
+def initialize_wave_state(sentinel, round_stamp):
     return " ".join(["-20.000000", "0.000000", "0.000000",
-                     "1", *op(417), "1", *op(2133, sentinel, 0)])
+                     "1", *op(417), "2", *op(2133, sentinel, 0),
+                     *op(2133, round_stamp, -1)])
 
 
 def reinforce_on_wave(g, troop_ids, cap=4, troop_classes=SURVIVOR_CLASSES, first_wave=2,
@@ -49,7 +56,11 @@ def reinforce_on_wave(g, troop_ids, cap=4, troop_classes=SURVIVOR_CLASSES, first
         op(417),  # multiplayer_is_server
         op(31, g["g_multiplayer_game_type"], INVASION_GAME_TYPE),  # original Invasion
         op(30, g["wave_number"], first_wave),  # ge: threshold from support difficulty
-        op(WAVE_CHANGED, g["wave_number"], g[SENTINEL]),  # neq: survives original next-round reset
+        # The historical mission resets wave_number across rounds. A separate
+        # original round-start timer identifies the new round even if both
+        # rounds reach the SAME numbered wave (e.g., each ends at wave 2).
+        op(ROUND_OR_WAVE_CHANGED, g["g_round_start_time"], g[ROUND_STAMP]),
+        op(WAVE_CHANGED, g["wave_number"], g[SENTINEL]),
         op(31, g["g_round_ended"], 0),
     ]
     if city_scene is not None:
@@ -61,6 +72,7 @@ def reinforce_on_wave(g, troop_ids, cap=4, troop_classes=SURVIVOR_CLASSES, first
             op(31, LOCAL_BASE + 8, SCENE_BASE + city_scene),
         ])
     body = [
+        op(2133, g[ROUND_STAMP], g["g_round_start_time"]),
         op(2133, g[SENTINEL], g["wave_number"]),
         op(2133, loc[0], 0),
         op(12, loc[1]),  # for agents
@@ -107,14 +119,15 @@ def patch_text(mission, variables, troop_ids, cap=4, troop_classes=SURVIVOR_CLAS
     nl = "\r\n" if "\r\n" in mission else "\n"
     lines[count_row] = "29" + nl
     lines[insert_at:insert_at] = [
-        initialize_wave_state(g[SENTINEL]) + nl,
+        initialize_wave_state(g[SENTINEL], g[ROUND_STAMP]) + nl,
         reinforce_on_wave(g, troop_ids, cap, troop_classes, first_wave, city_scene) + nl,
     ]
     changed = "".join(lines)
     if mission_bounds(changed.splitlines(keepends=True))[1] != 29:
         raise PatchError("Compiled mission round-trip failed")
     variable_nl = "\r\n" if "\r\n" in variables else "\n"
-    return changed, variables.rstrip("\r\n") + variable_nl + SENTINEL + variable_nl
+    return (changed, variables.rstrip("\r\n") + variable_nl +
+            SENTINEL + variable_nl + ROUND_STAMP + variable_nl)
 
 
 def apply_module(module: Path, cap=4, balanced_ai=False, first_wave=2,
@@ -145,6 +158,8 @@ def apply_module(module: Path, cap=4, balanced_ai=False, first_wave=2,
         "troop_profile": "balanced-ai" if balanced_ai else "original-0.4",
         "class_rotation": "original_wave_number_plus_replacement_index_mod_4",
         "original_wave_variable": "wave_number", "added_variable": SENTINEL,
+        "round_identity_variable": "g_round_start_time",
+        "added_round_marker": ROUND_STAMP,
         "city_only": bool(city_only), "scene_gate": city_scene,
         "final_trigger_count": 29, "runtime_verified": False,
         "limitations": "Replacements once per wave; no mid-wave resurrection.",
