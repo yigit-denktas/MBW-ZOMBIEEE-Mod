@@ -3,6 +3,7 @@ param(
     [Parameter(Mandatory=$true)][string]$WarbandRoot,
     [string]$Session = 'final-check',
     [string[]]$AdditionalLogs = @(),
+    [string]$FlightRoot = '',
     [string]$OutputFolder = './evidence'
 )
 $ErrorActionPreference = 'Stop'
@@ -20,6 +21,7 @@ try {
     $arguments = @('-3', 'tools\diagnostics.py', 'collect', '--game-root', $game,
         '--module', $module, '--output', $out, '--session', $Session)
     foreach ($log in $AdditionalLogs) { $arguments += @('--log', $log) }
+    if ($FlightRoot -ne '') { $arguments += @('--flight-root', (Resolve-Path $FlightRoot).Path) }
     & py @arguments
     if ($LASTEXITCODE -ne 0) { throw 'Evidence collection failed' }
     & py -3 tools\diagnostics.py verify $out
