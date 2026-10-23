@@ -9,7 +9,7 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools'))
 from ai_wave_contract import decode_trigger, inspect_city_ai
-from wave_reinforcements import INVASION_GAME_TYPE, GLOBAL_BASE
+from wave_reinforcements import INVASION_GAME_TYPE, GLOBAL_BASE, WAVE_CHANGED
 from patch_defenders import patch_file, mission_bounds
 from city_defense import apply_module as apply_city
 from wave_reinforcements import apply_module as apply_wave
@@ -113,6 +113,49 @@ class OriginalInvasionModeTests(unittest.TestCase):
         old[3] = ' '.join(init)
         result = self.inspect(old=old)
         self.assertFalse(result['checks']['original_invasion_mode_initialization'])
+
+    def test_original_round_restart_resets_wave_counter(self):
+        g_wave = GLOBAL_BASE + self.old_vars.index('wave_number')
+        for idx in (7, 10):
+            with self.subTest(trigger=idx):
+                _, operations = decode_trigger(self.before[idx])
+                self.assertIn((2133, (g_wave, 0)), operations)
+        self.assertTrue(self.inspect()['checks']['original_wave_resets_between_rounds'])
+
+    def test_reinforcement_guard_handles_second_round_before_previous_max(self):
+        g_wave = GLOBAL_BASE + self.old_vars.index('wave_number')
+        g_last = GLOBAL_BASE + self.new_vars.index('zdr_last_reinforced_wave')
+        conditions, effects = decode_trigger(self.after[28])
+        self.assertIn((WAVE_CHANGED, (g_wave, g_last)), conditions)
+        self.assertIn((2133, (g_last, g_wave)), effects)
+        sentinel = 0
+        attempts = []
+        # The original mission resets wave_number to zero between rounds.
+        # With a GT guard, round 2 wave 2/3 would be skipped after round 1 wave 4.
+        for round_number, wave in [(1, 2), (1, 2), (1, 3), (1, 4),
+                                   (2, 0), (2, 1), (2, 2), (2, 2), (2, 3)]:
+            if wave >= 2 and wave != sentinel:
+                sentinel = wave
+                attempts.append((round_number, wave))
+        self.assertEqual(attempts, [(1, 2), (1, 3), (1, 4), (2, 2), (2, 3)])
+
+    def test_old_strict_gt_guard_is_rejected(self):
+        g_wave = GLOBAL_BASE + self.old_vars.index('wave_number')
+        g_last = GLOBAL_BASE + self.new_vars.index('zdr_last_reinforced_wave')
+        original_neq = f'{WAVE_CHANGED} 2 {g_wave} {g_last}'
+        changed = self.after.copy()
+        self.assertIn(original_neq, changed[28])
+        changed[28] = changed[28].replace(original_neq,
+                                         f'32 2 {g_wave} {g_last}', 1)
+        self.assertFalse(self.inspect(new=changed)['checks']['reinforcement_once_per_wave'])
+
+    def test_original_reset_removal_is_rejected(self):
+        g_wave = GLOBAL_BASE + self.old_vars.index('wave_number')
+        original = self.before.copy()
+        marker = f'2133 2 {g_wave} 0'
+        self.assertIn(marker, original[10])
+        original[10] = original[10].replace(marker, f'2133 2 {g_wave} 1', 1)
+        self.assertFalse(self.inspect(old=original)['checks']['original_wave_resets_between_rounds'])
 
     def test_wrong_visitor_team_is_rejected(self):
         changed = self.after.copy()
