@@ -9,6 +9,9 @@ SENTINEL = "zdr_last_reinforced_wave"
 ORIGINAL_GLOBALS = 1220
 # Verified in original mst_multiplayer_iv ti_before_mission_start (-19).
 INVASION_GAME_TYPE = 7
+# Warband native neq = neg|eq = 0x80000000|31.
+# A round restart resets wave_number to zero while the sentinel survives.
+WAVE_CHANGED = 2147483679
 GROUPS = (5, 6, 7)
 
 
@@ -46,7 +49,7 @@ def reinforce_on_wave(g, troop_ids, cap=4, troop_classes=SURVIVOR_CLASSES, first
         op(417),  # multiplayer_is_server
         op(31, g["g_multiplayer_game_type"], INVASION_GAME_TYPE),  # original Invasion
         op(30, g["wave_number"], first_wave),  # ge: threshold from support difficulty
-        op(32, g["wave_number"], g[SENTINEL]),  # gt: one top-up per wave
+        op(WAVE_CHANGED, g["wave_number"], g[SENTINEL]),  # neq: survives original next-round reset
         op(31, g["g_round_ended"], 0),
     ]
     if city_scene is not None:
