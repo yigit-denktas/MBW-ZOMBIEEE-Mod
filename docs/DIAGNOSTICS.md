@@ -229,3 +229,35 @@ GitHub branch execution** before PR #12 can be accepted. The latest B adapter
 has independently tested an earlier C revision `eade015` on Windows; that
 does **not** certify later C commits, so B/A should rerun the combined offline
 suite against C's current head after reviewing new fields.
+
+
+## City Incident Report v1 (Agent C P1)
+
+`tools/diagnostics.py analyze <local-evidence.zip> --report <local-output.md>`
+now returns `city_incident` (schema `zombieee.city-incident.v1`), in
+addition to the existing R001–R029 rules and acceptance matrix.
+
+This new read-only layer separates source-receipt **claims** from actual
+runtime observations, correlates scene/wave/defender/tactical markers within
+each log, and summarizes recorder startup, rotation, bounded omissions,
+abnormal exits and build inconsistencies as noncausal investigation leads.
+The observed historical invasion initializer is **game type 7** in the
+updated Agent A source contract; a source assertion is not proof that a
+live session entered the City mission. Existing absent or negative getter
+values stay **unknown**, never zero.
+
+It stores **two distinct timeline lanes**: ZDB1 source/line ordering (within
+a log source only) versus C flight-recorder UTC timestamps. No fabricated
+cross-source timestamp or game success. Log excerpts, arbitrary event
+strings, local paths, control keys and PIDs are not copied to this summary.
+The collector exports only summaries of A's `city_static_acceptance`
+and `city_final_acceptance` receipts; even an all-green installed receipt
+only sets `source_receipt_claims_passed=true` and
+`independently_reverified=false`, not authenticated source provenance.
+
+Details and reproduction commands:
+[City Incident Report v1](CITY_INCIDENT_V1.md). Added 13 synthetic test
+methods across `test_flight_city_incident.py`,
+`test_flight_city_privacy.py`, `test_flight_city_limits.py`. These are
+**committed, not reported as executed** until B/A complete an exact checkout
+run. No CI, public network, copyrighted assets or repeated owner tests.
