@@ -66,7 +66,8 @@ def build_status(installed):
     output = {"city_scope": installed.get("experimental_map_scope") == "city-only",
               "static": "unknown", "final": "unknown",
               "original_invasion_game_type": None,
-              "source_verified": False, "game_runtime": "unknown"}
+              "source_receipt_claims_passed": False,
+              "independently_reverified": False, "game_runtime": "unknown"}
     static = installed.get("city_static_acceptance")
     if isinstance(static, dict):
         checks = static.get("checks")
@@ -85,7 +86,7 @@ def build_status(installed):
         mode = final.get("control_mode")
         if mode in ("none", "solo-assist", "private-commands", "invalid"):
             output["control_mode"] = mode
-    output["source_verified"] = (output["city_scope"]
+    output["source_receipt_claims_passed"] = (output["city_scope"]
                                  and output["static"] == "source_checked"
                                  and output["final"] == "source_checked"
                                  and output["original_invasion_game_type"] == 7)
@@ -285,8 +286,8 @@ def incident_for_session(events, recorder_events, installed, flight, findings,
         unknowns.append("game_process_exit_code_unknown")
     if runtime["simulation"] is True:
         unknowns.append("synthetic_session_not_gameplay")
-    if not build["source_verified"]:
-        unknowns.append("complete_city_static_and_final_source_proof_unavailable")
+    if not build["source_receipt_claims_passed"]:
+        unknowns.append("complete_city_static_and_final_source_receipts_unavailable")
     if gap:
         unknowns.append("truncated_or_missing_observation_intervals")
     if scene_evidence.get("status") == "mismatch_observed" and not any(
@@ -306,6 +307,7 @@ def incident_for_session(events, recorder_events, installed, flight, findings,
         "privacy": {"raw_paths": False, "raw_log_excerpts": False,
                     "manual_review_required": True},
         "caveat": ("Incident leads are source-backed hypotheses, not causal findings. "
-                   "Build static proof is not a WSE2 runtime observation. "
+                   "Installer source receipts are claims unless independently replayed; " 
+                   "build static checks are not WSE2 runtime observations. "
                    "Log-source order and recorder UTC are not a common clock."),
     }
