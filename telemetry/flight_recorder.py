@@ -294,10 +294,18 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
         if len(events) >= max_events:
             event_drops += 1
             return
-        events.append({"schema": SCHEMA, "event": name, "utc": utcnow(), **fields})
-        atomic_write(root / "events.jsonl",
-                     b"".join(json.dumps(e, sort_keys=True, separators=(",", ":")).encode() + b"\n"
-                              for e in events))
+        record = {"schema": SCHEMA, "event": name, "utc": utcnow(), **fields}
+        line = json.dumps(record, sort_keys=True, separators=(",", ":")).encode() + b"\n"
+        # Append one durable line rather than rewriting 1..2048 snapshots
+        # repeatedly (quadratic write amplification). A hard OS kill can
+        # leave a partial last line; that session has NO final manifest and
+        # is explicitly incomplete to the read-only recovery inspector.
+        refuse_links_on_parents(root / "events.jsonl")
+        with (root / "events.jsonl").open("ab") as stream:
+            stream.write(line)
+            stream.flush()
+            os.fsync(stream.fileno())
+        events.append(record)
 
     def append_bytes(i: int, chunk: bytes, count: int) -> None:
         # A huge burst is handled by reading only its earliest and latest bytes,
