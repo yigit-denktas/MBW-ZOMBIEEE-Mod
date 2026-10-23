@@ -11,7 +11,7 @@ Uses [Semantic Versioning](https://semver.org/) for the remaster, not the histor
 - Multi-session comparison for persistent, new and resolved diagnostic rule IDs.
 - Installed module-file SHA-256 fingerprints and verified 7-Zip CRC/trigger-count receipts; no compiled assets or unredacted logs packaged.
 - Optional WSE2 survivor/zombie team sampling with explicit unknown values and regression diagnosis.
-- Fourteen additional offline diagnostic regression tests.
+- Fifteen additional offline diagnostic regression tests, including large-log head/tail retention.
 
 ### Not verified
 - No Windows WSE2 gameplay test yet; allied bot combat, spawning, pathing, wave completion and private networking remain unverified.
