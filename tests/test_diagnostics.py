@@ -161,6 +161,22 @@ class DiagnosticsTests(unittest.TestCase):
             self.assertFalse(report["team_evidence"]["available"])
             self.assertNotIn("R018", {f["id"] for f in report["findings"]})
 
+    def test_markdown_handles_non_log_combat_examples(self):
+        report = {
+            "session": "final", "status": "warning", "evidence": {"logs": 1, "events": 4},
+            "event_counts": {"combat_sample": 4},
+            "findings": [{"id": "R023", "severity": "medium",
+                          "title": "Defender may be out of ammunition",
+                          "action": "Inspect ammo", "examples": [
+                              {"agent": 17, "group": 5, "wave": 4, "ticks": [1, 2, 3]}]}],
+            "caveat": "Runtime uncertain",
+            "combat_evidence": {"observability": {"combat_samples": 4}},
+        }
+        text = to_markdown(report)
+        self.assertIn("R023", text)
+        self.assertIn('"agent": 17', text)
+        self.assertIn("Acceptance evidence matrix", text)
+
     def test_invalid_session_label(self):
         with tempfile.TemporaryDirectory() as td:
             with self.assertRaises(ValueError):
