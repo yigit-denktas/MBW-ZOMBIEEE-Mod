@@ -103,8 +103,8 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         raise ValueError("--tactical-recovery requires --wave-reinforcements")
     if tactical_recovery and experimental_defenders < 3:
         raise ValueError("--tactical-recovery requires at least 3 experimental defenders")
-    if wave_reinforcements and not all_map_defenses:
-        raise ValueError("--wave-reinforcements requires --all-map-defenses")
+    if wave_reinforcements and not (city_guardposts or all_map_defenses):
+        raise ValueError("--wave-reinforcements requires --city-guardposts or --all-map-defenses")
     city_guardposts = city_guardposts or all_map_defenses
     if city_guardposts and not experimental_defenders:
         raise ValueError("Defence positions require --experimental-defenders 1..8")
@@ -162,7 +162,8 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         if wave_reinforcements:
             wave_report = apply_wave_support(source, cap=experimental_defenders,
                                              balanced_ai=balanced,
-                                             first_wave=support.first_reinforcement_wave)
+                                             first_wave=support.first_reinforcement_wave,
+                                             city_only=not all_map_defenses)
             updated = report_for_module(source)
             if not updated["ok"] or updated["mission"]["triggers"] != 29:
                 raise RuntimeError("Wave reinforcement failed static post-apply validation")
@@ -170,7 +171,8 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         if tactical_recovery:
             recovery_report = apply_tactical_recovery(source,
                 low_water=support.fallback_at_or_below,
-                high_water=support.regroup_at_or_above)
+                high_water=support.regroup_at_or_above,
+                city_only=not all_map_defenses)
             updated = report_for_module(source)
             if not updated["ok"] or updated["mission"]["triggers"] != 31:
                 raise RuntimeError("Tactical recovery failed static post-apply validation")
@@ -209,6 +211,9 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
             "difficulty_parameters": {"first_reinforcement_wave": support.first_reinforcement_wave,
                                       "fallback_at_or_below": support.fallback_at_or_below,
                                       "regroup_at_or_above": support.regroup_at_or_above},
+            "experimental_map_scope": ("all-original-maps" if all_map_defenses
+                                       else "city-only" if city_guardposts
+                                       else "original-baseline"),
             "experimental_city_guardposts": city_report,
             "experimental_all_map_defenses": all_maps_report,
             "experimental_wave_reinforcements": wave_report,
@@ -236,6 +241,9 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
                     print(f"Previous module retained at {previous}")
     return {"module": str(out), "source_sha256": digest, "static_validation": "PASS", "experimental_defenders": experimental_defenders, "city_guardposts": city_guardposts, "all_map_defenses": all_map_defenses,
             "wave_reinforcements": wave_reinforcements, "tactical_recovery": tactical_recovery,
+            "experimental_map_scope": ("all-original-maps" if all_map_defenses
+                                        else "city-only" if city_guardposts
+                                        else "original-baseline"),
             "defender_loadouts": defender_loadouts, "solo_assist": solo_assist,
             "private_commands": private_commands, "difficulty": difficulty,
             "runtime_verified": False}
@@ -249,7 +257,7 @@ def main():
     parser.add_argument("--experimental-defenders", type=int, default=0, metavar="N", help="Opt-in 1–8 allied bots; default 0 preserves original mission")
     parser.add_argument("--city-guardposts", action="store_true", help="Optional guarded City tactical post overlay")
     parser.add_argument("--all-map-defenses", action="store_true", help="Experimental original five-map tactical overlays; implies City posts")
-    parser.add_argument("--wave-reinforcements", action="store_true", help="Replenish living defenders to requested cap once per new wave (requires all maps)")
+    parser.add_argument("--wave-reinforcements", action="store_true", help="Once-per-wave defender top-up, for City-only or all-map tactical overlays")
     parser.add_argument("--tactical-recovery", action="store_true", help="Fallback/regroup server AI with hysteresis (requires 3+ defenders and wave reinforcements)")
     parser.add_argument("--defender-loadouts", choices=("original", "balanced-ai"), default="original", help="Append balanced AI-only troop clones without changing player classes")
     parser.add_argument("--solo-assist", action="store_true", help="EXPERIMENTAL: only local non-dedicated host in a 1-player session gets periodic health/ammo")
