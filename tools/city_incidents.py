@@ -175,7 +175,7 @@ def incident_for_session(events, recorder_events, installed, flight, findings,
         if not isinstance(event, dict):
             continue
         kind = event.get("event")
-        if kind not in TRACKED:
+        if not isinstance(kind, str) or kind not in TRACKED:
             continue
         fields = event.get("fields") or {}
         if not isinstance(fields, dict):
@@ -184,7 +184,8 @@ def incident_for_session(events, recorder_events, installed, flight, findings,
         line = measured(event.get("line"), minimum=1)
         observed_boot |= kind == "boot"
         is_server = fields.get("role") == "server"
-        is_invasion = is_server and fields.get("template") in INVASION_TEMPLATES
+        is_invasion = (is_server and isinstance(fields.get("template"), str)
+                       and fields.get("template") in INVASION_TEMPLATES)
         if kind == "mission_enter" and is_invasion:
             observed_server_mission = True
         if kind in ("heartbeat", "mission_enter") and is_invasion:
@@ -267,7 +268,8 @@ def incident_for_session(events, recorder_events, installed, flight, findings,
 
     recorder_entries = []
     for event in recorder_input:
-        if not isinstance(event, dict) or event.get("event") not in RECORDER_TRACKED:
+        if (not isinstance(event, dict) or not isinstance(event.get("event"), str)
+                or event.get("event") not in RECORDER_TRACKED):
             continue
         point = {"kind": event["event"], "clock": "recorder_utc"}
         utc = event.get("utc")
