@@ -19,3 +19,12 @@ Original `ZOMBIEEEBeta04.rar` SHA-256 `9be100ff41ce6f8ebadd4aa27377f70f402883fab
 
 ### Initial deliverable
 A small code/test PR implementing more reliable original-RAR / compiled-mission startup preflight, plus documented WSE2 source boundaries and a single integrated final-session test plan. Keep original 25 invasion triggers intact in default mode.
+
+
+## Continuation — post-control City static gate (2026-10-23)
+
+- **Code:** `tools/final_city_gate.py` and `tools/build.py` now require an exact final byte check for the complete City-only tactical profile after optional `--private-commands` or `--solo-assist`. The accepted 31-trigger mission/variables and City SCO hash are frozen before host controls; final native bytes and SCO must match the frozen core plus the selected deterministic patch. The install receipt contains `city_final_acceptance` with control mode, checks, SHA-256 and `runtime_verified:false`. Existing `city_static_acceptance` remains the earlier prerequisite.
+- **Tests:** 8 synthetic source-free negative controls passed in a separate local reproduction; three source-grounded test methods were added to `tests/test_city_acceptance.py` but **not executed**. The original user archive/module and exact full branch checkout were unavailable here. Do not claim all City gameplay or installer tests passed.
+- **B coordination:** [PR #11 directions](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11#issuecomment-6374942213) — B to build actual passive-recorder adapter with B-owned fake game processes, HMAC attach/stop, secure local control files, exact B+C interop and no game-before-recorder.
+- **C coordination:** [PR #12 directions](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12#issuecomment-6374942751) — C to run exact checkout tests, integrate real B adapter rather than simulated B only, and document PID-reuse limitations/possible schema addition.
+- **Next A gate:** secure complete *exact* PR #10 checkout, run `python -m unittest discover -s tests -v` using original module when available; run archive `7z t` separately; review B/C combined fake-process fixture and keep all PRs draft until offline acceptance. **WSE2 and City combat remain unverified.**
