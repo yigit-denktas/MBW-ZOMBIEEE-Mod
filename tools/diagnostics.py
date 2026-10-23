@@ -125,7 +125,15 @@ def extract_events(log: str, log_file: str) -> list[dict]:
 
 def verified_flight(root: Path) -> tuple[dict, list[Path], bytes]:
     """Read C's completed, hashed external recorder without trusting paths."""
-    root = root.expanduser().resolve()
+    root = root.expanduser().absolute()
+    # Reject intermediate symlink/junction substitutions before reading ZIP inputs.
+    for component in [root, *root.parents]:
+        if component.exists() and (component.is_symlink()
+                or (getattr(component.lstat(), "st_file_attributes", 0) & 0x400)):
+            raise ValueError("Unsafe recorder path link/reparse point")
+    for component in root.rglob("*"):
+        if component.is_symlink() or (getattr(component.lstat(), "st_file_attributes", 0) & 0x400):
+            raise ValueError("Unsafe recorder path link/reparse point")
     manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
     if manifest.get("schema") != "zombieee.flight.v1":
         raise ValueError("Unknown flight-recorder schema")
