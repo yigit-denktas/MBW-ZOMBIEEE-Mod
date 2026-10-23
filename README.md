@@ -14,6 +14,8 @@ Obtain a legitimate Warband installation, your own original `ZOMBIEEEBeta04.rar`
 py -3 -m unittest discover -s tests -v
 py -3 tools\build.py --archive "C:\Downloads\ZOMBIEEEBeta04.rar" --out "C:\Games\MountBlade Warband\Modules\ZOMBIEEE_Remaster"
 py -3 tools\doctor.py --module "C:\Games\MountBlade Warband\Modules\ZOMBIEEE_Remaster"
+py -3 tools\preflight.py --module "C:\Games\MountBlade Warband\Modules\ZOMBIEEE_Remaster" --json
+py -3 tools\trace_calls.py --module "C:\Games\MountBlade Warband\Modules\ZOMBIEEE_Remaster" --json
 ```
 
 Install [WSE2](https://github.com/Ruslan-700/WSE2-Releases/releases/tag/v1.1.5.4) separately. Select `ZOMBIEEE_Remaster` in the launcher. The installer checks the original archive digest and 7-Zip integrity, stages a clean copy, applies a small overlay, and refuses to overwrite an existing installation without `--replace`.
@@ -25,6 +27,7 @@ Install [WSE2](https://github.com/Ruslan-700/WSE2-Releases/releases/tag/v1.1.5.4
 - [Provenance and redistribution](docs/PROVENANCE.md)
 - [Engine target](docs/ENGINE.md)
 - [Next development handoff](docs/NEXT_RUN.md)
+- [Original invasion bot-call reconstruction](docs/BOT_RECON.md)
 - [Version history](CHANGELOG.md)
 
 ## Versioning and status
