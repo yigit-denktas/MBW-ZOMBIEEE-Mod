@@ -1,5 +1,21 @@
 # ZOMBIEEE City-first — integration acceptance evidence ledger
 
+## Observed first WSE2 dedicated-host checkpoint — 2026-10-24 (latest update)
+
+**The earlier opening snapshot below predates this real host result.** Agent B [reported](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11#issuecomment-6376361668) the owner-authorized City-only build from **A `141a792`**, B `d41aefc`, and C recorder **`e455354`**. Actual launched SHAs differ from the *initial* announced A/C versions; use the observed installed candidate, not assumptions about the plan.
+
+- **G03 scoped observed source/build check:** B reports archive CRC accepted; staged balanced-AI City profile built in 29 seconds with `city_static_acceptance` (26 passing checks, source-derived invasion mode 7), `city_final_acceptance.passed=true`, native mission **31 triggers**, and canonical City SCO SHA `96159fa8…`. New module `Modules/ZOMBIEEE_Remaster` installed **1,071 files** without overwriting prior modules. An independent **after-install** verifier result has not been posted, and this is **not** acceptance of B's unimplemented journaled P1 installer.
+- **G06 scoped observed recorder readiness:** C `e455354` passive recorder armed first; canonical readiness marker and HMAC-attached owned host/client processes accepted. **Final signed stop, sealed manifest and manual privacy review remain unknown**.
+- **G07 scoped observed real dedicated-host boot/private listener:** Actual WSE2 1.1.5.4 host emitted `ZDB1|boot|version=0.1.8|triggers=31`; logged `Starting map tbfc_invasion_4 in mode multiplayer_iv`. Agent B observed **UDP listener `127.0.0.1:7240` only**, with no public UDP listener. Reported outbound TCP to Cloudflare is **not an inbound listener**. Host startup/socket privacy are now *observed for this identified running candidate*, not blanket future-run evidence.
+- **G08–G11 remain OPEN:** the player **had not joined** when B posted the observation. No independently confirmed server-side client join, wave progression, defender AI combat, or round reset/hold-order behavior. Map-selection log and a Lua boot marker are not proof of complete invasion playability.
+- **New observed error and research task:** Four real engine `SCRIPT ERROR: Invalid Faction ID: -1` messages at original `mst_multiplayer_iv` **trigger 14 consequences, opcode 502**. Cause and effect remain **unknown** pending Agent A original-vs-generated compiled source audit. C added bounded **R030 / CITY-I08** noncausal identification, but its full exact-current suite remains unverified; no automatic root-cause assignment or remediation is authorized by the error text alone.
+
+The present A source branch was independently reported at **149/149 local original-asset tests**, which is source evidence, not proof the running module contains those later diagnostics edits. C's newer forensic branch code was not the launched `e455354` recorder. Do not combine source revisions to manufacture current-candidate acceptance.
+
+**Progress reporting is separate:** [Canonical Project Record ledger](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/project-record-setup-v041/progress/ledger.json) now tracks 18 **● discovered** source/incident/support tasks (11 narrowly completed, 6 in review, 1 active) without additional credit to the original **0/23** required release outcomes or **0/5** accepted milestones. [Incident-driven scope amendment](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/project-record-setup-v041/progress/scope-changes/2026-10-24-live-incident-amendment.json).
+
+---
+
 **Agent A, 2026-10-24. Gate contract, not a report of completed gameplay.**
 
 The baseline at publication is **A `141a7926dc2102cc521208d0170cc55f8f80b74f`** (round-aware City native patch; core **31 triggers / 1,223 globals**, optional private controls **35 / 1,226**), **B `d41aefc0d7b810f0e1ca0c5961c71f107e5d0052`**, and **C `e4553547cbca5e3e46e4570dae9b77ccc5c02bcd`** (incident counter fix). These are independently evolving **draft** PRs; pin new SHAs explicitly if any changes before the final candidate. Current branch SHAs alone are not evidence of installed bytes.
