@@ -1,4 +1,4 @@
-# End-of-development diagnostic recorder (v0.1.4)
+# End-of-development diagnostic recorder (v0.1.5)
 
 **No step-by-step game testing required.** Continue development and local static verification normally. After the final build is ready, play one private WSE2 session, exit the game, and run the collector once. It packages evidence for later analysis rather than making you troubleshoot each intermediate build.
 
@@ -41,7 +41,7 @@ Pass comparison ZIP paths explicitly, in chronological order. Comparison reports
 | R011 | Lua bootstrap event absent |
 | R012 | No invasion entry despite bootstrap event |
 | R013 | Mission entered but heartbeat absent |
-| R014 | Wrong trigger count (25 original, 26 with defenders, 27 with City tactical positions) |
+| R014 | Wrong trigger count (25 original, 26 with defenders, 27 with tactical positions, 29 with wave reinforcements) |
 | R015 | Logs older than seven days, potentially unrelated |
 | R016 | WSE2 Lua diagnostic hook failed to register |
 | R017 | Installed module manifest missing; cannot correlate build and runtime |
@@ -60,3 +60,7 @@ The guarded installer also stores `archive_crc_verified`, `original_mission_trig
 ## Scene overlay receipt
 
 The v0.1.4 installer records `final_trigger_count=27` if `--city-guardposts` is active. Original City data still has 226 objects; a patched copy has 229. The existing module fingerprint captures the modified `mission_templates.txt`, while the unmodified original archive remains untouched. Read the [City defence overlay](CITY_DEFENSE.md) for source-derived entry coordinates and offline checks.
+
+## v0.1.5 build provenance
+
+The collector fingerprints `variables.txt` (including the optional reinforcement sentinel) and all five original `SceneObj/scn_tbfc_invasion_*.sco` scene files in addition to the compiled mission, troop data, and Lua bootstrap. It does **not** package original game assets. The actual `final_trigger_count` is recorded by the installer for 25/26/27/29 variants. At final runtime test, compare the installed build fingerprint with that manifest before assuming the wrong code is running.

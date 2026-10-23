@@ -4,7 +4,9 @@ param(
     [Parameter(Mandatory=$true)][string]$WarbandRoot,
     [ValidateRange(0,8)][int]$Defenders = 4,
     [switch]$Replace,
-    [switch]$CityGuardposts
+    [switch]$CityGuardposts,
+    [switch]$AllMapDefenses,
+    [switch]$WaveReinforcements
 )
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
@@ -29,6 +31,8 @@ try {
                    '--experimental-defenders', [string]$Defenders)
     if ($Replace) { $argsBuild += '--replace' }
     if ($CityGuardposts) { $argsBuild += '--city-guardposts' }
+    if ($AllMapDefenses) { $argsBuild += '--all-map-defenses' }
+    if ($WaveReinforcements) { $argsBuild += '--wave-reinforcements' }
     & py @argsBuild
     if ($LASTEXITCODE -ne 0) { throw 'Module build was refused; check RAR SHA-256, 7-Zip CRC and errors above' }
 

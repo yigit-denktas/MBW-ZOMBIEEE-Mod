@@ -1,7 +1,7 @@
--- ZOMBIEEE Remaster 0.1.4: bounded, read-only engine telemetry.
+-- ZOMBIEEE Remaster 0.1.5: bounded, read-only engine telemetry.
 -- Messages go to WSE2's existing game log; no network or file I/O.
 -- ZDB1|event|key=value|...; no player names, IPs or chat.
-local VERSION = "0.1.4"
+local VERSION = "0.1.5"
 local MISSION = "mst_multiplayer_iv"
 local function emit(event, details)
     print("ZDB1|" .. event .. "|version=" .. VERSION .. (details or ""))

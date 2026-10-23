@@ -2,6 +2,19 @@
 
 Uses [Semantic Versioning](https://semver.org/) for the remaster, not the historical original.
 
+## [0.1.5] - 2026-10-23
+
+### Added
+- Source-derived, reproducible guard-post proposals for Granny's House, Bridge, Shipyard and Abandoned Town using free entries 41–43.
+- A five-map, server-only, scene-scoped tactical order trigger replacing the previous City-only *remaster* order trigger. All 25 original mission triggers stay intact.
+- Optional reinforcement keyed to original `wave_number`: resets a new dedicated sentinel at mission start, counts living non-player team-0 agents in groups 5–7 and tops up to the requested cap once per new wave from wave 2.
+- Opt-in installer flags `--all-map-defenses` and `--wave-reinforcements`. Normal builds retain original behaviour.
+- Extra diagnostic SHA-256 fingerprints of the compiled `variables.txt` table and five tactical scene files.
+- Original Beta 0.4 offline integration and additional regression tests for waves, scene geometry, troop ordinals and duplicate patching.
+
+### Unverified
+- Runtime troop spawning, AI orders/pathfinding, map sightlines, networking, wave completion, performance and WSE2 execution. No CI or original third-party binaries added.
+
 ## [0.1.4] - 2026-10-23
 
 ### Added

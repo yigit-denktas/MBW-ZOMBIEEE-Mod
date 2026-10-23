@@ -2,7 +2,7 @@
 
 Modernization of the **2012 ZOMBIEEE (Invasion) Beta 0.4** mod for *Mount & Blade: Warband*. Original contributors retain credit and ownership of their work.
 
-**Current project version:** `0.1.4` (development scaffold; **not yet playable/engine-verified**).  
+**Current project version:** `0.1.5` (development scaffold; **not yet playable/engine-verified**).  
 **Target:** Warband official 1.174 data format under [WSE2](https://github.com/Ruslan-700/WSE2-Releases/releases/tag/v1.1.5.4) 1.1.5.4 (14 October 2026).  
 **Scope:** preserve the original guns, zombies, wave mode, maps and feel; restore current-runtime compatibility; add AI survivor teammates, defensible hold points, quality-of-life features, private cheats, and later LAN co-op. **ZOMBIEEE2 is explicitly excluded.**
 
@@ -30,6 +30,7 @@ Install [WSE2](https://github.com/Ruslan-700/WSE2-Releases/releases/tag/v1.1.5.4
 - [Original invasion bot-call reconstruction](docs/BOT_RECON.md)
 - [Experimental allied defenders](docs/EXPERIMENTAL_DEFENDERS.md)
 - [City tactical defence overlay](docs/CITY_DEFENSE.md)
+- [Five-map defences and wave reinforcements](docs/FIVE_MAP_WAVES.md)
 - [End-of-development diagnostics](docs/DIAGNOSTICS.md)
 - [Version history](CHANGELOG.md)
 
@@ -62,3 +63,13 @@ py -3 tools\build.py --archive "C:\Downloads\ZOMBIEEEBeta04.rar" --out "C:\Games
 ```
 
 Normal build: 25 invasion triggers. Experimental allies: 26. Allies plus City defence: 27. **Offline compatibility verified against supplied scene and compiled mission data; Windows engine gameplay and AI behaviour remain unverified.** See [technical analysis](docs/CITY_DEFENSE.md).
+
+### Experimental 0.1.5: all original maps + wave-aware reinforcements
+
+The original `wave_number` global drives a *separate* server-side survivor top-up to the requested cap once per wave after wave 1. Survivors are counted only if alive, non-player, team 0, in reserved groups 5–7. All five maps now have opt-in navmesh-derived defence markers and map-scoped orders. Source RAR and original zombie waves remain untouched.
+
+```powershell
+py -3 tools\build.py --archive "C:\Downloads\ZOMBIEEEBeta04.rar" --out "C:\Games\MountBlade Warband\Modules\ZOMBIEEE_Remaster" --experimental-defenders 4 --all-map-defenses --wave-reinforcements
+```
+
+The mode is disabled by default. Expected compiled invasion trigger counts: original **25**, allies **26**, map defences **27**, with wave reinforcement **29**. Changes to `variables.txt` and every modified original map are fingerprinted in the final-session diagnostic bundle. Offline scene/mission integration passed; **in-engine behavior is not verified**. [Details](docs/FIVE_MAP_WAVES.md).

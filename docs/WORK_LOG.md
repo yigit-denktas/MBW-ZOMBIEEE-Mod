@@ -1,5 +1,14 @@
 # Work log
 
+## 2026-10-23 — 0.1.5: wave-limited reinforcements and five original maps
+
+- Located original `wave_number` (global ordinal 1209), `wave_counted`, `last_wave` and `wave_timer` inside original compiled invasion trigger 15.
+- Implemented a separate server-only reinforcement trigger and match-init sentinel without altering original zombie spawn logic; caps living non-player team-0 defenders in private groups 5–7 at requested squad count.
+- Generated reachable AI-mesh post candidates for all five 2012 maps; inserted previously unused entries 41–43 on four maps and preserved City entries 2–4.
+- Integrated five-map-scoped hold orders and once-per-wave survivor replenishment behind opt-in build flags.
+- Original-copy offline prototype passed: 29 invasion triggers, 1,221 globals (one added), AI meshes and original RAR unchanged. Seven new regression cases authored; no Windows runtime confirmation.
+- Updated diagnostic fingerprints for wave table and all five scenes; no CI, no ZOMBIEEE2.
+
 ## 2026-10-23 — 0.1.4: concrete City tactical overlay
 
 - Parsed all five original 2012 SCO scenes using the documented format; City has 226 scene objects, 11 entries, 323 AI mesh vertices and 270 navmesh faces.
