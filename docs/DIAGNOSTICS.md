@@ -209,3 +209,23 @@ Run on a branch checkout: `python -m unittest discover -s tests -p
 -v`. Record exact revision/platform/pass/skip/failure counts and keep
 original module data out of Git and any public bundle. No CI or intermediate
 Windows gameplay test.
+
+
+### Recorder event-journal cost bound
+
+Event writes now append an individually flushed and fsynced line to
+`events.jsonl` rather than atomically replacing the entire accumulated
+journal on every event. This avoids quadratic write amplification across
+up to 2,048 events. The per-run event count and `event_drops` remain explicit,
+and the final manifest SHA-256 covers the complete finished journal. A hard
+OS termination can leave an incomplete final line; the recovery inspector
+reports the session as **unsealed**, never verified. This is a bounded
+offline implementation change, **not an observed WSE2 performance claim**.
+
+The current C source also contains tests for process birth-identity sampling,
+PID reuse fail-closed shutdown, synthetic protocol fixtures, recorder death
+inspection, and per-event append-only cost. These tests **require exact
+GitHub branch execution** before PR #12 can be accepted. The latest B adapter
+has independently tested an earlier C revision `eade015` on Windows; that
+does **not** certify later C commits, so B/A should rerun the combined offline
+suite against C's current head after reviewing new fields.
