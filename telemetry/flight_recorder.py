@@ -179,13 +179,23 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
                    timeout: float = 30.0, poll: float = 0.1,
                    max_log_bytes: int = MAX_LOG_BYTES, max_events: int = MAX_EVENTS,
                    launcher_receipt: Path | None = None,
-                   attempt_id: str = "1") -> dict:
+                   attempt_id: str = "1", passive: bool = False,
+                   recorder_start_id: str | None = None) -> dict:
     if not SESSION_PATTERN.fullmatch(session_id) or session_id in (".", ".."):
         raise ValueError("Invalid session ID")
     if not SESSION_PATTERN.fullmatch(attempt_id) or attempt_id in (".", ".."):
         raise ValueError("Invalid attempt ID")
-    if (command is None) == (observe_pid is None):
+    if passive:
+        if command is not None or observe_pid is not None:
+            raise ValueError("Passive recorder cannot spawn or require a game PID")
+        if recorder_start_id is None:
+            raise ValueError("Passive recorder requires B's opaque start identity")
+    elif (command is None) == (observe_pid is None):
         raise ValueError("Choose exactly one of a child command or observed PID")
+    if recorder_start_id is None:
+        recorder_start_id = secrets.token_hex(16)
+    if not SESSION_PATTERN.fullmatch(recorder_start_id):
+        raise ValueError("Invalid recorder start identity")
     if not 0 < timeout <= 86400 or not 0 < poll <= 60:
         raise ValueError("Invalid timeout or poll interval")
     if not 128 <= max_log_bytes <= MAX_LOG_BYTES or not 2 <= max_events <= MAX_EVENTS:
@@ -295,6 +305,38 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
         finally:
             pipe.close()
 
+    attached = False
+    last_control_hash = {}
+
+    def control_message(kind: str) -> dict | None:
+        # Private, atomic files written by B. The random attempt identity
+        # correlates messages; B must also validate its live process handle.
+        path = root / ("recorder-" + kind + ".json")
+        if not path.exists():
+            return None
+        if path.is_symlink() or (getattr(path.lstat(), "st_file_attributes", 0) & 0x400):
+            event("control_rejected", kind=kind, reason="unsafe_file")
+            return None
+        try:
+            if path.stat().st_size > 4096:
+                raise ValueError("oversized")
+            data = path.read_bytes()
+            fingerprint = digest(data)
+            if last_control_hash.get(kind) == fingerprint:
+                return None
+            last_control_hash[kind] = fingerprint
+            value = json.loads(data)
+            if (not isinstance(value, dict)
+                    or value.get("schema") != "zombieee.recorder-" + kind + ".v1"
+                    or value.get("session_id") != session_id
+                    or value.get("attempt_id") != attempt_id
+                    or value.get("recorder_start_id") != recorder_start_id):
+                raise ValueError("mismatched_receipt")
+            return value
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            event("control_rejected", kind=kind, reason=type(exc).__name__)
+            return None
+
     outcome, exit_code, child = "unknown", None, None
     start = time.monotonic()
     began = utcnow()
@@ -306,9 +348,10 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
         sample_logs()
         event("recorder_ready", session_id=session_id, attempt_id=attempt_id)
         ready = {
-            "schema": "zombieee.recorder_ready.v1",
+            "schema": "zombieee.recorder-ready.v1",
             "session_id": session_id, "attempt_id": attempt_id,
-            "recorder_pid": os.getpid(), "watcher_id": secrets.token_hex(16),
+            "recorder_pid": os.getpid(), "recorder_start_id": recorder_start_id,
+            "watcher_id": secrets.token_hex(16),
             "ready_utc": utcnow(), "log_offsets_captured": True,
             "watcher_active": True, "log_source_count": len(source_paths),
             "engine_ready": False, "mission_ready": False,
@@ -335,11 +378,40 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
                 event("process_start_failed", error_type=type(exc).__name__)
                 raise
             event("process_started", owned=True)
+        elif passive:
+            event("recorder_listening", owned=False, process_identity="unattached")
         else:
             event("process_observed", owned=False,
                   alive_at_start=alive(observe_pid))
         while True:
             sample_logs()
+            if passive:
+                attachment = control_message("attach") if not attached else None
+                if attachment is not None:
+                    pids = [attachment.get(key) for key in ("host_pid", "client_pid")]
+                    allowed = [pid for pid in pids
+                               if type(pid) is int and pid > 0 and pid != os.getpid()]
+                    if allowed and all(
+                        pid is None or (type(pid) is int and pid > 0 and pid != os.getpid())
+                        for pid in pids
+                    ):
+                        attached = True
+                        event("process_attached", claimed_process_count=len(allowed),
+                              alive_process_count=sum(alive(pid) is True for pid in allowed))
+                        atomic_write(root / "recorder-attachment-ack.json", json_bytes({
+                            "schema": "zombieee.recorder-attachment-ack.v1",
+                            "session_id": session_id, "attempt_id": attempt_id,
+                            "recorder_start_id": recorder_start_id,
+                            "attachment_accepted": True,
+                            "game_ready": False,
+                            "accepted_utc": utcnow(),
+                        }))
+                    else:
+                        event("control_rejected", kind="attach", reason="invalid_pid")
+                stop = control_message("stop")
+                if stop is not None:
+                    outcome = "stopped" if attached else "stopped_without_attachment"
+                    break
             if child is not None:
                 exit_code = child.poll()
                 if exit_code is not None:
@@ -391,6 +463,7 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
         event("process_finished", outcome=outcome, exit_code=exit_code)
         safe = {
             "schema": SCHEMA, "session_id": session_id, "attempt_id": attempt_id,
+            "watch_mode": "passive" if passive else "owned_child" if child is not None else "external_pid",
             "start_utc": began, "end_utc": end, "outcome": outcome,
             "exit_code": exit_code if child is not None else None,
             "exit_code_observed": child is not None and exit_code is not None,
@@ -450,6 +523,8 @@ def main() -> int:
     p.add_argument("--output-root", type=Path, required=True)
     p.add_argument("--session", required=True)
     p.add_argument("--attempt", default="1", help="Opaque launcher retry ID")
+    p.add_argument("--passive", action="store_true", help="Arm before B starts game; local attachment/stop control")
+    p.add_argument("--recorder-start-id", help="B-supplied opaque process-start correlation")
     p.add_argument("--log", action="append", type=Path, default=[])
     p.add_argument("--launcher-receipt", type=Path)
     p.add_argument("--observe-pid", type=int)
@@ -466,7 +541,9 @@ def main() -> int:
                                 observe_pid=args.observe_pid,
                                 timeout=args.timeout, poll=args.poll,
                                 launcher_receipt=args.launcher_receipt,
-                                attempt_id=args.attempt)
+                                attempt_id=args.attempt,
+                                passive=args.passive,
+                                recorder_start_id=args.recorder_start_id)
         print(json.dumps(result, indent=2))
         return 0 if result["outcome"] in ("exited", "disappeared_exit_code_unknown") else 2
     except (OSError, ValueError, json.JSONDecodeError) as error:
