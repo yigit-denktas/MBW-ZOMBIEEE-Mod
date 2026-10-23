@@ -133,12 +133,19 @@ def verified_flight(root: Path) -> tuple[dict, list[Path], bytes]:
               and p.name != "manifest.json"}
     if set(hashes) != actual or "recorder.json" not in hashes:
         raise ValueError("Flight-recorder entry mismatch")
+    total_bytes = 0
     for name, expected in hashes.items():
         if (not isinstance(name, str) or name.startswith("/")
                 or "\\" in name or ".." in Path(name).parts):
             raise ValueError("Unsafe flight-recorder path")
         file = root / name
-        if file.is_symlink() or not file.is_file() or sha256(file.read_bytes()) != expected:
+        if file.is_symlink() or not file.is_file():
+            raise ValueError("Unsafe flight-recorder file: " + name)
+        size = file.stat().st_size
+        total_bytes += size
+        if size > MAX_LOG_BYTES or total_bytes > 12 * MAX_LOG_BYTES + 4 * 1024 * 1024:
+            raise ValueError("Flight-recorder size exceeds safety limit")
+        if sha256(file.read_bytes()) != expected:
             raise ValueError("Flight-recorder integrity failure: " + name)
     receipt = json.loads((root / "recorder.json").read_text(encoding="utf-8"))
     if receipt.get("schema") != "zombieee.flight.v1":
@@ -171,14 +178,20 @@ def collect(game_root: Path | None, module: Path | None, output: Path,
     flight_events = b""
     if flight_root is not None:
         flight, recorder_logs, flight_events = verified_flight(flight_root)
-        # Prefer recorder snapshots if ordinary game logs exceed the file limit.
-        extra_logs = [*recorder_logs, *extra_logs]
-    sources = candidate_logs(game_root, extra_logs)
-    if flight is not None:
-        # The external recorder's hashed snapshots are first-class evidence.
-        # Include them ahead of older auto-discovered engine logs.
-        snapshots = [p.resolve() for p in recorder_logs if p.is_file()]
-        sources = (snapshots + [p for p in sources if p not in snapshots])[:MAX_FILES]
+        # Final-session snapshots are trusted for time window, not historical
+        # auto-discovery. Include only these and explicitly opted-in extras.
+        sources, seen = [], set()
+        for path in [*recorder_logs, *extra_logs]:
+            try:
+                candidate = path.expanduser().resolve()
+                if candidate.is_file() and candidate not in seen:
+                    sources.append(candidate)
+                    seen.add(candidate)
+            except (OSError, RuntimeError):
+                pass
+        sources = sources[:MAX_FILES]
+    else:
+        sources = candidate_logs(game_root, extra_logs)
     if flight is not None:
         entries["flight_recorder.json"] = (json.dumps(flight, indent=2, sort_keys=True) + "\n").encode()
         entries["flight_events.jsonl"] = flight_events
