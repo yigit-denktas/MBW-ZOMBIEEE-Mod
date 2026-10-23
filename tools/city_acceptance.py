@@ -129,6 +129,15 @@ def audit_city(module: Path, original: Path) -> dict:
                 evidence["checks"][f"other_scene_{number}_evidence"] = False
                 evidence["problems"].append(
                     f"Insufficient matching evidence for scene {number}")
+        # Structural trigger counts alone miss a dormant logical branch:
+        # original mst_multiplayer_iv initializes its game type to 7, while
+        # the first remaster wave/recovery patches compared it to 6.
+        from ai_wave_contract import inspect_city_ai
+        ai = inspect_city_ai(baseline, actual, base_variables, variables)
+        for name, passed in ai["checks"].items():
+            require("ai_" + name, passed,
+                    "City AI native contract failed: " + name)
+        evidence["original_invasion_game_type"] = ai["original_invasion_mode"]
         evidence["original_triggers"] = before
         evidence["city_triggers"] = after
     except (OSError, ValueError, IndexError, KeyError) as exc:
