@@ -218,7 +218,7 @@ def collect(game_root: Path | None, module: Path | None, output: Path,
                 safe = {k: parsed.get(k) for k in (
                     "remaster_version", "source_archive_sha256", "target", "runtime_verified",
                     "archive_crc_verified", "original_mission_trigger_count", "final_trigger_count",
-                    "defender_loadout_profile", "difficulty")}
+                    "defender_loadout_profile", "difficulty", "experimental_map_scope")}
                 assist = parsed.get("solo_assist")
                 if isinstance(assist, dict):
                     safe["solo_assist"] = {
