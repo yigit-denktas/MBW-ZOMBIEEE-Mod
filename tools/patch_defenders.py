@@ -82,13 +82,14 @@ def mission_bounds(lines: list[str]) -> tuple[int, int, int]:
     return p, trigger_count, insert_at
 
 
-def build_trigger(count: int, troop_ids: dict[str, int]) -> str:
+def build_trigger(count: int, troop_ids: dict[str, int],
+                  troop_classes: tuple[str, ...] = SURVIVOR_CLASSES) -> str:
     if not 1 <= count <= 8:
         raise PatchError("Allied squad size must be between 1 and 8")
-    missing = [name for name in SURVIVOR_CLASSES if name not in troop_ids]
+    missing = [name for name in troop_classes if name not in troop_ids]
     if missing:
         raise PatchError("Missing survivor troops: " + ", ".join(missing))
-    classes = [SURVIVOR_CLASSES[i % len(SURVIVOR_CLASSES)] for i in range(count)]
+    classes = [troop_classes[i % len(troop_classes)] for i in range(count)]
     ops = []
     for index, name in enumerate(classes):
         entry = SURVIVOR_ENTRIES[index % 2]
@@ -99,12 +100,13 @@ def build_trigger(count: int, troop_ids: dict[str, int]) -> str:
                      "1", SERVER_ONLY, str(count), *ops])
 
 
-def patch_text(original: str, troops: dict[str, int], count: int) -> str:
+def patch_text(original: str, troops: dict[str, int], count: int,
+               troop_classes: tuple[str, ...] = SURVIVOR_CLASSES) -> str:
     lines = original.splitlines(keepends=True)
     p, triggers, end = mission_bounds(lines)
     if triggers != 25 or lines[p].strip() != "25":
         raise PatchError(f"Refusing non-original invasion trigger count: {triggers}")
-    trigger = build_trigger(count, troops)
+    trigger = build_trigger(count, troops, troop_classes)
     newline = "\r\n" if "\r\n" in original else "\n"
     lines[p] = "26" + newline
     lines.insert(end, trigger + newline)
@@ -114,15 +116,21 @@ def patch_text(original: str, troops: dict[str, int], count: int) -> str:
     return result
 
 
-def patch_file(module_dir: Path, count: int) -> dict:
+def patch_file(module_dir: Path, count: int, balanced_ai: bool = False) -> dict:
     module_dir = Path(module_dir)
     path = module_dir / "mission_templates.txt"
     original = path.read_bytes().decode("utf-8")
     troops = index_troops(module_dir / "troops.txt")
-    patched = patch_text(original, troops, count)
+    if balanced_ai:
+        from bot_loadouts import CLONES
+        troop_classes = CLONES
+    else:
+        troop_classes = SURVIVOR_CLASSES
+    patched = patch_text(original, troops, count, troop_classes)
     path.write_bytes(patched.encode("utf-8"))
     return {
         "experimental_defenders": count,
+        "troop_profile": "balanced-ai" if balanced_ai else "original-0.4",
         "team": SURVIVOR_TEAM,
         "spawn_entries": SURVIVOR_ENTRIES,
         "original_invasion_triggers": 25,
