@@ -28,3 +28,25 @@ The mission preflight now also decodes the **complete compiled operation arities
 **Evidence currently available:** the locally provided source archive matched RAR4 signature, expected 167,493,071 bytes and pinned SHA-256. A standalone copy of this preflight decoded the supplied partially extracted original `mst_multiplayer_iv` as 64 entries, 25 native triggers and 30/30 nonempty mod BRFs. Synthetic tests passed for invalid body arity, wrong archive hash/signature, missing 7-Zip and CRC error/timeout handling.
 
 **Unverified and blocking:** a full original-member `7z t` run (7-Zip not available in this development container); a clean Windows 11 original extraction; actual WSE2 game boot, automatic hosting, agent behaviour and a completed City wave. These should be captured in the consolidated final Windows run rather than asserted from file parsing.
+
+## City-first scope enforcement — Agent A, review branch
+
+The owner chose **City only** for the first accepted solo release. The builder now supports the following *experimental static build profile* **without applying defence markers to any of the other four original scenes**:
+
+```powershell
+py -3 tools\build.py --archive "C:\Downloads\ZOMBIEEEBeta04.rar" --out "C:\Games\MountBlade Warband\Modules\ZOMBIEEE_Remaster" --experimental-defenders 4 --city-guardposts --wave-reinforcements --tactical-recovery --defender-loadouts balanced-ai
+```
+
+Three native-script boundaries now gate City-specific behaviour on the actual `scn_tbfc_invasion_4` scene ID:
+
+1. **Initial survivor spawn:** `tools/patch_defenders.py` adds server/current-scene/City-match conditions to the one-time allied spawn when `city_only=True`. Its normal baseline/all-map trigger remains unchanged.
+2. **Wave reinforcement:** `tools/wave_reinforcements.py` requires an actual City scene match before its wave-limited replacement handler can execute.
+3. **Fallback/regroup:** `tools/tactical_recovery.py` now accepts either City-only or the prior five-scene map table, adding a City scene condition in the City-only variant.
+
+`tools/city_defense.py` validates both the original server-only ally spawn trigger and the City-scoped variant without hardcoded operation indices. The original compiled 25 invasion triggers remain untouched. On a fully enabled City-first build, the experimental mission still has **31** triggers and the previous append-only `zdr_*` globals; it no longer needs `--all-map-defenses`.
+
+**Preservation:** The remaining four original `.sco` files are neither edited nor required by City-specific patch functions. They still exist in the complete original archive; City-only is an **experimental gameplay-overlay scope**, not permission to redistribute or delete the original maps. Existing `--all-map-defenses` is backwards-compatible and separately gated.
+
+**Additional evidence limit:** New `tests/test_city_only_build.py` stages just the original City scene with the compiled source tables and asserts City-gated spawn, reinforcement and recovery operations; verification must still run on a complete original installation and WSE2 before acceptance. Presence of these native condition tokens proves neither scene-loader execution nor working AI movement.
+
+**Installer interface for Agent B:** Accept `--city-guardposts --wave-reinforcements --tactical-recovery` without requiring all maps. The build receipt includes `experimental_map_scope: "city-only"`, or `"all-original-maps"` for the legacy full variant. **Forensics interface for Agent C:** carry this recorded scope into the private evidence summary and compare it with `scn_tbfc_invasion_4` observations. Never infer actual gameplay from build flags.
