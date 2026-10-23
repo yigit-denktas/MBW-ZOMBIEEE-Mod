@@ -18,7 +18,7 @@ import sys
 import zipfile
 from tactical_analysis import analyze_tactical_events
 from combat_analysis import analyze_combat_events
-from evidence_readiness import matrix_for_session
+from evidence_readiness import matrix_for_session, capability_snapshot
 
 SCHEMA = 1
 MAX_LOG_BYTES = 8 * 1024 * 1024
@@ -421,8 +421,10 @@ def analyze(payload: dict[str, bytes]) -> dict:
     combat_report = analyze_combat_events(events, installed)
     findings.extend(combat_report["findings"])
     readiness = matrix_for_session(events, findings, installed, len(logs), combat_report)
+    capabilities = capability_snapshot(events)
     return {"session": session.get("session", "unknown"), "module": installed,
             "flight_recorder": flight, "privacy": privacy,
+            "capability_evidence": capabilities,
             "event_counts": dict(eventcounts), "events": events[:500], "team_evidence": team_evidence,
             "tactical_evidence": {k: v for k, v in tactical_report.items() if k != "findings"},
             "combat_evidence": {k: v for k, v in combat_report.items() if k != "findings"},
@@ -463,6 +465,7 @@ def to_markdown(report: dict) -> str:
              f"- Log files: {report['evidence']['logs']}", f"- Parsed telemetry events: {report['evidence']['events']}",
              f"- Event counts: {json.dumps(report['event_counts'], sort_keys=True)}",
              f"- External recorder: {json.dumps(report.get('flight_recorder', {}), sort_keys=True)}",
+             f"- WSE2 binding declarations: {json.dumps(report.get('capability_evidence', {}), sort_keys=True)}",
              f"- Privacy inspection: {json.dumps(report.get('privacy', {}), sort_keys=True)}",
              f"- Tactical evidence: {json.dumps(report.get('tactical_evidence', {}), sort_keys=True)}",
              f"- Combat evidence: {json.dumps(report.get('combat_evidence', {}), sort_keys=True)}",
