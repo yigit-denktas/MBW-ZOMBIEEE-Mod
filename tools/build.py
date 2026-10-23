@@ -15,6 +15,7 @@ from pathlib import Path
 
 from doctor import inspect_module
 from preflight import report_for_module
+from patch_defenders import patch_file
 
 ROOT = Path(__file__).resolve().parent.parent
 ORIGINAL_SHA256 = "9be100ff41ce6f8ebadd4aa27377f70f402883fab271999a8cab8cc1da001d1e"
@@ -71,7 +72,9 @@ def apply_overlay(module_dir: Path) -> None:
     rename_module_title(module_dir / "module.ini")
 
 
-def build(archive: Path, out: Path, replace: bool = False) -> dict:
+def build(archive: Path, out: Path, replace: bool = False, experimental_defenders: int = 0) -> dict:
+    if not 0 <= experimental_defenders <= 8:
+        raise ValueError("--experimental-defenders must be between 0 and 8")
     archive = archive.expanduser().resolve(strict=True)
     out = out.expanduser().resolve()
     if out.name != MODULE_NAME:
@@ -99,6 +102,12 @@ def build(archive: Path, out: Path, replace: bool = False) -> dict:
             raise RuntimeError("Mission/resource preflight failed: " +
                                str(preflight.get("problems", preflight.get("error"))))
         apply_overlay(source)
+        defender_report = None
+        if experimental_defenders:
+            defender_report = patch_file(source, experimental_defenders)
+            updated = report_for_module(source)
+            if not updated["ok"] or updated["mission"]["triggers"] != 26:
+                raise RuntimeError("Experimental defender patch failed post-apply diagnostics")
         if not inspect_module(source)["core_ok"] or not (source / "lua" / "main.lua").is_file():
             raise RuntimeError("Module overlay failed static validation")
         (source / "ZOMBIEEE_REMASTER.json").write_text(json.dumps({
@@ -107,6 +116,7 @@ def build(archive: Path, out: Path, replace: bool = False) -> dict:
             "target": "Warband 1.174 core / WSE2 1.1.5.4",
             "runtime_verified": False,
             "preflight": preflight,
+            "experimental_defender_patch": defender_report,
         }, indent=2) + "\n", encoding="utf-8")
 
         # Stage the final copy on the destination volume and replace atomically.
@@ -128,7 +138,7 @@ def build(archive: Path, out: Path, replace: bool = False) -> dict:
             else:
                 if previous:
                     print(f"Previous module retained at {previous}")
-    return {"module": str(out), "source_sha256": digest, "static_validation": "PASS", "runtime_verified": False}
+    return {"module": str(out), "source_sha256": digest, "static_validation": "PASS", "experimental_defenders": experimental_defenders, "runtime_verified": False}
 
 
 def main():
@@ -136,9 +146,10 @@ def main():
     parser.add_argument("--archive", required=True, type=Path)
     parser.add_argument("--out", required=True, type=Path)
     parser.add_argument("--replace", action="store_true")
+    parser.add_argument("--experimental-defenders", type=int, default=0, metavar="N", help="Opt-in 1–8 allied bots; default 0 preserves original mission")
     args = parser.parse_args()
     try:
-        print(json.dumps(build(args.archive, args.out, args.replace), indent=2))
+        print(json.dumps(build(args.archive, args.out, args.replace, args.experimental_defenders), indent=2))
     except (RuntimeError, FileNotFoundError, FileExistsError, ValueError, subprocess.CalledProcessError) as exc:
         print(f"Build refused: {exc}", file=sys.stderr)
         raise SystemExit(2)
