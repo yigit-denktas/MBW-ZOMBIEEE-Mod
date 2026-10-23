@@ -14,6 +14,7 @@ import tempfile
 from pathlib import Path
 
 from doctor import inspect_module
+from preflight import report_for_module
 
 ROOT = Path(__file__).resolve().parent.parent
 ORIGINAL_SHA256 = "9be100ff41ce6f8ebadd4aa27377f70f402883fab271999a8cab8cc1da001d1e"
@@ -93,6 +94,10 @@ def build(archive: Path, out: Path, replace: bool = False) -> dict:
             raise RuntimeError("Original root folder ZOMBIEEE missing after extraction")
         if not inspect_module(source)["core_ok"]:
             raise RuntimeError("Core original files/mission/five map files failed validation")
+        preflight = report_for_module(source)
+        if not preflight["ok"]:
+            raise RuntimeError("Mission/resource preflight failed: " +
+                               str(preflight.get("problems", preflight.get("error"))))
         apply_overlay(source)
         if not inspect_module(source)["core_ok"] or not (source / "lua" / "main.lua").is_file():
             raise RuntimeError("Module overlay failed static validation")
@@ -101,6 +106,7 @@ def build(archive: Path, out: Path, replace: bool = False) -> dict:
             "source_archive_sha256": digest,
             "target": "Warband 1.174 core / WSE2 1.1.5.4",
             "runtime_verified": False,
+            "preflight": preflight,
         }, indent=2) + "\n", encoding="utf-8")
 
         # Stage the final copy on the destination volume and replace atomically.
