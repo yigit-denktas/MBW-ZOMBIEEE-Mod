@@ -1,3 +1,5 @@
+> **Historical static snapshot (before AI game-type correction).** This 124-test report proved byte/trigger preservation but did **not** establish the wave and recovery predicates could run. A subsequent original-mission audit found both controllers incorrectly checked game type **6** while the original Invasion mission unconditionally initializes **7**. They are fixed and covered by **131/131** tests in [the current City AI/wave audit](CITY_AI_WAVE_AUDIT_2026-10-23.md). Do not use this report alone as AI-functional acceptance.
+
 # ZOMBIEEE Remaster — City native patch-chain verification
 
 **Date:** 2026-10-23  
