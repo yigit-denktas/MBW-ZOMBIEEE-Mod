@@ -351,6 +351,8 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
             pipe.close()
 
     attached = False
+    attached_pids: list[int] = []
+    premature_stop_reported = False
     last_control_hash = {}
 
     def control_message(kind: str) -> dict | None:
@@ -452,6 +454,7 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
                         for pid in pids
                     ):
                         attached = True
+                        attached_pids = allowed
                         event("process_attached", claimed_process_count=len(allowed),
                               alive_process_count=sum(alive(pid) is True for pid in allowed))
                         atomic_write(root / "recorder-attachment-ack.json", json_bytes({
@@ -466,8 +469,19 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
                         event("control_rejected", kind="attach", reason="invalid_pid")
                 stop = control_message("stop")
                 if stop is not None:
-                    outcome = "stopped" if attached else "stopped_without_attachment"
-                    break
+                    # B must stop *its* game processes first. C independently
+                    # declines to seal an apparently live/unknown process;
+                    # a signed early stop remains retryable after game exit.
+                    running = [pid for pid in attached_pids if alive(pid) is not False]
+                    if running:
+                        if not premature_stop_reported:
+                            event("control_rejected", kind="stop",
+                                  reason="game_process_not_confirmed_exited")
+                            premature_stop_reported = True
+                        last_control_hash.pop("stop", None)
+                    else:
+                        outcome = "stopped" if attached else "stopped_without_attachment"
+                        break
             if child is not None:
                 exit_code = child.poll()
                 if exit_code is not None:
