@@ -80,3 +80,33 @@ The full experimental build receipt records final_trigger_count=31 plus the tact
 A locally authored minimal `overlay/lua/msfiles/header_operations.py` maps only read-only Warband native getters that our WSE2 Lua telemetry uses. The runtime attempts `combat_sample` (agent/group/wave/known weapon ID/ammo/kill count) and `command_exec` events from native command counter increments, up to 16 non-player reserved-group defenders every 15 seconds. No real player coordinates or names are required. Unavailable native operations are recorded as unknown.
 
 New offline codes: **R023** candidate ammunition depletion, **R024** prolonged engagement with no observed defender kill increments, **R025** hotkey execution inconsistent with build receipt, **R026** missing AI combat observability. The final JSON and Markdown reports include an **acceptance evidence matrix** for engine startup, mission entry, zombie waves, allied agents, combat activity, fallback/regroup and private commands. Unknown does not mean failed or passed. An error-free log is not proof of playability. [Full forensic reference](FORENSIC_DIAGNOSTICS.md).
+
+
+## Agent C: external flight recorder (development prototype)
+
+**Status: offline prototype on \`agent/c-flight-recorder\`; Windows/WSE2 integration not verified.** The recorder runs as a separate Python process, observes a subprocess launched with \`--\` or a pre-existing PID with \`--observe-pid\`, and independently stores atomic, bounded evidence snapshots. No game memory injection, shell execution, external telemetry or background uploads. It does not replace the final WSE2 session.
+
+Run from the repository root. The following commands use a **fake Python game**, not an actual Warband invocation:
+
+~~~powershell
+py -3 -m unittest tests.test_flight_recorder tests.test_flight_integration -v
+py -3 -m telemetry.flight_recorder --output-root .\evidence\flight --session fake-city --timeout 10 -- py -3 -c "import sys; sys.exit(7)"
+py -3 tools\diagnostics.py collect --flight-root .\evidence\flight\fake-city --output .\evidence\fake-city.zip --session fake-city
+py -3 tools\diagnostics.py verify .\evidence\fake-city.zip
+py -3 tools\diagnostics.py analyze .\evidence\fake-city.zip --report .\evidence\fake-city.md
+~~~
+
+A real integrated session should pass existing WSE2/Warband log paths using repeated \`--log\` arguments. For Agent B's future launcher, pass its **optional** private per-user \`zombieee.session.v1\` JSON receipt with \`--launcher-receipt\`; only allowlisted fields are reproduced. This is an interface prototype, **not** a claim that automatic City launch or WSE2 flags work.
+
+- **Recorder storage:** \`evidence/flight/<session_id>/recorder.json\`, \`events.jsonl\`, redacted \`logs/log_XX.txt\` and \`manifest.json\`, atomically written with SHA-256 digests over the actual redacted bytes.
+- **Collection:** \`diagnostics.py collect --flight-root <completed-session-dir> ...\` verifies all recorder entries first, refuses a modified source, then carries the scrubbed snapshots plus their process receipt into the existing self-checked evidence ZIP.
+- **Log window:** the recorder starts at the log files' current end (not historical prior-session text), polls without modifying the game, stores at most 12 logs × 2 MiB each, limits event records to 2,048 and records truncation. A very long burst may omit the crash tail: this limitation must be resolved before declaring crash coverage production-grade.
+- **Process evidence:** owned-child exit codes are observed; a merely watched PID has **unknown** exit code. Timeout and startup failure are recorded separately. Per-process CPU, memory and FPS are **unknown**, not fake values; wall-clock duration is measured.
+- **Privacy:** common credentials, home paths, IPs, email addresses and Steam IDs are redacted best-effort. \`verify\` additionally reports counts for *potential* remaining sensitive strings, never the offending values. It **always requires manual privacy review before any ZIP is shared**, even when all automated counts are zero. SHA-256 verifies accidental modifications, not provenance or proof that logs are safe.
+- **Forensic leads:** R027 means external recorder timed out; R028 means an owned child exited nonzero. Neither is an automatic verdict of a Warband crash. Actual WSE2 Lua and game-run acceptance checks retain the \`unknown\` state until observed.
+
+Run the full offline suite with \`py -3 -m unittest discover -s tests -v\` before review. These test files do not require original mod or WSE2 assets, and there is **no CI**.
+
+## Agent integration boundary
+
+Agent B owns launcher and installer orchestration. Agent C owns this recorder and evidence processing, consumes B's optional local JSON session receipt without storing full paths, PIDs, command lines, chat or credentials in report outputs. Agent A owns the [provisional session contract](../handoffs/SESSION_CONTRACT.md) on its branch and must review any schema change. Only Agent A can declare a final WSE2 City result accepted based on objective runtime evidence, not these offline fixtures.
