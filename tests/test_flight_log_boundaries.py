@@ -16,7 +16,7 @@ class FlightLogBoundaryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             log = root / "wse2.log"
-            log.write_text("PREVIOUS SESSION DO NOT INCLUDE\\n" * 500)
+            log.write_text("PREVIOUS SESSION DO NOT INCLUDE\n" * 500)
             game = subprocess.Popen([sys.executable, "-c", "import time;time.sleep(1.0)"])
             results = []
             errors = []
@@ -40,10 +40,10 @@ class FlightLogBoundaryTests(unittest.TestCase):
                     file.write("token=secret-part")
                 time.sleep(0.06)
                 with log.open("a") as file:
-                    file.write("-that-was-split-across-polls\\n")
+                    file.write("-that-was-split-across-polls\n")
                 time.sleep(0.06)
                 log.rename(root / "wse2.log.old")
-                log.write_text("ZDB1|boot|triggers=35\\nFATAL ERROR: rotated log\\n")
+                log.write_text("ZDB1|boot|triggers=35\nFATAL ERROR: rotated log\n")
                 game.wait(timeout=3)
                 worker.join(timeout=3)
                 self.assertFalse(worker.is_alive())
