@@ -264,3 +264,21 @@ methods across `test_flight_city_incident.py`,
 `test_flight_city_privacy.py`, `test_flight_city_limits.py`. These are
 **committed, not reported as executed** until B/A complete an exact checkout
 run. No CI, public network, copyrighted assets or repeated owner tests.
+
+
+### Optional observed round identity (post-A round-aware source revision)
+
+The Lua probe now tries read-only server global getters for
+`g_round_start_time` (`round_start`) and
+`zdr_last_reinforced_round_start` (`refilled_round_start`) at mission
+entry/heartbeat, plus round identity on `wave_change`. A `-1` getter is
+**unknown**; source/build receipts must not synthesize an observed round.
+Invasion `g_round_ended` (`round`) is merely a state flag, not a round
+identifier. The existing `refilled` is the saved wave number only.
+
+City incident v1 can distinguish a decreasing wave with an actually changed
+round ID (expected) from a decreasing wave without observed changed round
+(candidate `CITY-I04`; cause always unknown). Same-wave observations
+across different measured rounds do not imply within-round progression.
+Even observing both round globals does **not** prove successful AI top-up.
+See [the round evidence contract](CITY_INCIDENT_V1.md#round-aware-reinforcement-source-contract-versus-observed-globals).
