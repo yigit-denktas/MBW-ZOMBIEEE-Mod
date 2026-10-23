@@ -148,7 +148,7 @@ def verify(original: Path, archive: Path | None = None) -> dict:
                 "global_count": len((stage / "variables.txt").read_text().splitlines()),
                 "runtime_verified": False,
             }
-            if report["variants"][variant]["global_count"] != 1225:
+            if report["variants"][variant]["global_count"] != 1226:
                 raise RuntimeError("Unexpected 35-trigger global count")
             if variant == "standard":
                 allowed = {"mission_templates.txt", "variables.txt",
