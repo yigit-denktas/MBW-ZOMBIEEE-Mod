@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 from datetime import datetime, timezone
 import hashlib
+import hmac
 import json
 import os
 from pathlib import Path
@@ -180,7 +181,8 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
                    max_log_bytes: int = MAX_LOG_BYTES, max_events: int = MAX_EVENTS,
                    launcher_receipt: Path | None = None,
                    attempt_id: str = "1", passive: bool = False,
-                   recorder_start_id: str | None = None) -> dict:
+                   recorder_start_id: str | None = None,
+                   control_key: bytes | None = None) -> dict:
     if not SESSION_PATTERN.fullmatch(session_id) or session_id in (".", ".."):
         raise ValueError("Invalid session ID")
     if not SESSION_PATTERN.fullmatch(attempt_id) or attempt_id in (".", ".."):
@@ -190,6 +192,8 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
             raise ValueError("Passive recorder cannot spawn or require a game PID")
         if recorder_start_id is None:
             raise ValueError("Passive recorder requires B's opaque start identity")
+        if not isinstance(control_key, bytes) or len(control_key) < 32:
+            raise ValueError("Passive recorder requires a 256-bit local control key")
     elif (command is None) == (observe_pid is None):
         raise ValueError("Choose exactly one of a child command or observed PID")
     if recorder_start_id is None:
@@ -206,6 +210,8 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
     base = output_root.expanduser().resolve()
     root = base / session_id
     root.mkdir(parents=True, exist_ok=False)
+    if os.name != "nt":
+        os.chmod(root, 0o700)  # private per-user session, best effort on Windows
     (root / "logs").mkdir()
     source_paths = [Path(p).expanduser().resolve() for p in logs]
     offsets = {}
@@ -332,6 +338,15 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
                     or value.get("attempt_id") != attempt_id
                     or value.get("recorder_start_id") != recorder_start_id):
                 raise ValueError("mismatched_receipt")
+            provided_mac = value.get("mac")
+            if not isinstance(provided_mac, str):
+                raise ValueError("missing_mac")
+            authenticated = {key: part for key, part in value.items() if key != "mac"}
+            canonical = json.dumps(authenticated, sort_keys=True,
+                                   separators=(",", ":"), ensure_ascii=True).encode()
+            expected_mac = hmac.new(control_key, canonical, hashlib.sha256).hexdigest()
+            if not hmac.compare_digest(provided_mac, expected_mac):
+                raise ValueError("invalid_mac")
             return value
         except (OSError, ValueError, json.JSONDecodeError) as exc:
             event("control_rejected", kind=kind, reason=type(exc).__name__)
@@ -525,6 +540,8 @@ def main() -> int:
     p.add_argument("--attempt", default="1", help="Opaque launcher retry ID")
     p.add_argument("--passive", action="store_true", help="Arm before B starts game; local attachment/stop control")
     p.add_argument("--recorder-start-id", help="B-supplied opaque process-start correlation")
+    # B supplies this only in the spawned recorder's private environment.
+    # Never persist or print it, and never pass it to an owned game child.
     p.add_argument("--log", action="append", type=Path, default=[])
     p.add_argument("--launcher-receipt", type=Path)
     p.add_argument("--observe-pid", type=int)
@@ -536,6 +553,8 @@ def main() -> int:
     if cmd and cmd[0] == "--":
         cmd = cmd[1:]
     try:
+        raw_key = os.environ.get("ZOMBIEEE_RECORDER_CONTROL_KEY", "")
+        control_key = bytes.fromhex(raw_key) if raw_key else None
         result = record_session(args.output_root, args.session, args.log,
                                 command=cmd if cmd else None,
                                 observe_pid=args.observe_pid,
@@ -543,7 +562,8 @@ def main() -> int:
                                 launcher_receipt=args.launcher_receipt,
                                 attempt_id=args.attempt,
                                 passive=args.passive,
-                                recorder_start_id=args.recorder_start_id)
+                                recorder_start_id=args.recorder_start_id,
+                                control_key=control_key)
         print(json.dumps(result, indent=2))
         return 0 if result["outcome"] in ("exited", "disappeared_exit_code_unknown") else 2
     except (OSError, ValueError, json.JSONDecodeError) as error:
