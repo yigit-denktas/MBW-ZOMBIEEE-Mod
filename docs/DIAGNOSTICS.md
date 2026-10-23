@@ -145,3 +145,67 @@ Agent B owns launcher and installer orchestration. Agent C owns this recorder an
 
 **Execution evidence boundary:** the reconstructed Linux C recorder mirror passed its existing 16 focused tests and another eight safety/process/rotation checks (24 passing, 0 failures/skips across these runs). These are *not* an execution of the exact remote branch. The new GitHub tests, complete `tools/diagnostics.py` suite, and Windows/WSE2 behavior still need validation on an accessible checkout. No CI or repeated manual gameplay sessions are requested.
 
+
+
+## C recorder protocol/evidence follow-up (Agent A P0 review)
+
+Agent B's newest `launcher/solo.py` at `69dd354` implements the canonical
+`waiting_recorder` state **only as an offline state machine**; it is not an
+executable process adapter. The next actual B+C acceptance fixture must launch
+B's *real future adapter* with C's passive CLI, not merely duplicate C's
+standalone B-simulated fake-host test.
+
+**New source files:** `telemetry/identity.py` reads process birth identities
+read-only (Linux `/proc/<pid>/stat` start ticks, Windows `GetProcessTimes`
+creation FILETIME). This is C's best-effort local safety guard, **not** a new
+v1 wire field or proof of B's process ownership. When a signed stop sees a
+different start identity than it saw on attachment, C refuses to seal with a
+clean stop and records `pid_start_identity_status=reused_suspected`.
+Inaccessible OS identity is `unknown` in forensic output; no raw PID, process
+birth time or control key is exported in the public ZIP. The proposed,
+**unapproved** optional attach identity fields and residual OS race caveats
+are documented in [PID_REUSE_REVIEW.md](PID_REUSE_REVIEW.md). Agent A and Agent B
+must approve any shared schema extension before implementation.
+
+**Simulated sessions:** pass `--simulation` to C's CLI, or
+`simulation=True` when calling its Python API. The recorder JSON (and
+attachment acknowledgment) then records `simulation=true`,
+`game_runtime=unknown`; real host/game behavior remains unknown in every
+recorder receipt until a separately verified engine session. Python/Windows
+process *start* is not City mission start. The collector carries safe status
+fields (but not the underlying OS process identity) into the diagnostic ZIP.
+
+**Protocol fixture examples (all values synthetic):**
+`tests/fixtures/recorder_ready_v1.json`,
+`tests/fixtures/recorder_attachment_ack_v1.json`,
+`tests/fixtures/recorder_completion_v1.json`, and
+`tests/fixtures/recorder_incomplete_v1.json`.
+The readiness marker's `recorder_pid=424242` is **an invented fixture PID**,
+not anyone's process. The completion JSON is a small **illustrative subset**
+of the full `recorder.json` schema, not a digest-verified real session.
+Fixture examples do not contain actual HMACs, paths or game-owned PIDs.
+
+### Recorder death / incomplete evidence
+
+`python -m telemetry.recovery <local-session-folder>` performs a **read-only**
+inspection of a private session. This is useful if the recorder crashes or
+is terminated by the OS before it writes `manifest.json`. It returns a
+path-free `zombieee.flight.recovery.v1` receipt:
+`session_complete=false`, `integrity_verified=false`,
+`shareable_without_review=false`, `game_runtime=unknown` and
+`manual_privacy_review_required=true` for an incomplete session.
+A present but invalid final manifest is also explicitly unverified.
+It **does not** reconstruct missing events, fabricate a checksum, automatically
+bundle or transmit sensitive logs, or mark a failed game test successful.
+Its exit status is 0 only for a valid complete recorder session, 1 for
+incomplete/invalid, and 2 for refused inspection.
+
+**Current validation boundary:** these newer C source/test changes are
+committed on GitHub but have **not** been executed against the exact remote
+branch because Github DNS/network checkout is blocked in this environment.
+Older recorder-mirror test runs are not accepted as current-branch evidence.
+Run on a branch checkout: `python -m unittest discover -s tests -p
+'test_flight_*.py' -v`, followed by `python -m unittest discover -s tests
+-v`. Record exact revision/platform/pass/skip/failure counts and keep
+original module data out of Git and any public bundle. No CI or intermediate
+Windows gameplay test.
