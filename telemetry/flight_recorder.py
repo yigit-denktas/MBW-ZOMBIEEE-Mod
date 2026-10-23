@@ -149,6 +149,10 @@ def safe_launcher_receipt(path: Path | None) -> dict | None:
     """Allowlist B's provisional receipt. Exclude PIDs, paths and command lines."""
     if path is None:
         return None
+    path = Path(path).expanduser().absolute()
+    refuse_links_on_parents(path)
+    if path.stat().st_size > 16 * 1024:
+        raise ValueError("Oversized private launcher receipt")
     raw = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(raw, dict) or raw.get("schema") != "zombieee.session.v1":
         raise ValueError("Unknown launcher receipt schema")
@@ -614,15 +618,22 @@ def verify_recording(root: Path) -> dict:
     """Verify the recorded snapshots after completion (integrity, not authenticity)."""
     root = root.expanduser().absolute()
     refuse_links_in_tree(root)
-    manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
+    manifest_path = root / "manifest.json"
+    if manifest_path.stat().st_size > 1024 * 1024:
+        raise ValueError("Oversized flight recorder manifest")
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     expected = manifest.get("sha256")
-    if manifest.get("schema") != SCHEMA or not isinstance(expected, dict):
+    if (manifest.get("schema") != SCHEMA or not isinstance(expected, dict)
+            or len(expected) > 24):
         raise ValueError("Recorder manifest schema mismatch")
     actual = {str(p.relative_to(root)).replace(os.sep, "/") for p in root.rglob("*")
               if p.is_file() and not p.name.endswith(".tmp") and p.name != "manifest.json"}
     if set(expected) != actual or "recorder.json" not in expected:
         raise ValueError("Recorder manifest entry mismatch")
     for name, h in expected.items():
+        if (not isinstance(name, str) or not isinstance(h, str)
+                or re.fullmatch(r"[0-9a-f]{64}", h) is None):
+            raise ValueError("Invalid recorder digest metadata")
         if name.startswith("/") or "\\" in name or ".." in Path(name).parts:
             raise ValueError("Unsafe recorder manifest path")
         if (root / name).is_symlink():
