@@ -19,7 +19,8 @@ class CityEvidencePrivacyTests(unittest.TestCase):
             receipt = {
                 "experimental_map_scope": "city-only",
                 "city_static_acceptance": {
-                    "checks": {"original": True, "city_native": True},
+                    "checks": {"original": True, "city_native": True,
+                               **{"audit_rule_%02d" % n: True for n in range(21)}},
                     "original_invasion_game_type": 7,
                     "hidden_metadata": "DO_NOT_EXPORT_PRIVATE_METADATA",
                 },
@@ -36,6 +37,10 @@ class CityEvidencePrivacyTests(unittest.TestCase):
             self.assertNotIn("DO_NOT_EXPORT_PRIVATE_METADATA", safe)
             report = analyze(payload)["city_incident"]
             self.assertTrue(report["build"]["source_receipt_claims_passed"])
+            self.assertTrue(report["build"]["static_summary_consistent"])
+            self.assertEqual(report["build"]["static_check_count"], 23)
+            self.assertEqual(report["build"]["static_passed_checks"], 23)
+            self.assertEqual(report["build"]["static_failed_checks"], 0)
             self.assertFalse(report["runtime"]["gameplay_verified"])
 
     def test_arbitrary_event_fields_and_paths_are_removed(self):
