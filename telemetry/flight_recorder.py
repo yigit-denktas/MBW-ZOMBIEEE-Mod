@@ -269,6 +269,7 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
     omitted_bytes = [0] * len(source_paths)
     scrub_omitted_bytes = [0] * len(source_paths)
     truncated = [False] * len(source_paths)
+    log_limit_reported = [False] * len(source_paths)
     events = []
     event_drops = 0
 
@@ -329,7 +330,8 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
                 clean, extra_omitted = scrub_bounded(saved, max_log_bytes)
                 scrub_omitted_bytes[i] = extra_omitted
                 atomic_write(root / "logs" / f"log_{i+1:02d}.txt", clean)
-                if truncated[i]:
+                if truncated[i] and not log_limit_reported[i]:
+                    log_limit_reported[i] = True
                     event("log_limit", log_index=i + 1, omitted_bytes=omitted_bytes[i])
             except (OSError, RuntimeError) as exc:
                 event("log_unavailable", log_index=i + 1,
