@@ -50,7 +50,11 @@ class RecoveryTests(unittest.TestCase):
                 self.assertTrue((session / "recorder-ready.json").exists())
                 with log.open("a") as out:
                     out.write("ZDB1|boot|triggers=35\\nFATAL ERROR: synthetic\\n")
-                time.sleep(.12)
+                capture_deadline = time.monotonic() + 2
+                snapshot = session / "logs" / "log_01.txt"
+                while not snapshot.exists() and time.monotonic() < capture_deadline:
+                    time.sleep(.02)
+                self.assertTrue(snapshot.exists())
                 recorder.terminate()
                 recorder.wait(timeout=3)
                 report = inspect_recording(session)
