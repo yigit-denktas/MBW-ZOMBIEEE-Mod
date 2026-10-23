@@ -259,8 +259,32 @@ def analyze(payload: dict[str, bytes]) -> dict:
             except ValueError:
                 pass
             break
+    known_sides = []
+    for event in events:
+        fields = event.get("fields", {})
+        if event.get("event") not in ("mission_enter", "heartbeat"):
+            continue
+        if fields.get("role") != "server":
+            continue
+        try:
+            side0, side1 = int(fields.get("team0", "-1")), int(fields.get("team1", "-1"))
+        except ValueError:
+            continue
+        if side0 >= 0 and side1 >= 0:
+            known_sides.append((side0, side1))
+    team_evidence = {
+        "server_samples": len(known_sides),
+        "max_survivor_team0": max((v[0] for v in known_sides), default=None),
+        "max_zombie_team1": max((v[1] for v in known_sides), default=None),
+        "available": bool(known_sides),
+    }
+    if installed.get("experimental_defenders") and len(known_sides) >= 2:
+        if not any(side0 > 0 for side0, _ in known_sides) and any(side1 > 0 for _, side1 in known_sides):
+            findings.append({"id": "R018", "severity": "medium",
+                             "title": "Allied survivor team absent in sampled server frames",
+                             "action": "Check mission-start visitor spawns, team assignment, and WSE2 team-query availability. Samples alone cannot prove why."})
     return {"session": session.get("session", "unknown"), "module": installed,
-            "event_counts": dict(eventcounts), "events": events[:500], "findings": findings,
+            "event_counts": dict(eventcounts), "events": events[:500], "team_evidence": team_evidence, "findings": findings,
             "evidence": {"logs": len(logs), "events": len(events)},
             "status": "critical" if any(f["severity"] == "critical" for f in findings) else
                       "warning" if findings else "inconclusive_no_errors_detected",
