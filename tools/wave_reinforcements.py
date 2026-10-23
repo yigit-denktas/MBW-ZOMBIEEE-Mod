@@ -31,7 +31,9 @@ def initialize_wave_state(sentinel):
                      "1", *op(417), "1", *op(2133, sentinel, 0)])
 
 
-def reinforce_on_wave(g, troop_ids, cap=4, troop_classes=SURVIVOR_CLASSES):
+def reinforce_on_wave(g, troop_ids, cap=4, troop_classes=SURVIVOR_CLASSES, first_wave=2):
+    if not 1 <= first_wave <= 10:
+        raise PatchError("Reinforcement first_wave must be 1..10")
     if not 1 <= cap <= 8:
         raise PatchError("Reinforcement cap must be 1..8")
     if any(name not in troop_ids for name in troop_classes):
@@ -40,7 +42,7 @@ def reinforce_on_wave(g, troop_ids, cap=4, troop_classes=SURVIVOR_CLASSES):
     conditions = [
         op(417),  # multiplayer_is_server
         op(31, g["g_multiplayer_game_type"], 6),  # Invasion
-        op(30, g["wave_number"], 2),  # ge: >= wave 2
+        op(30, g["wave_number"], first_wave),  # ge: threshold from support difficulty
         op(32, g["wave_number"], g[SENTINEL]),  # gt: one top-up per wave
         op(31, g["g_round_ended"], 0),
     ]
@@ -81,7 +83,7 @@ def reinforce_on_wave(g, troop_ids, cap=4, troop_classes=SURVIVOR_CLASSES):
                      *(value for operation in body for value in operation)])
 
 
-def patch_text(mission, variables, troop_ids, cap=4, troop_classes=SURVIVOR_CLASSES):
+def patch_text(mission, variables, troop_ids, cap=4, troop_classes=SURVIVOR_CLASSES, first_wave=2):
     g = globals_from_original(variables)
     lines = mission.splitlines(keepends=True)
     count_row, count, insert_at = mission_bounds(lines)
@@ -91,7 +93,7 @@ def patch_text(mission, variables, troop_ids, cap=4, troop_classes=SURVIVOR_CLAS
     lines[count_row] = "29" + nl
     lines[insert_at:insert_at] = [
         initialize_wave_state(g[SENTINEL]) + nl,
-        reinforce_on_wave(g, troop_ids, cap, troop_classes) + nl,
+        reinforce_on_wave(g, troop_ids, cap, troop_classes, first_wave) + nl,
     ]
     changed = "".join(lines)
     if mission_bounds(changed.splitlines(keepends=True))[1] != 29:
@@ -100,7 +102,7 @@ def patch_text(mission, variables, troop_ids, cap=4, troop_classes=SURVIVOR_CLAS
     return changed, variables.rstrip("\r\n") + variable_nl + SENTINEL + variable_nl
 
 
-def apply_module(module: Path, cap=4, balanced_ai=False):
+def apply_module(module: Path, cap=4, balanced_ai=False, first_wave=2):
     module = Path(module)
     mission_path, variable_path = module / "mission_templates.txt", module / "variables.txt"
     original_m, original_v = mission_path.read_bytes(), variable_path.read_bytes()
@@ -111,7 +113,7 @@ def apply_module(module: Path, cap=4, balanced_ai=False):
         classes = SURVIVOR_CLASSES
     changed_m, changed_v = patch_text(original_m.decode("utf-8"),
         original_v.decode("utf-8"), index_troops(module / "troops.txt"),
-        cap, classes)
+        cap, classes, first_wave)
     mission_path.write_bytes(changed_m.encode("utf-8"))
     try:
         variable_path.write_bytes(changed_v.encode("utf-8"))
@@ -119,7 +121,7 @@ def apply_module(module: Path, cap=4, balanced_ai=False):
         mission_path.write_bytes(original_m)
         raise
     return {
-        "enabled": True, "squad_cap": cap, "starts_at_wave": 2,
+        "enabled": True, "squad_cap": cap, "starts_at_wave": first_wave,
         "troop_profile": "balanced-ai" if balanced_ai else "original-0.4",
         "class_rotation": "original_wave_number_plus_replacement_index_mod_4",
         "original_wave_variable": "wave_number", "added_variable": SENTINEL,
