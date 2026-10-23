@@ -5,7 +5,7 @@
 - Added versioned WSE2 read-only events (bootstrap, mission entry, role, bounded agent count/heartbeat).
 - Built Python standard-library evidence collection/verification/offline analysis and cross-session comparison.
 - Added Windows PowerShell wrapper for one-time evidence collection at the *final* integrated test.
-- Automated local diagnostic tests cover redaction, tamper resistance, zip-slip rejection, missing or stale logs, crashes, missing resources, and cross-run comparison (12 new tests passed).
+- Automated local diagnostic tests cover redaction, tamper resistance, zip-slip rejection, missing or stale logs, crashes, missing resources, and cross-run comparison (14 new tests passed).
 - Privacy by default: redacted log tails, module fingerprint hashes, no original assets, no upload/CI.
 - **Runtime gameplay still unverified.** No new demand for step-by-step Windows tests.
 
