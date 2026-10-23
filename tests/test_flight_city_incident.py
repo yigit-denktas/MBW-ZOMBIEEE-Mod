@@ -29,8 +29,10 @@ def payload(events=(), module=None):
 
 class CityIncidentTests(unittest.TestCase):
     def test_build_check_is_not_gameplay(self):
-        ev = [event("mission_enter", 1, role="server", scene="scn_tbfc_invasion_4"),
-              event("heartbeat", 2, role="server", wave="2", team0="4", team1="9"),
+        ev = [event("mission_enter", 1, role="server",
+                    template="multiplayer_iv", scene="scn_tbfc_invasion_4"),
+              event("heartbeat", 2, role="server", template="multiplayer_iv",
+                    wave="2", team0="4", team1="9"),
               event("wave_change", 3, wave="3")]
         report = analyze(payload(ev, source()))
         city = report["city_incident"]
