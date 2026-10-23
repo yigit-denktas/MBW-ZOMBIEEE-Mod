@@ -17,6 +17,7 @@ import re
 import sys
 import zipfile
 from tactical_analysis import analyze_tactical_events
+from combat_analysis import analyze_combat_events
 
 SCHEMA = 1
 MAX_LOG_BYTES = 8 * 1024 * 1024
@@ -112,7 +113,7 @@ def collect(game_root: Path | None, module: Path | None, output: Path,
                 safe = {k: parsed.get(k) for k in (
                     "remaster_version", "source_archive_sha256", "target", "runtime_verified",
                     "archive_crc_verified", "original_mission_trigger_count", "final_trigger_count",
-                    "defender_loadout_profile")}
+                    "defender_loadout_profile", "difficulty")}
                 assist = parsed.get("solo_assist")
                 if isinstance(assist, dict):
                     safe["solo_assist"] = {
@@ -126,6 +127,18 @@ def collect(game_root: Path | None, module: Path | None, output: Path,
                 clones = parsed.get("ai_only_loadout_clones")
                 if isinstance(clones, dict):
                     safe["ai_loadout_clone_count"] = clones.get("patched_count", 981) - 981
+                private = parsed.get("private_commands")
+                if isinstance(private, dict):
+                    safe["private_commands"] = {"enabled": private.get("enabled") is True,
+                        "server_only": private.get("server_only") is True,
+                        "dedicated_allowed": private.get("dedicated_allowed"),
+                        "max_active_players": private.get("max_active_players")}
+                params = parsed.get("difficulty_parameters")
+                if isinstance(params, dict):
+                    safe["difficulty_parameters"] = {
+                        key: params.get(key) for key in
+                        ("first_reinforcement_wave", "fallback_at_or_below",
+                         "regroup_at_or_above")}
                 defender = parsed.get("experimental_defender_patch")
                 if isinstance(defender, dict):
                     safe["experimental_defenders"] = defender.get("experimental_defenders")
@@ -317,9 +330,12 @@ def analyze(payload: dict[str, bytes]) -> dict:
                              "action": "Check mission-start visitor spawns, team assignment, and WSE2 team-query availability. Samples alone cannot prove why."})
     tactical_report = analyze_tactical_events(events, installed)
     findings.extend(tactical_report["findings"])
+    combat_report = analyze_combat_events(events, installed)
+    findings.extend(combat_report["findings"])
     return {"session": session.get("session", "unknown"), "module": installed,
             "event_counts": dict(eventcounts), "events": events[:500], "team_evidence": team_evidence,
             "tactical_evidence": {k: v for k, v in tactical_report.items() if k != "findings"},
+            "combat_evidence": {k: v for k, v in combat_report.items() if k != "findings"},
             "findings": findings,
             "evidence": {"logs": len(logs), "events": len(events)},
             "status": "critical" if any(f["severity"] == "critical" for f in findings) else
@@ -356,6 +372,7 @@ def to_markdown(report: dict) -> str:
              f"- Log files: {report['evidence']['logs']}", f"- Parsed telemetry events: {report['evidence']['events']}",
              f"- Event counts: {json.dumps(report['event_counts'], sort_keys=True)}",
              f"- Tactical evidence: {json.dumps(report.get('tactical_evidence', {}), sort_keys=True)}",
+             f"- Combat evidence: {json.dumps(report.get('combat_evidence', {}), sort_keys=True)}",
              "", "## Findings", ""]
     if not report["findings"]:
         lines.append("No known error pattern detected; runtime remains unverified.")
