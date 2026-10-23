@@ -45,6 +45,30 @@ def scrub(text: str) -> str:
     return text
 
 
+def privacy_audit(payload: dict[str, bytes]) -> dict:
+    """Heuristic disclosure check. Clean matches NEVER mean safe to publish."""
+    patterns = {
+        "email": re.compile(r"\\b[A-Za-z0-9._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}\\b"),
+        "ipv4": re.compile(r"(?<![\\d.])(?:\\d{1,3}\\.){3}\\d{1,3}(?![\\d.])"),
+        "steam_id": re.compile(r"(?<!\\d)7656119\\d{10}(?!\\d)"),
+        "home_path": re.compile(r"(?i)(?:[a-z]:\\\\Users\\\\|/Users/|/home/)[^\\s\\\"']+"),
+        "credential_label": re.compile(r"(?i)\\b(?:api[_-]?key|auth[_-]?token|authorization|password|passwd)\\b\\s*[:=]\\s*(?!<REDACTED>)\\S+"),
+    }
+    counts = {key: 0 for key in patterns}
+    for name, data in payload.items():
+        if name == "manifest.json" or name == "module_hashes.json":
+            continue
+        if not (name.endswith(".txt") or name.endswith(".json") or name.endswith(".jsonl")):
+            continue
+        decoded = data.decode("utf-8", errors="replace")
+        for key, pattern in patterns.items():
+            counts[key] += len(pattern.findall(decoded))
+    return {"automatic_review": "potential_disclosure" if any(counts.values()) else "no_known_patterns_found",
+            "manual_review_required": True,
+            "potential_patterns": counts,
+            "caveat": "Pattern checks and redaction are not exhaustive. Do not publish raw logs or assume a clean scan guarantees privacy."}
+
+
 def candidate_logs(game_root: Path | None, extra: list[Path]) -> list[Path]:
     bases: list[Path] = []
     if game_root:
@@ -238,7 +262,7 @@ def collect(game_root: Path | None, module: Path | None, output: Path,
         text = scrub(data.decode("utf-8-sig", errors="replace"))
         stored = f"logs/log_{i+1:02d}.txt"
         entries[stored] = text.encode("utf-8")
-        fileinfo.append({"file": stored, "source_kind": path.name.lower(),
+        fileinfo.append({"file": stored, "source_kind": path.name.lower() if path.name.lower() in LOG_NAMES else "custom_log",
                          "original_bytes": length, "truncation": "head_and_tail" if length > MAX_LOG_BYTES else "none",
                          "modified_utc": datetime.fromtimestamp(path.stat().st_mtime, timezone.utc).isoformat()})
     event_records = []
@@ -299,6 +323,7 @@ def analyze(payload: dict[str, bytes]) -> dict:
     session = json.loads(payload.get("session.json", b"{}").decode())
     installed = json.loads(payload.get("module.json", b"{}").decode())
     flight = json.loads(payload.get("flight_recorder.json", b"{}").decode())
+    privacy = privacy_audit(payload)
     logs = {k: data.decode("utf-8", errors="replace") for k, data in payload.items()
             if k.startswith("logs/") and k.endswith(".txt")}
     events = [json.loads(line) for line in payload.get("events.jsonl", b"").decode().splitlines() if line.strip()]
@@ -397,7 +422,7 @@ def analyze(payload: dict[str, bytes]) -> dict:
     findings.extend(combat_report["findings"])
     readiness = matrix_for_session(events, findings, installed, len(logs), combat_report)
     return {"session": session.get("session", "unknown"), "module": installed,
-            "flight_recorder": flight,
+            "flight_recorder": flight, "privacy": privacy,
             "event_counts": dict(eventcounts), "events": events[:500], "team_evidence": team_evidence,
             "tactical_evidence": {k: v for k, v in tactical_report.items() if k != "findings"},
             "combat_evidence": {k: v for k, v in combat_report.items() if k != "findings"},
@@ -438,6 +463,7 @@ def to_markdown(report: dict) -> str:
              f"- Log files: {report['evidence']['logs']}", f"- Parsed telemetry events: {report['evidence']['events']}",
              f"- Event counts: {json.dumps(report['event_counts'], sort_keys=True)}",
              f"- External recorder: {json.dumps(report.get('flight_recorder', {}), sort_keys=True)}",
+             f"- Privacy inspection: {json.dumps(report.get('privacy', {}), sort_keys=True)}",
              f"- Tactical evidence: {json.dumps(report.get('tactical_evidence', {}), sort_keys=True)}",
              f"- Combat evidence: {json.dumps(report.get('combat_evidence', {}), sort_keys=True)}",
              "", "## Acceptance evidence matrix", "",
@@ -490,7 +516,7 @@ def main() -> int:
         else:
             data = read_bundle(args.bundle)
             if args.command == "verify":
-                result = {"verified": True, "files": len(data)}
+                result = {"verified": True, "files": len(data), "privacy": privacy_audit(data)}
             else:
                 result = analyze(data)
                 if args.report:
