@@ -25,3 +25,13 @@ First release City only; original map expansion leaf `ZOM-MAP-01` moved out of t
 ## Parallel delivery assignment (2026-10-23)
 
 [Three-agent board](agent-handoff.md) and [machine-readable ownership](agent-allocation.json) divide all 24 retained work leaves (A 12, B 7, C 5). The final required `ZOM-QA-02` City test formerly incorrectly depended on optional five-map expansion; that dependency was removed. Two new issues #8/#9 cover B's installer/solo work without recreating original issues #1–#6. Branches based on unmodified `main@048564a`; no concurrent edits of shared paths and no CI.
+
+## Supplemental discovered work update — 2026-10-24
+
+Applied `adapt-project-tracking` → `govern-project-scope` → `update-project-progress` → `present-project-tracking` conventions. Before modifying the source, preserved [the raw original 24-item observation](snapshots/ledger-2026-10-23-original.json), original blob `c19e866f0e0acdf2d6cc5ee5cf0f20a2ae518140`. No stable original IDs, acceptance criteria, milestone gates, aliases, dependencies or original optional-scope status were removed or reassigned.
+
+**Before → after:** retained work `24 → 39` (15 discovered support leaves); *required City-outcome progress* `0/23 → 0/23`, 0.0% unchanged; accepted milestones `0/5 → 0/5`; separately displayed discovered support work `not tracked → 11/15` narrowly completed (73.3%), four in review. New source IDs `ZOM-DISC-01..15` carry `workOrigin=discovered`, a work taxonomy, one existing `supportsOutcomeId`, supporting criterion/revision and `required=false` to prevent completing an original outcome twice. See [machine-readable scope change](scope-changes/2026-10-24-discovered-work.json).
+
+**View:** existing dark graphite/ember/bone host tracker gains small accent `●`, accessible text “Discovered task,” Origin filter, separate 11/15 metric and evidence links. Original milestone/required-work denominator remains protected. GitHub Pages publication is a separate observed deployment from Git-source update. Live browser focus/screen-reader and full toolkit `check` still require a pinned local checkout; semantic source inspection alone is not those tests.
+
+**Priority/review impact:** file/protocol and original archive identity may be source-verified while C current suite, B journaled installer and actual City WSE2 scene/wave evidence are outstanding. The first owner-authorized boot was announced on an older A/C pair and cannot certify newer fixes. No original assets, Windows private paths, game logs or user tokens entered public tracking data.
