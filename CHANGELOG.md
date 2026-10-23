@@ -2,6 +2,18 @@
 
 Uses [Semantic Versioning](https://semver.org/) for the remaster, not the historical original.
 
+## [0.1.7] - 2026-10-23
+
+### Added
+- Optional 4 AI-only original-class-derived troop clones at IDs 981–984 (Commando M16A2, Sniper Remington 700, Scout MP5, Lumberjack Browning Cynergy) with original 0.4 ammo/clothing assets. Original playable troops unchanged.
+- Preserved 16 duplicated historical item identifiers while requiring selected AI equipment IDs to be unambiguous.
+- Wave-based reinforcement class rotation, avoiding repeated first-class replacement bias.
+- Private listen-host-only solo HP/ammo assist every 12 seconds, guarded against dedicated servers and sessions with multiple active players; no anti-cheat bypass.
+- New original-data loadout and solo-assist regression tests, build provenance and local diagnostic metadata.
+
+### Unverified
+- Actual Warband/WSE2 player counting, AI weapon selection, firing, ammo compatibility and combat. Timed cheat preset is not yet an interactive cheat-code menu. No CI.
+
 ## [0.1.6] - 2026-10-23
 
 ### Added

@@ -8,6 +8,7 @@ Historical source: ZOMBIEEE Beta **0.4** (2012). This does not determine remaste
 - **0.1.4:** Experimental City navmesh-derived guard posts, three isolated defender groups and compiled hold orders (runtime unverified).
 - **0.1.5:** Opt-in five-map navmesh guard positions, server-only scene-scoped orders, and original-wave-driven survivor reinforcement (static verification only).
 - **0.1.6:** Experimental native fall-back/regroup with hysteresis, state-aware wave diagnostics and guarded movement samples (offline validated only).
+- **0.1.7:** AI-only differentiated original-asset loadouts, wave-based class rotation and gated solo-host assist, static verified only.
 - **0.2.0:** WSE2 startup + original City wave and weapons smoke-tested.
 - **0.3.0:** allied survivor bots, survivor faction and class/loadout verified.
 - **0.4.0:** authored City defence points, hold/rally/fallback orders, navigation tests.

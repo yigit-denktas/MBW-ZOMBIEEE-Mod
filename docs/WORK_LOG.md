@@ -1,5 +1,13 @@
 # Work log
 
+## 2026-10-23 — v0.1.7 AI-only loadouts and solo assist
+
+- Original 0.4 compiled items contain 16 duplicated names. Preserved original positional IDs; cloned four AI-only troops using unambiguous original weapons/ammo.
+- Wave replacement class rotates by original wave number and replacement ordinal; original wave cap and server guard preserved.
+- Added guarded non-dedicated single-player host-only HP/ammo assist, disabled by default and rejected on repeat patching.
+- Verified 985 troops, 1,222 variables and 32 valid compiled mission triggers on a temporary original-data patch chain; 37 existing tests passed locally.
+- Actual Windows/WSE2 operation unverified; no CI or intermediate user tests.
+
 ## 2026-10-23 — 0.1.6: fall-back/regroup under pressure
 
 - Implemented native 3-second tactical controller for original ZOMBIEEE 0.4; one extra state global and two triggers appended after the v0.1.5 29-trigger module.

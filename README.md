@@ -2,7 +2,7 @@
 
 Modernization of the **2012 ZOMBIEEE (Invasion) Beta 0.4** mod for *Mount & Blade: Warband*. Original contributors retain credit and ownership of their work.
 
-**Current project version:** `0.1.6` (development scaffold; **not yet playable/engine-verified**).  
+**Current project version:** `0.1.7` (development scaffold; **not yet playable/engine-verified**).  
 **Target:** Warband official 1.174 data format under [WSE2](https://github.com/Ruslan-700/WSE2-Releases/releases/tag/v1.1.5.4) 1.1.5.4 (14 October 2026).  
 **Scope:** preserve the original guns, zombies, wave mode, maps and feel; restore current-runtime compatibility; add AI survivor teammates, defensible hold points, quality-of-life features, private cheats, and later LAN co-op. **ZOMBIEEE2 is explicitly excluded.**
 
@@ -32,6 +32,7 @@ Install [WSE2](https://github.com/Ruslan-700/WSE2-Releases/releases/tag/v1.1.5.4
 - [City tactical defence overlay](docs/CITY_DEFENSE.md)
 - [Five-map defences and wave reinforcements](docs/FIVE_MAP_WAVES.md)
 - [Tactical fallback, regroup and movement diagnostics](docs/TACTICAL_RECOVERY.md)
+- [AI loadouts and solo-host assistance](docs/COMBAT_BALANCE.md)
 - [End-of-development diagnostics](docs/DIAGNOSTICS.md)
 - [Version history](CHANGELOG.md)
 
@@ -82,3 +83,9 @@ A further opt-in native controller counts **living non-player team-0 defenders i
     py -3 tools\build.py --archive "C:\Downloads\ZOMBIEEEBeta04.rar" --out "C:\Games\MountBlade Warband\Modules\ZOMBIEEE_Remaster" --experimental-defenders 4 --all-map-defenses --wave-reinforcements --tactical-recovery
 
 This option requires at least 3 defenders. The full variant contains **31** compiled invasion triggers and **1,222** globals; all 25 original triggers are retained. The default remains the unmodified original 25-trigger invasion. Final-session diagnostics now inspect real wave/tactical values, stalled waves, oscillation and optional defender movement samples when WSE2 exposes the required getters. **No gameplay is yet verified.** Read [the tactical recovery report](docs/TACTICAL_RECOVERY.md).
+
+### v0.1.7 — optional AI loadouts and local solo assistance
+
+Four appended AI-only troops can be enabled via `--defender-loadouts balanced-ai`, leaving all playable class records untouched. Wave reinforcements now rotate class by original wave number. `--solo-assist` adds a separate host-only, one-player/non-dedicated health-and-ammo refill trigger; it does not disable anti-cheat and is disabled by default. The complete optional build has 985 troop entries, 1,222 variables and 32 invasion triggers; baseline remains 981 troops/25 triggers. Gameplay remains unverified.
+
+See [combat and solo assistance](docs/COMBAT_BALANCE.md) for full flags and limitations.

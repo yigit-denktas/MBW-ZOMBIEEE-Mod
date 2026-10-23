@@ -52,3 +52,7 @@ This creates a locally stored redacted evidence ZIP and analyzer report under ev
 ## Final integrated tactical recovery check (after development)
 
 Build the experimental 31-trigger variant with --experimental-defenders 4 --all-map-defenses --wave-reinforcements --tactical-recovery. In one private WSE2 session, allow casualties, inspect fallback to survivor spawn and regroup after subsequent wave reinforcement; check that zombie paths and all five maps remain intact. Exit and collect one local evidence archive with tools/Collect-Diagnostics.ps1. The analyzer will report wave/mode state, candidate stalls and optional movement data. No intermediate playtesting is expected.
+
+## v0.1.7 final solo testing
+
+At the final integrated Windows test, enable --experimental-defenders 4 --defender-loadouts balanced-ai --all-map-defenses --wave-reinforcements --tactical-recovery --solo-assist. Validate the four AI-only weapons and ammo, original playable class loadouts, wave-based class rotation, and that solo assist affects only a one-player listen host. Collect one end-of-session evidence ZIP; no incremental testing requested.
