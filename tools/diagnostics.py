@@ -108,7 +108,8 @@ def collect(game_root: Path | None, module: Path | None, output: Path,
             try:
                 parsed = json.loads(marker.read_text(encoding="utf-8"))
                 safe = {k: parsed.get(k) for k in (
-                    "remaster_version", "source_archive_sha256", "target", "runtime_verified")}
+                    "remaster_version", "source_archive_sha256", "target", "runtime_verified",
+                    "archive_crc_verified", "original_mission_trigger_count", "final_trigger_count")}
                 defender = parsed.get("experimental_defender_patch")
                 if isinstance(defender, dict):
                     safe["experimental_defenders"] = defender.get("experimental_defenders")
@@ -242,12 +243,17 @@ def analyze(payload: dict[str, bytes]) -> dict:
     if eventcounts.get("mission_enter") and not eventcounts.get("heartbeat"):
         findings.append({"id": "R013", "severity": "medium", "title": "Mission entered but no heartbeat observed",
                          "action": "Check whether the mission immediately ended or periodic callbacks failed."})
-    expected = 26 if installed.get("experimental_defenders") else 25
+    if not installed:
+        findings.append({"id": "R017", "severity": "medium", "title": "No installation manifest found",
+                         "action": "Point --module to ZOMBIEEE_Remaster or re-run the guarded build."})
+    expected = installed.get("final_trigger_count")
+    if expected is None and installed:
+        expected = 26 if installed.get("experimental_defenders") else 25
     for e in events:
         if e.get("event") == "boot" and "triggers" in e.get("fields", {}):
             try:
                 observed = int(e["fields"]["triggers"])
-                if observed != expected:
+                if expected is not None and observed >= 0 and observed != expected:
                     findings.append({"id": "R014", "severity": "high", "title": "Trigger count differs from build manifest",
                                      "action": f"Expected {expected} original/experimental triggers; WSE reported {observed}."})
             except ValueError:
