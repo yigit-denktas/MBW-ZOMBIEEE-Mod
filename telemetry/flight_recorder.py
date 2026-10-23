@@ -13,6 +13,7 @@ import json
 import os
 from pathlib import Path
 import re
+import secrets
 import subprocess
 import sys
 import time
@@ -105,9 +106,12 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
                    command: list[str] | None = None, observe_pid: int | None = None,
                    timeout: float = 30.0, poll: float = 0.1,
                    max_log_bytes: int = MAX_LOG_BYTES, max_events: int = MAX_EVENTS,
-                   launcher_receipt: Path | None = None) -> dict:
+                   launcher_receipt: Path | None = None,
+                   attempt_id: str = "1") -> dict:
     if not SESSION_PATTERN.fullmatch(session_id) or session_id in (".", ".."):
         raise ValueError("Invalid session ID")
+    if not SESSION_PATTERN.fullmatch(attempt_id) or attempt_id in (".", ".."):
+        raise ValueError("Invalid attempt ID")
     if (command is None) == (observe_pid is None):
         raise ValueError("Choose exactly one of a child command or observed PID")
     if not 0 < timeout <= 86400 or not 0 < poll <= 60:
@@ -223,7 +227,24 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
     start = time.monotonic()
     began = utcnow()
     end = None
+
+    def publish_ready() -> None:
+        # Agent B must wait for this atomic, per-attempt acknowledgment.
+        # Recorder readiness is NOT WSE2, mission or game-host readiness.
+        sample_logs()
+        event("recorder_ready", session_id=session_id, attempt_id=attempt_id)
+        ready = {
+            "schema": "zombieee.recorder_ready.v1",
+            "session_id": session_id, "attempt_id": attempt_id,
+            "recorder_pid": os.getpid(), "watcher_id": secrets.token_hex(16),
+            "ready_utc": utcnow(), "log_offsets_captured": True,
+            "watcher_active": True, "log_source_count": len(source_paths),
+            "engine_ready": False, "mission_ready": False,
+        }
+        atomic_write(root / "recorder-ready.json", json_bytes(ready))
+
     try:
+        publish_ready()
         if command is not None:
             if not command:
                 raise ValueError("Empty child command")
@@ -271,7 +292,7 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
         end = utcnow()
         event("process_finished", outcome=outcome, exit_code=exit_code)
         safe = {
-            "schema": SCHEMA, "session_id": session_id,
+            "schema": SCHEMA, "session_id": session_id, "attempt_id": attempt_id,
             "start_utc": began, "end_utc": end, "outcome": outcome,
             "exit_code": exit_code if child is not None else None,
             "exit_code_observed": child is not None and exit_code is not None,
@@ -325,6 +346,7 @@ def main() -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--output-root", type=Path, required=True)
     p.add_argument("--session", required=True)
+    p.add_argument("--attempt", default="1", help="Opaque launcher retry ID")
     p.add_argument("--log", action="append", type=Path, default=[])
     p.add_argument("--launcher-receipt", type=Path)
     p.add_argument("--observe-pid", type=int)
@@ -340,7 +362,8 @@ def main() -> int:
                                 command=cmd if cmd else None,
                                 observe_pid=args.observe_pid,
                                 timeout=args.timeout, poll=args.poll,
-                                launcher_receipt=args.launcher_receipt)
+                                launcher_receipt=args.launcher_receipt,
+                                attempt_id=args.attempt)
         print(json.dumps(result, indent=2))
         return 0 if result["outcome"] in ("exited", "disappeared_exit_code_unknown") else 2
     except (OSError, ValueError, json.JSONDecodeError) as error:
