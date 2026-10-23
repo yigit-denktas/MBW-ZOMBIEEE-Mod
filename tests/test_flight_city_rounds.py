@@ -30,6 +30,17 @@ class CityRoundEvidenceTests(unittest.TestCase):
         self.assertEqual(report["runtime"]["last_reinforced_round_starts"], [120])
         self.assertFalse(report["runtime"]["round_aware_reinforcement_verified"])
 
+    def test_decreasing_wave_in_same_measured_round_is_a_candidate_only(self):
+        events = [beat(1, wave=4, round_start=200),
+                  beat(2, wave=2, round_start=200)]
+        result = incident_for_session(events, [], {}, {}, [])
+        lead = next(x for x in result["incident_leads"]
+                    if x["code"] == "CITY-I04")
+        self.assertEqual(lead["cause"], "unknown")
+        self.assertEqual(result["runtime"]["round_identity"],
+                         "observed_engine_global")
+        self.assertFalse(result["runtime"]["round_aware_reinforcement_verified"])
+
     def test_identical_wave_in_two_rounds_is_not_one_round_progress(self):
         events = [beat(1, wave=2, round_start=100),
                   beat(2, wave=2, round_start=200)]
