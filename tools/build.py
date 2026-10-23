@@ -26,6 +26,7 @@ from private_commands import apply_module as apply_private_commands
 from difficulty import profile, PROFILES
 from archive_audit import inspect_original_archive
 from city_acceptance import audit_city
+from final_city_gate import audit_final_city_controls
 
 ROOT = Path(__file__).resolve().parent.parent
 ORIGINAL_SHA256 = "9be100ff41ce6f8ebadd4aa27377f70f402883fab271999a8cab8cc1da001d1e"
@@ -205,6 +206,15 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
             if not city_static_report["city_accepted"]:
                 raise RuntimeError("City static acceptance failed: " +
                                    ", ".join(city_static_report["problems"]))
+        # Freeze the fully audited 31-trigger City core before any optional
+        # host controls append native triggers or global variables.
+        verified_city_snapshot = None
+        if city_static_report is not None:
+            verified_city_snapshot = (
+                (source / "mission_templates.txt").read_bytes(),
+                (source / "variables.txt").read_bytes(),
+                city_static_report["city_overlay_expected_sha256"],
+            )
         solo_report = None
         if solo_assist:
             solo_report = apply_solo_assist(source)
@@ -219,6 +229,24 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
             updated = report_for_module(source)
             if not updated["ok"] or updated["mission"]["triggers"] != 35:
                 raise RuntimeError("Private hotkey commands failed static validation")
+        # A pre-control City PASS is not sufficient to certify the final
+        # installation. Replay the explicitly selected additive host-control
+        # patch against the frozen audited core and compare COMPLETE bytes.
+        # In particular reject mutations to the original/native tactical
+        # triggers, appended globals, or City SCO after the earlier audit.
+        city_final_report = None
+        if verified_city_snapshot is not None:
+            city_final_report = audit_final_city_controls(
+                source,
+                verified_mission=verified_city_snapshot[0],
+                verified_variables=verified_city_snapshot[1],
+                verified_city_sha256=verified_city_snapshot[2],
+                private_commands=private_commands,
+                solo_assist=solo_assist,
+            )
+            if not city_final_report["passed"]:
+                raise RuntimeError("Final City static gate failed: " +
+                                   ", ".join(city_final_report["problems"]))
         if not inspect_module(source)["core_ok"] or not (source / "lua" / "main.lua").is_file():
             raise RuntimeError("Module overlay failed static validation")
         (source / "ZOMBIEEE_REMASTER.json").write_text(json.dumps({
@@ -232,6 +260,7 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
                 "city_overlay_expected_sha256": city_static_report.get("city_overlay_expected_sha256"),
                 "city_overlay_actual_sha256": city_static_report.get("city_overlay_actual_sha256"),
                 "runtime_verified": False} if city_static_report else None),
+            "city_final_acceptance": city_final_report,
             "original_mission_trigger_count": preflight["mission"]["triggers"],
             "final_trigger_count": (31 if tactical_recovery else 29 if wave_reinforcements else 27 if city_guardposts else 26 if experimental_defenders else 25) + int(solo_assist) + (4 if private_commands else 0),
             "preflight": preflight,
