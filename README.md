@@ -6,6 +6,22 @@ Modernization of the **2012 ZOMBIEEE (Invasion) Beta 0.4** mod for *Mount & Blad
 **Target:** Warband official 1.174 data format under [WSE2](https://github.com/Ruslan-700/WSE2-Releases/releases/tag/v1.1.5.4) 1.1.5.4 (14 October 2026).  
 **Scope:** preserve the original guns, zombies, wave mode, maps and feel; restore current-runtime compatibility; add AI survivor teammates, defensible hold points, quality-of-life features, private cheats, and later LAN co-op. **ZOMBIEEE2 is explicitly excluded.**
 
+<!-- project-record:start -->
+### Project record — proposed solo-first outcome
+
+| Measure | Evidence-gated status | Boundary |
+| --- | ---: | --- |
+| Proposed required outcome work | **0/24 · 0.0% accepted** | Draft exit criteria; previous source had **no** comparable tracker (Not measured). |
+| Accepted outcome milestones | **0/5 · 0.0% accepted** | Owner acceptance and Windows/WSE2 gameplay evidence outstanding. |
+| Agent readiness | **L0 (provisional)** | Separate from completion; L1 clean Windows bootstrap unverified. |
+
+**Active outcome:** install and launch the original 2012 ZOMBIEEE 0.4 solo on Windows 11 with trustworthy telemetry. **Next evidence gate:** verify original RAR integrity and actually boot/finish a City wave under WSE2. Existing v0.1.8 code is experimental, **not** certified playable.
+
+[Interactive tracker review](site/index.html) · [Scoped overview](progress/overview.md) · [Proposed ledger](progress/ledger.json) · [Readiness limits](progress/readiness-summary.md)
+
+<small>Source observation 2026-10-23 against `048564a`. Scope is **not approved** and this review site is **not published**. Generated counts must be checked with the official v0.4.1 kit before merge.</small>
+<!-- project-record:end -->
+
 ## Requirements and local development
 
 Obtain a legitimate Warband installation, your own original `ZOMBIEEEBeta04.rar`, 7-Zip and Python 3.10+. The source archive is **not** distributed here.
