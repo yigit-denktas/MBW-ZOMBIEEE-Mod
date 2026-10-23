@@ -1,0 +1,14 @@
+{
+  "schema": "zombieee.flight.recovery.v1",
+  "session_complete": false,
+  "integrity_verified": false,
+  "shareable_without_review": false,
+  "manual_privacy_review_required": true,
+  "simulation": "unknown",
+  "game_runtime": "unknown",
+  "observation": "incomplete_recorder_session",
+  "available_snapshot_files": [
+    "events.jsonl",
+    "log_01.txt"
+  ]
+}
