@@ -32,22 +32,32 @@ local function current_mission()
     local value = guarded_call(game.getCurTemplateId, "unknown")
     return tostring(value):gsub("[^%w_]", "_"):sub(1, 60)
 end
-local function count_agents()
-    if type(game.agentsIt) ~= "function" then return -1 end
-    return guarded_call(function()
-        local count = 0
-        for _ in game.agentsIt() do
-            count = count + 1
-            if count >= 4096 then break end
+local function sample_agents()
+    if type(game.agentsIt) ~= "function" then return -1, -1, -1 end
+    local supports_team = type(game.agent_get_team) == "function"
+    local ok, total, team0, team1 = pcall(function()
+        local n, a, z = 0, 0, 0
+        for agent in game.agentsIt() do
+            n = n + 1
+            if supports_team then
+                local side = guarded_call(function() return game.agent_get_team(0, agent) end, nil)
+                if side == 0 then a = a + 1 end
+                if side == 1 then z = z + 1 end
+            end
+            if n >= 4096 then break end
         end
-        return count
-    end, -1)
+        return n, supports_team and a or -1, supports_team and z or -1
+    end)
+    if not ok then return -1, -1, -1 end
+    return total, team0, team1
 end
 local function first_entry()
     if mission_seen then return false end
     mission_seen = true
+    local all, allied, hostile = sample_agents()
     emit("mission_enter", "|role=" .. resolve_role() ..
-         "|template=" .. current_mission() .. "|agents=" .. count_agents())
+         "|template=" .. current_mission() .. "|agents=" .. all ..
+         "|team0=" .. allied .. "|team1=" .. hostile)
     return false
 end
 local ok_entry, idx = pcall(game.addTrigger, MISSION, 1.0, 0, 0, first_entry)
@@ -60,8 +70,10 @@ local function heartbeat()
     heartbeat_count = heartbeat_count + 1
     -- At most 480 periodic records (~2 h at 15 s each).
     if heartbeat_count <= 480 then
+        local all, allied, hostile = sample_agents()
         emit("heartbeat", "|count=" .. heartbeat_count .. "|role=" .. resolve_role()
-            .. "|agents=" .. count_agents() .. "|template=" .. current_mission())
+            .. "|agents=" .. all .. "|team0=" .. allied .. "|team1=" .. hostile
+            .. "|template=" .. current_mission())
     end
     return false
 end
