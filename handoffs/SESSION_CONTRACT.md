@@ -15,6 +15,7 @@ Agent B: discover Warband + WSE2 + original 0.4 archive (READ ONLY)
 
 ## Existing implementation interfaces (read first, do not reinterpret as verified)
 
+- Original archive identity CLI (Agent A): `python -3 tools/archive_audit.py --archive <RAR> --json`. This verifies RAR4 magic, historical size, SHA-256 without extraction. Append `--verify-crc` to run 7-Zip `t` for all members; `identity_ok:true` with `crc_status:not_checked` is **not** a validated extraction. It reports no raw Windows paths. Agent B should consume this instead of creating a duplicate archive verifier.
 - Builder: `python -3 tools/build.py --archive <archive.rar> --out <WarbandRoot>/Modules/ZOMBIEEE_Remaster`. Pass explicit experimental flags only after artifact checks; the default preserves 25 original invasion triggers. `tools/build.py` owns RAR identity/CRC and staging; wrap via subprocess rather than reimplement.
 - Static checks: `python -3 tools/doctor.py --module <module>`, `python -3 tools/preflight.py --module <module> --json`. Neither establishes playable WSE2 gameplay.
 - Installed receipt: `Modules/ZOMBIEEE_Remaster/ZOMBIEEE_REMASTER.json`. It includes exact source archive digest and `runtime_verified:false`. The launcher may read it; must not flip the flag based on static success.
