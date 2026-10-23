@@ -9,7 +9,9 @@ param(
     [switch]$WaveReinforcements,
     [switch]$TacticalRecovery,
     [ValidateSet('original','balanced-ai')][string]$DefenderLoadouts = 'original',
-    [switch]$SoloAssist
+    [switch]$SoloAssist,
+    [switch]$PrivateCommands,
+    [ValidateSet('story','standard','hard','nightmare')][string]$Difficulty = 'standard'
 )
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
@@ -39,6 +41,8 @@ try {
     if ($TacticalRecovery) { $argsBuild += '--tactical-recovery' }
     $argsBuild += @('--defender-loadouts', $DefenderLoadouts)
     if ($SoloAssist) { $argsBuild += '--solo-assist' }
+    if ($PrivateCommands) { $argsBuild += '--private-commands' }
+    $argsBuild += @('--difficulty', $Difficulty)
     & py @argsBuild
     if ($LASTEXITCODE -ne 0) { throw 'Module build was refused; check RAR SHA-256, 7-Zip CRC and errors above' }
 
