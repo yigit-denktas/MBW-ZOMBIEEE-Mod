@@ -1,0 +1,100 @@
+# ZOMBIEEE City-first — integration acceptance evidence ledger
+
+**Agent A, 2026-10-24. Gate contract, not a report of completed gameplay.**
+
+The baseline at publication is **A `141a7926dc2102cc521208d0170cc55f8f80b74f`** (round-aware City native patch; core **31 triggers / 1,223 globals**, optional private controls **35 / 1,226**), **B `d41aefc0d7b810f0e1ca0c5961c71f107e5d0052`**, and **C `e4553547cbca5e3e46e4570dae9b77ccc5c02bcd`** (incident counter fix). These are independently evolving **draft** PRs; pin new SHAs explicitly if any changes before the final candidate. Current branch SHAs alone are not evidence of installed bytes.
+
+At this writing B has **announced** an owner-authorized private Windows attempt with **older A `2643321` and C `53c2f88`**, but has **not posted its completion results**. A historical-candidate session, even if successful, cannot certify unexecuted new A/C source revisions. Do not interrupt a running session merely to chase hashes, mislabel its version, or request a new gameplay attempt solely to improve bookkeeping.
+
+## Evidence classes and strict semantics
+
+- **Source-verified:** pinned source/asset digest and static native/scene validation of a specific candidate. Not WSE2 execution.
+- **Observed:** an actual owned host/client, OS socket measurement, in-game event, or read-only recorder output from an **identified real attempt**. Explicit `simulation=false` is necessary but not sufficient. A valid log receipt can contain *no* gameplay data.
+- **Unknown:** absent event, missing permission, truncated/partial log, guessed CLI flag, unproven loopback binding, stale SHA or unexecuted test. Unknown is neither success nor evidence of a particular cause.
+- **Failed/blocking:** a directly observed contradiction to a mandatory invariant (public listening socket, failed verified source check, changed unauthorized original assets, unclosed owned process). A timeout is a failure to meet a deadline; it does **not** prove a particular game bug.
+- **Historical-only:** valid observation tied to an older source revision; preserve in diagnostics but exclude from final-current acceptance.
+
+A self-reported `city_static_acceptance` or `city_final_acceptance.passed=true` means **the builder claims source checks**. Agent C deliberately reports `independently_reverified=false` unless a separate checker ran. An internal SHA-256 manifest provides integrity, not provenance, playability or privacy.
+
+## Release decision table
+
+| Gate | Authoritative observation / action | Current evidence status | Blocker / pass threshold |
+|---|---|---|---|
+| G00 · Original input | User-owned Beta 0.4 RAR exact size/SHA + `7z t` every file | **SCOPED PASS**: B reports 1,068 files, exit 0; original RAR SHA pinned | New archive identity differs → BLOCK. No redistribution |
+| G01 · WSE2 provenance | Actual x86 host & client matching official Warband 1.1.5.4 package SHA and upstream file blobs | **SCOPED PASS**: B reports official package + host/client matching, same owned install | Unmatched binaries or edition → BLOCK |
+| G02 · Active A source | Exact checkout/test SHA used to build module; independently repeat static checks | **OPEN**: A local 144/144 source tests, but latest Windows live plan cites older A `2643321` | Same-pinned candidate, source suite OK, chain pass |
+| G03 · City built files | Actual staged module inventory, original first 25 triggers unchanged, City-only scene changed, all 4 other scenes byte-identical; `city_static_acceptance` and `city_final_acceptance.passed` | **OPEN**: B announced build, did not post build receipt/result | On-stage AND after-install independent read-only verifier both pass; false → BLOCK |
+| G04 · Installer transaction | Owner consent, journal-before-mutation, no target overwrite, recoverable crash and rollback failure matrix | **OPEN**: B PR #11 currently has dry-run planner; no journaled executor/rollback tests committed | Fake-fixture failures and recovery tested; manual new install is *not* installer acceptance |
+| G05 · Current C diagnostics | Exact current C HEAD tested on Windows, negative ZIP privacy/count regressions | **OPEN**: previous Windows 164 full/33 skipped at **older** C `53c2f88`; count fix `e4553547` awaits rerun | Exact current C full + focused tests, report skips and failures; PII manually reviewed |
+| G06 · Recorder first | C armed/readiness valid, B owns recorder handle, matching attempt, HMAC attach, log offsets recorded | **OPEN**: B/C tested with fake processes; real session result missing | Live attempt evidence; no readiness inference from PID alone |
+| G07 · OS-private host | `mb_warband_wse2_dedicated.exe` boot, actual OS-observed UDP/TCP listener addresses scoped to owned PID, no public/any-interface binding | **OPEN**: B announced host start, no OS listener result posted | Nonloopback `0.0.0.0`, `::` or external interface → BLOCK and stop owned processes. Config alone ≠ proof |
+| G08 · Joined City mission | Local WSE2 client joined; server-side `multiplayer_iv`, `scn_tbfc_invasion_4`, mode 7 independently observed | **OPEN** | Client process creation or server-ready alone is insufficient |
+| G09 · Survivor deployment | Live server observes team-0 reserved divisions 5/6/7, traversable guard posts 2/3/4, meaningful bot behavior | **OPEN** | Source has such opcodes, but no verified movement/LOS/attack yet |
+| G10 · Original zombies/waves | At least 2 actual successive distinct wave observations, original team-1 zombie counts, no unexpected wave termination; round identity when available | **OPEN** | Two distinct waves alone prove only progression, not victory/combat. Missing telemetry → UNKNOWN |
+| G11 · Round transition | Actual original round reset and post-reset survivor spawn/hold/fallback/regroup persistence, repeated-wave numbered across rounds | **OPEN**: new static round-lifecycle audit flags risks, not a gameplay diagnosis | Need measured replay across rounds; **do not assume source one-shot order persists** |
+| G12 · Controlled teardown | B stopped only its owned client/host, C signed stop after game exit, C manifest verified; privacy audit + manual review | **OPEN** | Incomplete C session ≠ sealed; a clean ZIP does not prove game success |
+| G13 · Release decision | Reviewer connects exact active A+B+C, staged receipt, optional controls, verified runtime observations, owner acceptance | **OPEN / NOT ACCEPTED** | All mandatory gates supported by the **same** exact release candidate; no merges until review |
+
+## Current attempt provenance — do not merge evidence from different builds
+
+| Candidate | Source | What it can establish |
+|---|---|---|
+| **Historical live attempt (announced)** | B planned A `2643321`, C `53c2f88`, B `d41aefc` | If results arrive: bootstrap/process, private listener, City runtime **of that exact historical build** only |
+| **Latest source candidate (not yet integrated)** | A `141a7926`, C `e4553547` | A's local source suite and C's count fix source review; **no real in-game evidence** |
+
+A must not retroactively interpret historical-wave behavior as exercising the new `(g_round_start_time, wave_number)` reinforcement guard. C must not report runtime round IDs from source-only receipts. Avoid assuming the observed game client is configured to connect automatically; confirm actual join.
+
+## Required path-private run receipt
+
+For each new attempt retain privately and report a **sanitized summary** with:
+
+```json
+{
+  "schema": "zombieee.city-integration-review.v1",
+  "candidate": {"a_sha": null, "b_sha": null, "c_sha": null,
+                "archive_sha256": null, "wse2_package_sha256": null,
+                "installed_module_manifest_sha256": null},
+  "scope": {"mission": "multiplayer_iv", "scene": "scn_tbfc_invasion_4",
+            "expected_game_type_source": 7, "simulation": null},
+  "source": {"original_crc": "unknown", "independent_city_audit": "unknown",
+             "final_static_gate": "unknown", "installer_journaled": "unknown"},
+  "runtime": {"recorder_armed": "unknown", "os_loopback_only": "unknown",
+              "host_ready": "unknown", "client_joined": "unknown",
+              "server_city_entered": "unknown", "wave_progression": "unknown",
+              "survivor_groups": "unknown", "npc_combat": "unknown",
+              "round_transition": "unknown", "controlled_shutdown": "unknown"},
+  "evidence": {"recording_manifest_verified": null,
+               "source_sha_bound_to_installed_output": null,
+               "manual_privacy_reviewed": null},
+  "verdict": "not_accepted"
+}
+```
+
+`null` and `unknown` fields are deliberate, not defaults to pass. Only replace a status with `observed` or `failed` when accompanied by a **path-free record of how/where it was directly measured and by which owned process/session**; do not store a PID, HMAC key, user path, raw log, Steam profile or host token publicly. This JSON is an *illustrative review envelope*, not a new B/C wire format; do not feed it to the recorder as-is.
+
+## Fault localization / response plan
+
+```mermaid
+flowchart TD
+  I[Exact historical or current source identity] --> S{Static City checks verified?}
+  S -- No --> F1[Block install; review native or scene build]
+  S -- Yes --> R{Recorder armed before game?}
+  R -- No --> F2[Stop before game; inspect B/C readiness]
+  R -- Yes --> L{Host socket loopback-only observed?}
+  L -- No or unknown --> F3[Stop only owned host; retain evidence]
+  L -- Yes --> J{Local client joined City?}
+  J -- No or unknown --> F4[Inspect host, client and mission logs]
+  J -- Yes --> W{Zombies, allies and waves observed?}
+  W -- No or unknown --> F5[Inspect gameplay and instrumentation; no inferred causes]
+  W -- Yes --> T{Controlled shutdown and verified evidence?}
+  T -- No --> F6[Mark session incomplete; preserve local recovery]
+  T -- Yes --> P[Evidence for exact candidate only; A reviews remaining release gates]
+```
+
+## Independent round-lifecycle audit
+
+Use **read-only** `tools/round_lifecycle_audit.py --original <owned original module> --module <fully built City module> --json` after staging and before launch. It confirms exactly what can be source-proven: original wave reset and round-start clock, mission-start defender spawn and tactical-mode initialization, effectively one-shot initial guard hold orders, and periodic wave and tactical guards. Its `runtime_verified` is always `false`; observed in-engine round transitions must still address its unknowns. No original source assets are committed to the public repo.
+
+### Responsibility and change control
+
+**A:** historical source/native semantics, source acceptance, round risk audit, final verdict. **B:** consent, release-pinned binaries, installer durability, owned process lifecycles, observed OS bound sockets, game startup. **C:** recorder lifecycle, provenance caveats, safe ZIP, factual incident timelines. B/C PRs are still **draft**; B's actual installer P1 and C's current exact-head suite remain separate gates. No additional speculative native features or extra owner gameplay round is justified without new measured evidence.
