@@ -120,6 +120,15 @@ def collect(game_root: Path | None, module: Path | None, output: Path,
                 entries["module.json"] = (json.dumps(safe, indent=2, sort_keys=True) + "\n").encode()
             except (OSError, ValueError, TypeError):
                 pass
+    if module:
+        fingerprints = {}
+        for name in ("module.ini", "mission_templates.txt", "troops.txt", "scripts.txt", "lua/main.lua"):
+            candidate = module / name
+            if candidate.is_file():
+                with candidate.open("rb") as file_handle:
+                    fingerprints[name] = sha256(file_handle.read())
+        if fingerprints:
+            entries["module_hashes.json"] = (json.dumps(fingerprints, indent=2, sort_keys=True) + "\n").encode()
     fileinfo = []
     for i, path in enumerate(sources):
         with path.open("rb") as fh:
@@ -131,7 +140,8 @@ def collect(game_root: Path | None, module: Path | None, output: Path,
         stored = f"logs/log_{i+1:02d}.txt"
         entries[stored] = text.encode("utf-8")
         fileinfo.append({"file": stored, "source_kind": path.name.lower(),
-                         "original_bytes": length, "truncated_to_tail": length > MAX_LOG_BYTES})
+                         "original_bytes": length, "truncated_to_tail": length > MAX_LOG_BYTES,
+                         "modified_utc": datetime.fromtimestamp(path.stat().st_mtime, timezone.utc).isoformat()})
     event_records = []
     for info in fileinfo:
         event_records.extend(extract_events(entries[info["file"]].decode("utf-8"), info["file"]))
@@ -207,6 +217,19 @@ def analyze(payload: dict[str, bytes]) -> dict:
         if hits:
             findings.append({"id": code, "severity": severity, "title": title,
                              "count_at_least": len(hits), "examples": hits, "action": advice})
+    if any(ev.get("event") in {"probe_failed", "probe_unavailable"} for ev in events):
+        findings.append({"id": "R016", "severity": "high", "title": "Lua diagnostic registration failed",
+                         "action": "Examine WSE2 Lua version, runtime bootstrap and trigger API compatibility."})
+    if session.get("captured_utc"):
+        capture_time = datetime.fromisoformat(session["captured_utc"])
+        for item in session.get("files", []):
+            if not item.get("modified_utc"):
+                continue
+            age = (capture_time - datetime.fromisoformat(item["modified_utc"])).total_seconds()
+            if age > 7 * 86400:
+                findings.append({"id": "R015", "severity": "medium", "title": "Old engine logs may be unrelated",
+                                 "action": "Review log modification times and collect immediately after the final game session."})
+                break
     if not logs:
         findings.append({"id": "R010", "severity": "high", "title": "No engine logs collected",
                          "action": "Run the game and collect after exit; pass --log for non-standard paths."})
