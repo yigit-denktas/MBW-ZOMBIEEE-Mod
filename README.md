@@ -2,7 +2,7 @@
 
 Modernization of the **2012 ZOMBIEEE (Invasion) Beta 0.4** mod for *Mount & Blade: Warband*. Original contributors retain credit and ownership of their work.
 
-**Current project version:** `0.1.0` (development scaffold; **not yet playable/engine-verified**).  
+**Current project version:** `0.1.1` (development scaffold; **not yet playable/engine-verified**).  
 **Target:** Warband official 1.174 data format under [WSE2](https://github.com/Ruslan-700/WSE2-Releases/releases/tag/v1.1.5.4) 1.1.5.4 (14 October 2026).  
 **Scope:** preserve the original guns, zombies, wave mode, maps and feel; restore current-runtime compatibility; add AI survivor teammates, defensible hold points, quality-of-life features, private cheats, and later LAN co-op. **ZOMBIEEE2 is explicitly excluded.**
 
@@ -29,7 +29,7 @@ Install [WSE2](https://github.com/Ruslan-700/WSE2-Releases/releases/tag/v1.1.5.4
 
 ## Versioning and status
 
-This project follows [SemVer](https://semver.org/). The historic original mod version `0.4` is **not** a remaster release number. `v0.1.0` identifies tooling and an initial compatibility target, not a working game. Milestone `v0.2.0` requires actual WSE2 startup and wave gameplay evidence. **No CI**; run local tests and capture manual gameplay results.
+This project follows [SemVer](https://semver.org/). The historic original mod version `0.4` is **not** a remaster release number. `v0.1.0` identifies tooling and an initial compatibility target, not a working game. Milestone `v0.2.0` requires actual WSE2 startup and wave gameplay evidence. **No CI**; run local tests and capture manual gameplay results. The 0.1.1 preflight currently detects 64 entry points, 25 invasion triggers and 30/30 referenced BRF resources in the supplied original 0.4 archive; these are *static findings*, not a playable game certification.
 
 ## Attribution and licensing
 
