@@ -17,10 +17,12 @@ class FlightRecorderTests(unittest.TestCase):
     def run_child(self, root: Path, script: str, **kwargs):
         game_log = root / "wse2.log"
         game_log.write_text("STALE LOG SHOULD NOT BE INCLUDED\n", encoding="utf-8")
+        settings = {"timeout": 5, "poll": 0.02}
+        settings.update(kwargs)
         result = record_session(
             root / "evidence", "test-city", [game_log],
             command=[sys.executable, "-c", script, str(game_log)],
-            timeout=5, poll=0.02, **kwargs)
+            **settings)
         session = root / "evidence" / "test-city"
         return result, session
 
