@@ -34,7 +34,8 @@ class CityIncidentTests(unittest.TestCase):
               event("wave_change", 3, wave="3")]
         report = analyze(payload(ev, source()))
         city = report["city_incident"]
-        self.assertTrue(city["build"]["source_verified"])
+        self.assertTrue(city["build"]["source_receipt_claims_passed"])
+        self.assertFalse(city["build"]["independently_reverified"])
         self.assertFalse(city["runtime"]["gameplay_verified"])
         self.assertEqual(city["runtime"]["wave_numbers"], [2, 3])
         self.assertEqual(city["runtime"]["survivor_team0_max"], 4)
@@ -50,7 +51,7 @@ class CityIncidentTests(unittest.TestCase):
         module = source()
         module["city_static_acceptance"]["original_invasion_game_type"] = 6
         city = analyze(payload(module=module))["city_incident"]
-        self.assertFalse(city["build"]["source_verified"])
+        self.assertFalse(city["build"]["source_receipt_claims_passed"])
         self.assertIn("CITY-I06", {e["code"] for e in city["incident_leads"]})
         self.assertTrue(all(e["cause"] == "unknown" for e in city["incident_leads"]))
 
