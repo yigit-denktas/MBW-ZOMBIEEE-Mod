@@ -16,6 +16,7 @@ import re
 import secrets
 import subprocess
 import sys
+import threading
 import time
 
 from .privacy import scrub
@@ -51,6 +52,46 @@ def refuse_links_in_tree(root: Path) -> None:
             meta = entry.lstat()
             if entry.is_symlink() or getattr(meta, "st_file_attributes", 0) & 0x400:
                 raise ValueError("Unsafe recorder path link or reparse point")
+
+
+def bounded_window(head: bytes, tail: bytes, total: int, limit: int) -> tuple[bytes, int]:
+    """Retain the earliest and latest bytes with an explicit gap if necessary."""
+    if total <= limit:
+        return head + tail, 0
+    # The omission count can change marker length at a power of ten.
+    omitted = max(0, total - len(head) - len(tail))
+    for _ in range(8):
+        marker = (f"\\n[ZDB1-OMITTED {omitted} BYTES BETWEEN HEAD AND TAIL]\\n").encode()
+        room = max(0, limit - len(head) - len(marker))
+        kept = tail[-room:] if room else b""
+        actual = total - len(head) - len(kept)
+        if actual == omitted:
+            return head + marker + kept, omitted
+        omitted = actual
+    marker = (f"\\n[ZDB1-OMITTED {omitted} BYTES BETWEEN HEAD AND TAIL]\\n").encode()
+    room = max(0, limit - len(head) - len(marker))
+    return head + marker + (tail[-room:] if room else b""), omitted
+
+
+class BoundedPipe:
+    """Thread-fed bounded head/tail window; never stores unbounded child output."""
+
+    def __init__(self, limit: int):
+        self.limit = limit
+        self.head_limit = max(1, limit // 4)
+        self.tail_limit = limit - self.head_limit
+        self.head = bytearray()
+        self.tail = bytearray()
+        self.seen = 0
+
+    def append(self, chunk: bytes) -> None:
+        first = min(len(chunk), self.head_limit - len(self.head))
+        self.head.extend(chunk[:first])
+        self.tail = bytearray((self.tail + chunk[first:])[-self.tail_limit:])
+        self.seen += len(chunk)
+
+    def snapshot(self) -> tuple[bytes, int]:
+        return bounded_window(bytes(self.head), bytes(self.tail), self.seen, self.limit)
 
 
 def utcnow() -> str:
@@ -187,27 +228,10 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
         seen_bytes[i] += count
 
     def render_log(i: int) -> bytes:
-        head = bytes(heads[i])
-        tail = bytes(tails[i])
-        total = seen_bytes[i]
-        if total <= max_log_bytes:
-            omitted_bytes[i] = 0
-            return head + tail
-        # Use a stable fixed-size marker: no ambiguous silent gaps. Reserve
-        # its bytes inside max_log_bytes, then fit the newest tail.
-        marker = b"\\n[ZDB1-OMITTED 00000000000000000000 BYTES BETWEEN HEAD AND TAIL]\\n"
-        reserve = max(0, max_log_bytes - len(head) - len(marker))
-        retained_tail = tail[-reserve:] if reserve else b""
-        missed = total - len(head) - len(retained_tail)
-        marker = ("\\n[ZDB1-OMITTED " + str(missed) +
-                  " BYTES BETWEEN HEAD AND TAIL]\\n").encode()
-        reserve = max(0, max_log_bytes - len(head) - len(marker))
-        retained_tail = tail[-reserve:] if reserve else b""
-        missed = total - len(head) - len(retained_tail)
-        marker = ("\\n[ZDB1-OMITTED " + str(missed) +
-                  " BYTES BETWEEN HEAD AND TAIL]\\n").encode()
-        omitted_bytes[i] = missed
-        return head + marker + retained_tail
+        saved, omitted = bounded_window(bytes(heads[i]), bytes(tails[i]),
+                                        seen_bytes[i], max_log_bytes)
+        omitted_bytes[i] = omitted
+        return saved
 
     def sample_logs() -> None:
         for i, path in enumerate(source_paths):
@@ -244,6 +268,21 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
                 event("log_unavailable", log_index=i + 1,
                       error_type=type(exc).__name__)
 
+    pipe_buffers = {"stdout": BoundedPipe(max_log_bytes),
+                    "stderr": BoundedPipe(max_log_bytes)}
+    pipe_threads: list[threading.Thread] = []
+    output_capture_complete = True
+
+    def drain_stream(pipe, buffer: BoundedPipe) -> None:
+        try:
+            while True:
+                chunk = pipe.read(32 * 1024)
+                if not chunk:
+                    break
+                buffer.append(chunk)
+        finally:
+            pipe.close()
+
     outcome, exit_code, child = "unknown", None, None
     start = time.monotonic()
     began = utcnow()
@@ -271,8 +310,14 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
                 raise ValueError("Empty child command")
             try:
                 child = subprocess.Popen(command, stdin=subprocess.DEVNULL,
-                                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                                         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                          shell=False)
+                for name, pipe in (("stdout", child.stdout), ("stderr", child.stderr)):
+                    thread = threading.Thread(target=drain_stream,
+                                              args=(pipe, pipe_buffers[name]),
+                                              daemon=True, name="zdb1-" + name)
+                    thread.start()
+                    pipe_threads.append(thread)
             except OSError as exc:
                 outcome = "start_failed"
                 event("process_start_failed", error_type=type(exc).__name__)
@@ -310,6 +355,23 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
         if child is not None and exit_code is None:
             exit_code = child.poll()
         sample_logs()
+        for thread in pipe_threads:
+            thread.join(timeout=2)
+            if thread.is_alive():
+                output_capture_complete = False
+        pipe_omitted = {}
+        for name, stream in pipe_buffers.items():
+            # If a descendant keeps an inherited pipe open, this is a
+            # partial capture; do not certify it complete.
+            if stream.seen:
+                saved, omitted = stream.snapshot()
+                atomic_write(root / "logs" / (name + ".txt"),
+                             scrub(saved.decode("utf-8", errors="replace")).encode())
+                pipe_omitted[name] = omitted
+                if omitted:
+                    event("process_output_truncated", stream=name, omitted_bytes=omitted)
+            else:
+                pipe_omitted[name] = 0
         end = utcnow()
         event("process_finished", outcome=outcome, exit_code=exit_code)
         safe = {
@@ -319,6 +381,8 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
             "exit_code_observed": child is not None and exit_code is not None,
             "log_count": len(source_paths), "log_bytes_limit_each": max_log_bytes,
             "log_truncated": truncated, "log_omitted_bytes": omitted_bytes,
+            "process_output_omitted_bytes": pipe_omitted,
+            "process_output_capture_complete": output_capture_complete,
             "log_seen_bytes": seen_bytes, "event_count": len(events),
             "duration_seconds": round(time.monotonic() - start, 3),
             "event_drops": event_drops,
