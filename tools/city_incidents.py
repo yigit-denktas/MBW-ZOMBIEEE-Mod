@@ -198,7 +198,7 @@ def incident_for_session(events, recorder_events, installed, flight, findings,
             val = measured(fields.get(key), minimum=minimum)
             if val is not None:
                 point[key] = val
-        if kind in ("heartbeat", "mission_enter") and is_server:
+        if kind in ("heartbeat", "mission_enter") and is_invasion:
             point["role"] = "server"
             for key, target in (("team0", "allies_max"), ("team1", "zombies_max")):
                 v = measured(fields.get(key))
@@ -211,8 +211,9 @@ def incident_for_session(events, recorder_events, installed, flight, findings,
         # Legacy Lua wave_change had no role; retain its low-confidence wave
         # marker for backwards compatibility, but NEVER elevate its optional
         # round_start fields into high-confidence server global observations.
-        round_sample = (kind in ("mission_enter", "heartbeat", "wave_change")
-                        and is_server)
+        # A server heartbeat from another mission also cannot attest City.
+        round_sample = (kind in ("mission_enter", "heartbeat") and is_invasion
+                        or kind == "wave_change" and is_server)
         round_start = measured(fields.get("round_start")) if round_sample else None
         reinforced_round_start = (
             measured(fields.get("refilled_round_start")) if round_sample else None)
@@ -222,7 +223,7 @@ def incident_for_session(events, recorder_events, installed, flight, findings,
         if reinforced_round_start is not None:
             reinforced_rounds.add(reinforced_round_start)
             point["refilled_round_start"] = reinforced_round_start
-        if kind in ("heartbeat", "wave_change") and (is_server or server_wave):
+        if kind in ("heartbeat", "wave_change") and (is_invasion or server_wave):
             wave = measured(fields.get("wave"), minimum=1)
             if wave is not None:
                 waves.add(wave)
@@ -239,11 +240,11 @@ def incident_for_session(events, recorder_events, installed, flight, findings,
                                  and prev[1] != round_start)):
                     suspected_wave_regression = True
                 wave_sequence[source] = (wave, round_start)
-        if kind in ("heartbeat", "tactical_change") and (is_server or kind == "tactical_change"):
+        if kind in ("heartbeat", "tactical_change") and (is_invasion or kind == "tactical_change"):
             mode = measured(fields.get("mode"), maximum=1)
             if mode is not None:
                 mode_seen.add(mode)
-        if kind == "heartbeat" and is_server:
+        if kind == "heartbeat" and is_invasion:
             fill = measured(fields.get("refilled"), minimum=1)
             if fill is not None:
                 refilled.add(fill)
