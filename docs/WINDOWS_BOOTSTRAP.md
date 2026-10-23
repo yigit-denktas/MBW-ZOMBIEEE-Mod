@@ -212,21 +212,25 @@ evidence-manifest verification. It never starts or kills a game process. See
 and limits.
 
 Process-level interop fixtures run C's exact checkout (`agent/c-flight-recorder`
-at `eade015`) and an expendable fake game child:
+at `1119cca2568f6a3f9c18af4689568a814a7985f4`) and an expendable fake game child:
 
 ```powershell
 $env:ZOMBIEEE_RECORDER_DIR = 'C:\path\to\agent-c-flight-recorder'
 python -m unittest discover -s tests -p "test_windows_recorder.py" -v
 ```
 
-Windows result on 2026-10-23: **12 tests, OK, 1 skipped** (symlink creation is
-not permitted in the sandbox); the six interop cases cover ready→attach→stop
-with verified evidence, forged HMAC rejection, premature-stop rejection then
-retry after game exit, >2 MiB late fatal-log retention, recorder startup
-timeout, recorder crash before readiness, and recorder death after readiness.
-Without a C checkout the six process cases skip explicitly. The control key is
-absent from every recorded file; C's attachment ack is unsigned local control,
-so correlation/order is validated rather than a MAC.
+Windows result on 2026-10-23: **14 tests, OK, 1 skipped** (symlink creation is
+not permitted here); the eight interop cases cover ready→attach→stop with
+verified evidence, forged HMAC rejection, premature-stop rejection then retry
+after game exit, >2 MiB late fatal-log retention, recorder startup timeout,
+recorder crash before readiness, recorder death after readiness,
+crash→`telemetry.recovery` incomplete/unverified report, and the Win32
+creation-FILETIME probe. Fake runs pass C's `--simulation` flag, so the receipt
+records `simulation=true` and `game_runtime=unknown`. Full B suite with the C
+checkout: **162 tests OK / 31 skipped**. Without a C checkout the eight process
+cases skip explicitly. The control key is absent from every recorded file; C's
+attachment ack is unsigned local control, so correlation/order is validated
+rather than a MAC.
 
 ## Evidence and remaining gates
 

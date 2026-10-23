@@ -139,6 +139,11 @@ actual `python -m telemetry.flight_recorder --passive` CLI:
 - Verifies C's `manifest.json` SHA-256 inventory after completion and returns
   the receipt/evidence summary. Recorder death at any point fails closed; only
   B's own recorder child may be terminated on failure, never a game process.
+- Passes C's optional `--simulation` flag for fake-game runs only; the public
+  receipt then carries `simulation=true`, `game_runtime=unknown` and the local
+  process-identity status. B's owned handle remains the authority; the Windows
+  creation-FILETIME probe is read-only and a post-exit PID value must not be
+  treated as ownership.
 
 Limits: C's attachment acknowledgment is an unsigned local control file, so B
 validates structure, correlation and ordering rather than a MAC; any same-user
@@ -146,7 +151,7 @@ local attacker is outside this offline model. The adapter starts no game and
 does not claim host, join, mission or WSE2 readiness.
 
 Interop fixtures (`tests/test_windows_recorder.py`) run unit checks always and
-six process-level cases when an Agent C checkout is available:
+eight process-level cases when an Agent C checkout is available:
 
 ```powershell
 $env:ZOMBIEEE_RECORDER_DIR = 'C:\path\to\agent-c-flight-recorder'
@@ -157,8 +162,11 @@ Without that variable, the interop cases skip with an explicit reason. The
 process cases launch C's actual passive CLI and an expendable fake game child:
 ready→attach→stop with verified evidence, forged-HMAC rejection, premature-stop
 rejection and retry after game exit, a >2 MiB late fatal-log tail, recorder
-startup timeout, recorder crash before readiness, and recorder death after
-readiness blocking attachment.
+startup timeout, recorder crash before readiness, recorder death after
+readiness blocking attachment, crash→`telemetry.recovery` incomplete/unverified
+report, and the read-only Win32 creation-FILETIME probe on the fake game.
+Latest run against C `1119cca2568f6a3f9c18af4689568a814a7985f4`: **14 tests OK /
+1 skipped** (symlink privilege), full B suite **162 OK / 31 skipped**.
 
 ## Contract and acceptance limits
 

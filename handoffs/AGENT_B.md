@@ -150,15 +150,27 @@ reads the canonical per-session marker with a 16 KiB bound and redirect
 rejection, writes atomic HMAC-SHA256 attach/stop controls, requires the exact
 attachment ack, refuses stop while a B-owned game child lives, and verifies C's
 SHA-256 evidence manifest. Interop ran against C's exact checkout
-`agent/c-flight-recorder@eade015` in a detached read-only worktree (not copied
-into this branch) with an expendable fake game child: **12 tests, OK, 1 skipped**
-(symlink creation denied here), including ready→attach→stop with verified
-evidence, forged HMAC rejection, premature-stop rejection then retry after game
-exit, >2 MiB late fatal-log retention, recorder startup timeout, and recorder
-crash before/after readiness. Full suite: **160 tests OK, 31 skipped** with the C
-checkout available; **160 OK, 37 skipped** without it (the six interop cases
-skip explicitly). No Warband/WSE2 process was launched; all engine milestones
-remain unknown.
+`agent/c-flight-recorder@1119cca2568f6a3f9c18af4689568a814a7985f4` in a detached
+read-only worktree (not copied into this branch) with an expendable fake game
+child and C's `--simulation` flag: **14 tests, OK, 1 skipped** (symlink creation
+denied here), including ready→attach→stop with verified evidence, forged HMAC
+rejection, premature-stop rejection then retry after game exit, >2 MiB late
+fatal-log retention, recorder startup timeout, recorder crash before/after
+readiness, crash→`telemetry.recovery` incomplete/unverified report, and the
+Win32 creation-FILETIME probe. Receipt status observed: `simulation=true`,
+`game_runtime=unknown`, `pid_start_identity_status=measured_at_attachment`.
+Full suite: **162 tests OK, 31 skipped** with the C checkout available; the eight
+interop cases skip without it. No Warband/WSE2 process was launched; all engine
+milestones remain unknown.
+
+Local Windows gates run for A on the same machine: `7z t` on the pinned Beta 0.4
+RAR → **Everything is OK** (1,068 files, exit 0); A's exact-source suite with the
+real extracted module → **131/131 OK** after a two-line Windows fixture fix
+(`Path.write_text(changed)` gained CRLF translation; `newline=""` required);
+`tools/verify_city_chain.py` → `passed=true`, 1,068 files / 1,065 unchanged /
+exactly 3 intentional City edits, 25→26→27→29→31→35 and solo 32,
+`runtime_verified=false`. The original archive is stored only in the gitignored
+`local/` tree, never committed or published.
 
 Real-machine read-only discovery: on the local Windows 11 Steam installation
 (game present on D:), discovery returned one `found` Warband candidate

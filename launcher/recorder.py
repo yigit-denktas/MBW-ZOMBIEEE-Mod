@@ -189,7 +189,7 @@ class PassiveRecorder:
                  session_id=None, attempt_id=None, recorder_start_id=None,
                  control_key=None, timeout=300.0, startup_timeout=20.0,
                  poll_interval=0.05, python_executable=None,
-                 recorder_command=None, environ=None):
+                 recorder_command=None, environ=None, simulation=False):
         self.output_root = Path(output_root).expanduser().absolute()
         self.log_paths = [Path(p).expanduser().absolute() for p in log_paths]
         if not self.log_paths:
@@ -215,6 +215,7 @@ class PassiveRecorder:
         self.python_executable = python_executable or sys.executable
         self.recorder_command = recorder_command
         self.environ = dict(os.environ if environ is None else environ)
+        self.simulation = bool(simulation)
         self.session_dir = self.output_root / self.session_id
         self.proc = None
         self.recorder_pid = None
@@ -257,6 +258,8 @@ class PassiveRecorder:
                 '--recorder-start-id', self.recorder_start_id,
                 '--poll', str(self.poll_interval),
                 '--timeout', str(self.timeout)]
+        if self.simulation:
+            argv.append('--simulation')
         for log in self.log_paths:
             argv.extend(['--log', str(log)])
         return argv

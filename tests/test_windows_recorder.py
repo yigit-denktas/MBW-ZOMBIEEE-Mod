@@ -184,7 +184,7 @@ class RecorderInteropTests(unittest.TestCase):
     def make_recorder(self, **overrides):
         options = dict(output_root=self.tmp / 'private', log_paths=[self.log],
                        recorder_dir=C_RECORDER_DIR, timeout=120,
-                       startup_timeout=20, poll_interval=0.02)
+                       startup_timeout=20, poll_interval=0.02, simulation=True)
         options.update(overrides)
         return PassiveRecorder(**options)
 
@@ -217,6 +217,8 @@ class RecorderInteropTests(unittest.TestCase):
             self.assertEqual(result['receipt']['session_id'], adapter.session_id)
             self.assertTrue(result['evidence']['verified'])
             self.assertGreater(result['evidence']['file_count'], 3)
+            self.assertTrue(result['receipt']['simulation'])
+            self.assertEqual(result['receipt']['game_runtime'], 'unknown')
             for item in adapter.session_dir.rglob('*'):
                 if item.is_file():
                     self.assertNotIn(adapter.control_key.hex().encode(),
@@ -338,6 +340,49 @@ class RecorderInteropTests(unittest.TestCase):
         finally:
             self.cleanup_game(game)
             adapter.close()
+
+    def test_recorder_crash_leaves_incomplete_recovery_report(self):
+        adapter = self.make_recorder()
+        game = None
+        try:
+            adapter.start()
+            adapter.await_ready()
+            game = spawn_fake_game(3.0)
+            adapter.attach(host=game)
+            adapter.proc.terminate()
+            adapter.proc.wait(timeout=3)
+            completed = subprocess.run(
+                [sys.executable, '-m', 'telemetry.recovery', str(adapter.session_dir)],
+                cwd=str(C_RECORDER_DIR), capture_output=True, text=True, timeout=20)
+            report = json.loads(completed.stdout)
+            self.assertEqual(completed.returncode, 1, completed.stderr)
+            self.assertFalse(report['session_complete'])
+            self.assertFalse(report['integrity_verified'])
+            self.assertFalse(report['shareable_without_review'])
+            self.assertEqual(report['game_runtime'], 'unknown')
+            self.assertIn(report['observation'],
+                          ('incomplete_recorder_session', 'final_manifest_invalid'))
+        finally:
+            self.cleanup_game(game)
+            adapter.close()
+
+    @unittest.skipUnless(os.name == 'nt', 'Win32 creation-time probe is Windows-only')
+    def test_windows_process_creation_time_probe_is_queryable_for_fake_game(self):
+        game = spawn_fake_game(3.0)
+        try:
+            code = ('import json, sys; '
+                    'from telemetry.identity import windows_start_filetime; '
+                    'print(json.dumps({"value": windows_start_filetime(int(sys.argv[1]))}))')
+            completed = subprocess.run(
+                [sys.executable, '-c', code, str(game.pid)],
+                cwd=str(C_RECORDER_DIR), capture_output=True, text=True, timeout=20)
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            value = json.loads(completed.stdout)['value']
+            self.assertTrue(value is None or
+                            (isinstance(value, str) and value.startswith('windows-filetime:')),
+                            value)
+        finally:
+            self.cleanup_game(game)
 
 
 if __name__ == '__main__':
