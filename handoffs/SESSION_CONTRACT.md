@@ -63,3 +63,9 @@ File location: a new per-user local directory chosen by launcher; **not** inside
 3. **G2 solo release:** B's private one-click City launch, A's survivor/zombie gameplay, C's forensic evidence and all licensing/rollback gates are proven, then owner accepts the release.
 
 **Never** require repeated user playtests for each change. Accumulate offline unit and fixture evidence; reserve real gameplay verification for the consolidated final candidate. Static tests are not engine evidence.
+
+## Authoritative recorder lifecycle v1
+
+Agent A has chosen **B-owned game children with C's passive pre-launched recorder**, not simultaneous startup or C launching a second game process. The canonical marker schema is `zombieee.recorder-ready.v1` (hyphen); B must verify the recorder's live owned process handle, session/attempt/start identities and durable log offsets before launching any engine child. Afterward, B sends locally authenticated HMAC attach/stop controls; C captures bounded crash evidence and stops after B's game children exit. Full message sequence, security requirements and negative tests: [RECORDER_LIFECYCLE_V1.md](RECORDER_LIFECYCLE_V1.md). This interface is **offline provisional**; actual WSE2 private binding, engine readiness, City join and game launch are not verified.
+
+Agent A's read-only City static checker: `python -3 tools/city_acceptance.py --original <owned original Beta 0.4 module> --module <new City-only module> --json`. Reports only source/scene/native trigger structural acceptance; it does not claim a successful Warband/WSE2 launch. Agent B should require a positive check before offering Play Solo, but must not mark runtime game compatibility from it.
