@@ -54,7 +54,7 @@ class BotLoadoutTests(unittest.TestCase):
         changed, _ = clone_loadouts(self.base_troops, self.items)
         with tempfile.TemporaryDirectory() as td:
             path = Path(td)/"troops.txt"
-            path.write_text(changed)
+            path.write_text(changed, newline="")
             troop_ids = index_troops(path)
         output = allies(self.mission, troop_ids, 4, CLONES)
         self.assertEqual(mission_bounds(output.splitlines(keepends=True))[1], 26)
@@ -67,7 +67,7 @@ class BotLoadoutTests(unittest.TestCase):
         changed, _ = clone_loadouts(self.base_troops, self.items)
         with tempfile.TemporaryDirectory() as td:
             path = Path(td)/"troops.txt"
-            path.write_text(changed)
+            path.write_text(changed, newline="")
             ids = index_troops(path)
         trigger = reinforce_on_wave(g, ids, 4, CLONES)
         self.assertIn("2120 3", trigger)
