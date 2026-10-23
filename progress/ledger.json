@@ -35,6 +35,11 @@
       "id": "Quality",
       "title": "Testing, legal and release",
       "panel": "Testing, legal and release"
+    },
+    {
+      "id": "Performance",
+      "title": "Measured performance profiling",
+      "panel": "Instrumented optimisation"
     }
   ],
   "milestones": [
@@ -111,7 +116,7 @@
       "horizon": "Next",
       "groupIds": [
         "Gameplay",
-        "Diagnostics"
+        "Performance"
       ],
       "gateItemIds": [
         "ZOM-AI-01",
@@ -621,7 +626,7 @@
     {
       "id": "ZOM-PERF-01",
       "title": "Measure actual frame pacing and agent costs",
-      "groupId": "Diagnostics",
+      "groupId": "Performance",
       "milestoneId": "M3",
       "state": "backlog",
       "sourceState": "new scoped proposal; not accepted",
@@ -803,7 +808,7 @@
     "owner": "Repository owner",
     "acceptanceAuthority": "Repository owner",
     "changeAuthority": "Repository owner",
-    "approach": "adaptive evidence-gated",
+    "approach": "adaptive",
     "baselineStatus": "proposed-unapproved",
     "successCriteria": [
       "One-click Windows 11 solo play on licensed Warband + compatible WSE2",
@@ -811,12 +816,14 @@
       "A local diagnostic report explains failures with build identity",
       "Owner accepts legal, stability and accessibility gates"
     ],
-    "wbsCoverage": "provisional 24 leaves; subject to owner review",
+    "wbsCoverage": "partial",
     "workPackages": [
       {
         "id": "M0",
-        "title": "Scoped record ready for owner review",
-        "leafIds": [
+        "deliverable": "Scoped record ready for owner review",
+        "owner": "Owner and implementing agent (proposed)",
+        "acceptance": "Every referenced leaf's criterion is evidenced and owner accepts this outcome milestone",
+        "workItemIds": [
           "ZOM-REC-01",
           "ZOM-REC-02",
           "ZOM-REC-03"
@@ -824,8 +831,10 @@
       },
       {
         "id": "M1",
-        "title": "Observed WSE2 baseline",
-        "leafIds": [
+        "deliverable": "Observed WSE2 baseline",
+        "owner": "Owner and implementing agent (proposed)",
+        "acceptance": "Every referenced leaf's criterion is evidenced and owner accepts this outcome milestone",
+        "workItemIds": [
           "ZOM-ENG-01",
           "ZOM-ENG-02",
           "ZOM-ENG-03",
@@ -835,8 +844,10 @@
       },
       {
         "id": "M2",
-        "title": "One-click Windows solo start",
-        "leafIds": [
+        "deliverable": "One-click Windows solo start",
+        "owner": "Owner and implementing agent (proposed)",
+        "acceptance": "Every referenced leaf's criterion is evidenced and owner accepts this outcome milestone",
+        "workItemIds": [
           "ZOM-WIN-01",
           "ZOM-WIN-02",
           "ZOM-WIN-03",
@@ -846,8 +857,10 @@
       },
       {
         "id": "M3",
-        "title": "Five-map and AI gameplay reliable",
-        "leafIds": [
+        "deliverable": "Five-map and AI gameplay reliable",
+        "owner": "Owner and implementing agent (proposed)",
+        "acceptance": "Every referenced leaf's criterion is evidenced and owner accepts this outcome milestone",
+        "workItemIds": [
           "ZOM-AI-01",
           "ZOM-AI-02",
           "ZOM-AI-03",
@@ -858,8 +871,10 @@
       },
       {
         "id": "M4",
-        "title": "Solo release accepted",
-        "leafIds": [
+        "deliverable": "Solo release accepted",
+        "owner": "Owner and implementing agent (proposed)",
+        "acceptance": "Every referenced leaf's criterion is evidenced and owner accepts this outcome milestone",
+        "workItemIds": [
           "ZOM-QA-01",
           "ZOM-QA-02",
           "ZOM-ADMIN-01",
@@ -873,23 +888,62 @@
     "risks": [
       {
         "id": "RISK-ENGINE",
-        "description": "Native compiled mission/WSE2 runtime behavior unverified",
-        "status": "active"
+        "event": "Native compiled mission/WSE2 runtime behavior unverified",
+        "owner": "Project owner / implementing agent (proposed)",
+        "response": "Capture evidence, contain unsafe build and revisit prior verified baseline",
+        "trigger": "Before Windows release or if actual WSE2 evidence contradicts static claims",
+        "status": "open"
       },
       {
         "id": "RISK-ASSET",
-        "description": "Original binary archive redistribution rights not demonstrated",
-        "status": "active"
+        "event": "Original binary archive redistribution rights not demonstrated",
+        "owner": "Project owner / implementing agent (proposed)",
+        "response": "Capture evidence, contain unsafe build and revisit prior verified baseline",
+        "trigger": "Before Windows release or if actual WSE2 evidence contradicts static claims",
+        "status": "open"
       },
       {
         "id": "RISK-BOOT",
-        "description": "Automatic Windows discovery/install not implemented",
-        "status": "active"
+        "event": "Automatic Windows discovery/install not implemented",
+        "owner": "Project owner / implementing agent (proposed)",
+        "response": "Capture evidence, contain unsafe build and revisit prior verified baseline",
+        "trigger": "Before Windows release or if actual WSE2 evidence contradicts static claims",
+        "status": "open"
       }
     ],
     "operations": {
       "status": "proposed",
       "reason": "No published web deploy or live game operational evidence; no CI by owner choice"
+    },
+    "tailoring": {
+      "governance": {
+        "status": "not-assessed",
+        "reason": "Owner acceptance and context needed; preserve current project practice pending focused setup conversation."
+      },
+      "scope": {
+        "status": "not-assessed",
+        "reason": "Owner acceptance and context needed; preserve current project practice pending focused setup conversation."
+      },
+      "schedule": {
+        "status": "not-assessed",
+        "reason": "Owner acceptance and context needed; preserve current project practice pending focused setup conversation."
+      },
+      "finance": {
+        "status": "not-assessed",
+        "reason": "Owner acceptance and context needed; preserve current project practice pending focused setup conversation."
+      },
+      "stakeholders": {
+        "status": "not-assessed",
+        "reason": "Owner acceptance and context needed; preserve current project practice pending focused setup conversation."
+      },
+      "resources": {
+        "status": "not-assessed",
+        "reason": "Owner acceptance and context needed; preserve current project practice pending focused setup conversation."
+      },
+      "risk": {
+        "status": "not-assessed",
+        "reason": "Owner acceptance and context needed; preserve current project practice pending focused setup conversation."
+      }
     }
   }
 }
