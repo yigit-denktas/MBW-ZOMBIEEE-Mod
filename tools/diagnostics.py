@@ -124,7 +124,9 @@ def collect(game_root: Path | None, module: Path | None, output: Path,
                 pass
     if module:
         fingerprints = {}
-        for name in ("module.ini", "mission_templates.txt", "troops.txt", "scripts.txt", "lua/main.lua"):
+        for name in ("module.ini", "mission_templates.txt", "troops.txt", "scripts.txt",
+                     "variables.txt", "lua/main.lua",
+                     *(f"SceneObj/scn_tbfc_invasion_{i}.sco" for i in range(1, 6))):
             candidate = module / name
             if candidate.is_file():
                 with candidate.open("rb") as file_handle:
