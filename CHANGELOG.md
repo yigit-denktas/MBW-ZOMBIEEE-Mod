@@ -9,7 +9,9 @@ Uses [Semantic Versioning](https://semver.org/) for the remaster, not the histor
 - Missing, duplicate and case-mismatched local BRF dependency diagnostics.
 - Installer preflight guard and static findings recorded in the install manifest.
 - WSE2 Lua one-time invasion mission-entry diagnostic probe.
-- Six additional local preflight regression tests (11 local tests total).
+- Six additional local preflight regression tests.
+- Non-invasive compiled `call_script` tracer identifying bot spawn/leader integration points.
+- Three local call-graph regression tests (**14 tests total**).
 
 ### Not verified
 - The original RAR still requires independent Windows 7-Zip CRC testing.
