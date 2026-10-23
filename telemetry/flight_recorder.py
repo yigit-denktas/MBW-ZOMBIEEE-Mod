@@ -13,7 +13,6 @@ import json
 import os
 from pathlib import Path
 import re
-import shutil
 import subprocess
 import sys
 import time
@@ -43,6 +42,7 @@ def digest(data: bytes) -> str:
 def atomic_write(path: Path, data: bytes) -> None:
     """Replace a complete snapshot; never expose a partially written report."""
     temp = path.with_name(path.name + ".tmp")
+    temp.unlink(missing_ok=True)  # a recorder crash may leave an orphan snapshot
     try:
         with temp.open("xb") as stream:
             stream.write(data)
@@ -140,7 +140,7 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
             return
         events.append({"schema": SCHEMA, "event": name, "utc": utcnow(), **fields})
         atomic_write(root / "events.jsonl",
-                     b"".join(json_bytes(e).replace(b"\n", b"", 1) + b"\n"
+                     b"".join(json.dumps(e, sort_keys=True, separators=(",", ":")).encode() + b"\n"
                               for e in events))
 
     def sample_logs() -> None:
@@ -246,6 +246,29 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
             for p in sorted(files)}}
         atomic_write(root / "manifest.json", json_bytes(manifest))
     return safe
+
+
+def verify_recording(root: Path) -> dict:
+    """Verify the recorded snapshots after completion (integrity, not authenticity)."""
+    root = root.expanduser().resolve()
+    manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
+    expected = manifest.get("sha256")
+    if manifest.get("schema") != SCHEMA or not isinstance(expected, dict):
+        raise ValueError("Recorder manifest schema mismatch")
+    actual = {str(p.relative_to(root)).replace(os.sep, "/") for p in root.rglob("*")
+              if p.is_file() and not p.name.endswith(".tmp") and p.name != "manifest.json"}
+    if set(expected) != actual or "recorder.json" not in expected:
+        raise ValueError("Recorder manifest entry mismatch")
+    for name, h in expected.items():
+        if name.startswith("/") or "\\" in name or ".." in Path(name).parts:
+            raise ValueError("Unsafe recorder manifest path")
+        if digest((root / name).read_bytes()) != h:
+            raise ValueError("Recorder SHA-256 integrity failure: " + name)
+    receipt = json.loads((root / "recorder.json").read_text(encoding="utf-8"))
+    if receipt.get("schema") != SCHEMA:
+        raise ValueError("Recorder receipt schema mismatch")
+    return {"verified": True, "file_count": len(expected), "session_id": receipt.get("session_id")}
+
 
 
 def main() -> int:
