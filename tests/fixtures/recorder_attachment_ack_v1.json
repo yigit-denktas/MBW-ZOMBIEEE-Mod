@@ -1,0 +1,11 @@
+{
+  "schema": "zombieee.recorder-attachment-ack.v1",
+  "session_id": "fixture-city-01",
+  "attempt_id": "attempt-01",
+  "recorder_start_id": "fixture-opaque-start-id",
+  "attachment_accepted": true,
+  "game_ready": false,
+  "simulation": true,
+  "game_runtime": "unknown",
+  "accepted_utc": "2026-10-23T00:00:01+00:00"
+}
