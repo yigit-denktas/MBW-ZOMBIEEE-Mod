@@ -24,3 +24,7 @@
 - **Open:** Exact readiness assessment central private store and any non-City version horizon remain undecided. We can proceed with City-first engineering meanwhile.
 
 **Public tracker observed live (2026-10-23):** https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/ — City-first 0/23 required leaves (not accepted) / 0/5 milestones. Static hosted HTML and JSON served; actual interactive click-through and native assistive-technology tests not completed.
+
+## Coordination update 2026-10-23
+
+Three implementation lanes were created from v0.1.8 `main`, with [stable ownership and critical path](agent-handoff.md). Agent A coordinates engine/integration (12 leaves including the optional deferred map), B owns Windows/solo installation (7), C owns telemetry/forensics/QA evidence (5). Six original issues remain; #8/#9 were added for B's new work. The required City release no longer depends on optional `ZOM-MAP-01`. This is delegation/preparation, not game acceptance.

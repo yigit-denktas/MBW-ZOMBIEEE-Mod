@@ -24,3 +24,7 @@ Publish the interactive **public-only tracker now** from branch `gh-pages` at re
 - Public branch contains only `index.html`, `.nojekyll`, `progress/ledger.json` and a short public `README.md`. No agent assessment details, private logs, game assets, credentials or CI.
 - Page JavaScript syntax and static semantic/focus/responsive markers checked. Real browser click/keyboard and screen-reader tests remain **unverified** due browser-testing wallet limit. Do not claim WCAG certification.
 - This is a **manual Pages snapshot**; new changes on `project-record-setup-v041` will not appear until a reviewed copy is committed to `gh-pages`. Owner explicitly requested immediate publication.
+
+## Three-agent allocation refresh
+
+Public `gh-pages` JSON is a reviewed snapshot of `progress/ledger.json`. The current refresh adds per-leaf implementation ownership (A/B/C) and removes the City release's incorrect dependency on optional five-map work; acceptance stays 0/23. The static view must offer an agent filter and must not expose private assessment data or engine logs. Agent A is the only publisher/ledger editor.

@@ -17,7 +17,7 @@ Modernization of the **2012 ZOMBIEEE (Invasion) Beta 0.4** mod for *Mount & Blad
 
 **Active outcome:** install and launch the original 2012 ZOMBIEEE 0.4 solo on Windows 11 with trustworthy telemetry. **Next evidence gate:** verify original RAR integrity and actually boot/finish a City wave under WSE2. Existing v0.1.8 code is experimental, **not** certified playable.
 
-[Live interactive tracker](https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/) · [Scoped overview](progress/overview.md) · [Proposed ledger](progress/ledger.json) · [Readiness limits](progress/readiness-summary.md)
+[Live interactive tracker](https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/) · [Agent A/B/C work allocation](progress/agent-handoff.md) · [Scoped overview](progress/overview.md) · [Proposed ledger](progress/ledger.json) · [Readiness limits](progress/readiness-summary.md)
 
 <small>Source observation 2026-10-23 against `048564a`. Scope is **not approved** and this review site is **not published**. Generated counts must be checked with the official v0.4.1 kit before merge.</small>
 <!-- project-record:end -->
