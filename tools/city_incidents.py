@@ -206,8 +206,11 @@ def incident_for_session(events, recorder_events, installed, flight, findings,
         # explicitly role=server). Do not accept optional round identities
         # from unauthenticated client-side events.
         server_wave = kind == "wave_change" and fields.get("role") in (None, "server")
-        round_sample = ((kind in ("mission_enter", "heartbeat") and is_server)
-                        or server_wave)
+        # Legacy Lua wave_change had no role; retain its low-confidence wave
+        # marker for backwards compatibility, but NEVER elevate its optional
+        # round_start fields into high-confidence server global observations.
+        round_sample = (kind in ("mission_enter", "heartbeat", "wave_change")
+                        and is_server)
         round_start = measured(fields.get("round_start")) if round_sample else None
         reinforced_round_start = (
             measured(fields.get("refilled_round_start")) if round_sample else None)
