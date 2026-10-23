@@ -111,7 +111,21 @@ def collect(game_root: Path | None, module: Path | None, output: Path,
                 parsed = json.loads(marker.read_text(encoding="utf-8"))
                 safe = {k: parsed.get(k) for k in (
                     "remaster_version", "source_archive_sha256", "target", "runtime_verified",
-                    "archive_crc_verified", "original_mission_trigger_count", "final_trigger_count")}
+                    "archive_crc_verified", "original_mission_trigger_count", "final_trigger_count",
+                    "defender_loadout_profile")}
+                assist = parsed.get("solo_assist")
+                if isinstance(assist, dict):
+                    safe["solo_assist"] = {
+                        "enabled": assist.get("enabled") is True,
+                        "solo_only": assist.get("solo_only") is True,
+                        "host_only": assist.get("host_only") is True,
+                        "period_seconds": assist.get("period_seconds"),
+                    }
+                else:
+                    safe["solo_assist"] = None
+                clones = parsed.get("ai_only_loadout_clones")
+                if isinstance(clones, dict):
+                    safe["ai_loadout_clone_count"] = clones.get("patched_count", 981) - 981
                 defender = parsed.get("experimental_defender_patch")
                 if isinstance(defender, dict):
                     safe["experimental_defenders"] = defender.get("experimental_defenders")
