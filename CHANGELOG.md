@@ -2,6 +2,21 @@
 
 Uses [Semantic Versioning](https://semver.org/) for the remaster, not the historical original.
 
+## [0.1.3] - 2026-10-23
+
+### Added
+- Read-only WSE2 mission lifecycle telemetry with structured ZDB1 events, bounded periodic agent-count sampling, and guarded Lua probes.
+- One-command end-of-session Windows evidence collector; discovers native engine logs and retains modification-time/truncation metadata.
+- Redacted, SHA-256-checksummed ZIP evidence packages and offline Markdown failure reports; detection of missing assets, crashes, Lua/script faults, stale logs and unexpected compiled mission trigger counts.
+- Multi-session comparison for persistent, new and resolved diagnostic rule IDs.
+- Installed module-file SHA-256 fingerprints; no compiled assets or unredacted logs packaged.
+- Twelve additional offline diagnostic regression tests.
+
+### Not verified
+- No Windows WSE2 gameplay test yet; allied bot combat, spawning, pathing, wave completion and private networking remain unverified.
+- Redaction is best-effort: inspect bundles before sharing.
+- Source RAR still needs independent 7-Zip CRC test on Windows.
+
 ## [0.1.2] - 2026-10-23
 
 ### Added

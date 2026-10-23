@@ -2,7 +2,7 @@
 
 Modernization of the **2012 ZOMBIEEE (Invasion) Beta 0.4** mod for *Mount & Blade: Warband*. Original contributors retain credit and ownership of their work.
 
-**Current project version:** `0.1.2` (development scaffold; **not yet playable/engine-verified**).  
+**Current project version:** `0.1.3` (development scaffold; **not yet playable/engine-verified**).  
 **Target:** Warband official 1.174 data format under [WSE2](https://github.com/Ruslan-700/WSE2-Releases/releases/tag/v1.1.5.4) 1.1.5.4 (14 October 2026).  
 **Scope:** preserve the original guns, zombies, wave mode, maps and feel; restore current-runtime compatibility; add AI survivor teammates, defensible hold points, quality-of-life features, private cheats, and later LAN co-op. **ZOMBIEEE2 is explicitly excluded.**
 
@@ -29,6 +29,7 @@ Install [WSE2](https://github.com/Ruslan-700/WSE2-Releases/releases/tag/v1.1.5.4
 - [Next development handoff](docs/NEXT_RUN.md)
 - [Original invasion bot-call reconstruction](docs/BOT_RECON.md)
 - [Experimental allied defenders](docs/EXPERIMENTAL_DEFENDERS.md)
+- [End-of-development diagnostics](docs/DIAGNOSTICS.md)
 - [Version history](CHANGELOG.md)
 
 ## Versioning and status
@@ -42,3 +43,11 @@ Original ZOMBIEEE creators: Artizan, Nemerius, Belendor, BattalGaziTR, Hayalpere
 **Original RAR content, Warband binaries, sounds, textures, models, scenes, and third-party OSP assets must not be committed.** There is no blanket license to redistribute the original material. No CI workflows or third-party executables belong here.
 
 **Experimental 0.1.2:** append `--experimental-defenders 4` to the installer command for four allied survivor bots (allowed 1–8, default off). This adds one server-only mission trigger; no original 0.4 trigger is replaced. Static tests pass, but WSE2 runtime and AI behavior remain unverified. [Full guide](docs/EXPERIMENTAL_DEFENDERS.md). No CI.
+
+### No intermediate playtesting required
+
+Development continues with static analysis and automated local tests. When the **final integrated candidate** is ready, exit Warband after one private session and run:
+
+    .\tools\Collect-Diagnostics.ps1 -WarbandRoot 'C:\Program Files (x86)\Steam\steamapps\common\MountBlade Warband' -Session final-solo
+
+This creates a **local, redacted, hashed** evidence ZIP and Markdown diagnostic report. The bundle contains engine logs, mission lifecycle markers, agent counts (if WSE2 exposes them), module hashes and version data. It neither sends data externally nor asks for repeated testing. See [the diagnostics guide](docs/DIAGNOSTICS.md). **Windows gameplay remains unverified.**

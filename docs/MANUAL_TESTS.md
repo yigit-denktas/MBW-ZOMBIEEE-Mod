@@ -40,3 +40,11 @@ No runtime rows have been independently verified. No public hosting or cheat con
 ## Experimental defender verification
 
 Rebuild the module with `--experimental-defenders 4` (or use `tools/Smoke-Test.ps1`). Static preflight should show 26 triggers, not the original 25. On a **private server**, confirm four new team-0 survivor agents, native zombie waves, and at least one completed wave. Collect `rgl_log.txt`, screenshot and WSE2 version. If there is a fault, use the default unmodified mode and report Issue #2. Do not claim gameplay passed without evidence.
+
+## One-time evidence collection at final release candidate
+
+No intermediate user playtest reports are required. Continue development and offline regression tests. At the final integrated build, play a private solo game then run:
+
+    .\tools\Collect-Diagnostics.ps1 -WarbandRoot 'C:\Program Files (x86)\Steam\steamapps\common\MountBlade Warband' -Session final-solo
+
+This creates a locally stored redacted evidence ZIP and analyzer report under evidence/. Review the bundle before sharing. See [DIAGNOSTICS.md](DIAGNOSTICS.md). Native engine gameplay cannot be certified from unit tests alone.
