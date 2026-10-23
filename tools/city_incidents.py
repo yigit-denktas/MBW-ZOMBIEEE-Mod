@@ -205,8 +205,9 @@ def incident_for_session(events, recorder_events, installed, flight, findings,
     recorder_timeline, recorder_omitted = limited_timeline(recorder_entries)
     codes = {x.get("id") for x in findings if isinstance(x, dict)}
     log_gap = any("ZDB1-OMITTED" in v or "ZDB1-TRUNCATED" in v for v in logs.values())
-    receipt_gap = any(measured(v, minimum=1) is not None for v in flight.get("log_omitted_bytes", [])
-                      if isinstance(flight.get("log_omitted_bytes"), list))
+    omitted_sizes = flight.get("log_omitted_bytes")
+    receipt_gap = (any(measured(v, minimum=1) is not None for v in omitted_sizes)
+                   if isinstance(omitted_sizes, list) else False)
     dropped_events = measured(flight.get("event_drops"), minimum=1) is not None
     gap = log_gap or receipt_gap or dropped_events or log_omitted > 0
 
