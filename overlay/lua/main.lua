@@ -1,7 +1,7 @@
--- ZOMBIEEE Remaster 0.1.7: bounded, read-only engine telemetry.
+-- ZOMBIEEE Remaster 0.1.8: bounded, read-only engine telemetry.
 -- Messages go to WSE2's existing game log; no network or file I/O.
 -- ZDB1|event|key=value|...; no player names, IPs or chat.
-local VERSION = "0.1.5"
+local VERSION = "0.1.8"
 local MISSION = "mst_multiplayer_iv"
 local function emit(event, details)
     print("ZDB1|" .. event .. "|version=" .. VERSION .. (details or ""))
@@ -65,45 +65,86 @@ local function state_fields()
         .. "|round=" .. global_int("g_round_ended")
         .. "|mode=" .. global_int("zdr_defence_mode")
         .. "|refilled=" .. global_int("zdr_last_reinforced_wave")
+        .. "|cmdheal=" .. global_int("zdr_cmd_heal")
+        .. "|cmdammo=" .. global_int("zdr_cmd_ammo")
+        .. "|cmdsquad=" .. global_int("zdr_cmd_squad")
 end
 local previous_wave = nil
 local previous_mode = nil
+local previous_commands = {}
 -- Sampling bot coordinates is purely optional. Game operations need WSE2
 -- Module System headers to be present; otherwise this produces no samples.
-local function sample_defender_positions(tick, mode)
+-- Agent operations are optional; missing Module System bindings mean unknown,
+-- not zero kills, ammo or weapons. No player positions are ever collected.
+local function read_agent_number(name, agent, extra)
+    local fn = game[name]
+    if type(fn) ~= "function" then return -1 end
+    local ok = pcall(function()
+        if extra ~= nil then fn(0, agent, extra) else fn(0, agent) end
+    end)
+    if not ok then return -1 end
+    return tonumber(game.reg0) or -1
+end
+local function is_npc(agent)
+    local value = guarded_call(function()
+        return game.agent_is_non_player(agent)
+    end, false)
+    return value == true or value == 1
+end
+local function sample_defenders(tick, mode, wave)
     if type(game.agentsIt) ~= "function"
         or type(game.agent_get_team) ~= "function"
         or type(game.agent_get_group) ~= "function"
-        or type(game.agent_is_non_player) ~= "function"
-        or type(game.agent_get_position) ~= "function" then
-        return
-    end
+        or type(game.agent_is_non_player) ~= "function" then return end
     local seen = 0
     local ok = pcall(function()
         for agent in game.agentsIt() do
-            local team = guarded_call(function() return game.agent_get_team(0, agent) end, -1)
-            local group = guarded_call(function() return game.agent_get_group(0, agent) end, -1)
-            local ai = guarded_call(function() return game.agent_is_non_player(agent) end, false)
-            if team == 0 and group >= 5 and group <= 7 and ai then
-                local position = guarded_call(function()
-                    game.agent_get_position(90, agent)
-                    return game.preg[90]
-                end, nil)
-                if position and position.o then
-                    local x, y = tonumber(position.o.x), tonumber(position.o.y)
-                    if x and y then
-                        emit("agent_sample", "|tick=" .. tick .. "|id=" .. agent
-                            .. "|group=" .. group .. "|mode=" .. mode
-                            .. "|x=" .. math.floor(x * 10 + 0.5) / 10
-                            .. "|y=" .. math.floor(y * 10 + 0.5) / 10)
-                        seen = seen + 1
-                        if seen >= 16 then break end
+            local team = read_agent_number("agent_get_team", agent)
+            local group = read_agent_number("agent_get_group", agent)
+            if team == 0 and group >= 5 and group <= 7 and is_npc(agent) then
+                local kills = read_agent_number("agent_get_kill_count", agent)
+                local ammo = read_agent_number("agent_get_ammo", agent, 0)
+                local weapon = read_agent_number("agent_get_wielded_item", agent, 0)
+                if kills >= 0 or ammo >= 0 or weapon >= 0 then
+                    emit("combat_sample", "|tick=" .. tick .. "|id=" .. agent
+                        .. "|group=" .. group .. "|wave=" .. wave .. "|mode=" .. mode
+                        .. "|kills=" .. kills .. "|ammo=" .. ammo .. "|weapon=" .. weapon)
+                end
+                if type(game.agent_get_position) == "function" then
+                    local position = guarded_call(function()
+                        game.agent_get_position(90, agent)
+                        return game.preg[90]
+                    end, nil)
+                    if position and position.o then
+                        local x, y = tonumber(position.o.x), tonumber(position.o.y)
+                        if x and y then
+                            emit("agent_sample", "|tick=" .. tick .. "|id=" .. agent
+                                .. "|group=" .. group .. "|mode=" .. mode
+                                .. "|x=" .. math.floor(x * 10 + 0.5) / 10
+                                .. "|y=" .. math.floor(y * 10 + 0.5) / 10)
+                        end
                     end
                 end
+                seen = seen + 1
+                if seen >= 16 then break end
             end
         end
     end)
-    if not ok then return end
+    if not ok then emit("probe_failed", "|kind=combat") end
+end
+local function sample_command_counters()
+    local counters = {"zdr_cmd_heal", "zdr_cmd_ammo", "zdr_cmd_squad"}
+    for _, name in ipairs(counters) do
+        local value = global_int(name)
+        if value >= 0 then
+            local prior = previous_commands[name]
+            if prior ~= nil and value > prior then
+                emit("command_exec", "|cmd=" .. name .. "|count=" .. value
+                    .. "|delta=" .. (value - prior))
+            end
+            previous_commands[name] = value
+        end
+    end
 end
 local function first_entry()
     if mission_seen then return false end
@@ -140,7 +181,8 @@ local function heartbeat()
                      .. "|tick=" .. heartbeat_count)
                 previous_mode = mode
             end
-            sample_defender_positions(heartbeat_count, mode)
+            sample_defenders(heartbeat_count, mode, wave)
+            sample_command_counters()
         end
     end
     return false
