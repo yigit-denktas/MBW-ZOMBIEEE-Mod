@@ -9,8 +9,9 @@ Uses [Semantic Versioning](https://semver.org/) for the remaster, not the histor
 - One-command end-of-session Windows evidence collector; discovers native engine logs and retains modification-time/truncation metadata.
 - Redacted, SHA-256-checksummed ZIP evidence packages and offline Markdown failure reports; detection of missing assets, crashes, Lua/script faults, stale logs and unexpected compiled mission trigger counts.
 - Multi-session comparison for persistent, new and resolved diagnostic rule IDs.
-- Installed module-file SHA-256 fingerprints; no compiled assets or unredacted logs packaged.
-- Twelve additional offline diagnostic regression tests.
+- Installed module-file SHA-256 fingerprints and verified 7-Zip CRC/trigger-count receipts; no compiled assets or unredacted logs packaged.
+- Optional WSE2 survivor/zombie team sampling with explicit unknown values and regression diagnosis.
+- Fourteen additional offline diagnostic regression tests.
 
 ### Not verified
 - No Windows WSE2 gameplay test yet; allied bot combat, spawning, pathing, wave completion and private networking remain unverified.
