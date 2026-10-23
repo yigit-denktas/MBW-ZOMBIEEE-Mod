@@ -10,7 +10,8 @@ from diagnostics import analyze
 
 
 def beat(line, *, wave, round_start=None, refilled_round_start=None):
-    fields = {"role": "server", "wave": str(wave), "team0": "4"}
+    fields = {"role": "server", "template": "multiplayer_iv",
+              "wave": str(wave), "team0": "4"}
     if round_start is not None:
         fields["round_start"] = str(round_start)
     if refilled_round_start is not None:
@@ -127,8 +128,8 @@ class CityRoundEvidenceTests(unittest.TestCase):
         self.assertFalse(result["runtime"]["round_aware_reinforcement_verified"])
 
     def test_lua_round_fields_are_optional_measured_values(self):
-        fields = {"role": "server", "wave": "2",
-                  "round_start": "400", "refilled_round_start": "395"}
+        fields = {"role": "server", "template": "multiplayer_iv",
+                  "wave": "2", "round_start": "400", "refilled_round_start": "395"}
         data = {
             "events.jsonl": (json.dumps({"event": "heartbeat", "fields": fields,
                                         "source": "logs/log_01.txt",
