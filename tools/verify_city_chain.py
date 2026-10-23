@@ -76,6 +76,12 @@ def verify(original: Path, archive: Path | None = None) -> dict:
     inputs = {name: original / name for name in CORE_INPUTS}
     inputs.update({"SceneObj/"+name: original / "SceneObj" / name for name in SCENE_NAMES})
     before = {name: sha(path) for name, path in inputs.items()}
+    if any(p.is_symlink() for p in original.rglob("*")):
+        raise RuntimeError("Symlink found within historical module source")
+    complete_original_inventory = {
+        p.relative_to(original).as_posix(): sha(p)
+        for p in original.rglob("*") if p.is_file()
+    }
     base = report_for_module(original)
     if not base["ok"] or base["mission"]["triggers"] != 25:
         raise RuntimeError("Original module failed source preflight")
@@ -101,7 +107,12 @@ def verify(original: Path, archive: Path | None = None) -> dict:
         root = Path(tmp)
         for variant in ("standard", "balanced-ai"):
             stage = root / variant
-            stage_source(original, stage)
+            if variant == "standard":
+                # Full candidate mirror: prove unmodified historical assets are
+                # byte-identical, not merely that the four other maps survived.
+                shutil.copytree(original, stage)
+            else:
+                stage_source(original, stage)
             if variant == "balanced-ai":
                 apply_loadouts(stage)
             chain = [mission_check(stage, original, 25)]
@@ -139,6 +150,21 @@ def verify(original: Path, archive: Path | None = None) -> dict:
             }
             if report["variants"][variant]["global_count"] != 1225:
                 raise RuntimeError("Unexpected 35-trigger global count")
+            if variant == "standard":
+                allowed = {"mission_templates.txt", "variables.txt",
+                           "SceneObj/scn_tbfc_invasion_4.sco"}
+                changed = {name for name, digest in complete_original_inventory.items()
+                           if not (stage / name).is_file() or sha(stage / name) != digest}
+                unexpected = changed - allowed
+                if unexpected or not changed == allowed:
+                    raise RuntimeError("Staged full original module asset preservation failed")
+                report["variants"][variant]["asset_preservation"] = {
+                    "original_files_checked": len(complete_original_inventory),
+                    "untouched_files": len(complete_original_inventory) - len(changed),
+                    "intentional_original_changes": sorted(changed),
+                    "unexpected_changes": len(unexpected),
+                    "passed": True,
+                }
         solo = root / "solo-assist"
         stage_source(original, solo)
         patch_file(solo, 4, city_only=True)
