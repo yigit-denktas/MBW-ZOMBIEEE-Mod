@@ -144,11 +144,31 @@ do not establish working bot combat, total wave completion or player controls.
 | CITY-I05 | City source receipt check returned false | Build-source consistency lead, not game observation |
 | CITY-I06 | declared original invasion type other than 7 | Source-contract inconsistency, no assumed runtime |
 | CITY-I07 | observed non-City scene vs City-only build | Scene/build mismatch candidate, cause unknown |
+| CITY-I08 | WSE2 log text `Invalid Faction ID: -1` (R030) | Invalid faction reference detected in engine text; root cause and gameplay impact unknown |
 
 All leads say `cause=unknown`. No incident suggests an anti-cheat bypass,
 public game hosting, automatic uploads or executable installer changes.
 The report never marks `runtime.gameplay_verified=true`: final acceptance
 requires the single real private WSE2 session with direct evidence.
+
+## First observed private WSE2 boot: scoped evidence only
+
+Agent B reported its first owner-authorized City dedicated-host attempt with
+a verified loopback-only UDP listener, recorder readiness and owned host/client
+attachment, followed by four `SCRIPT ERROR: Invalid Faction ID: -1`
+messages around source-native `mst_multiplayer_iv` Trigger 14 opcode 502.
+The generic R003 script error remains; new R030 classifies this particular
+**logged text** and CITY-I08 records a **noncausal diagnostic lead**.
+It does **not** prove the error was introduced by the remaster, caused a
+wave failure, or prevented a player join. That comparison belongs to
+Agent A's original-versus-patched native source audit. Do not infer
+successful combat from a launched host process.
+
+This **live session uses the exact staged and launched A/C source versions
+documented by B**, not automatically the current PR heads. The recorder
+must seal its own evidence manifest after owned game processes exit;
+until then, the final incident bundle and verified gameplay remain unknown.
+Only path-free observations may be published; local raw logs stay private.
 
 ## Verification and privacy
 
