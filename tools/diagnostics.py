@@ -18,6 +18,7 @@ import sys
 import zipfile
 from tactical_analysis import analyze_tactical_events
 from combat_analysis import analyze_combat_events
+from evidence_readiness import matrix_for_session
 
 SCHEMA = 1
 MAX_LOG_BYTES = 8 * 1024 * 1024
@@ -332,10 +333,12 @@ def analyze(payload: dict[str, bytes]) -> dict:
     findings.extend(tactical_report["findings"])
     combat_report = analyze_combat_events(events, installed)
     findings.extend(combat_report["findings"])
+    readiness = matrix_for_session(events, findings, installed, len(logs), combat_report)
     return {"session": session.get("session", "unknown"), "module": installed,
             "event_counts": dict(eventcounts), "events": events[:500], "team_evidence": team_evidence,
             "tactical_evidence": {k: v for k, v in tactical_report.items() if k != "findings"},
             "combat_evidence": {k: v for k, v in combat_report.items() if k != "findings"},
+            "evidence_matrix": readiness,
             "findings": findings,
             "evidence": {"logs": len(logs), "events": len(events)},
             "status": "critical" if any(f["severity"] == "critical" for f in findings) else
@@ -373,6 +376,10 @@ def to_markdown(report: dict) -> str:
              f"- Event counts: {json.dumps(report['event_counts'], sort_keys=True)}",
              f"- Tactical evidence: {json.dumps(report.get('tactical_evidence', {}), sort_keys=True)}",
              f"- Combat evidence: {json.dumps(report.get('combat_evidence', {}), sort_keys=True)}",
+             "", "## Acceptance evidence matrix", "",
+             "| Signal | Observation | Evidence |", "| --- | --- | --- |",
+             *[f"| {key} | {value['status']} | {value['basis']} |"
+               for key, value in report.get("evidence_matrix", {}).get("checks", {}).items()],
              "", "## Findings", ""]
     if not report["findings"]:
         lines.append("No known error pattern detected; runtime remains unverified.")
