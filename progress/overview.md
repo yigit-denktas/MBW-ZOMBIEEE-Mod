@@ -32,3 +32,13 @@ Three implementation lanes were created from v0.1.8 `main`, with [stable ownersh
 ## Integration review status — 2026-10-23
 
 Agent B opened [PR #11](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11) (discovery, inert install plan and simulated host), with **B-reported** 97/127 tests passed, 30 asset skips. Agent C opened [PR #12](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12) (crash recorder and forensic report), with code/tests committed but tests explicitly not executed. Agent A reviewed both; startup-recorder ordering, reliable crash tail, symlink safety and test execution remain blocking. No PR merged and no City gameplay acceptance awarded. See [coordination board](agent-handoff.md).
+
+## Discovered work reconciliation — 2026-10-24
+
+**Owner request:** record implementation work absent from the initial proposal with a small dot in the tracker. The 2026-10-23 original [24-leaf snapshot](snapshots/ledger-2026-10-23-original.json) is preserved unchanged and remains the historical reference.
+
+The scoped source now retains **24 original leaves** (23 required City-release outcomes, 1 optional/deferred five-map item), plus **15 discovered supporting leaves** (11 narrowly source/fixture complete, 4 awaiting newest-revision test/review). The discovered items are tagged `workOrigin: discovered`, classified into bug fixes, hardening, source assurance, forensic incident work, integration verification, investigation and governance, and linked by `supportsOutcomeId`. They are **supplemental/non-additive**: `0/23` original required outcome acceptance and `0/5` milestone acceptance remain intact; `11/15` applies **only** to bounded discovered tasks and is not a playable-game claim. Full [before/after scope bridge](scope-changes/2026-10-24-discovered-work.json).
+
+Key work now reflected: original Invasion mode-7 mismatch, across-round reinforcement key, connected/clear City guard posts, compiled post-control byte integrity, verified original patch-chain replay, Windows CRLF regression, official WSE2 dedicated-host component restoration, B/C signed recorder fake-process integration, PID/recovery hardening, C sanitized check-count correction, C round-source provenance, A native round-lifecycle audit, A false-green server mission evidence fix, City incident interpretation and version-pinned acceptance gates. Historical live Windows **boot announcement** used older A/C versions and had no completed result posted at reconciliation time.
+
+**Decision boundary:** this authorizes recording and displaying the discovered tasks, not merging draft PRs, accepting WSE2 gameplay, changing the 23-outcome required scope, or turning implementation into owner-approved baseline. The full release remains unaccepted.
