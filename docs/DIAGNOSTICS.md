@@ -237,7 +237,10 @@ suite against C's current head after reviewing new fields.
 now returns `city_incident` (schema `zombieee.city-incident.v1`), in
 addition to the existing R001–R029 rules and acceptance matrix.
 
-This new read-only layer separates source-receipt **claims** from actual
+The incident report preserves the actual count of A's source audit checks
+from bounded sanitized receipt summaries (not the single aggregate pass bit).
+Counts that are missing, inconsistent, non-integer or out of range fail closed,
+even if the ZIP hashes are internally consistent. This new read-only layer separates source-receipt **claims** from actual
 runtime observations, correlates scene/wave/defender/tactical markers within
 each log, and summarizes recorder startup, rotation, bounded omissions,
 abnormal exits and build inconsistencies as noncausal investigation leads.
