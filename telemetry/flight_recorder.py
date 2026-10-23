@@ -32,6 +32,27 @@ RECEIPT_KEYS = (
 )
 
 
+def refuse_links_in_tree(root: Path) -> None:
+    """Reject symlinks and Windows reparse points, including ancestor dirs.
+
+    Do not resolve root first: that would hide a substituted 'logs/' junction.
+    This is a local safety guard, not a sandbox against concurrent attackers.
+    """
+    base = Path(root).expanduser().absolute()
+    for entry in [base, *base.parents]:
+        try:
+            meta = entry.lstat()
+        except FileNotFoundError:
+            continue
+        if entry.is_symlink() or getattr(meta, "st_file_attributes", 0) & 0x400:
+            raise ValueError("Unsafe recorder path link or reparse point")
+    if base.is_dir():
+        for entry in base.rglob("*"):
+            meta = entry.lstat()
+            if entry.is_symlink() or getattr(meta, "st_file_attributes", 0) & 0x400:
+                raise ValueError("Unsafe recorder path link or reparse point")
+
+
 def utcnow() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -319,7 +340,8 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
 
 def verify_recording(root: Path) -> dict:
     """Verify the recorded snapshots after completion (integrity, not authenticity)."""
-    root = root.expanduser().resolve()
+    root = root.expanduser().absolute()
+    refuse_links_in_tree(root)
     manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
     expected = manifest.get("sha256")
     if manifest.get("schema") != SCHEMA or not isinstance(expected, dict):
