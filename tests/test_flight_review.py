@@ -9,7 +9,7 @@ import threading
 import time
 import unittest
 
-from telemetry.flight_recorder import record_session, verify_recording
+from telemetry.flight_recorder import record_session, verify_recording, scrub_bounded
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 from diagnostics import collect, read_bundle, analyze
 
@@ -161,6 +161,18 @@ class AgentAReviewTests(unittest.TestCase):
             collect(None, None, target, [], "pipes", flight_root=folder)
             report = analyze(read_bundle(target))
             self.assertIn("R002", {f["id"] for f in report["findings"]})
+
+    def test_redaction_expansion_stays_under_byte_cap(self):
+        # A six-character email becomes a seven-character redaction marker;
+        # repeated replacements must not break the configured output bound.
+        raw = (b"ZDB1|boot\\n" + b"x@y.co " * 1000 +
+               b"\\nFATAL ERROR: preserved at tail\\n")
+        saved, extra = scrub_bounded(raw, 128)
+        self.assertLessEqual(len(saved), 128)
+        self.assertGreater(extra, 0)
+        self.assertIn(b"FATAL ERROR", saved)
+        self.assertNotIn(b"x@y.co", saved)
+        self.assertIn(b"ZDB1-OMITTED", saved)
 
     def test_start_failure_does_not_fake_game_run(self):
         with tempfile.TemporaryDirectory() as tmp:
