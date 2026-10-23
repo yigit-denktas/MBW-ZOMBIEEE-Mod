@@ -111,8 +111,8 @@
     },
     {
       "id": "M3",
-      "title": "Five-map and AI gameplay reliable",
-      "goal": "Defenders, waves and all five maps work with recorded combat and real performance data",
+      "title": "City survivor AI and combat reliable",
+      "goal": "Prove allied AI, weapons, zombie waves, defensive positions and measured performance in original City. Other four maps are explicitly deferred.",
       "horizon": "Next",
       "groupIds": [
         "Gameplay",
@@ -123,7 +123,6 @@
         "ZOM-AI-02",
         "ZOM-AI-03",
         "ZOM-WAVE-01",
-        "ZOM-MAP-01",
         "ZOM-PERF-01"
       ],
       "acceptanceRule": "all-gate-items",
@@ -135,7 +134,7 @@
     },
     {
       "id": "M4",
-      "title": "Solo release accepted",
+      "title": "City-first solo release accepted",
       "goal": "Ten-wave final private run, host permissions, licensing and install/recovery accepted by owner",
       "horizon": "Later",
       "groupIds": [
@@ -599,10 +598,10 @@
       "title": "Prove each of five original maps playable",
       "groupId": "Gameplay",
       "milestoneId": "M3",
-      "state": "active",
-      "sourceState": "source implementation prototype; runtime not accepted",
-      "required": true,
-      "blocked": true,
+      "state": "backlog",
+      "sourceState": "Deferred by owner decision: four non-City maps after first playable City release",
+      "required": false,
+      "blocked": false,
       "dependsOn": [
         "ZOM-AI-03",
         "ZOM-ENG-03"
@@ -620,8 +619,8 @@
       "priority": "P2",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/3",
       "criterion": "All five maps load and complete wave with bot path/LOS/collision and weapon checks; candidate navmesh coordinates reviewed",
-      "note": "Prototype exists in v0.1.8; engine acceptance pending",
-      "deferReason": null
+      "note": "Preserved stable ID and pre-adoption history; does not gate solo v1.0",
+      "deferReason": "Owner confirmed 2026-10-23 that City is sufficient for first solo release; remaining four maps are post-v1 optional expansion."
     },
     {
       "id": "ZOM-PERF-01",
@@ -683,7 +682,7 @@
     },
     {
       "id": "ZOM-QA-02",
-      "title": "Complete sustained integrated Windows solo test",
+      "title": "Complete sustained integrated City solo test",
       "groupId": "Quality",
       "milestoneId": "M4",
       "state": "backlog",
@@ -707,7 +706,7 @@
       "owner": "Owner / implementing agent (proposed)",
       "priority": "P2",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
-      "criterion": "Solo run plays ten waves with reliable bots and no fatal errors; evidence connects to exact installer build",
+      "criterion": "A private City solo run completes the agreed minimum sustained wave test (proposed 10 waves), with reliable AI, no fatal failures and build-linked evidence. Other maps are not part of this gate.",
       "note": null,
       "deferReason": null
     },
@@ -767,7 +766,7 @@
     },
     {
       "id": "ZOM-REL-01",
-      "title": "Package installable and accessible solo v1.0 candidate",
+      "title": "Package City-first accessible solo v1.0 candidate",
       "groupId": "Quality",
       "milestoneId": "M4",
       "state": "backlog",
@@ -792,19 +791,19 @@
       "owner": "Owner / implementing agent (proposed)",
       "priority": "P2",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/5",
-      "criterion": "Reviewed Windows installer+shortcut+rollback with release notes, acceptance report and reviewed accessible tracker; no release without owner approval",
+      "criterion": "Approved Windows installer and desktop launcher start original City with bots; release notes, diagnostics, attribution, scoped accessibility and repair are accepted by owner; non-City maps explicitly excluded.",
       "note": null,
       "deferReason": null
     }
   ],
   "warnings": [
-    "DRAFT scope awaiting owner approval; 0/24 describes unaccepted exit criteria, not absence of implementation.",
+    "Owner chose City-first release 2026-10-23; 23 required outcome leaves (not yet accepted), one retained optional five-map expansion leaf.",
     "No Warband/WSE2 runtime evidence yet. Existing v0.1.8 scripts are experimental.",
     "Original 0.4 assets and WSE2 redistributability unresolved. Friends/co-op excluded from required solo scope.",
     "No source kit ZIP bytes independently verified in this runtime."
   ],
   "governance": {
-    "purpose": "Solo-first local Windows 11 restoration and remaster of original ZOMBIEEE Beta 0.4, with self-installation and forensic diagnostics.",
+    "purpose": "City-first private solo Windows 11 remaster, verified flight-recorder diagnostics; four other original maps deferred until later release.",
     "owner": "Repository owner",
     "acceptanceAuthority": "Repository owner",
     "changeAuthority": "Repository owner",
@@ -812,7 +811,7 @@
     "baselineStatus": "proposed-unapproved",
     "successCriteria": [
       "One-click Windows 11 solo play on licensed Warband + compatible WSE2",
-      "Friendly bots and zombie waves function across five original maps",
+      "Friendly bots and zombie waves function across the original City map; four remaining maps deferred",
       "A local diagnostic report explains failures with build identity",
       "Owner accepts legal, stability and accessibility gates"
     ],
@@ -883,7 +882,17 @@
         ]
       }
     ],
-    "baselines": [],
+    "baselines": [
+      {
+        "id": "BASE-SOLO-CITY-2026-10-23",
+        "status": "proposed",
+        "authority": "Owner choice observed in conversation: first playable release may contain City only.",
+        "reason": "City-first acceptance reduces earliest runtime test risk; original five-map ambitions retained in optional leaf ZOM-MAP-01.",
+        "approvedBy": null,
+        "approvedAt": null,
+        "approvalSource": null
+      }
+    ],
     "changeRequests": [],
     "risks": [
       {

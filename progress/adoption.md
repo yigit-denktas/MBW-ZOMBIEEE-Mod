@@ -6,7 +6,7 @@
 
 **Source crosswalk:** #1 P0 engine → ENG-01..03; #2 P1 allies → AI-01/02, WAVE-01; #3 P2 maps → AI-03/MAP-01; #4 P3 QoL → ADMIN-01/PERF-01; #5 P4 attribution → LEGAL-01/REL-01; #6 final evidence → OBS-01/02 and QA-01/02. Each accounting leaf appears once even if an issue references more than one deliverable. All six original issue IDs remain as stable GitHub URLs.
 
-**Proposed new scope (not approved):** Windows autodetection/install/desktop shortcut and one-click local mission startup; a crash-resistant external flight recorder. Future friend co-op and public hosting are explicitly deferred. The proposed denominator is **24 required leaves, 0 accepted Done**, and **5 milestones, 0 accepted**. Original repository had no comparable canonical fraction: **before = Not measured**, not 0%. Prototype code is recorded as `active`/review pending execution, not marked accepted.
+**Proposed new scope (not approved):** Windows autodetection/install/desktop shortcut and one-click local mission startup; a crash-resistant external flight recorder. Future friend co-op and public hosting are explicitly deferred. The proposed denominator is **23 required leaves (+1 optional retained map expansion), 0 accepted Done**, and **5 milestones, 0 accepted**. Original repository had no comparable canonical fraction: **before = Not measured**, not 0%. Prototype code is recorded as `active`/review pending execution, not marked accepted.
 
 **Brand/site:** target has no website, brand tokens or logo available in GitHub tree. The prepared preview will use provisional graphite/ember/bone colours inspired by zombie-horror game art, system fonts only, and a route under `site/index.html`; no logo rights or actual website existence claimed. Publication to Pages requires a separate owner-approved source/publishing review.
 
@@ -15,3 +15,7 @@
 **Rollback:** this entire migration lives in branch `project-record-setup-v041`. No existing main-source files are removed. Not merging the branch preserves 0.1.8 `main`; after any later merge, revert the adoption commit and leave existing README/ROADMAP/issue history intact. Do not publish or enable CI automatically.
 
 **Checks pending:** verify actual release ZIP and official installer replay; run toolkit `check`, `pipeline`, README count parity and real keyboard/zoom/contrast browser review. Local structured source consistency alone does not certify WCAG conformance or a published tracker.
+
+## Owner decision update 2026-10-23
+
+First release City only; original map expansion leaf `ZOM-MAP-01` moved out of the v1.0 required denominator (23 required + 1 optional retained), without deleting its original evidence or ID. User authorises static GitHub Pages publication now. Prepare a separately committed `gh-pages` static snapshot and record deployment observation; do not publish private readiness assessment or game logs. GitHub Pages activation may still require settings permission. This change from proposed 24 to proposed 23 is explained as a scope boundary refinement before baseline approval, not progress.

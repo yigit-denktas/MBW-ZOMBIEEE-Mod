@@ -11,3 +11,7 @@
 **Accessibility gates pending:** test keyboard-only, visible focus, search/filter screen-reader labeling, 390 CSS px, 200%/400% zoom, contrast, reduced motion, semantic headings and contrast of actual rendered elements. Source-only checks are not a complete WCAG 2.2 review.
 
 **Before publish or merge:** verify the release ZIP actual SHA-256 (currently release metadata only), replay the official kit installer, run official `project_record check` and `pipeline`, validate actual fractions and GitHub issue mappings, review dark/light styling, and obtain owner approval for baseline/Pages.
+
+## Owner-approved publishing decision 2026-10-23
+
+Publish the interactive **public-only tracker now** from branch `gh-pages` at repository root, without CI, without adding action credentials, and without merging the toolkit PR first. Public source is a manually copied review snapshot from proposed scoped ledger. Owner has authorized the publication, not declared runtime gameplay verified. A commit to `gh-pages` is staged separately from GitHub Pages enablement and observed URL health. If hosting settings cannot be edited by the connected app, document the exact remaining GitHub Settings → Pages action and do not claim live deployment.

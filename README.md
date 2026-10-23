@@ -11,7 +11,7 @@ Modernization of the **2012 ZOMBIEEE (Invasion) Beta 0.4** mod for *Mount & Blad
 
 | Measure | Evidence-gated status | Boundary |
 | --- | ---: | --- |
-| Proposed required outcome work | **0/24 · 0.0% accepted** | Draft exit criteria; previous source had **no** comparable tracker (Not measured). |
+| City-first required outcome work | **0/23 · 0.0% accepted** | Owner-selected City-first scope, unaccepted exit criteria; previous source had **no** comparable tracker (Not measured). |
 | Accepted outcome milestones | **0/5 · 0.0% accepted** | Owner acceptance and Windows/WSE2 gameplay evidence outstanding. |
 | Agent readiness | **L0 (provisional)** | Separate from completion; L1 clean Windows bootstrap unverified. |
 
@@ -115,3 +115,5 @@ See [combat and solo assistance](docs/COMBAT_BALANCE.md) for full flags and limi
 - Full private-command variant: **35 invasion triggers, 1,225 globals, 985 troops**, with 25 original triggers intact. This is **not a certified playable release**; a single final WSE2/Windows session will produce our integrated evidence.
 
 [See the detailed forensic plan](docs/FORENSIC_DIAGNOSTICS.md).
+
+**Release scope decision (2026-10-23):** City is sufficient for first solo release; the other four original maps remain a deferred expansion. Public tracker publication was requested and is handled separately through `gh-pages`, with live activation to be verified.
