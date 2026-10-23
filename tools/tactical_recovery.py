@@ -1,0 +1,154 @@
+#!/usr/bin/env python3
+"""Opt-in tactical fallback/regroup for original Beta 0.4 compiled missions.
+
+Appends two native triggers after the already patched 29-trigger, 1221-global
+module. It never replaces the original 25 invasion triggers. A periodic
+server-only trigger counts living non-player allied agents in divisions 5..7.
+
+Living allies <= low_water: fallback to survivor entry 0.
+Living allies >= high_water: regroup at current map's guarded positions.
+State changes once per transition to avoid thrashing and order spam.
+"""
+from pathlib import Path
+from patch_defenders import PatchError, mission_bounds
+from city_defense import scene_index, SCENE_BASE, POS_BASE, DIVISIONS
+from wave_reinforcements import GLOBAL_BASE, LOCAL_BASE, SENTINEL
+
+TACTICAL_GLOBAL = "zdr_defence_mode"
+EXPECTED_PREVIOUS_GLOBALS = 1221
+EXPECTED_PREVIOUS_TRIGGERS = 29
+
+
+def encode(opcode: int, *args: int) -> list[str]:
+    return [str(opcode), str(len(args)), *(str(arg) for arg in args)]
+
+
+def mapping(variables: str) -> dict[str, int]:
+    names = variables.splitlines()
+    if (len(names) != EXPECTED_PREVIOUS_GLOBALS or
+            names[-1] != SENTINEL or TACTICAL_GLOBAL in names or
+            len(set(names)) != len(names)):
+        raise PatchError("Requires unmodified 1221-name remaster wave-variable table")
+    needed = ("g_multiplayer_game_type", "g_round_ended", "wave_number")
+    if any(name not in names for name in needed):
+        raise PatchError("Original mission state globals missing")
+    return {name: GLOBAL_BASE + names.index(name) for name in needed} | {
+        TACTICAL_GLOBAL: GLOBAL_BASE + len(names)}
+
+
+def initial_mode(mode: int) -> str:
+    return " ".join(["-20.000000", "0.000000", "0.000000",
+                     "1", *encode(417), "1", *encode(2133, mode, 0)])
+
+
+def recovery_trigger(globals_: dict[str, int], scenes: dict[int, int],
+                     low_water: int = 1, high_water: int = 3) -> str:
+    if not (0 <= low_water < high_water <= 8):
+        raise PatchError("Require 0 <= low_water < high_water <= 8")
+    if set(scenes) != set(range(1, 6)) or len(set(scenes.values())) != 5:
+        raise PatchError("All five original invasion scene indices required")
+    local = [LOCAL_BASE + i for i in range(6)]
+    conditions = [
+        encode(417),  # server only
+        encode(31, globals_["g_multiplayer_game_type"], 6),  # Invasion
+        encode(31, globals_["g_round_ended"], 0),
+        encode(30, globals_["wave_number"], 1),
+    ]
+    body = [
+        encode(2133, local[0], 0),
+        encode(12, local[1]),       # for agents
+        encode(1702, local[1]),     # alive
+        encode(1707, local[1]),     # non-player
+        encode(1770, local[2], local[1]),  # team
+        encode(31, local[2], 0),    # survivor team
+        encode(1765, local[3], local[1]),  # division
+        encode(33, local[3], 5, 8),  # reserved divisions only
+        encode(2105, local[0], 1),
+        encode(3),                  # end for
+        encode(4),                  # try_begin
+        encode(33, local[0], 0, low_water + 1),  # low-water
+        encode(31, globals_[TACTICAL_GLOBAL], 0),  # not already retreating
+        encode(2133, globals_[TACTICAL_GLOBAL], 1),
+        encode(1780, POS_BASE + 120, 0),  # survivor fallback entry
+    ]
+    for division in DIVISIONS:
+        body.extend([
+            encode(1791, 0, division, POS_BASE + 120),
+            encode(1790, 0, division, 0),  # native hold order
+        ])
+    body.extend([
+        encode(5),  # else_try
+        encode(30, local[0], high_water),
+        encode(31, globals_[TACTICAL_GLOBAL], 1),
+        encode(2133, globals_[TACTICAL_GLOBAL], 0),
+        encode(2211, local[4]),  # current scene
+        encode(4),  # map switch
+    ])
+    for index, map_number in enumerate(range(1, 6)):
+        if index:
+            body.append(encode(5))
+        body.append(encode(31, local[4], SCENE_BASE + scenes[map_number]))
+        post_ids = (2, 3, 4) if map_number == 4 else (41, 42, 43)
+        for division, entry in zip(DIVISIONS, post_ids):
+            body.extend([
+                encode(1780, POS_BASE + 120, entry),
+                encode(1791, 0, division, POS_BASE + 120),
+                encode(1790, 0, division, 0),
+            ])
+    body.extend([encode(3), encode(3)])  # end switch and mode branch
+    return " ".join(["3.000000", "0.000000", "0.000000",
+                     str(len(conditions)),
+                     *(v for op in conditions for v in op),
+                     str(len(body)),
+                     *(v for op in body for v in op)])
+
+
+def patch_text(mission: str, variables: str, scenes: dict[int, int],
+               low_water: int = 1, high_water: int = 3) -> tuple[str, str]:
+    globals_ = mapping(variables)
+    lines = mission.splitlines(keepends=True)
+    count_line, count, end = mission_bounds(lines)
+    if count != EXPECTED_PREVIOUS_TRIGGERS:
+        raise PatchError("Tactical recovery requires the 29-trigger wave remaster")
+    newline = "\r\n" if "\r\n" in mission else "\n"
+    additions = [
+        initial_mode(globals_[TACTICAL_GLOBAL]),
+        recovery_trigger(globals_, scenes, low_water, high_water),
+    ]
+    lines[count_line] = "31" + newline
+    lines[end:end] = [row + newline for row in additions]
+    result = "".join(lines)
+    if mission_bounds(result.splitlines(keepends=True))[1] != 31:
+        raise PatchError("Tactical recovery would corrupt mission trigger count")
+    variable_newline = "\r\n" if "\r\n" in variables else "\n"
+    return result, variables.rstrip("\r\n") + variable_newline + TACTICAL_GLOBAL + variable_newline
+
+
+def apply_module(module: Path, low_water: int = 1, high_water: int = 3) -> dict:
+    module = Path(module)
+    mission_path, variables_path = module / "mission_templates.txt", module / "variables.txt"
+    scenes = {i: scene_index(module / "scenes.txt", f"scn_tbfc_invasion_{i}")
+              for i in range(1, 6)}
+    original_m = mission_path.read_bytes()
+    original_v = variables_path.read_bytes()
+    changed_m, changed_v = patch_text(
+        original_m.decode("utf-8"), original_v.decode("utf-8"),
+        scenes, low_water, high_water)
+    mission_path.write_bytes(changed_m.encode("utf-8"))
+    try:
+        variables_path.write_bytes(changed_v.encode("utf-8"))
+    except BaseException:
+        mission_path.write_bytes(original_m)
+        raise
+    return {
+        "enabled": True,
+        "state_global": TACTICAL_GLOBAL,
+        "low_water": low_water,
+        "high_water": high_water,
+        "guard_groups": list(DIVISIONS),
+        "fallback_entry": 0,
+        "reevaluation_seconds": 3,
+        "final_trigger_count": 31,
+        "runtime_verified": False,
+        "warning": "Experimental native orders; LOS and WSE2 group behaviour await final test.",
+    }
