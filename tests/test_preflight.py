@@ -57,6 +57,24 @@ class PreflightTests(unittest.TestCase):
                 read_invasion_mission(target)
             self.assertFalse(report_for_module(mod)["ok"])
 
+    def test_native_operations_must_decode_completely(self):
+        with tempfile.TemporaryDirectory() as temp:
+            mod = self.setup_module(temp)
+            target = mod / "mission_templates.txt"
+            # Both timing/trigger header and count look normal; only the
+            # encoded consequence operation is incomplete.
+            target.write_text(fake_mission().replace(
+                "1.0 0 0 0 0", "1.0 0 0 0 1 1702 2 123", 1))
+            report = report_for_module(mod)
+            self.assertFalse(report["ok"])
+            self.assertIn("operation", report["error"].lower())
+
+    def test_complete_decoded_native_trigger_count(self):
+        with tempfile.TemporaryDirectory() as temp:
+            result = report_for_module(self.setup_module(temp))
+            self.assertTrue(result["ok"])
+            self.assertEqual(result["mission"]["decoded_native_triggers"], 2)
+
     def test_missing_trigger(self):
         with tempfile.TemporaryDirectory() as temp:
             mod = self.setup_module(temp)
