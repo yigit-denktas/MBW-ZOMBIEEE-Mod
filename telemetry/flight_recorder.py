@@ -73,6 +73,16 @@ def bounded_window(head: bytes, tail: bytes, total: int, limit: int) -> tuple[by
     return head + marker + (tail[-room:] if room else b""), omitted
 
 
+def scrub_bounded(data: bytes, limit: int) -> tuple[bytes, int]:
+    """Redact before disk write, then re-bound if replacements expand text."""
+    clean = scrub(data.decode("utf-8", errors="replace")).encode("utf-8")
+    if len(clean) <= limit:
+        return clean, 0
+    head_size = max(1, limit // 4)
+    return bounded_window(clean[:head_size], clean[-(limit - head_size):],
+                          len(clean), limit)
+
+
 class BoundedPipe:
     """Thread-fed bounded head/tail window; never stores unbounded child output."""
 
@@ -178,7 +188,7 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
         raise ValueError("Choose exactly one of a child command or observed PID")
     if not 0 < timeout <= 86400 or not 0 < poll <= 60:
         raise ValueError("Invalid timeout or poll interval")
-    if not 1 <= max_log_bytes <= MAX_LOG_BYTES or not 2 <= max_events <= MAX_EVENTS:
+    if not 128 <= max_log_bytes <= MAX_LOG_BYTES or not 2 <= max_events <= MAX_EVENTS:
         raise ValueError("Invalid data bounds")
     if len(logs) > MAX_LOGS:
         raise ValueError("Too many log files")
@@ -202,6 +212,7 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
     tails = [bytearray() for _ in source_paths]
     seen_bytes = [0] * len(source_paths)
     omitted_bytes = [0] * len(source_paths)
+    scrub_omitted_bytes = [0] * len(source_paths)
     truncated = [False] * len(source_paths)
     events = []
     event_drops = 0
@@ -260,8 +271,9 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
                 offsets[i] = size
                 saved = render_log(i)
                 truncated[i] = omitted_bytes[i] > 0
-                clean = scrub(saved.decode("utf-8", errors="replace"))
-                atomic_write(root / "logs" / f"log_{i+1:02d}.txt", clean.encode())
+                clean, extra_omitted = scrub_bounded(saved, max_log_bytes)
+                scrub_omitted_bytes[i] = extra_omitted
+                atomic_write(root / "logs" / f"log_{i+1:02d}.txt", clean)
                 if truncated[i]:
                     event("log_limit", log_index=i + 1, omitted_bytes=omitted_bytes[i])
             except (OSError, RuntimeError) as exc:
@@ -365,9 +377,9 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
             # partial capture; do not certify it complete.
             if stream.seen:
                 saved, omitted = stream.snapshot()
-                atomic_write(root / "logs" / (name + ".txt"),
-                             scrub(saved.decode("utf-8", errors="replace")).encode())
-                pipe_omitted[name] = omitted
+                clean, scrub_extra = scrub_bounded(saved, max_log_bytes)
+                atomic_write(root / "logs" / (name + ".txt"), clean)
+                pipe_omitted[name] = omitted + scrub_extra
                 if omitted:
                     event("process_output_truncated", stream=name, omitted_bytes=omitted)
             else:
@@ -381,6 +393,7 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
             "exit_code_observed": child is not None and exit_code is not None,
             "log_count": len(source_paths), "log_bytes_limit_each": max_log_bytes,
             "log_truncated": truncated, "log_omitted_bytes": omitted_bytes,
+            "post_redaction_log_omitted_bytes": scrub_omitted_bytes,
             "process_output_omitted_bytes": pipe_omitted,
             "process_output_capture_complete": output_capture_complete,
             "log_seen_bytes": seen_bytes, "event_count": len(events),
