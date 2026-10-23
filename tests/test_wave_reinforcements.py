@@ -14,7 +14,7 @@ from patch_defenders import index_troops, patch_text as spawn_allies, mission_bo
 from city_defense import patch_orders as city_order, scene_index
 from wave_reinforcements import (
     globals_from_original, initialize_wave_state, reinforce_on_wave,
-    patch_text as patch_waves, apply_module, SENTINEL, GLOBAL_BASE, WAVE_CHANGED,
+    patch_text as patch_waves, apply_module, SENTINEL, ROUND_STAMP, GLOBAL_BASE, WAVE_CHANGED, ROUND_OR_WAVE_CHANGED,
 )
 ORIGINAL = Path(os.environ.get("ZOMBIEEE_ORIGINAL_MODULE", "/missing/ZOMBIEEE"))
 
@@ -33,10 +33,11 @@ class WaveReinforcementTests(unittest.TestCase):
         globals_ = globals_from_original(self.variables)
         self.assertEqual(globals_["wave_number"], GLOBAL_BASE + 1209)
         self.assertEqual(globals_[SENTINEL], GLOBAL_BASE + 1220)
+        self.assertEqual(globals_[ROUND_STAMP], GLOBAL_BASE + 1221)
 
     def test_reinforcement_ops(self):
         values = reinforce_on_wave(globals_from_original(self.variables), self.troops).split()
-        self.assertEqual(values[:4], ["4.000000", "0.000000", "0.000000", "5"])
+        self.assertEqual(values[:4], ["4.000000", "0.000000", "0.000000", "6"])
         for opcode in ("417", "1702", "1707", "1765", "1770", "2119", "1265"):
             self.assertIn(opcode, values)
         self.assertEqual(values.count("1265"), 4)
@@ -47,12 +48,14 @@ class WaveReinforcementTests(unittest.TestCase):
             globals_from_original(self.variables), self.troops))
         g = globals_from_original(self.variables)
         self.assertIn((WAVE_CHANGED, (g['wave_number'], g[SENTINEL])), conditions)
+        self.assertIn((ROUND_OR_WAVE_CHANGED, (g['g_round_start_time'],
+                                                 g[ROUND_STAMP])), conditions)
         self.assertNotIn((32, (g['wave_number'], g[SENTINEL])), conditions)
 
     def test_patch_preserves_original_triggers(self):
         changed, names = patch_waves(self.tactical, self.variables, self.troops)
         self.assertEqual(mission_bounds(changed.splitlines(keepends=True))[1], 29)
-        self.assertEqual(len(names.splitlines()), len(self.variables.splitlines())+1)
+        self.assertEqual(len(names.splitlines()), len(self.variables.splitlines())+2)
         self.assertEqual(self.tactical.splitlines()[1994:2014], changed.splitlines()[1994:2014])
 
     def test_refuses_repeat_and_modified_global_table(self):
@@ -70,7 +73,8 @@ class WaveReinforcementTests(unittest.TestCase):
             (root/"mission_templates.txt").write_bytes(self.tactical.encode())
             result = apply_module(root, cap=4)
             self.assertEqual(result["final_trigger_count"], 29)
-            self.assertTrue((root/"variables.txt").read_text().endswith(SENTINEL+"\n"))
+            self.assertTrue((root/"variables.txt").read_text().endswith(
+                SENTINEL + "\n" + ROUND_STAMP + "\n"))
 
 
 if __name__ == "__main__":
