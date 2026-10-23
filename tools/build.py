@@ -24,6 +24,7 @@ from bot_loadouts import apply_module as apply_balanced_ai_loadouts
 from solo_assist import apply_module as apply_solo_assist
 from private_commands import apply_module as apply_private_commands
 from difficulty import profile, PROFILES
+from archive_audit import inspect_original_archive
 
 ROOT = Path(__file__).resolve().parent.parent
 ORIGINAL_SHA256 = "9be100ff41ce6f8ebadd4aa27377f70f402883fab271999a8cab8cc1da001d1e"
@@ -113,9 +114,12 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         raise ValueError(f"Output directory must be named {MODULE_NAME}: {out}")
     if out.exists() and not replace:
         raise FileExistsError(f"Destination already exists (use --replace after backup): {out}")
-    digest = sha256(archive)
-    if digest != ORIGINAL_SHA256:
-        raise ValueError("Unknown/modified archive: SHA-256 mismatch " + digest)
+    # Identity (RAR signature, pinned size and SHA-256) is separate from
+    # per-member CRC verification. The installer receipt records both.
+    identity = inspect_original_archive(archive)
+    if not identity["identity_ok"]:
+        raise ValueError("Original RAR identity failed: " + ", ".join(identity["problems"]))
+    digest = identity["actual_sha256"]
 
     exe = find_7zip()
     run7(exe, "t", archive)
@@ -192,6 +196,7 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
             "target": "Warband 1.174 core / WSE2 1.1.5.4",
             "runtime_verified": False,
             "archive_crc_verified": True,
+            "archive_identity": identity,
             "original_mission_trigger_count": preflight["mission"]["triggers"],
             "final_trigger_count": (31 if tactical_recovery else 29 if wave_reinforcements else 27 if city_guardposts else 26 if experimental_defenders else 25) + int(solo_assist) + (4 if private_commands else 0),
             "preflight": preflight,
