@@ -142,7 +142,9 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         loadout_report = apply_balanced_ai_loadouts(source) if balanced else None
         defender_report = None
         if experimental_defenders:
-            defender_report = patch_file(source, experimental_defenders, balanced_ai=balanced)
+            defender_report = patch_file(source, experimental_defenders,
+                                         balanced_ai=balanced,
+                                         city_only=city_guardposts and not all_map_defenses)
             updated = report_for_module(source)
             if not updated["ok"] or updated["mission"]["triggers"] != 26:
                 raise RuntimeError("Experimental defender patch failed post-apply diagnostics")
