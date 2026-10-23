@@ -163,7 +163,7 @@ def verified_flight(root: Path) -> tuple[dict, list[Path], bytes]:
     if receipt.get("schema") != "zombieee.flight.v1":
         raise ValueError("Flight-recorder receipt mismatch")
     public = {k: receipt.get(k) for k in (
-        "schema", "session_id", "start_utc", "end_utc", "outcome", "exit_code",
+        "schema", "session_id", "watch_mode", "start_utc", "end_utc", "outcome", "exit_code",
         "exit_code_observed", "log_count", "log_truncated",
         "log_bytes_limit_each", "log_omitted_bytes", "log_seen_bytes",
         "process_output_omitted_bytes", "post_redaction_output_omitted_bytes",
