@@ -54,6 +54,15 @@ class CityAcceptanceTests(unittest.TestCase):
         self.assertFalse(result["city_accepted"])
         self.assertFalse(result["checks"]["trigger_28_city_scene_gate"])
 
+    def test_city_scene_corruption_rejected_even_when_file_changed(self):
+        path = self.root / "SceneObj" / "scn_tbfc_invasion_4.sco"
+        payload = bytearray(path.read_bytes())
+        payload[-1] ^= 1  # preserve valid object count and change a navmesh byte
+        path.write_bytes(payload)
+        result = audit_city(self.root, ORIGINAL)
+        self.assertFalse(result["city_accepted"])
+        self.assertFalse(result["checks"]["city_sco_canonical_overlay"])
+
     def test_original_native_trigger_change_is_rejected(self):
         path = self.root / "mission_templates.txt"
         rows = path.read_text().splitlines(keepends=True)
