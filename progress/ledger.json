@@ -232,7 +232,7 @@
       "groupId": "Runtime",
       "milestoneId": "M1",
       "state": "active",
-      "sourceState": "Implementation under review PR #10; offline source replay passed, exact PR complete suite still unverified",
+      "sourceState": "Agent A City source audit integrated in draft PR #10; 20 local replay tests passed; exact GitHub branch full suite and WSE2 runtime pending",
       "required": true,
       "blocked": false,
       "dependsOn": [],
@@ -262,9 +262,20 @@
       "priority": "P0",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/1",
       "criterion": "Windows 7-Zip CRC passes all entries and provenance SHA matches without modifying input",
-      "note": "Source RAR4 identity and optional CRC inspector implemented on A branch. Real original Beta 0.4 SHA/size observed. Member CRC and Windows WSE2 boot unverified. City static contract can now gate a generated module's original 25 triggers and other scene file integrity.",
+      "note": "Original source RAR identity tool and optional 7-Zip CRC checker implemented. Source Beta 0.4 SHA256 observed; member CRC still unknown. Builder records identity and separately verified member CRC only after 7z t.",
       "deferReason": null,
-      "implementationLane": "A"
+      "implementationLane": "A",
+      "review": {
+        "status": "offline-replay-passed-only",
+        "reviewer": "Agent A",
+        "date": "2026-10-23",
+        "blockers": [
+          "exact branch complete offline suite",
+          "Windows 7-Zip member CRC",
+          "actual WSE2 City runtime"
+        ],
+        "comment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/10#issuecomment-6374658614"
+      }
     },
     {
       "id": "ZOM-ENG-02",
@@ -272,7 +283,7 @@
       "groupId": "Runtime",
       "milestoneId": "M1",
       "state": "active",
-      "sourceState": "Implementation under review PR #10; offline source replay passed, exact PR complete suite still unverified",
+      "sourceState": "Agent A City source audit integrated in draft PR #10; 20 local replay tests passed; exact GitHub branch full suite and WSE2 runtime pending",
       "required": true,
       "blocked": true,
       "dependsOn": [
@@ -304,9 +315,20 @@
       "priority": "P0",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/1",
       "criterion": "Pinned or updated WSE2 loads the unmodified invasion module with no fatal parser/resource failure",
-      "note": "Original 25 compiled native triggers preserved; City-specific guards on experimental initial defenders, waves, recovery are present in A's draft implementation. Agent A added read-only City structural acceptance script and tests; real WSE2/scene runtime remains unknown.",
+      "note": "City native source checks strengthened: canonical exact byte-match for the expected SCO guard-post overlay; integrated fail-closed City gate runs inside builder before optional host commands. Local replay tests 8 archive + 6 preflight + 6 City acceptance passed. Exact GitHub checkout full suite remains pending, runtime unknown.",
       "deferReason": null,
-      "implementationLane": "A"
+      "implementationLane": "A",
+      "review": {
+        "status": "offline-replay-passed-only",
+        "reviewer": "Agent A",
+        "date": "2026-10-23",
+        "blockers": [
+          "exact branch complete offline suite",
+          "Windows 7-Zip member CRC",
+          "actual WSE2 City runtime"
+        ],
+        "comment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/10#issuecomment-6374658614"
+      }
     },
     {
       "id": "ZOM-ENG-03",
@@ -958,7 +980,9 @@
     "PR #12 tests are authored but explicitly unexecuted; crash-tail retention and recorder-ready synchronization are pending.",
     "Review status is a code-integration gate, not a release acceptance measure; 0/23 City outcomes remain accepted.",
     "City static audit on a reconstructed module matched 31 native triggers and failed on deliberately missing source scene files; exact Agent A PR #10 full pipeline not yet executed on one authoritative checkout.",
-    "Recorder ownership decision recorded: B launches game after C passive readiness; interface remains integration-test pending."
+    "Recorder ownership decision recorded: B launches game after C passive readiness; interface remains integration-test pending.",
+    "Agent A local replay executed 20 targeted tests (8 original archive, 6 native preflight, 6 City acceptance) using locally staged source and supplied original files. Exact remote PR #10 full checkout test suite has not been executed.",
+    "City static auditor now verifies an exact canonical navmesh-derived SCO overlay rather than merely a modified City scene hash; integration in tools/build.py remains draft/unmerged."
   ],
   "governance": {
     "purpose": "City-first private solo Windows 11 remaster, verified flight-recorder diagnostics; four other original maps deferred until later release.",
