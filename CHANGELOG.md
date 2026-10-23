@@ -2,15 +2,25 @@
 
 Uses [Semantic Versioning](https://semver.org/) for the remaster, not the historical original.
 
+## [0.1.1] - 2026-10-23
+
+### Added
+- Compiled invasion parser identifying entry points and mission trigger intervals.
+- Missing, duplicate and case-mismatched local BRF dependency diagnostics.
+- Installer preflight guard and static findings recorded in the install manifest.
+- WSE2 Lua one-time invasion mission-entry diagnostic probe.
+- Six additional local preflight regression tests (11 local tests total).
+
+### Not verified
+- The original RAR still requires independent Windows 7-Zip CRC testing.
+- No Warband/WSE2 launch or completed wave; no allied defender gameplay yet.
+
 ## [0.1.0] - 2026-10-23
 
 ### Added
-- Verified-source restoration workspace and original-provenance policy.
-- SHA-256 and 7-Zip-gated clean extraction, static diagnostics and local tooling tests.
-- WSE2 Lua diagnostic bootstrap and draft local server configuration.
-- Manual WSE2 validation checklist and AI defender/remaster roadmap.
+- Archive-provenance policy and initial guarded local installation tools.
+- Static core module doctor, initial Lua bootstrap, standalone tests and manual verification checklist.
+- Version policy and restoration-first roadmap.
 
-### Not yet shipped
-- No tested runtime build; no AI ally control, tactical positions, cheat menu or optimisation claim.
-- Original 2012 Python Module System source unavailable in the supplied archive.
-- Historical archive extraction errors reported by another decoder require independent 7-Zip test.
+### Not shipped
+- No tested runtime build, allied bot positions, admin cheats or measured performance improvements.
