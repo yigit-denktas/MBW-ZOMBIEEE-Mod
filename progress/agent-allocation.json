@@ -17,7 +17,8 @@
     "updates": "Only Agent A edits progress/ledger.json and republishes public gh-pages snapshot after scope/evidence review; others propose updates in PR.",
     "privacy": "Never commit original RAR, game assets, Windows user paths, logs containing identity, secrets or private readiness assessments.",
     "integrationRule": "No merge PR #10/#11/#12 until exact branch suite is exercised and identified blockers fixed. Merge then as offline implementation only, never release acceptance.",
-    "interfaceDecision": "OPEN: B-owned processes with C passive recorder vs C-owned child supervisor; do not merge either until one model and identical ready message schema are tested offline."
+    "interfaceDecision": "DECIDED: B owns host/client child process handles; C is passive recorder armed before any game process; canonical marker zombieee.recorder-ready.v1, authenticated attach/stop. See Agent A handoffs/RECORDER_LIFECYCLE_V1.md. Integration-test evidence pending.",
+    "recorderProtocol": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/agent/a-city-engine/handoffs/RECORDER_LIFECYCLE_V1.md"
   },
   "lanes": {
     "A": {
@@ -222,7 +223,7 @@
       ],
       "reviewComment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11#issuecomment-6373896560",
       "safeToMerge": false,
-      "latestReview": "B needs strict recorder-ready state before host/client spawn; coordinate exact schema and process ownership, distinguish host-ready from mission-entered."
+      "latestReview": "Await B source changes implementing waiting_recorder; C passive protocol now documented by A."
     },
     "PR12": {
       "branch": "agent/c-flight-recorder",
@@ -239,13 +240,14 @@
       ],
       "reviewComment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12#issuecomment-6373897277",
       "safeToMerge": false,
-      "latestReview": "C added head/tail log capture, link safety and recorder-ready marker, but no new test execution evidence yet; passive pre-launch watcher vs owned game lifecycle unresolved."
+      "latestReview": "C implemented passive watcher and canonical hyphenated marker with HMAC controls; offline integration with B is not yet exercised."
     },
     "PR10": {
       "branch": "agent/a-city-engine",
       "head": "542da76da1381734ebd59ef8a32ff1b2b9818ecd",
       "status": "draft-tests-pending",
-      "safeToMerge": false
+      "safeToMerge": false,
+      "latestReview": "Added read-only City static acceptance checker with five fixture tests; local reconstruction passed checks but exact GitHub checkout full suite unverified."
     },
     "PR7": {
       "branch": "project-record-setup-v041",

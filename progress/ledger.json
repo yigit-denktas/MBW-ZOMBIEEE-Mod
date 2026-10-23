@@ -232,7 +232,7 @@
       "groupId": "Runtime",
       "milestoneId": "M1",
       "state": "active",
-      "sourceState": "Implementation in draft PR #10, static evidence only; acceptance criterion not met",
+      "sourceState": "Implementation under review PR #10; offline source replay passed, exact PR complete suite still unverified",
       "required": true,
       "blocked": false,
       "dependsOn": [],
@@ -248,6 +248,12 @@
           "revision": "agent/a-city-engine",
           "observedOn": "2026-10-23",
           "acceptance": "pending"
+        },
+        {
+          "kind": "static-contract-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/agent/a-city-engine/tools/city_acceptance.py",
+          "observedOn": "2026-10-23",
+          "acceptance": "static-only-unaccepted"
         }
       ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
@@ -256,7 +262,7 @@
       "priority": "P0",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/1",
       "criterion": "Windows 7-Zip CRC passes all entries and provenance SHA matches without modifying input",
-      "note": "Agent A added original RAR4 signature/size/SHA-256 auditor and optional 7-Zip member-CRC path; historical source identity observed, member CRC not run; actual Windows original extraction remains pending.",
+      "note": "Source RAR4 identity and optional CRC inspector implemented on A branch. Real original Beta 0.4 SHA/size observed. Member CRC and Windows WSE2 boot unverified. City static contract can now gate a generated module's original 25 triggers and other scene file integrity.",
       "deferReason": null,
       "implementationLane": "A"
     },
@@ -266,7 +272,7 @@
       "groupId": "Runtime",
       "milestoneId": "M1",
       "state": "active",
-      "sourceState": "Implementation in draft PR #10, static evidence only; acceptance criterion not met",
+      "sourceState": "Implementation under review PR #10; offline source replay passed, exact PR complete suite still unverified",
       "required": true,
       "blocked": true,
       "dependsOn": [
@@ -284,6 +290,12 @@
           "revision": "agent/a-city-engine",
           "observedOn": "2026-10-23",
           "acceptance": "pending"
+        },
+        {
+          "kind": "static-contract-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/agent/a-city-engine/tools/city_acceptance.py",
+          "observedOn": "2026-10-23",
+          "acceptance": "static-only-unaccepted"
         }
       ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
@@ -292,7 +304,7 @@
       "priority": "P0",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/1",
       "criterion": "Pinned or updated WSE2 loads the unmodified invasion module with no fatal parser/resource failure",
-      "note": "Agent A added full native trigger arity preflight and City-only scene guards on initial ally spawn, top-ups and fallback; actual WSE2 loading remains unverified.",
+      "note": "Original 25 compiled native triggers preserved; City-specific guards on experimental initial defenders, waves, recovery are present in A's draft implementation. Agent A added read-only City structural acceptance script and tests; real WSE2/scene runtime remains unknown.",
       "deferReason": null,
       "implementationLane": "A"
     },
@@ -403,18 +415,17 @@
       "priority": "P0",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
       "criterion": "Separate recorder retains startup/crash context when game or Lua exits, plus CPU/memory/process status where measurable",
-      "note": "PR #12 has since added bounded head/tail capture, symlink ancestor checks and a recorder-ready JSON marker. Integration remains blocked: passive pre-launch watcher vs owned child model and exact ready schema disagree with B; updated tests not observed. No real-game evidence.",
+      "note": "B/C recorder ownership settled by Agent A: B owns game, C passive recorder; canonical marker zombieee.recorder-ready.v1; HMAC attach/stop; B must prove genuine recorder readiness before any game spawn. C passive source updated, exact integrated offline interoperability test pending. No Windows engine acceptance.",
       "deferReason": null,
       "implementationLane": "C",
       "review": {
         "status": "changes-requested-in-conversation",
         "reviewer": "Agent A",
         "date": "2026-10-23",
-        "comment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12#issuecomment-6374021323",
+        "comment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/agent/a-city-engine/handoffs/RECORDER_LIFECYCLE_V1.md",
         "blockers": [
-          "agree passive vs C-owned process-supervisor model with B",
-          "unify readiness schema hyphen/underscore and watcher id",
-          "execute tests covering >2MiB late crash/ancestor link and cross-agent handshake"
+          "B/C exact passive recorder interoperability and negative tests not yet confirmed",
+          "actual WSE2 runtime remains unverified"
         ]
       }
     },
@@ -554,18 +565,17 @@
       "priority": "P1",
       "issueUrl": null,
       "criterion": "Launcher starts/stops an isolated local listen-server or managed dedicated host without port forwarding",
-      "note": "B has tested fake host lifecycle, but recorder-first ordering fails and its state machine cannot yet consume C's current marker/process ownership; exact schema disagreement documented in cross-agent PR reviews.",
+      "note": "B/C recorder ownership settled by Agent A: B owns game, C passive recorder; canonical marker zombieee.recorder-ready.v1; HMAC attach/stop; B must prove genuine recorder readiness before any game spawn. C passive source updated, exact integrated offline interoperability test pending. No Windows engine acceptance.",
       "deferReason": null,
       "implementationLane": "B",
       "review": {
         "status": "changes-requested-in-conversation",
         "reviewer": "Agent A",
         "date": "2026-10-23",
-        "comment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11#issuecomment-6374020607",
+        "comment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/agent/a-city-engine/handoffs/RECORDER_LIFECYCLE_V1.md",
         "blockers": [
-          "recorder before game with authenticated session/attempt and live recorder identity",
-          "distinct game-ready/client-joined/mission-entered transitions",
-          "safe raw input link/junction detection"
+          "B/C exact passive recorder interoperability and negative tests not yet confirmed",
+          "actual WSE2 runtime remains unverified"
         ]
       }
     },
@@ -806,18 +816,17 @@
       "priority": "P2",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
       "criterion": "Checksummed, redacted evidence bundle and rule report explain observed/unknown game outcomes and actionable failures",
-      "note": "PR #12 has since added bounded head/tail capture, symlink ancestor checks and a recorder-ready JSON marker. Integration remains blocked: passive pre-launch watcher vs owned child model and exact ready schema disagree with B; updated tests not observed. No real-game evidence.",
+      "note": "B/C recorder ownership settled by Agent A: B owns game, C passive recorder; canonical marker zombieee.recorder-ready.v1; HMAC attach/stop; B must prove genuine recorder readiness before any game spawn. C passive source updated, exact integrated offline interoperability test pending. No Windows engine acceptance.",
       "deferReason": null,
       "implementationLane": "C",
       "review": {
         "status": "changes-requested-in-conversation",
         "reviewer": "Agent A",
         "date": "2026-10-23",
-        "comment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12#issuecomment-6374021323",
+        "comment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/agent/a-city-engine/handoffs/RECORDER_LIFECYCLE_V1.md",
         "blockers": [
-          "agree passive vs C-owned process-supervisor model with B",
-          "unify readiness schema hyphen/underscore and watcher id",
-          "execute tests covering >2MiB late crash/ancestor link and cross-agent handshake"
+          "B/C exact passive recorder interoperability and negative tests not yet confirmed",
+          "actual WSE2 runtime remains unverified"
         ]
       }
     },
@@ -947,7 +956,9 @@
     "No source kit ZIP bytes independently verified in this runtime.",
     "PR #11 reports 127 offline tests (97 passed, 30 skipped) from B; not independently reproduced by Agent A; major session-order issues still open.",
     "PR #12 tests are authored but explicitly unexecuted; crash-tail retention and recorder-ready synchronization are pending.",
-    "Review status is a code-integration gate, not a release acceptance measure; 0/23 City outcomes remain accepted."
+    "Review status is a code-integration gate, not a release acceptance measure; 0/23 City outcomes remain accepted.",
+    "City static audit on a reconstructed module matched 31 native triggers and failed on deliberately missing source scene files; exact Agent A PR #10 full pipeline not yet executed on one authoritative checkout.",
+    "Recorder ownership decision recorded: B launches game after C passive readiness; interface remains integration-test pending."
   ],
   "governance": {
     "purpose": "City-first private solo Windows 11 remaster, verified flight-recorder diagnostics; four other original maps deferred until later release.",
