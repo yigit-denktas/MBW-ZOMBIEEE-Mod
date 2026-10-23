@@ -16,6 +16,9 @@ MAGIC = -717
 ENTRY_TYPE = 1
 GUARD_ENTRIES = (2, 3, 4)
 ZOMBIE_ENTRIES = range(32, 41)
+# Source-level conservative geometry proxies; not physical-collider or LOS proof.
+MIN_FACE_XY_AREA = 3.0
+MIN_PROP_ANCHOR_CLEARANCE = 3.0
 
 
 class SceneError(ValueError):
@@ -131,22 +134,69 @@ def plan_city(data: bytes) -> dict:
                 reachable.add(nxt)
                 queue.append(nxt)
 
+    # A shared vertex alone can connect faces that cannot actually be traversed.
+    # Require a chain of shared Warband AI-mesh edges from the spawn-side face.
+    scene_edge_set = {tuple(sorted(edge)) for edge in scene["edges"]}
+    by_edge = defaultdict(list)
+    for index, face in enumerate(scene["faces"]):
+        for a, b in zip(face, (*face[1:], face[0])):
+            edge = tuple(sorted((a, b)))
+            if edge in scene_edge_set:
+                by_edge[edge].append(index)
+    face_links = defaultdict(set)
+    for indexes in by_edge.values():
+        for i in indexes:
+            face_links[i].update(j for j in indexes if j != i)
+    spawn_faces = [i for i, face in enumerate(scene["faces"]) if start in face]
+    if not spawn_faces:
+        raise SceneError("Survivor spawn has no connected AI-mesh face")
+    def centroid(face):
+        return tuple(sum(vertices[i][axis] for i in face) / len(face)
+                     for axis in range(3))
+    start_face = min(spawn_faces, key=lambda i: dist(centroid(scene["faces"][i]), home))
+    reachable_faces = {start_face}
+    queue = deque([start_face])
+    while queue:
+        for nxt in face_links[queue.popleft()]:
+            if nxt not in reachable_faces:
+                reachable_faces.add(nxt)
+                queue.append(nxt)
+    if not reachable_faces:
+        raise SceneError("No reachable City navmesh faces")
+
+    def face_area_xy(face):
+        base = vertices[face[0]]
+        return sum(abs((vertices[face[i]][0] - base[0]) *
+                       (vertices[face[i + 1]][1] - base[1]) -
+                       (vertices[face[i + 1]][0] - base[0]) *
+                       (vertices[face[i]][1] - base[1])) / 2
+                   for i in range(1, len(face) - 1))
+
+    # Scene object origins are risk indicators, not verified solid colliders.
+    prop_origins = [o["position"] for o in scene["objects"]
+                    if o["type"] != ENTRY_TYPE]
+    if not prop_origins:
+        raise SceneError("City prop anchors unavailable for guard clearance")
+
     enemy_center = (sum(p[0] for p in enemies) / len(enemies),
                     sum(p[1] for p in enemies) / len(enemies))
     forward = math.atan2(enemy_center[1] - home[1], enemy_center[0] - home[0])
     bearings = (forward, forward + 2 * math.pi / 3, forward - 2 * math.pi / 3)
     candidates = []
-    for face in scene["faces"]:
-        if not set(face).issubset(reachable):
+    for face_index in sorted(reachable_faces):
+        face = scene["faces"][face_index]
+        if not set(face).issubset(reachable) or face_area_xy(face) < MIN_FACE_XY_AREA:
             continue
-        center = tuple(sum(vertices[i][axis] for i in face) / len(face)
-                       for axis in range(3))
+        center = centroid(face)
+        clearance = min(dist(center, prop) for prop in prop_origins)
+        if clearance < MIN_PROP_ANCHOR_CLEARANCE:
+            continue
         d = dist(center, home)
         if 9 <= d <= 24 and abs(center[2] - home[2]) <= 2.5 and min(
                 dist(center, enemy) for enemy in enemies) >= 28:
             candidates.append(center)
     if len(candidates) < 3:
-        raise SceneError("Not enough reachable walkable guard-post candidates")
+        raise SceneError("Not enough connected, clearance-screened City guard-post candidates")
     posts = []
     for bearing in bearings:
         def score(pt):
@@ -164,11 +214,15 @@ def plan_city(data: bytes) -> dict:
             "zombie_entries": sorted(i for i in ZOMBIE_ENTRIES if i in entries),
             "nav_vertices": len(vertices), "nav_faces": len(scene["faces"]),
             "nav_reachable_vertices": len(reachable),
+            "nav_reachable_faces": len(reachable_faces),
+            "min_prop_anchor_clearance": MIN_PROP_ANCHOR_CLEARANCE,
+            "min_face_xy_area": MIN_FACE_XY_AREA,
             "guard_posts": [{"entry": e,
                              "position": [round(x, 3) for x in pt],
-                             "distance_from_survivors": round(dist(pt, home), 1)}
+                             "distance_from_survivors": round(dist(pt, home), 1),
+                             "nearest_prop_anchor": round(min(dist(pt, prop) for prop in prop_origins), 2)}
                             for e, pt in zip(GUARD_ENTRIES, posts)],
-            "limitations": "Mesh-connected candidate positions only; game movement/clearance/LOS remain unverified."}
+            "limitations": "Connected AI-mesh face and scene-prop anchor proxies only; collider clearance, movement and LOS remain unverified."}
 
 
 def apply_city_overlay(data: bytes, plan: dict) -> bytes:
