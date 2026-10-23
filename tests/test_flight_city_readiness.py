@@ -75,6 +75,35 @@ class CityReadinessTests(unittest.TestCase):
         self.assertEqual(checks["wave_progression"]["status"], "observed")
         self.assertEqual(checks["invasion_mission_entered"]["status"], "unknown")
 
+    def test_unhashable_templates_fail_closed(self):
+        for bad in ([], {}, {"template": "multiplayer_iv"}):
+            with self.subTest(template=bad):
+                marker = event("mission_enter", role="server",
+                               template=bad, scene="scn_tbfc_invasion_4")
+                checks = matrix([marker])
+                self.assertEqual(checks["invasion_mission_entered"]["status"], "unknown")
+                self.assertEqual(checks["city_scene_observed"]["status"], "unknown")
+                incident = incident_for_session([marker], [], {}, {}, [])
+                self.assertEqual(incident["runtime"]["server_mission_entry"], "unknown")
+
+    def test_unhashable_scene_fields_fail_closed(self):
+        for bad in ([], {}, ["scn_tbfc_invasion_4"]):
+            with self.subTest(scene=bad):
+                marker = event("mission_enter", role="server",
+                               template="multiplayer_iv", scene=bad)
+                checks = matrix([marker])
+                self.assertEqual(checks["invasion_mission_entered"]["status"], "observed")
+                self.assertEqual(checks["city_scene_observed"]["status"], "unknown")
+                incident = incident_for_session([marker], [], {}, {}, [])
+                self.assertEqual(incident["runtime"]["server_city_entry"], "unknown")
+
+    def test_nonstring_event_types_do_not_crash_incident_report(self):
+        for bad in ([], {}, ["wave_change"], {"event": "heartbeat"}):
+            with self.subTest(event=bad):
+                marker = {"event": bad, "fields": {"role": "server"}}
+                self.assertEqual(incident_for_session([marker], [marker], {}, {}, [])
+                                 ["runtime"]["round_identity"], "unknown")
+
     def test_malformed_client_events_are_not_observations(self):
         ev = [event("mission_enter", role="server", template=True, scene="scn_tbfc_invasion_4"),
               {"event": "heartbeat", "fields": None},
