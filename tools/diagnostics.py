@@ -168,7 +168,8 @@ def verified_flight(root: Path) -> tuple[dict, list[Path], bytes]:
         "log_bytes_limit_each", "log_omitted_bytes", "log_seen_bytes",
         "process_output_omitted_bytes", "post_redaction_output_omitted_bytes",
         "post_redaction_log_omitted_bytes", "process_output_capture_complete",
-        "attempt_id", "duration_seconds", "event_count", "event_drops", "metrics",
+        "attempt_id", "simulation", "game_runtime", "pid_start_identity_status",
+        "duration_seconds", "event_count", "event_drops", "metrics",
         "launcher", "caveat")}
     # No original command line, source paths, PIDs or raw process data.
     safe = json.dumps(public, indent=2, sort_keys=True)
