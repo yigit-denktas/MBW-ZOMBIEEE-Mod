@@ -1,8 +1,0 @@
-Original file: ZOMBIEEEBeta04.rar
-Size: 167493071 bytes
-SHA-256: 9be100ff41ce6f8ebadd4aa27377f70f402883fab271999a8cab8cc1da001d1e
-Format: RAR4
-Historical release: ZOMBIEEE Beta 0.4 (2012)
-Original archival inspection: 1086 archive entries.
-Some decoder methods reported 99 member errors; re-test with Windows 7-Zip before deploying.
-Original mod files are not part of this public repository.
