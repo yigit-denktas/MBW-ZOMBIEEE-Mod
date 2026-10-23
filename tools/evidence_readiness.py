@@ -84,6 +84,7 @@ def matrix_for_session(events: list[dict], findings: list[dict],
         "unknown_check_count": sum(v["status"] == "unknown" for v in evidence.values()),
         "build_flags": {
             "difficulty": module.get("difficulty", "unknown"),
+            "experimental_map_scope": module.get("experimental_map_scope", "unknown"),
             "defender_loadout_profile": module.get("defender_loadout_profile", "unknown"),
             "experimental_defenders": module.get("experimental_defenders", "unknown"),
             "private_commands": (module.get("private_commands") or {}).get("enabled", False)
