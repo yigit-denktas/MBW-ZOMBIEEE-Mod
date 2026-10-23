@@ -67,6 +67,25 @@
         "ZOM-QA-01",
         "ZOM-QA-02"
       ]
+    },
+    {
+      "issue": 8,
+      "legacyId": "windows-installer",
+      "title": "Windows 11 discovery and reversible local install",
+      "leafIds": [
+        "ZOM-WIN-01",
+        "ZOM-WIN-02",
+        "ZOM-WIN-03"
+      ]
+    },
+    {
+      "issue": 9,
+      "legacyId": "solo-local-host",
+      "title": "Automatic private City hosting and join",
+      "leafIds": [
+        "ZOM-SOLO-01",
+        "ZOM-SOLO-02"
+      ]
     }
   ],
   "newIssueDrafts": [
@@ -79,7 +98,7 @@
     "ZOM-REC-02",
     "ZOM-REC-03"
   ],
-  "writeState": "not-requested; prepare for review only",
+  "writeState": "Existing issues #1–#6 preserved; new standalone installer/solo issues #8/#9 created. No automatic issue closure, agent GitHub identity assigned only by branch names.",
   "labelsState": "unconfigured",
   "projectState": "not-configured",
   "permissions": "No new merge/deploy rights"

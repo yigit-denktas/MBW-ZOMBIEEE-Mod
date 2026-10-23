@@ -59,7 +59,7 @@
       "acceptanceRule": "all-gate-items",
       "sourceAccepted": null,
       "unscopedWork": [],
-      "nextAction": "REC-01",
+      "nextAction": "ZOM-REC-01",
       "sourceState": "proposed",
       "acceptance": "Pending owner baseline and real engine evidence"
     },
@@ -82,7 +82,7 @@
       "acceptanceRule": "all-gate-items",
       "sourceAccepted": null,
       "unscopedWork": [],
-      "nextAction": "ENG-01",
+      "nextAction": "ZOM-ENG-01",
       "sourceState": "proposed",
       "acceptance": "Pending owner baseline and real engine evidence"
     },
@@ -105,7 +105,7 @@
       "acceptanceRule": "all-gate-items",
       "sourceAccepted": null,
       "unscopedWork": [],
-      "nextAction": "WIN-01",
+      "nextAction": "ZOM-WIN-01",
       "sourceState": "proposed",
       "acceptance": "Pending owner baseline and real engine evidence"
     },
@@ -128,7 +128,7 @@
       "acceptanceRule": "all-gate-items",
       "sourceAccepted": null,
       "unscopedWork": [],
-      "nextAction": "AI-01",
+      "nextAction": "ZOM-AI-01",
       "sourceState": "proposed",
       "acceptance": "Pending owner baseline and real engine evidence"
     },
@@ -150,7 +150,7 @@
       "acceptanceRule": "all-gate-items",
       "sourceAccepted": null,
       "unscopedWork": [],
-      "nextAction": "QA-01",
+      "nextAction": "ZOM-QA-01",
       "sourceState": "proposed",
       "acceptance": "Pending owner baseline and real engine evidence"
     }
@@ -170,12 +170,13 @@
       "evidence": [],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
       "kind": "work-item",
-      "owner": "Owner review",
+      "owner": "Agent A — implementation; user retains release acceptance",
       "priority": "P2",
       "issueUrl": null,
       "criterion": "Verify source ZIP hash, execute official preview/apply and identical second run; preserve original AGENTS",
       "note": null,
-      "deferReason": null
+      "deferReason": null,
+      "implementationLane": "A"
     },
     {
       "id": "ZOM-REC-02",
@@ -193,12 +194,13 @@
       "evidence": [],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
       "kind": "work-item",
-      "owner": "Owner / implementing agent (proposed)",
+      "owner": "Agent A — implementation; user retains release acceptance",
       "priority": "P2",
       "issueUrl": null,
       "criterion": "Owner confirms solo-first outcome, required/deferred leaves, release gates and delegation policy",
       "note": null,
-      "deferReason": null
+      "deferReason": null,
+      "implementationLane": "A"
     },
     {
       "id": "ZOM-REC-03",
@@ -216,12 +218,13 @@
       "evidence": [],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
       "kind": "work-item",
-      "owner": "Owner / implementing agent (proposed)",
+      "owner": "Agent A — implementation; user retains release acceptance",
       "priority": "P2",
       "issueUrl": null,
       "criterion": "Toolkit check/pipeline and README-vs-tracker counts pass; keyboard/reflow and contrast reviewed",
       "note": null,
-      "deferReason": null
+      "deferReason": null,
+      "implementationLane": "A"
     },
     {
       "id": "ZOM-ENG-01",
@@ -242,12 +245,13 @@
       ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
       "kind": "work-item",
-      "owner": "Owner / implementing agent (proposed)",
+      "owner": "Agent A — implementation; user retains release acceptance",
       "priority": "P0",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/1",
       "criterion": "Windows 7-Zip CRC passes all entries and provenance SHA matches without modifying input",
-      "note": null,
-      "deferReason": null
+      "note": "Implementation prep may proceed offline in separate agent branch; runtime acceptance awaits Windows/WSE2.",
+      "deferReason": null,
+      "implementationLane": "A"
     },
     {
       "id": "ZOM-ENG-02",
@@ -270,12 +274,13 @@
       ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
       "kind": "work-item",
-      "owner": "Owner / implementing agent (proposed)",
+      "owner": "Agent A — implementation; user retains release acceptance",
       "priority": "P0",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/1",
       "criterion": "Pinned or updated WSE2 loads the unmodified invasion module with no fatal parser/resource failure",
       "note": null,
-      "deferReason": null
+      "deferReason": null,
+      "implementationLane": "A"
     },
     {
       "id": "ZOM-ENG-03",
@@ -298,12 +303,13 @@
       ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
       "kind": "work-item",
-      "owner": "Owner / implementing agent (proposed)",
+      "owner": "Agent A — implementation; user retains release acceptance",
       "priority": "P0",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/1",
       "criterion": "Private City mission starts and finishes at least one wave with usable guns, sounds, ammo and class selection",
       "note": null,
-      "deferReason": null
+      "deferReason": null,
+      "implementationLane": "A"
     },
     {
       "id": "ZOM-OBS-01",
@@ -326,12 +332,13 @@
       ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
       "kind": "work-item",
-      "owner": "Owner / implementing agent (proposed)",
+      "owner": "Agent C — implementation; user retains release acceptance",
       "priority": "P0",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
       "criterion": "Bounded, versioned wave, spawn, team and combat events recorded in one actual session with explicit unknown fields",
       "note": "Prototype exists in v0.1.8; engine acceptance pending",
-      "deferReason": null
+      "deferReason": null,
+      "implementationLane": "C"
     },
     {
       "id": "ZOM-OBS-02",
@@ -354,12 +361,13 @@
       ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
       "kind": "work-item",
-      "owner": "Owner / implementing agent (proposed)",
+      "owner": "Agent C — implementation; user retains release acceptance",
       "priority": "P0",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
       "criterion": "Separate recorder retains startup/crash context when game or Lua exits, plus CPU/memory/process status where measurable",
-      "note": null,
-      "deferReason": null
+      "note": "Implementation prep may proceed offline in separate agent branch; runtime acceptance awaits Windows/WSE2.",
+      "deferReason": null,
+      "implementationLane": "C"
     },
     {
       "id": "ZOM-WIN-01",
@@ -377,12 +385,13 @@
       "evidence": [],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
       "kind": "work-item",
-      "owner": "Owner / implementing agent (proposed)",
+      "owner": "Agent B — implementation; user retains release acceptance",
       "priority": "P1",
       "issueUrl": null,
       "criterion": "Windows 11 detector finds supported Steam/custom locations, validates engine and reports ambiguity without false confidence",
-      "note": null,
-      "deferReason": null
+      "note": "Implementation prep may proceed offline in separate agent branch; runtime acceptance awaits Windows/WSE2.",
+      "deferReason": null,
+      "implementationLane": "B"
     },
     {
       "id": "ZOM-WIN-02",
@@ -400,12 +409,13 @@
       "evidence": [],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
       "kind": "work-item",
-      "owner": "Owner / implementing agent (proposed)",
+      "owner": "Agent B — implementation; user retains release acceptance",
       "priority": "P1",
       "issueUrl": null,
       "criterion": "Installer validates original files and pinned dependencies; supports dry run, repair, rollback and uninstall without deleting owned game data",
       "note": null,
-      "deferReason": null
+      "deferReason": null,
+      "implementationLane": "B"
     },
     {
       "id": "ZOM-WIN-03",
@@ -423,12 +433,13 @@
       "evidence": [],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
       "kind": "work-item",
-      "owner": "Owner / implementing agent (proposed)",
+      "owner": "Agent B — implementation; user retains release acceptance",
       "priority": "P1",
       "issueUrl": null,
       "criterion": "A desktop shortcut opens remaster launcher with Play Solo, settings, logs and repair actions",
       "note": null,
-      "deferReason": null
+      "deferReason": null,
+      "implementationLane": "B"
     },
     {
       "id": "ZOM-SOLO-01",
@@ -447,12 +458,13 @@
       "evidence": [],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
       "kind": "work-item",
-      "owner": "Owner / implementing agent (proposed)",
+      "owner": "Agent B — implementation; user retains release acceptance",
       "priority": "P1",
       "issueUrl": null,
       "criterion": "Launcher starts/stops an isolated local listen-server or managed dedicated host without port forwarding",
       "note": null,
-      "deferReason": null
+      "deferReason": null,
+      "implementationLane": "B"
     },
     {
       "id": "ZOM-SOLO-02",
@@ -471,12 +483,13 @@
       "evidence": [],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
       "kind": "work-item",
-      "owner": "Owner / implementing agent (proposed)",
+      "owner": "Agent B — implementation; user retains release acceptance",
       "priority": "P1",
       "issueUrl": null,
       "criterion": "One click reliably selects mission/map and connects user to private local host; clean shutdown and retry work",
       "note": null,
-      "deferReason": null
+      "deferReason": null,
+      "implementationLane": "B"
     },
     {
       "id": "ZOM-AI-01",
@@ -500,12 +513,13 @@
       ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
       "kind": "work-item",
-      "owner": "Owner / implementing agent (proposed)",
+      "owner": "Agent A — implementation; user retains release acceptance",
       "priority": "P2",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/2",
       "criterion": "At least two survivor AI spawn on team 0, use expected loadouts and attack zombies in actual City wave",
       "note": "Prototype exists in v0.1.8; engine acceptance pending",
-      "deferReason": null
+      "deferReason": null,
+      "implementationLane": "A"
     },
     {
       "id": "ZOM-AI-02",
@@ -529,12 +543,13 @@
       ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
       "kind": "work-item",
-      "owner": "Owner / implementing agent (proposed)",
+      "owner": "Agent A — implementation; user retains release acceptance",
       "priority": "P2",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/2",
       "criterion": "Bots equip correct compatible guns/ammo, deal confirmed hits or kills, resupply and avoid ineffective loops",
       "note": "Prototype exists in v0.1.8; engine acceptance pending",
-      "deferReason": null
+      "deferReason": null,
+      "implementationLane": "A"
     },
     {
       "id": "ZOM-AI-03",
@@ -557,12 +572,13 @@
       ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
       "kind": "work-item",
-      "owner": "Owner / implementing agent (proposed)",
+      "owner": "Agent A — implementation; user retains release acceptance",
       "priority": "P2",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/3",
       "criterion": "At least two City guard locations reached; hold/fallback/regroup respond with recorded transitions and no zombie-path obstruction",
       "note": "Prototype exists in v0.1.8; engine acceptance pending",
-      "deferReason": null
+      "deferReason": null,
+      "implementationLane": "A"
     },
     {
       "id": "ZOM-WAVE-01",
@@ -586,12 +602,13 @@
       ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
       "kind": "work-item",
-      "owner": "Owner / implementing agent (proposed)",
+      "owner": "Agent A — implementation; user retains release acceptance",
       "priority": "P2",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/2",
       "criterion": "Selected difficulty has bounded reinforcement, controlled wave pacing and reproducible measurements without replacing original waves unintentionally",
       "note": "Prototype exists in v0.1.8; engine acceptance pending",
-      "deferReason": null
+      "deferReason": null,
+      "implementationLane": "A"
     },
     {
       "id": "ZOM-MAP-01",
@@ -615,12 +632,13 @@
       ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
       "kind": "work-item",
-      "owner": "Owner / implementing agent (proposed)",
+      "owner": "Agent A — implementation; user retains release acceptance",
       "priority": "P2",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/3",
       "criterion": "All five maps load and complete wave with bot path/LOS/collision and weapon checks; candidate navmesh coordinates reviewed",
-      "note": "Preserved stable ID and pre-adoption history; does not gate solo v1.0",
-      "deferReason": "Owner confirmed 2026-10-23 that City is sufficient for first solo release; remaining four maps are post-v1 optional expansion."
+      "note": "Agent A holds this preserved optional work item; explicitly deferred until after City-first release.",
+      "deferReason": "Owner confirmed 2026-10-23 that City is sufficient for first solo release; remaining four maps are post-v1 optional expansion.",
+      "implementationLane": "A"
     },
     {
       "id": "ZOM-PERF-01",
@@ -644,12 +662,13 @@
       ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
       "kind": "work-item",
-      "owner": "Owner / implementing agent (proposed)",
+      "owner": "Agent C — implementation; user retains release acceptance",
       "priority": "P2",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/4",
       "criterion": "Collect CPU/memory/FPS or frame-time data where supported, compare baseline vs optimizations; no unsourced speed claims",
       "note": null,
-      "deferReason": null
+      "deferReason": null,
+      "implementationLane": "C"
     },
     {
       "id": "ZOM-QA-01",
@@ -673,12 +692,13 @@
       ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
       "kind": "work-item",
-      "owner": "Owner / implementing agent (proposed)",
+      "owner": "Agent C — implementation; user retains release acceptance",
       "priority": "P2",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
       "criterion": "Checksummed, redacted evidence bundle and rule report explain observed/unknown game outcomes and actionable failures",
       "note": "Prototype exists in v0.1.8; engine acceptance pending",
-      "deferReason": null
+      "deferReason": null,
+      "implementationLane": "C"
     },
     {
       "id": "ZOM-QA-02",
@@ -691,7 +711,6 @@
       "blocked": true,
       "dependsOn": [
         "ZOM-SOLO-02",
-        "ZOM-MAP-01",
         "ZOM-QA-01"
       ],
       "unmappedDependencies": [],
@@ -703,12 +722,13 @@
       ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
       "kind": "work-item",
-      "owner": "Owner / implementing agent (proposed)",
+      "owner": "Agent C — implementation; user retains release acceptance",
       "priority": "P2",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
       "criterion": "A private City solo run completes the agreed minimum sustained wave test (proposed 10 waves), with reliable AI, no fatal failures and build-linked evidence. Other maps are not part of this gate.",
-      "note": null,
-      "deferReason": null
+      "note": "City-first sustained acceptance only. Optional map expansion ZOM-MAP-01 must not gate this work.",
+      "deferReason": null,
+      "implementationLane": "C"
     },
     {
       "id": "ZOM-ADMIN-01",
@@ -731,12 +751,13 @@
       ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
       "kind": "work-item",
-      "owner": "Owner / implementing agent (proposed)",
+      "owner": "Agent A — implementation; user retains release acceptance",
       "priority": "P2",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/4",
       "criterion": "Hotkeys work for one-player local host and cannot affect public/dedicated/unauthorised sessions",
       "note": "Prototype exists in v0.1.8; engine acceptance pending",
-      "deferReason": null
+      "deferReason": null,
+      "implementationLane": "A"
     },
     {
       "id": "ZOM-LEGAL-01",
@@ -757,12 +778,13 @@
       ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
       "kind": "work-item",
-      "owner": "Owner / implementing agent (proposed)",
+      "owner": "Agent B — implementation; user retains release acceptance",
       "priority": "P2",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/5",
       "criterion": "Original and OSP contributors credited; installer asset distribution reviewed; unlicensed material never bundled",
       "note": null,
-      "deferReason": null
+      "deferReason": null,
+      "implementationLane": "B"
     },
     {
       "id": "ZOM-REL-01",
@@ -788,12 +810,13 @@
       ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
       "kind": "work-item",
-      "owner": "Owner / implementing agent (proposed)",
+      "owner": "Agent B — implementation; user retains release acceptance",
       "priority": "P2",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/5",
       "criterion": "Approved Windows installer and desktop launcher start original City with bots; release notes, diagnostics, attribution, scoped accessibility and repair are accepted by owner; non-City maps explicitly excluded.",
       "note": null,
-      "deferReason": null
+      "deferReason": null,
+      "implementationLane": "B"
     }
   ],
   "warnings": [
@@ -815,7 +838,7 @@
       "A local diagnostic report explains failures with build identity",
       "Owner accepts legal, stability and accessibility gates"
     ],
-    "wbsCoverage": "partial",
+    "wbsCoverage": "partial: 24 retained leaves, 23 first-release required; owner-approved City-only boundary; acceptance evidence pending",
     "workPackages": [
       {
         "id": "M0",
@@ -856,9 +879,9 @@
       },
       {
         "id": "M3",
-        "deliverable": "Five-map and AI gameplay reliable",
+        "deliverable": "City survivor AI and combat reliable (five-map expansion deferred)",
         "owner": "Owner and implementing agent (proposed)",
-        "acceptance": "Every referenced leaf's criterion is evidenced and owner accepts this outcome milestone",
+        "acceptance": "All required City gameplay/performance gates pass; optional ZOM-MAP-01 does not block release",
         "workItemIds": [
           "ZOM-AI-01",
           "ZOM-AI-02",
@@ -885,12 +908,12 @@
     "baselines": [
       {
         "id": "BASE-SOLO-CITY-2026-10-23",
-        "status": "proposed",
+        "status": "owner-selected-scope-awaiting-toolkit-audit",
         "authority": "Owner choice observed in conversation: first playable release may contain City only.",
         "reason": "City-first acceptance reduces earliest runtime test risk; original five-map ambitions retained in optional leaf ZOM-MAP-01.",
-        "approvedBy": null,
-        "approvedAt": null,
-        "approvalSource": null
+        "approvedBy": "Repository owner (City-first scope only)",
+        "approvedAt": "2026-10-23",
+        "approvalSource": "Owner's explicit City-only response in setup conversation"
       }
     ],
     "changeRequests": [],
@@ -953,6 +976,13 @@
         "status": "not-assessed",
         "reason": "Owner acceptance and context needed; preserve current project practice pending focused setup conversation."
       }
+    },
+    "agentAllocation": {
+      "status": "active-preparation-no-runtime-acceptance",
+      "coordinator": "Agent A",
+      "source": "progress/agent-allocation.json",
+      "integrationMode": "separate branches with review, no automatic merge",
+      "releaseAcceptanceAuthority": "Repository owner"
     }
   }
 }

@@ -26,7 +26,11 @@ accepted=sum(m["sourceAccepted"] is True for m in ms)
 readme=(ROOT/"README.md").read_text()
 assert "<!-- project-record:start -->" in readme and "<!-- project-record:end -->" in readme
 assert f"{done}/{required}" in readme and f"{accepted}/{len(ms)}" in readme,"README fraction does not match ledger"
-assert all(row["issue"] in range(1,7) for row in json.loads((ROOT/"progress/issue-mapping.json").read_text())["crosswalk"])
+issue_links = json.loads((ROOT/"progress/issue-mapping.json").read_text())["crosswalk"]
+assert {1,2,3,4,5,6,8,9} == {row["issue"] for row in issue_links}
+assert all(set(row["leafIds"]).issubset(set(ids)) for row in issue_links)
+assert all(item["owner"].startswith("Agent ") for item in items)
+assert all(not (item["required"] and any(next(d for d in items if d["id"] == dep)["required"] is False for dep in item["dependsOn"])) for item in items), "Required release leaf depends on optional work"
 assert not any(m["sourceAccepted"] for m in ms),"no owner-approved milestone acceptance yet"
 print(json.dumps({"provisional_required":{"done":done,"total":required},
  "accepted_milestones":{"done":accepted,"total":len(ms)},

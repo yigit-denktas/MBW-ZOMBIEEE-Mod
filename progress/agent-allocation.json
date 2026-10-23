@@ -1,0 +1,194 @@
+{
+  "schemaVersion": 1,
+  "createdOn": "2026-10-23",
+  "mainBaseline": "048564a526de9b36abd55874271c7b80f36e5cf5",
+  "project": "yigit-denktas/MBW-ZOMBIEEE-Mod",
+  "recordBranch": "project-record-setup-v041",
+  "trackerUrl": "https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/",
+  "releaseScope": "City first; non-City maps deferred; 23 required leaves / one optional expansion",
+  "releaseEvidence": "No WSE2 executable gameplay yet. Do not move a leaf to done on simulated tests alone.",
+  "coordination": {
+    "lead": "Agent A",
+    "handoff": "GitHub branch/PR + evidence, never chat-only handoffs",
+    "integrator": "Agent A",
+    "user": "Acceptance authority",
+    "branchesFrom": "main at 048564a526de9b36abd55874271c7b80f36e5cf5",
+    "approval": "Agents may implement/review in own branch; no blind automatic merge, no CI, no Pages edits by agents B/C.",
+    "updates": "Only Agent A edits progress/ledger.json and republishes public gh-pages snapshot after scope/evidence review; others propose updates in PR.",
+    "privacy": "Never commit original RAR, game assets, Windows user paths, logs containing identity, secrets or private readiness assessments."
+  },
+  "lanes": {
+    "A": {
+      "name": "City engine and integrator",
+      "branch": "agent/a-city-engine",
+      "ledgerIds": [
+        "ZOM-REC-01",
+        "ZOM-REC-02",
+        "ZOM-REC-03",
+        "ZOM-ENG-01",
+        "ZOM-ENG-02",
+        "ZOM-ENG-03",
+        "ZOM-AI-01",
+        "ZOM-AI-02",
+        "ZOM-AI-03",
+        "ZOM-WAVE-01",
+        "ZOM-ADMIN-01",
+        "ZOM-MAP-01"
+      ],
+      "firstWave": [
+        "ZOM-ENG-01 — implement original archive integrity/preflight test harness without requiring manual user testing",
+        "ZOM-ENG-02 — WSE2 startup capability research, City boot/mission contract and sandboxed validation fixture",
+        "ZOM-REC-01..03 — reconcile toolkit and tracker tests when possible"
+      ],
+      "owns": [
+        "tools/build.py",
+        "tools/doctor.py",
+        "tools/preflight.py",
+        "tools/patch_defenders.py",
+        "tools/city_defense.py",
+        "tools/all_map_defense.py",
+        "tools/wave_reinforcements.py",
+        "tools/tactical_recovery.py",
+        "tools/private_commands.py",
+        "docs/ENGINE.md",
+        "handoffs/SESSION_CONTRACT.md"
+      ],
+      "avoid": [
+        "tools/diagnostics.py",
+        "overlay/lua/main.lua",
+        "telemetry/**",
+        "launcher/**",
+        "installer/**"
+      ],
+      "later": [
+        "Gameplay bot combat and City positions only after runtime evidence",
+        "Original optional non-City maps stay out of first release"
+      ]
+    },
+    "B": {
+      "name": "Windows installer and solo launcher",
+      "branch": "agent/b-windows-launcher",
+      "ledgerIds": [
+        "ZOM-WIN-01",
+        "ZOM-WIN-02",
+        "ZOM-WIN-03",
+        "ZOM-SOLO-01",
+        "ZOM-SOLO-02",
+        "ZOM-LEGAL-01",
+        "ZOM-REL-01"
+      ],
+      "firstWave": [
+        "ZOM-WIN-01 — detector: Steam libraries, custom paths, WSE2 candidates and explicit ambiguity with fixture tests",
+        "ZOM-WIN-02 — reversible dry-run installer + manifest and rollback design",
+        "ZOM-SOLO-01 — private host lifecycle design with fake process, no runtime assertion"
+      ],
+      "owns": [
+        "launcher/**",
+        "installer/**",
+        "tests/test_windows_*.py",
+        "docs/WINDOWS_*.md",
+        "handoffs/AGENT_B.md"
+      ],
+      "avoid": [
+        "tools/build.py",
+        "tools/diagnostics.py",
+        "overlay/lua/**",
+        "progress/**",
+        "README.md",
+        "site/**"
+      ],
+      "later": [
+        "WIN-03 desktop shortcut and launcher UI",
+        "SOLO-02 auto-join gated on observed engine CLI"
+      ],
+      "existingIssues": [
+        8,
+        9
+      ]
+    },
+    "C": {
+      "name": "Flight recorder and forensic diagnostics",
+      "branch": "agent/c-flight-recorder",
+      "ledgerIds": [
+        "ZOM-OBS-01",
+        "ZOM-OBS-02",
+        "ZOM-PERF-01",
+        "ZOM-QA-01",
+        "ZOM-QA-02"
+      ],
+      "firstWave": [
+        "ZOM-OBS-02 — external crash-resistant, bounded local process/log sidecar with fixture tests",
+        "ZOM-OBS-01 — WSE2 Lua operations audit + event schema with unavailable/unknown semantics",
+        "ZOM-QA-01 — self-contained forensic evidence bundle including launcher metadata, redaction and SHA-256"
+      ],
+      "owns": [
+        "telemetry/**",
+        "tools/diagnostics.py",
+        "tools/tactical_analysis.py",
+        "tools/combat_analysis.py",
+        "tools/evidence_readiness.py",
+        "overlay/lua/**",
+        "tests/test_diagnostics.py",
+        "docs/DIAGNOSTICS.md",
+        "docs/FORENSIC_DIAGNOSTICS.md",
+        "handoffs/AGENT_C.md"
+      ],
+      "avoid": [
+        "tools/build.py",
+        "tools/patch_defenders.py",
+        "launcher/**",
+        "installer/**",
+        "progress/**",
+        "README.md",
+        "site/**"
+      ],
+      "later": [
+        "PERF-01 process, frame metric availability and profiling",
+        "QA-02 evidence report for the eventual one-time final integrated Windows City session"
+      ],
+      "existingIssues": [
+        6
+      ]
+    }
+  },
+  "interfaces": {
+    "installation": "Agent B discovers executable and original archive candidates; Agent A's tools/build.py remains source of truth for verified RAR and compilation. Agent B invokes it via subprocess/CLI. No private assets in repository.",
+    "session": "Agent B writes local JSON session receipt in per-user directory containing session ID, start/end timestamps, local-only launch mode, module build fingerprint and process status. Agent C consumes read-only; exact v1 contract documented by Agent A.",
+    "events": "Agent C owns ZDB1 Lua events and evidence schema; Agent A does not change Lua telemetry. Unknown getter remains unknown, never 0.",
+    "acceptance": "No runtime tests available until the one final user-guided Windows session. Offline tests may advance implementation but not release-acceptance counts."
+  },
+  "gates": [
+    {
+      "gate": "G0",
+      "goal": "Three independent offline implementations reviewable",
+      "requires": [
+        "A compiled preflight/mission static tests",
+        "B fixture-based discovery/dry-run",
+        "C crash simulation, integrity/redaction tests"
+      ],
+      "userAction": "none"
+    },
+    {
+      "gate": "G1",
+      "goal": "First actual WSE2 City probe with combined harness",
+      "requires": [
+        "A original archive and game compatibility",
+        "B local process orchestration",
+        "C independent recorder and expected manifest"
+      ],
+      "userAction": "one combined Windows evidence session once ready"
+    },
+    {
+      "gate": "G2",
+      "goal": "City first playable candidate",
+      "requires": [
+        "City zombie wave completes",
+        "At least two allied AI actually fight",
+        "Launcher one-click launch/join",
+        "diagnostics capture/verify/replay",
+        "licensing/repair/release review"
+      ],
+      "userAction": "Owner acceptance after evidence"
+    }
+  ]
+}
