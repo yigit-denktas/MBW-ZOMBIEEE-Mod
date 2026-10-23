@@ -115,6 +115,9 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
             "source_archive_sha256": digest,
             "target": "Warband 1.174 core / WSE2 1.1.5.4",
             "runtime_verified": False,
+            "archive_crc_verified": True,
+            "original_mission_trigger_count": preflight["mission"]["triggers"],
+            "final_trigger_count": 26 if experimental_defenders else 25,
             "preflight": preflight,
             "experimental_defender_patch": defender_report,
         }, indent=2) + "\n", encoding="utf-8")
