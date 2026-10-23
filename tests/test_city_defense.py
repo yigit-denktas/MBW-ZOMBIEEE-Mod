@@ -5,6 +5,8 @@ import shutil
 import sys
 import tempfile
 import unittest
+import copy
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 from patch_defenders import PatchError, index_troops, patch_text, mission_bounds
@@ -60,6 +62,38 @@ class CityDefenseTests(unittest.TestCase):
         self.assertEqual(check["faces"], decode_scene(raw)["faces"])
         with self.assertRaises(SceneError):
             apply_city_overlay(altered, plan)
+
+    def test_guard_posts_have_face_and_anchor_clearance(self):
+        raw = (self.module / "SceneObj" / "scn_tbfc_invasion_4.sco").read_bytes()
+        plan = plan_city(raw)
+        self.assertEqual(plan["nav_reachable_faces"], 201)
+        self.assertGreaterEqual(plan["min_prop_anchor_clearance"], 3.0)
+        self.assertTrue(all(post["nearest_prop_anchor"] >= 3.0
+                            for post in plan["guard_posts"]))
+        self.assertEqual([post["entry"] for post in plan["guard_posts"]], [2, 3, 4])
+        self.assertEqual([post["position"] for post in plan["guard_posts"]], [
+            [169.423, 169.376, 3.191], [185.19, 185.009, 3.191],
+            [146.25, 183.491, 3.191]])
+
+    def test_guard_posts_fail_closed_if_scene_prop_clearance_disappears(self):
+        raw = (self.module / "SceneObj" / "scn_tbfc_invasion_4.sco").read_bytes()
+        scene = copy.deepcopy(decode_scene(raw))
+        for face in scene["faces"]:
+            center = tuple(sum(scene["vertices"][v][d] for v in face) / len(face)
+                           for d in range(3))
+            scene["objects"].append({"type": 0, "entry": 0, "position": center,
+                                      "name": "synthetic_blocker"})
+        with mock.patch("scene_tactics.decode_scene", return_value=scene):
+            with self.assertRaisesRegex(SceneError, "clearance-screened"):
+                plan_city(raw)
+
+    def test_guard_posts_fail_closed_without_connected_faces(self):
+        raw = (self.module / "SceneObj" / "scn_tbfc_invasion_4.sco").read_bytes()
+        scene = copy.deepcopy(decode_scene(raw))
+        scene["edges"] = scene["edges"][:1]
+        with mock.patch("scene_tactics.decode_scene", return_value=scene):
+            with self.assertRaises(SceneError):
+                plan_city(raw)
 
     def test_truncated_scene_rejected(self):
         raw = (self.module / "SceneObj" / "scn_tbfc_invasion_4.sco").read_bytes()
