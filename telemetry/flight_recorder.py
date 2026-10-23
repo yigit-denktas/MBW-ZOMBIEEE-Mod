@@ -61,14 +61,14 @@ def bounded_window(head: bytes, tail: bytes, total: int, limit: int) -> tuple[by
     # The omission count can change marker length at a power of ten.
     omitted = max(0, total - len(head) - len(tail))
     for _ in range(8):
-        marker = (f"\\n[ZDB1-OMITTED {omitted} BYTES BETWEEN HEAD AND TAIL]\\n").encode()
+        marker = (f"\n[ZDB1-OMITTED {omitted} BYTES BETWEEN HEAD AND TAIL]\n").encode()
         room = max(0, limit - len(head) - len(marker))
         kept = tail[-room:] if room else b""
         actual = total - len(head) - len(kept)
         if actual == omitted:
             return head + marker + kept, omitted
         omitted = actual
-    marker = (f"\\n[ZDB1-OMITTED {omitted} BYTES BETWEEN HEAD AND TAIL]\\n").encode()
+    marker = (f"\n[ZDB1-OMITTED {omitted} BYTES BETWEEN HEAD AND TAIL]\n").encode()
     room = max(0, limit - len(head) - len(marker))
     return head + marker + (tail[-room:] if room else b""), omitted
 
