@@ -1,5 +1,14 @@
 # Work log
 
+## 2026-10-23 — 0.1.6: fall-back/regroup under pressure
+
+- Implemented native 3-second tactical controller for original ZOMBIEEE 0.4; one extra state global and two triggers appended after the v0.1.5 29-trigger module.
+- Mode 0 (HOLD): current-map guard posts. Mode 1 (FALLBACK): survivor entry 0. Only reserved team-0, AI-controlled divisions 5–7 are involved.
+- Casually depleted defenders at <=1 trigger fallback; after a later reinforcement recovery to >=3, squad receives map-specific regroup orders.
+- Integrated full offline original-module patch chain to 31 compiled triggers; original 25 unchanged; 1,222 globals total.
+- Expanded Lua event recorder with wave, round, tactical mode and optional bounded non-player defender movement samples; analyzer uses evidence-gated stall, mode-thrash and movement heuristics.
+- 37 tests passed in the local integration subset (original 0.4 tests and synthetic diagnostics); WSE2 runtime remains unverified. No CI, no intermediate user playtests.
+
 ## 2026-10-23 — 0.1.5: wave-limited reinforcements and five original maps
 
 - Located original `wave_number` (global ordinal 1209), `wave_counted`, `last_wave` and `wave_timer` inside original compiled invasion trigger 15.

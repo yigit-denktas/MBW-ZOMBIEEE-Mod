@@ -2,7 +2,7 @@
 
 Modernization of the **2012 ZOMBIEEE (Invasion) Beta 0.4** mod for *Mount & Blade: Warband*. Original contributors retain credit and ownership of their work.
 
-**Current project version:** `0.1.5` (development scaffold; **not yet playable/engine-verified**).  
+**Current project version:** `0.1.6` (development scaffold; **not yet playable/engine-verified**).  
 **Target:** Warband official 1.174 data format under [WSE2](https://github.com/Ruslan-700/WSE2-Releases/releases/tag/v1.1.5.4) 1.1.5.4 (14 October 2026).  
 **Scope:** preserve the original guns, zombies, wave mode, maps and feel; restore current-runtime compatibility; add AI survivor teammates, defensible hold points, quality-of-life features, private cheats, and later LAN co-op. **ZOMBIEEE2 is explicitly excluded.**
 
@@ -31,6 +31,7 @@ Install [WSE2](https://github.com/Ruslan-700/WSE2-Releases/releases/tag/v1.1.5.4
 - [Experimental allied defenders](docs/EXPERIMENTAL_DEFENDERS.md)
 - [City tactical defence overlay](docs/CITY_DEFENSE.md)
 - [Five-map defences and wave reinforcements](docs/FIVE_MAP_WAVES.md)
+- [Tactical fallback, regroup and movement diagnostics](docs/TACTICAL_RECOVERY.md)
 - [End-of-development diagnostics](docs/DIAGNOSTICS.md)
 - [Version history](CHANGELOG.md)
 
@@ -73,3 +74,11 @@ py -3 tools\build.py --archive "C:\Downloads\ZOMBIEEEBeta04.rar" --out "C:\Games
 ```
 
 The mode is disabled by default. Expected compiled invasion trigger counts: original **25**, allies **26**, map defences **27**, with wave reinforcement **29**. Changes to `variables.txt` and every modified original map are fingerprinted in the final-session diagnostic bundle. Offline scene/mission integration passed; **in-engine behavior is not verified**. [Details](docs/FIVE_MAP_WAVES.md).
+
+### Experimental v0.1.6 — tactical fallback and regroup
+
+A further opt-in native controller counts **living non-player team-0 defenders in reserved groups 5–7** every three seconds. On one or fewer survivors, they are ordered back to the original survivor spawn. Once the squad has recovered to at least three through the existing wave-limited reinforcements, they regroup at the current map's navigation-mesh-derived guard posts. The separate thresholds prevent repeated order switching.
+
+    py -3 tools\build.py --archive "C:\Downloads\ZOMBIEEEBeta04.rar" --out "C:\Games\MountBlade Warband\Modules\ZOMBIEEE_Remaster" --experimental-defenders 4 --all-map-defenses --wave-reinforcements --tactical-recovery
+
+This option requires at least 3 defenders. The full variant contains **31** compiled invasion triggers and **1,222** globals; all 25 original triggers are retained. The default remains the unmodified original 25-trigger invasion. Final-session diagnostics now inspect real wave/tactical values, stalled waves, oscillation and optional defender movement samples when WSE2 exposes the required getters. **No gameplay is yet verified.** Read [the tactical recovery report](docs/TACTICAL_RECOVERY.md).

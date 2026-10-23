@@ -48,3 +48,7 @@ No intermediate user playtest reports are required. Continue development and off
     .\tools\Collect-Diagnostics.ps1 -WarbandRoot 'C:\Program Files (x86)\Steam\steamapps\common\MountBlade Warband' -Session final-solo
 
 This creates a locally stored redacted evidence ZIP and analyzer report under evidence/. Review the bundle before sharing. See [DIAGNOSTICS.md](DIAGNOSTICS.md). Native engine gameplay cannot be certified from unit tests alone.
+
+## Final integrated tactical recovery check (after development)
+
+Build the experimental 31-trigger variant with --experimental-defenders 4 --all-map-defenses --wave-reinforcements --tactical-recovery. In one private WSE2 session, allow casualties, inspect fallback to survivor spawn and regroup after subsequent wave reinforcement; check that zombie paths and all five maps remain intact. Exit and collect one local evidence archive with tools/Collect-Diagnostics.ps1. The analyzer will report wave/mode state, candidate stalls and optional movement data. No intermediate playtesting is expected.

@@ -1,4 +1,4 @@
-# End-of-development diagnostic recorder (v0.1.5)
+# End-of-development diagnostic recorder (v0.1.6)
 
 **No step-by-step game testing required.** Continue development and local static verification normally. After the final build is ready, play one private WSE2 session, exit the game, and run the collector once. It packages evidence for later analysis rather than making you troubleshoot each intermediate build.
 
@@ -41,7 +41,7 @@ Pass comparison ZIP paths explicitly, in chronological order. Comparison reports
 | R011 | Lua bootstrap event absent |
 | R012 | No invasion entry despite bootstrap event |
 | R013 | Mission entered but heartbeat absent |
-| R014 | Wrong trigger count (25 original, 26 with defenders, 27 with tactical positions, 29 with wave reinforcements) |
+| R014 | Wrong trigger count (25 original, 26 with defenders, 27 with tactical positions, 29 with wave reinforcements, 31 with recovery) |
 | R015 | Logs older than seven days, potentially unrelated |
 | R016 | WSE2 Lua diagnostic hook failed to register |
 | R017 | Installed module manifest missing; cannot correlate build and runtime |
@@ -64,3 +64,13 @@ The v0.1.4 installer records `final_trigger_count=27` if `--city-guardposts` is 
 ## v0.1.5 build provenance
 
 The collector fingerprints `variables.txt` (including the optional reinforcement sentinel) and all five original `SceneObj/scn_tbfc_invasion_*.sco` scene files in addition to the compiled mission, troop data, and Lua bootstrap. It does **not** package original game assets. The actual `final_trigger_count` is recorded by the installer for 25/26/27/29 variants. At final runtime test, compare the installed build fingerprint with that manifest before assuming the wrong code is running.
+
+## v0.1.6 tactical and movement observability
+
+The recorder now tries to read wave_number, g_round_ended, zdr_last_reinforced_wave and zdr_defence_mode from WSE2's documented game.gvar interface. If a global is missing, it records -1: not available. It emits a bounded heartbeat every 15 seconds, plus wave_change and tactical_change events.
+
+Optional agent_sample records only reserved AI survivor divisions (5–7), when WSE2 exposes the necessary operation getter functions: agent ID, group, current tactical mode and rounded game-world X/Y. It records at most 16 bots per heartbeat. **This position function may be unavailable without WSE2 Module System headers**; missing samples are reported as unknown, not as a false stuck-agent diagnosis.
+
+New analyzer rules: R019 candidate stalled wave (>=9 heartbeats on one wave while zombies remain), R020 rapid fallback/regroup oscillation, R021 apparent failure to regroup despite healthy-looking team-0 counts, R022 unusually stationary defenders *after* a tactical state change. These are conservative heuristics, never proof of causality. Static hold-position behaviour without a new order should not generate R022.
+
+The full experimental build receipt records final_trigger_count=31 plus the tactical low/high thresholds. Original assets, executable and the RAR are still excluded from Git and from diagnostic bundles. [Tactical recovery design](TACTICAL_RECOVERY.md).

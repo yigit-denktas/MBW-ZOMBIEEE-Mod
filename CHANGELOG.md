@@ -2,6 +2,19 @@
 
 Uses [Semantic Versioning](https://semver.org/) for the remaster, not the historical original.
 
+## [0.1.6] - 2026-10-23
+
+### Added
+- Opt-in server-authoritative defender HOLD/FALLBACK state machine. Detect casualties across private groups 5–7; fall back at <=1 remaining bot, regroup at >=3 surviving bots, issue orders only when state changes.
+- Preserve original wave, map and zombie logic. Append two compiled mission triggers and one global without renumbering existing data: 31 total triggers and 1,222 total globals in the complete experimental build.
+- WSE2 Lua diagnostics read actual original wave and round globals and the appended tactical-state global through the documented game.gvar interface.
+- Bounded wave and mode transition logging and optional defender position samples (graceful unavailable behavior without WSE operation bindings).
+- Offline analysis signals for candidate stalled waves, tactical oscillation, apparently ineffective regrouping, and immobile defenders after a state change; stationary guard posts alone are not treated as stuck.
+- Guarded installer flag --tactical-recovery, dependency checks and expanded local regression coverage.
+
+### Still unverified
+- WSE2/Windows execution, bot pathing, retreat arrival, firefights, wave completion, multiplayer replication and exact frame-time impact. No CI.
+
 ## [0.1.5] - 2026-10-23
 
 ### Added
