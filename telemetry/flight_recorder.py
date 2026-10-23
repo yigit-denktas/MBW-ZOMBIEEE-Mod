@@ -35,6 +35,18 @@ RECEIPT_KEYS = (
 )
 
 
+def refuse_links_on_parents(path: Path) -> None:
+    """Check each lexical path component before private read/write operations."""
+    candidate = Path(path).expanduser().absolute()
+    for entry in [candidate, *candidate.parents]:
+        try:
+            meta = entry.lstat()
+        except FileNotFoundError:
+            continue
+        if entry.is_symlink() or getattr(meta, "st_file_attributes", 0) & 0x400:
+            raise ValueError("Unsafe recorder path link or reparse point")
+
+
 def refuse_links_in_tree(root: Path) -> None:
     """Reject symlinks and Windows reparse points, including ancestor dirs.
 
@@ -116,6 +128,7 @@ def digest(data: bytes) -> str:
 
 def atomic_write(path: Path, data: bytes) -> None:
     """Replace a complete snapshot; never expose a partially written report."""
+    refuse_links_on_parents(path)
     temp = path.with_name(path.name + ".tmp")
     temp.unlink(missing_ok=True)  # a recorder crash may leave an orphan snapshot
     try:
@@ -248,7 +261,8 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
     if len(logs) > MAX_LOGS:
         raise ValueError("Too many log files")
     receipt = safe_launcher_receipt(launcher_receipt)
-    base = output_root.expanduser().resolve()
+    base = output_root.expanduser().absolute()
+    refuse_links_on_parents(base)
     root = base / session_id
     root.mkdir(parents=True, exist_ok=False)
     if os.name != "nt":
@@ -368,6 +382,7 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
         path = root / ("recorder-" + kind + ".json")
         if not path.exists():
             return None
+        refuse_links_on_parents(path)
         if path.is_symlink() or (getattr(path.lstat(), "st_file_attributes", 0) & 0x400):
             event("control_rejected", kind=kind, reason="unsafe_file")
             return None
@@ -472,6 +487,8 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
                             "recorder_start_id": recorder_start_id,
                             "attachment_accepted": True,
                             "game_ready": False,
+                            "simulation": bool(simulation),
+                            "game_runtime": "unknown",
                             "accepted_utc": utcnow(),
                         }))
                     else:
