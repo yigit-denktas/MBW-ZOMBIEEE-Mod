@@ -1,0 +1,4 @@
+interface:
+  display_name: "Use project records"
+  short_description: "Find tracking authority and select the right workflow"
+  default_prompt: "Use $use-project-records to handle this repository’s tracking request or interrupted setup."

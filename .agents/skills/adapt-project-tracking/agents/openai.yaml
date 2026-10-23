@@ -1,0 +1,4 @@
+interface:
+  display_name: "Adapt project tracking"
+  short_description: "Reconcile and restore an existing project tracker"
+  default_prompt: "Use $adapt-project-tracking to scout this repository and adapt its existing tracking system."
