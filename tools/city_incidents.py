@@ -12,6 +12,7 @@ import re
 
 SCHEMA = "zombieee.city-incident.v1"
 CITY = "tbfc_invasion_4"
+INVASION_TEMPLATES = frozenset(("multiplayer_iv", "mst_multiplayer_iv"))
 CITY_RE = re.compile(r"(?:scn_)?tbfc_invasion_[1-5]\Z")
 LOG_RE = re.compile(r"logs/log_[0-9]{2}\.txt\Z")
 TRACKED = {
@@ -183,9 +184,10 @@ def incident_for_session(events, recorder_events, installed, flight, findings,
         line = measured(event.get("line"), minimum=1)
         observed_boot |= kind == "boot"
         is_server = fields.get("role") == "server"
-        if kind == "mission_enter" and is_server:
+        is_invasion = is_server and fields.get("template") in INVASION_TEMPLATES
+        if kind == "mission_enter" and is_invasion:
             observed_server_mission = True
-        if kind in ("heartbeat", "mission_enter") and is_server:
+        if kind in ("heartbeat", "mission_enter") and is_invasion:
             scene = clean_scene(fields.get("scene"))
             if scene is not None:
                 observed_scenes.add(scene)
@@ -253,7 +255,7 @@ def incident_for_session(events, recorder_events, installed, flight, findings,
                 point["kills"] = measured(fields.get("kills"))
         if kind == "command_exec":
             commands += 1
-        if kind == "mission_enter" and is_server:
+        if kind == "mission_enter" and is_invasion:
             scene = clean_scene(fields.get("scene"))
             if scene:
                 point["scene"] = scene
