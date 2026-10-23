@@ -386,7 +386,13 @@ def to_markdown(report: dict) -> str:
     for f in report["findings"]:
         lines.extend([f"### {f['id']} — {f['title']} ({f['severity']})", "", f"Action: {f['action']}", ""])
         for ex in f.get("examples", [])[:3]:
-            lines.append(f"- {ex['file']}:{ex['line']} — {ex['excerpt'].replace(chr(96), chr(39))}")
+            # Native log findings carry file/line/excerpt. Tactical and combat
+            # heuristics instead carry agent IDs, groups and wave numbers.
+            # They must not crash the final Markdown report.
+            if all(key in ex for key in ("file", "line", "excerpt")):
+                lines.append(f"- {ex['file']}:{ex['line']} — {str(ex['excerpt']).replace(chr(96), chr(39))}")
+            else:
+                lines.append("- " + json.dumps(ex, sort_keys=True))
         lines.append("")
     lines.extend(["## Interpretation", "", report["caveat"], "",
                   "Bundle contains redacted logs only. Review contents before sharing.", ""])
