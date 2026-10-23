@@ -6,7 +6,7 @@ working gameplay merely because its byte stream decodes successfully.
 """
 from __future__ import annotations
 
-from wave_reinforcements import GLOBAL_BASE, ORIGINAL_GLOBALS, GROUPS, SENTINEL, INVASION_GAME_TYPE, WAVE_CHANGED
+from wave_reinforcements import GLOBAL_BASE, ORIGINAL_GLOBALS, GROUPS, SENTINEL, ROUND_STAMP, INVASION_GAME_TYPE, WAVE_CHANGED, ROUND_OR_WAVE_CHANGED
 from tactical_recovery import TACTICAL_GLOBAL
 
 
@@ -61,7 +61,7 @@ def inspect_city_ai(original_triggers: list[str], final_triggers: list[str],
 
     if len(original_triggers) != 25 or len(final_triggers) < 31:
         raise ValueError('Expected original 25 and final 31 City triggers')
-    if len(original_variables) != ORIGINAL_GLOBALS or len(final_variables) < ORIGINAL_GLOBALS + 2:
+    if len(original_variables) != ORIGINAL_GLOBALS or len(final_variables) < ORIGINAL_GLOBALS + 3:
         raise ValueError('Expected original and City global-variable tables')
     game_name = 'g_multiplayer_game_type'
     if original_variables.count(game_name) != 1:
@@ -94,6 +94,8 @@ def inspect_city_ai(original_triggers: list[str], final_triggers: list[str],
     g_wave = GLOBAL_BASE + original_variables.index('wave_number')
     g_ended = GLOBAL_BASE + original_variables.index('g_round_ended')
     g_last = GLOBAL_BASE + final_variables.index(SENTINEL)
+    g_round_stamp = GLOBAL_BASE + final_variables.index(ROUND_STAMP)
+    g_original_round_start = GLOBAL_BASE + original_variables.index('g_round_start_time')
     g_mode = GLOBAL_BASE + final_variables.index(TACTICAL_GLOBAL)
     # Unlike a new mission, starting a new invasion round does not reliably
     # re-run our one-shot after_mission_start initializer. The untouched game
@@ -104,14 +106,19 @@ def inspect_city_ai(original_triggers: list[str], final_triggers: list[str],
     original_round_reset_points = (7, 10)
     require('original_wave_resets_between_rounds',
             all((2133, (g_wave, 0)) in decode_trigger(original_triggers[i])[1]
-                for i in original_round_reset_points),
-            'The historical mission no longer resets wave_number as expected')
+                for i in original_round_reset_points) and
+            (2370, (g_original_round_start,)) in decode_trigger(original_triggers[10])[1],
+            'The historical mission no longer resets wave and stamps the round as expected')
     require('reinforcement_once_per_wave',
             [(opcode, args) for opcode, args in wave_conditions
-             if g_last in args] == [(WAVE_CHANGED, (g_wave, g_last))] and
+             if g_last in args or g_round_stamp in args] == [
+                (ROUND_OR_WAVE_CHANGED, (g_original_round_start, g_round_stamp)),
+                (WAVE_CHANGED, (g_wave, g_last))] and
             [(opcode, args) for opcode, args in wave_ops
-             if g_last in args] == [(2133, (g_last, g_wave))],
-            'Reinforcements must follow a changed wave including round resets')
+             if g_last in args or g_round_stamp in args] == [
+                (2133, (g_round_stamp, g_original_round_start)),
+                (2133, (g_last, g_wave))],
+            'Reinforcements must match round identity AND the wave per round')
     require('reinforcement_round_active', (31, (g_ended, 0)) in wave_conditions,
             'Reinforcements could run after the round ended')
     require('recovery_round_active', (31, (g_ended, 0)) in recovery_conditions,
