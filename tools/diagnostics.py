@@ -51,7 +51,7 @@ def privacy_audit(payload: dict[str, bytes]) -> dict:
         "email": re.compile(r"\b[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}\b"),
         "ipv4": re.compile(r"(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d.])"),
         "steam_id": re.compile(r"(?<!\d)7656119\d{10}(?!\d)"),
-        "home_path": re.compile(r"(?i)(?:[a-z]:\\Users\\|/Users/|/home/)[^\s\\"']+"),
+        "home_path": re.compile(r"(?i)(?:[a-z]:\\Users\\|/Users/|/home/)[^\s]+"),
         "credential_label": re.compile(r"(?i)\b(?:api[_-]?key|auth[_-]?token|authorization|password|passwd)\b\s*[:=]\s*(?!<REDACTED>)\S+"),
     }
     counts = {key: 0 for key in patterns}
