@@ -152,12 +152,51 @@ def safe_launcher_receipt(path: Path | None) -> dict | None:
     return clean
 
 
-def alive(pid: int) -> bool | None:
-    """Best-effort external PID observation; no exit-code inference."""
-    if pid <= 0:
-        return None
+def windows_pid_alive(pid: int, kernel=None) -> bool | None:
+    """Read-only process liveness check: NEVER send a Windows signal.
+
+    Windows os.kill(pid, 0) may call TerminateProcess, unlike POSIX kill(0).
+    SYNCHRONIZE plus WaitForSingleObject obtains process state without
+    changing the game. A failed access query is unknown, not 'dead'.
+    The optional kernel argument permits OS-independent fake-handle tests.
+    """
+    import ctypes
+
+    supplied_kernel = kernel is not None
+    if kernel is None:
+        kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel.OpenProcess.argtypes = (ctypes.c_uint32, ctypes.c_int, ctypes.c_uint32)
+        kernel.OpenProcess.restype = ctypes.c_void_p
+        kernel.WaitForSingleObject.argtypes = (ctypes.c_void_p, ctypes.c_uint32)
+        kernel.WaitForSingleObject.restype = ctypes.c_uint32
+        kernel.CloseHandle.argtypes = (ctypes.c_void_p,)
+        kernel.CloseHandle.restype = ctypes.c_int
     try:
-        os.kill(pid, 0)
+        handle = kernel.OpenProcess(0x00100000, False, pid)  # SYNCHRONIZE only
+        if not handle:
+            error = getattr(kernel, "last_error", None) if supplied_kernel else ctypes.get_last_error()
+            return False if error == 87 else None  # ERROR_INVALID_PARAMETER
+        try:
+            result = kernel.WaitForSingleObject(handle, 0)
+            if result == 0:  # WAIT_OBJECT_0: process exited
+                return False
+            if result == 0x102:  # WAIT_TIMEOUT: still running
+                return True
+            return None  # WAIT_FAILED or unexpected condition
+        finally:
+            kernel.CloseHandle(handle)
+    except (OSError, ValueError):
+        return None
+
+
+def alive(pid: int) -> bool | None:
+    """Read-only best-effort liveness; no exit-code or PID-ownership inference."""
+    if type(pid) is not int or pid <= 0:
+        return None
+    if os.name == "nt":
+        return windows_pid_alive(pid)
+    try:
+        os.kill(pid, 0)  # POSIX existence probe only, never used on Windows
         return True
     except ProcessLookupError:
         return False
