@@ -4,9 +4,10 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from installer.manifest import plan_install
+from installer.manifest import plan_install, audit_archive
 from test_windows_discovery import pe, directory_link
 
 
@@ -75,3 +76,25 @@ class ManifestTests(unittest.TestCase):
         self.assertEqual(plan['build_argv'][3], str(self.archive))
         self.assertFalse(plan['execution_enabled'])
         self.assertEqual(before, sorted(str(p) for p in self.root.rglob('*')))
+
+    def audit_tool(self, output, exit_code=0):
+        tool = self.root / 'fake archive audit.py'
+        tool.write_text('import sys\nprint(' + repr(output) + ')\nsys.exit(' + str(exit_code) + ')\n')
+        return tool
+
+    def test_archive_audit_uses_shared_cli_and_keeps_crc_unknown(self):
+        tool = self.audit_tool(json.dumps({'identity_ok': True, 'crc_status': 'not_checked'}))
+        with patch('installer.manifest.ARCHIVE_AUDIT', tool):
+            plan = plan_install(self.root, self.archive, 'audit', audit=True)
+        self.assertNotIn('archive_digest_unverified', plan['blockers'])
+        self.assertIn('archive_crc_unverified', plan['blockers'])
+        self.assertFalse(plan['execution_enabled'])
+        self.assertTrue(plan['archive_audit']['identity_ok'])
+
+    def test_audit_missing_tool_invalid_output_and_failed_identity_remain_unknown(self):
+        self.assertEqual(audit_archive(self.archive, self.root / 'missing.py')['status'], 'unavailable')
+        for output, code in [('not json', 0), ('[]', 0), ('{"identity_ok": "true"}', 0),
+                             ('{"identity_ok": true}', 2)]:
+            with self.subTest(output=output):
+                result = audit_archive(self.archive, self.audit_tool(output, code))
+                self.assertIsNot(result['identity_ok'], True)

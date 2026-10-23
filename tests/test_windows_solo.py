@@ -96,11 +96,20 @@ class SoloTests(unittest.TestCase):
             with self.subTest(endpoint=endpoint), self.assertRaises(ValueError):
                 Session(endpoint=endpoint)
         receipt = Session().receipt()
-        self.assertEqual(receipt['map'], 'tbfc_invasion_4')
+        self.assertEqual(receipt['city'], 'tbfc_invasion_4')
         self.assertEqual(receipt['mission'], 'multiplayer_iv')
         self.assertEqual(receipt['endpoint'], '127.0.0.1')
         with self.assertRaises(ValueError):
             Session(route='public')
+
+    def test_shared_receipt_envelope_preserves_unobserved_runtime_fields(self):
+        receipt = Session().receipt()
+        self.assertEqual(receipt['schema'], 'zombieee.session.v1')
+        self.assertEqual(receipt['mode'], 'private-local-city')
+        self.assertEqual(receipt['outcome'], 'unknown')
+        for key in ('build_manifest_sha256', 'wse2_version', 'start_utc', 'end_utc',
+                    'host_pid', 'client_pid', 'host_exit_code', 'evidence_bundle'):
+            self.assertIsNone(receipt[key])
 
     def test_stop_is_idempotent_and_early_join_rejected(self):
         h = FakeHarness()

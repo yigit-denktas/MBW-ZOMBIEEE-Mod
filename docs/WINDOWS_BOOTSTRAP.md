@@ -14,6 +14,7 @@ python -m launcher.discovery
 python -m launcher.discovery --steam-root 'D:\Steam Library' --custom-path 'D:\Owned Game' --custom-path 'D:\Local Tools\wse2_launcher.exe'
 python -m launcher.discovery --no-known-folders --custom-path 'D:\Owned Game'
 python -m installer.manifest --game-root 'D:\Owned Game' --archive 'D:\Downloads\ZOMBIEEEBeta04.rar' --transaction-id review-01
+python -m installer.manifest --game-root 'D:\Owned Game' --archive 'D:\Downloads\ZOMBIEEEBeta04.rar' --transaction-id audit-01 --audit-archive-hash
 python -m unittest discover -s tests -v
 ```
 
@@ -80,8 +81,16 @@ The builder argv uses the current Python interpreter and existing
 `Modules/.zombieee-stage-ID/ZOMBIEEE_Remaster`, never the live target, and
 `--replace` is not supplied. Archive digest, 7-Zip integrity, extraction and
 compiled module validation remain the existing builder's responsibility.
-The archive is not hashed by the planner, so `archive_digest_unverified`
-always remains a blocker. No builder process runs in this slice.
+By default the archive is not hashed and `archive_digest_unverified` remains a
+blocker. `--audit-archive-hash` consumes Agent A's `tools/archive_audit.py` as a
+read-only subprocess with `--archive ... --json`, without duplicating hash
+policy. The tool is on A's branch and unavailable on the v0.1.8 base until
+integration. An absent tool, invalid report, timeout or rejected identity remains
+a structured blocker; only successful boolean `identity_ok:true` removes the
+digest blocker. `archive_crc_unverified` remains because this invocation does
+not request a 7-Zip member test. `archive_audit` and `archive_audit_argv` expose
+these observations and the exact planned invocation. No builder process runs
+in this slice.
 
 Proposed transaction sequence, **not implemented**:
 
@@ -115,8 +124,12 @@ These are requirements for a later installer; this module cannot perform them.
 `Session(route='dedicated'|'listen', endpoint='127.0.0.1', timeout=30)` models
 alternatives, not a selected engine route. `handle(event, now, **data)` consumes
 monotonic timestamps and returns action strings. It imports no process or
-network APIs. `receipt()` is an in-memory simulation snapshot, not Agent C's
-evidence receipt and not an on-disk session log.
+network APIs. `receipt()` is an in-memory simulation snapshot using Agent A's
+provisional `zombieee.session.v1` envelope, with additive simulation/lifecycle
+fields. Unobserved PIDs, versions, fingerprints, timestamps, exit codes and
+evidence references stay null; outcome stays unknown. It is not an on-disk
+session log or proof of runtime evidence. `session_id=simulation-N` is local
+to this model instance; a real adapter must allocate unique opaque IDs.
 
 | State/event | Result |
 | --- | --- |

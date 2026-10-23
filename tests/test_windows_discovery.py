@@ -47,9 +47,9 @@ class DiscoveryTests(unittest.TestCase):
         steam = self.root / 'Steam'
         extra = self.root / 'Other Library'
         (steam / 'steamapps').mkdir(parents=True)
-        game = self.game(extra / 'steamapps/common/My Warband')
+        game = self.game(extra / 'steamapps/common/My Wårband 城市')
         (extra / 'steamapps/appmanifest_48700.acf').write_text(
-            '"AppState" { "appid" "48700" "installdir" "My Warband" }')
+            '"AppState" { "appid" "48700" "installdir" "My Wårband 城市" }', encoding='utf-8')
         (steam / 'steamapps/libraryfolders.vdf').write_text(
             '"libraryfolders" { "0" { "path" ' + json.dumps(str(extra)) + ' } }')
         report = discover([steam])

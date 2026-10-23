@@ -22,9 +22,14 @@ class Session:
         self.last_time = float('-inf')
 
     def receipt(self):
-        return {'schema_version': 1, 'simulation': True, 'runtime_verified': False,
+        return {'schema': 'zombieee.session.v1', 'session_id': 'simulation-' + str(self.attempt),
+                'mode': 'private-local-city', 'city': 'tbfc_invasion_4',
+                'build_manifest_sha256': None, 'wse2_version': None,
+                'start_utc': None, 'end_utc': None, 'host_pid': None, 'client_pid': None,
+                'host_exit_code': None, 'outcome': 'unknown', 'evidence_bundle': None,
+                'schema_version': 1, 'simulation': True, 'runtime_verified': False,
                 'route': self.route, 'endpoint': self.endpoint,
-                'map': 'tbfc_invasion_4', 'mission': 'multiplayer_iv',
+                'mission': 'multiplayer_iv',
                 'state': self.state, 'error': self.error,
                 'attempt': self.attempt, 'processes': sorted(self.active)}
 
