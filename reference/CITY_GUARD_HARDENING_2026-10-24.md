@@ -34,3 +34,5 @@ Minimum post separation in new placement: **22.20** scene units; all three posit
 **Remaining:** mandatory final session must show actual survivor spawns, path traversal from home to all three posts, no stuck bots, valid intended hold orders, attack/kill/ammo observations if available, and viable zombie wave progression. Static proximity, area and connectivity do not prove bot movement, line of sight, projectiles or hitboxes.
 
 WSE2 route selection and engine provenance: [`docs/WSE2_CITY_BOOT_CONTRACT.md`](../docs/WSE2_CITY_BOOT_CONTRACT.md). Full Windows archive member test and Windows original-asset static source replay were separately reported as passed by Agent B before this geometry revision; B's 131-test source result must not be represented as a run of the new 134-test code.
+
+> **Subsequent 2026-10-24 native update:** the City geometry above is unchanged, but the remaster wave state now stores an additional round-start marker. The current source suite is **140/140**, and all original trigger preservation / City scene checks still pass. See [round-aware wave report](CITY_ROUND_AWARE_REINFORCEMENT_2026-10-24.md). The earlier 134-test run is historical.
