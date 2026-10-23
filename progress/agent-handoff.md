@@ -70,3 +70,10 @@ C has pushed implementation updates for log head/tail and path checks, but compa
 - The City-only **builder itself** now saves temporary original source evidence before patching and fails closed if the post-31-trigger City output does not satisfy that audit; optional private hotkeys/solo assist are added only after acceptance. The local build receipt records checked City digests with runtime=false.
 - **20 local replay tests passed:** 8 archive identity/CRC fixtures, 6 preflight fixtures, 6 City acceptance fixtures including a corrupted-scene negative control. This is **not** the full exact GitHub checkout test suite and does not verify WSE2/Warband gameplay.
 - No CI, original assets in Git, automatic merges, or additional acceptance awarded. 0/23 City outcome gates remain accepted.
+
+### Integration close-out — branches merged into main `4c56242` (2026-10-24)
+
+- Merged reviewed heads: A `d3dbef5` → `9eed34b`; C `675188a` → `0fe86a4`; B `d41aefc` → `4c56242`. Remote `main` is `4c5624259ed9ce876da06d1996e728c63666a398`; PRs #10/#12/#11 merged; head branches deleted.
+- Windows suites at merge time: A **158 OK/0 skips**; C **112 focused OK/3 skips**, **204 full OK/33 skips**; B **162 OK/39 skips**; merged main **340 OK/4 skips**. Conflicts only in `tools/evidence_readiness.py` (took C's newer gating + capability snapshot) and `tests/test_evidence_readiness.py` (kept A's superset).
+- **Incident conclusions:** trigger-14 `Invalid Faction ID:-1` is original Beta 0.4 trailing `faction_set_slot(-1,200,trp_invader_multiplayer_ai)` content, non-fatal and not proven causal; probe `mode` is `zdr_defence_mode`, not game type; dedicated `role=client`/trigger-32 lvalue were one WSE2 msfiles operation-metadata defect, fixed by C in `675188a` with the signed wire unchanged.
+- **Open:** no runtime acceptance. One corrected-probe controlled City observation (Lead-coordinated), B post-merge verification, the transient B/C file-replace race (`ZOM-DISC-22`), and the original required outcomes/installer/legal gates remain. Required City outcomes stay **0/23**, milestones **0/5**.

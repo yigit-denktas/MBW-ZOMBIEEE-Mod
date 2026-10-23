@@ -28,3 +28,7 @@ Publish the interactive **public-only tracker now** from branch `gh-pages` at re
 ## Three-agent allocation refresh
 
 Public `gh-pages` JSON is a reviewed snapshot of `progress/ledger.json`. The current refresh adds per-leaf implementation ownership (A/B/C) and removes the City release's incorrect dependency on optional five-map work; acceptance stays 0/23. The static view must offer an agent filter and must not expose private assessment data or engine logs. Agent A is the only publisher/ledger editor.
+
+## Publication refresh after branch unification — 2026-10-24
+
+Public `gh-pages` content was refreshed from the canonical tracker: `progress/ledger.json` is copied byte-identically to `gh-pages/progress/ledger.json`, and `index.html` carries the updated source line (merged main `4c56242`). The published branch contains only `index.html`, `.nojekyll`, `progress/ledger.json` and a short public `README.md`; no agent assessment details, private logs, assets, credentials or CI. Interactive browser/assistive verification of the refreshed revision remains pending. The public discovered fraction (21/22 bounded supporting work) must not be combined with the 0/23 required City-release measure.

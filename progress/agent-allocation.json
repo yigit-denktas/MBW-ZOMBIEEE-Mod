@@ -6,14 +6,14 @@
   "recordBranch": "project-record-setup-v041",
   "trackerUrl": "https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/",
   "releaseScope": "City first; non-City maps deferred; 23 required leaves / one optional expansion",
-  "releaseEvidence": "2026-10-24: B reports genuine loopback-only WSE2 dedicated host boot and City mission map selection, four source-unattributed engine faction errors. No observed join/wave/AI acceptance or sealed C evidence. Original 23 release outcomes unchanged; 18 supplemental discovered leaves tracked separately.",
+  "releaseEvidence": "2026-10-24: reviewed A/B/C branches merged into main 4c56242 (merge commits 9eed34b/0fe86a4/4c56242). Windows suites: A 158 OK/0 skips, C 112 focused OK/3 skips and 204 full OK/33 skips, B 162 OK/39 skips, merged main 340 OK/4 skips. First real WSE2 host session (historical A141a792/Ce455354) observed loopback-only host, joined client and team1=0/wave=0; trigger-14 faction errors decoded as original non-causal content, trigger-32 root cause (WSE2 msfiles op metadata) fixed in C 675188a. No versioning/runtime acceptance: original 23 release outcomes unchanged at 0/23; 22 supplemental discovered leaves tracked separately.",
   "coordination": {
     "lead": "Agent A",
     "handoff": "GitHub branch/PR + evidence, never chat-only handoffs",
     "integrator": "Agent A",
     "user": "Acceptance authority",
-    "branchesFrom": "main at 048564a526de9b36abd55874271c7b80f36e5cf5",
-    "approval": "Agents may implement/review in own branch; no blind automatic merge, no CI, no Pages edits by agents B/C.",
+    "branchesFrom": "original main 048564a526de9b36abd55874271c7b80f36e5cf5; reviewed branches merged into main 4c5624259ed9ce876da06d1996e728c63666a398",
+    "approval": "Owner requested branch unification; agents implemented/reviewed in their own branches, then integration merged the three reviewed heads (no unreviewed automatic merge, no CI, no B/C Pages edits). Owner retains release acceptance.",
     "updates": "Only Agent A edits progress/ledger.json and republishes public gh-pages snapshot after scope/evidence review; others propose updates in PR.",
     "privacy": "Never commit original RAR, game assets, Windows user paths, logs containing identity, secrets or private readiness assessments.",
     "integrationRule": "No merge PR #10/#11/#12 until exact branch suite is exercised and identified blockers fixed. Merge then as offline implementation only, never release acceptance.",
@@ -78,8 +78,12 @@
         "ZOM-DISC-12",
         "ZOM-DISC-13",
         "ZOM-DISC-14",
-        "ZOM-DISC-16"
-      ]
+        "ZOM-DISC-16",
+        "ZOM-DISC-20",
+        "ZOM-DISC-21"
+      ],
+      "mergedIntoMain": "4c5624259ed9ce876da06d1996e728c63666a398",
+      "branchState": "merged-and-auto-deleted (local worktree retained for verification)"
     },
     "B": {
       "name": "Windows installer and solo launcher",
@@ -128,8 +132,11 @@
       ],
       "discoveredLedgerIds": [
         "ZOM-DISC-07",
-        "ZOM-DISC-08"
-      ]
+        "ZOM-DISC-08",
+        "ZOM-DISC-22"
+      ],
+      "mergedIntoMain": "4c5624259ed9ce876da06d1996e728c63666a398",
+      "branchState": "merged-and-auto-deleted (local worktree retained for verification)"
     },
     "C": {
       "name": "Flight recorder and forensic diagnostics",
@@ -185,8 +192,11 @@
         "ZOM-DISC-11",
         "ZOM-DISC-15",
         "ZOM-DISC-17",
-        "ZOM-DISC-18"
-      ]
+        "ZOM-DISC-18",
+        "ZOM-DISC-19"
+      ],
+      "mergedIntoMain": "4c5624259ed9ce876da06d1996e728c63666a398",
+      "branchState": "merged-and-auto-deleted (local worktree retained for verification)"
     }
   },
   "interfaces": {
@@ -230,54 +240,134 @@
     }
   ],
   "integrationReviews": {
-    "PR11": {
-      "branch": "agent/b-windows-launcher",
-      "head": "d096c21f43d6ed0988e2d4a0ebd669eaad48f24c",
-      "reviewedOn": "2026-10-23",
-      "status": "changes-needed",
-      "reportedTests": {
-        "total": 127,
-        "pass": 97,
-        "skipped": 30,
-        "independentlyReproduced": false
+    "PR10": {
+      "branch": "agent/a-city-engine",
+      "head": "d3dbef500045062fa9324ada594494a2aaa72f3e",
+      "mergeCommit": "9eed34b9e3d66a03fe00b9a35553eba09c0a4e81",
+      "reviewedOn": "2026-10-24",
+      "status": "merged",
+      "safeToMerge": true,
+      "suites": {
+        "total": 158,
+        "skips": 0,
+        "failures": 0,
+        "errors": 0,
+        "command": "python -m unittest discover -s tests -q",
+        "note": "Windows 11 / Python 3.11.9 with owned original module and pinned archive"
       },
-      "blockers": [
-        "recorder before game with authenticated session/attempt and live recorder identity",
-        "distinct game-ready/client-joined/mission-entered transitions",
-        "safe raw input link/junction detection"
-      ],
-      "reviewComment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11#issuecomment-6373896560",
-      "safeToMerge": false,
-      "latestReview": "Await B source changes implementing waiting_recorder; C passive protocol now documented by A."
+      "latestReview": "A City engine, triage tool and acceptance ledger merged after current-head suite.",
+      "mergeCommitUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/9eed34b9e3d66a03fe00b9a35553eba09c0a4e81"
     },
     "PR12": {
       "branch": "agent/c-flight-recorder",
-      "head": "134e8bed4c65cdf70d2f2c24b395a19b02ef3996",
-      "reviewedOn": "2026-10-23",
-      "status": "changes-needed",
-      "reportedTests": {
-        "executed": false
+      "head": "675188ac5ac3f240dedc339199d0ef32d821042a",
+      "mergeCommit": "0fe86a446b8a8f2c56e97dcdae03dc9e87f51b48",
+      "reviewedOn": "2026-10-24",
+      "status": "merged",
+      "safeToMerge": true,
+      "suites": {
+        "focused": {
+          "total": 112,
+          "skips": 3,
+          "failures": 0,
+          "errors": 0
+        },
+        "full": {
+          "total": 204,
+          "skips": 33,
+          "failures": 0,
+          "errors": 0
+        },
+        "note": "records current-head WSE2 msfiles metadata fix; signed recorder wire unchanged"
       },
-      "blockers": [
-        "agree passive vs C-owned process-supervisor model with B",
-        "unify readiness schema hyphen/underscore and watcher id",
-        "execute tests covering >2MiB late crash/ancestor link and cross-agent handshake"
+      "latestReview": "C op-metadata root-cause fix and forensic recorder merged; telemetry wire diff empty.",
+      "mergeCommitUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/0fe86a446b8a8f2c56e97dcdae03dc9e87f51b48"
+    },
+    "PR11": {
+      "branch": "agent/b-windows-launcher",
+      "head": "d41aefc0d7b810f0e1ca0c5961c71f107e5d0052",
+      "mergeCommit": "4c5624259ed9ce876da06d1996e728c63666a398",
+      "reviewedOn": "2026-10-24",
+      "status": "merged",
+      "safeToMerge": true,
+      "suites": {
+        "total": 162,
+        "skips": 39,
+        "failures": 0,
+        "errors": 0,
+        "command": "python -m unittest discover -s tests -q"
+      },
+      "latestReview": "B Windows discovery/installer-plan/interop merged after merged-main verification.",
+      "mergeCommitUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/4c5624259ed9ce876da06d1996e728c63666a398"
+    },
+    "mergedMain": {
+      "sha": "4c5624259ed9ce876da06d1996e728c63666a398",
+      "previousMain": "048564a526de9b36abd55874271c7b80f36e5cf5",
+      "mergedOn": "2026-10-24",
+      "suite": {
+        "total": 340,
+        "skips": 4,
+        "failures": 0,
+        "errors": 0,
+        "note": "green on repeated runs; one transient Windows file-replace race observed separately (ZOM-DISC-22)"
+      },
+      "conflicts": [
+        "tools/evidence_readiness.py",
+        "tests/test_evidence_readiness.py"
       ],
-      "reviewComment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12#issuecomment-6373897277",
-      "safeToMerge": false,
-      "latestReview": "C implemented passive watcher and canonical hyphenated marker with HMAC controls; offline integration with B is not yet exercised."
-    },
-    "PR10": {
-      "branch": "agent/a-city-engine",
-      "head": "542da76da1381734ebd59ef8a32ff1b2b9818ecd",
-      "status": "draft-tests-pending",
-      "safeToMerge": false,
-      "latestReview": "Added read-only City static acceptance checker with five fixture tests; local reconstruction passed checks but exact GitHub checkout full suite unverified."
-    },
-    "PR7": {
-      "branch": "project-record-setup-v041",
-      "status": "draft-toolkit-validation-pending",
-      "safeToMerge": false
+      "noRuntimeAcceptance": true,
+      "previousIntegrationReviews": {
+        "PR11": {
+          "branch": "agent/b-windows-launcher",
+          "head": "d096c21f43d6ed0988e2d4a0ebd669eaad48f24c",
+          "reviewedOn": "2026-10-23",
+          "status": "changes-needed",
+          "reportedTests": {
+            "total": 127,
+            "pass": 97,
+            "skipped": 30,
+            "independentlyReproduced": false
+          },
+          "blockers": [
+            "recorder before game with authenticated session/attempt and live recorder identity",
+            "distinct game-ready/client-joined/mission-entered transitions",
+            "safe raw input link/junction detection"
+          ],
+          "reviewComment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11#issuecomment-6373896560",
+          "safeToMerge": false,
+          "latestReview": "Await B source changes implementing waiting_recorder; C passive protocol now documented by A."
+        },
+        "PR12": {
+          "branch": "agent/c-flight-recorder",
+          "head": "134e8bed4c65cdf70d2f2c24b395a19b02ef3996",
+          "reviewedOn": "2026-10-23",
+          "status": "changes-needed",
+          "reportedTests": {
+            "executed": false
+          },
+          "blockers": [
+            "agree passive vs C-owned process-supervisor model with B",
+            "unify readiness schema hyphen/underscore and watcher id",
+            "execute tests covering >2MiB late crash/ancestor link and cross-agent handshake"
+          ],
+          "reviewComment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12#issuecomment-6373897277",
+          "safeToMerge": false,
+          "latestReview": "C implemented passive watcher and canonical hyphenated marker with HMAC controls; offline integration with B is not yet exercised."
+        },
+        "PR10": {
+          "branch": "agent/a-city-engine",
+          "head": "542da76da1381734ebd59ef8a32ff1b2b9818ecd",
+          "status": "draft-tests-pending",
+          "safeToMerge": false,
+          "latestReview": "Added read-only City static acceptance checker with five fixture tests; local reconstruction passed checks but exact GitHub checkout full suite unverified."
+        },
+        "PR7": {
+          "branch": "project-record-setup-v041",
+          "status": "draft-toolkit-validation-pending",
+          "safeToMerge": false
+        }
+      }
     }
-  }
+  },
+  "currentMain": "4c5624259ed9ce876da06d1996e728c63666a398"
 }
