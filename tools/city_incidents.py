@@ -289,10 +289,11 @@ def incident_for_session(events, recorder_events, installed, flight, findings,
     gap = (log_gap or receipt_gap or dropped_events or log_omitted > 0
            or engine_unread > 0 or recorder_unread > 0)
 
-    repeated_across_rounds = sorted({
-        wave for markers in waves_in_round.values() for wave in markers
-        if sum(wave in other for other in waves_in_round.values()) >= 2
-    })
+    # Each distinct (round, wave) is counted once, linear in bounded input.
+    round_frequency = Counter(wave for markers in waves_in_round.values()
+                              for wave in markers)
+    repeated_across_rounds = sorted(
+        wave for wave, count in round_frequency.items() if count >= 2)
     within_round_progress = any(len(seen) >= 2 for seen in waves_in_round.values())
     runtime = {
         "boot": "observed_marker" if observed_boot else "unknown",
