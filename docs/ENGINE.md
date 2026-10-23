@@ -1,3 +1,14 @@
+
+## Current integration checkpoint — 2026-10-24 (supersedes earlier unverified test notes)
+
+- **Windows original archive member CRC:** Agent B reports `7z t` `Everything is Ok`, exit 0 for all 1,068 regular files, on the pinned original RAR. Do not continue treating the *full archive CRC* as unperformed; still require journaled installer + actual WSE2 startup.
+- **Exact Windows Python static regression:** Agent B reports 131/131 after two CRLF-only fixture fixes; Agent A committed these fixtures. A subsequently hardened City guard-post geometry, yielding **134/134** locally on original source, **not yet separately replayed by B's Windows environment**. Current chain replay after geometry revision passes, including deferred-scene preservation, but prior City SCO SHA changed deterministically.
+- **B/C simulated runtime:** B reports 14/14 minus one skipped symlink privilege test against exact C `1119cca`, C focused 59 with 3 skips, C full 151 with 33 skips, B full 162 with 31 skips. These numbers are **reported Windows evidence** only; no actual WSE2 process was started.
+- **Chosen integration route:** private **dedicated** WSE2 City host + local WSE2 client, recorder before either, with runtime socket-binding and scene-entry checks. The three local WSE2 candidates' actual identities/versions are not yet verified, so final per-file selection is blocked pending B's safe read-only classification. See [boot/selection contract](WSE2_CITY_BOOT_CONTRACT.md).
+- **City tactical positions:** revised face-edge connected, area- and prop-origin-clearance-screened guard posts, fail closed if no safe static candidates. See [hardening report](../reference/CITY_GUARD_HARDENING_2026-10-24.md). No in-engine movement or line of sight is proved.
+
+Older sections below preserve the evidence known at their authoring time; they must **not** be interpreted as the latest test status.
+
 # Runtime target and evidence
 
 - Licensed Mount & Blade: Warband data format: official stable 1.174.
