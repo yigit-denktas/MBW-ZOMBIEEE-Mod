@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "048564a526de9b36abd55874271c7b80f36e5cf5",
+  "authority": {
+    "scope": "proposed progress/ledger.json pending owner baseline",
+    "discussion": "GitHub issue number and comments",
+    "assignment": "GitHub",
+    "workflow": "not connected",
+    "acceptance": "owner/revision-backed test evidence; no implicit issue closure",
+    "publication": "none"
+  },
+  "crosswalk": [
+    {
+      "issue": 1,
+      "legacyId": "P0",
+      "title": "WSE2 startup and original City wave compatibility",
+      "leafIds": [
+        "ZOM-ENG-01",
+        "ZOM-ENG-02",
+        "ZOM-ENG-03"
+      ]
+    },
+    {
+      "issue": 2,
+      "legacyId": "P1",
+      "title": "Invasion bot teams and survivor allies",
+      "leafIds": [
+        "ZOM-AI-01",
+        "ZOM-AI-02",
+        "ZOM-WAVE-01"
+      ]
+    },
+    {
+      "issue": 3,
+      "legacyId": "P2",
+      "title": "Defensible positions on original maps",
+      "leafIds": [
+        "ZOM-AI-03",
+        "ZOM-MAP-01"
+      ]
+    },
+    {
+      "issue": 4,
+      "legacyId": "P3",
+      "title": "Private-host cheats and profiling",
+      "leafIds": [
+        "ZOM-ADMIN-01",
+        "ZOM-PERF-01"
+      ]
+    },
+    {
+      "issue": 5,
+      "legacyId": "P4",
+      "title": "Attribution and legal distribution",
+      "leafIds": [
+        "ZOM-LEGAL-01",
+        "ZOM-REL-01"
+      ]
+    },
+    {
+      "issue": 6,
+      "legacyId": "diagnostic-evidence",
+      "title": "Final-session evidence and WSE2 acceptance",
+      "leafIds": [
+        "ZOM-OBS-01",
+        "ZOM-OBS-02",
+        "ZOM-QA-01",
+        "ZOM-QA-02"
+      ]
+    }
+  ],
+  "newIssueDrafts": [
+    "ZOM-WIN-01",
+    "ZOM-WIN-02",
+    "ZOM-WIN-03",
+    "ZOM-SOLO-01",
+    "ZOM-SOLO-02",
+    "ZOM-REC-01",
+    "ZOM-REC-02",
+    "ZOM-REC-03"
+  ],
+  "writeState": "not-requested; prepare for review only",
+  "labelsState": "unconfigured",
+  "projectState": "not-configured",
+  "permissions": "No new merge/deploy rights"
+}

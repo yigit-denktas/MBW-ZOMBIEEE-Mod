@@ -1,0 +1,28 @@
+{
+  "font": "system-ui, -apple-system, 'Segoe UI', sans-serif",
+  "light": {
+    "background": "#F5F2F0",
+    "surface": "#FFFFFF",
+    "text": "#16191E",
+    "muted": "#47505A",
+    "border": "#858C97",
+    "accent": "#90383E",
+    "accentText": "#FFFFFF",
+    "signal": "#90383E",
+    "signalText": "#90383E",
+    "blocked": "#90383E"
+  },
+  "dark": {
+    "background": "#111319",
+    "surface": "#1D222C",
+    "text": "#F0EFEA",
+    "muted": "#BDC2C9",
+    "border": "#687381",
+    "accent": "#E67B70",
+    "accentText": "#111319",
+    "signal": "#E67B70",
+    "signalText": "#E67B70",
+    "blocked": "#E67B70"
+  },
+  "notes": "Provisional ZOMBIEEE horror-game UI, not previously sourced brand tokens. No fonts or original game art bundled; owner to approve."
+}
