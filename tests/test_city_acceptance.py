@@ -12,6 +12,9 @@ from patch_defenders import patch_file, mission_bounds
 from city_defense import apply_module as city_defense
 from wave_reinforcements import apply_module as waves
 from tactical_recovery import apply_module as recovery
+from final_city_gate import audit_final_city_controls
+from private_commands import apply_module as add_private_commands
+from solo_assist import apply_module as add_solo_assist
 
 ORIGINAL = Path(os.environ.get(
     "ZOMBIEEE_ORIGINAL_MODULE", "/mnt/data/zombie04_inspect/ZOMBIEEE"))
@@ -87,6 +90,47 @@ class CityAcceptanceTests(unittest.TestCase):
         self.assertFalse(result["city_accepted"])
         self.assertIn("Insufficient matching evidence for scene 5",
                       result["problems"])
+
+
+    def _accepted_snapshot(self):
+        core = audit_city(self.root, ORIGINAL)
+        self.assertTrue(core["city_accepted"], core["problems"])
+        return ((self.root / "mission_templates.txt").read_bytes(),
+                (self.root / "variables.txt").read_bytes(),
+                core["city_overlay_expected_sha256"])
+
+    def test_real_source_postcontrol_gate_private_hotkeys(self):
+        mission, variables, city_digest = self._accepted_snapshot()
+        add_private_commands(self.root)
+        result = audit_final_city_controls(
+            self.root, verified_mission=mission,
+            verified_variables=variables, verified_city_sha256=city_digest,
+            private_commands=True)
+        self.assertTrue(result["passed"], result["problems"])
+        self.assertEqual(result["control_mode"], "private-commands")
+        self.assertFalse(result["runtime_verified"])
+
+    def test_real_source_postcontrol_gate_solo_assist(self):
+        mission, variables, city_digest = self._accepted_snapshot()
+        add_solo_assist(self.root)
+        result = audit_final_city_controls(
+            self.root, verified_mission=mission,
+            verified_variables=variables, verified_city_sha256=city_digest,
+            solo_assist=True)
+        self.assertTrue(result["passed"], result["problems"])
+        self.assertEqual(result["control_mode"], "solo-assist")
+
+    def test_real_source_postcontrol_gate_rejects_late_tamper(self):
+        mission, variables, city_digest = self._accepted_snapshot()
+        add_private_commands(self.root)
+        path = self.root / "mission_templates.txt"
+        path.write_bytes(path.read_bytes() + b"unapproved native mutation\\n")
+        result = audit_final_city_controls(
+            self.root, verified_mission=mission,
+            verified_variables=variables, verified_city_sha256=city_digest,
+            private_commands=True)
+        self.assertFalse(result["passed"])
+        self.assertFalse(result["checks"]["final_native_mission_exact"])
 
 
 if __name__ == "__main__":
