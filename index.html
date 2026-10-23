@@ -2,7 +2,7 @@
 <html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ZOMBIEEE Remaster — Project Record (review draft)</title>
+<title>ZOMBIEEE Remaster — Live Project Record</title>
 <meta name="description" content="Proposed evidence-gated roadmap for ZOMBIEEE 0.4 remaster, including WSE2 compatibility, diagnostics and one-click solo play.">
 <style>
 :root{color-scheme:dark;--bg:#111319;--surface:#1d222c;--text:#f0efea;--muted:#bdc2c9;--accent:#e67b70;--line:#687381;--focus:#f4c29b;font-family:system-ui,-apple-system,'Segoe UI',sans-serif}
@@ -35,7 +35,7 @@ footer{border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
 <h1>Project Record</h1>
 <p>Restore the original City zombie-invasion map first, then the other four maps later; ship an automatic Windows 11 installer, launch solo play in one click, and diagnose failures using evidence rather than guesses.</p>
 <p class="caption">Public planning preview, not an accepted or playable release. No original game assets are distributed here.</p>
-<nav aria-label="Related sources"><a href="https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod#readme">Project README</a> · <a href="https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/project-record-setup-v041/progress/overview.md">Overview</a> · <a href="https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/main/docs/ROADMAP.md">Historical roadmap</a> · <a href="https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues">GitHub issues</a></nav>
+<nav aria-label="Related sources"><a href="https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/project-record-setup-v041/README.md">Project README</a> · <a href="https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/project-record-setup-v041/progress/overview.md">Overview</a> · <a href="https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/main/docs/ROADMAP.md">Historical roadmap</a> · <a href="https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues">GitHub issues</a></nav>
 </header>
 <main id="main">
 <div class="warning" role="note"><strong>Evidence boundary:</strong> 0 accepted outcome leaves does not mean no code exists. v0.1.8 has experimental scripts and offline tests, but WSE2 gameplay and the owner-approved scope baseline are outstanding. Agent readiness is L0 provisionally, independent of percentages.</div>
@@ -87,7 +87,7 @@ const req=record.items.filter(i=>i.required),done=req.filter(i=>i.state==='done'
 const accepted=record.milestones.filter(m=>m.sourceAccepted===true);
 $('work').textContent=done.length+'/'+req.length+' · '+pct(done.length,req.length);
 $('gates').textContent=accepted.length+'/'+record.milestones.length+' · '+pct(accepted.length,record.milestones.length);
-$('source').textContent='Source: progress/ledger.json · proposed unapproved scope · 2026-10-23 · no runtime acceptance yet';
+$('source').textContent='Source: public snapshot of progress/ledger.json · City-first required scope (23) · 2026-10-23 · no runtime acceptance yet';
 for(const m of record.milestones){const option=el('option',m.id+' — '+m.title);option.value=m.id;$('milestone').append(option);
 const card=el('section',undefined,'card');card.append(el('small',m.id+' · '+m.horizon));card.append(el('h3',m.title));const work=itemsFor(m),complete=work.filter(x=>x.state==='done');card.append(el('p',complete.length+'/'+work.length+' proposed leaves complete · '+pct(complete.length,work.length)));card.append(el('p',m.goal));const button=el('button','Show '+m.id+' items');button.addEventListener('click',()=>{$('milestone').value=m.id;render();$('work-heading').scrollIntoView();$('search').focus()});card.append(button);$('milestones').append(card)}
 ['search','milestone','status'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',render));
