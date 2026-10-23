@@ -379,9 +379,11 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
             if not command:
                 raise ValueError("Empty child command")
             try:
+                child_env = os.environ.copy()
+                child_env.pop("ZOMBIEEE_RECORDER_CONTROL_KEY", None)
                 child = subprocess.Popen(command, stdin=subprocess.DEVNULL,
                                          stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                         shell=False)
+                                         shell=False, env=child_env)
                 for name, pipe in (("stdout", child.stdout), ("stderr", child.stderr)):
                     thread = threading.Thread(target=drain_stream,
                                               args=(pipe, pipe_buffers[name]),
