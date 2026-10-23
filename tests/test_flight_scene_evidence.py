@@ -10,7 +10,7 @@ from diagnostics import analyze
 
 def payload_for(fields):
     events = [
-        {"event": "mission_enter", "fields": fields,
+        {"event": "mission_enter", "fields": {"template": "multiplayer_iv", **fields},
          "source": "logs/log_01.txt", "line": 4},
     ]
     return {
@@ -47,6 +47,23 @@ class CityScopeEvidenceTests(unittest.TestCase):
         self.assertEqual(report["scene_evidence"]["status"], "observed")
         self.assertEqual(report["scene_evidence"]["observed_scenes"], ["tbfc_invasion_4"])
         self.assertNotIn("R029", {f["id"] for f in report["findings"]})
+
+    def test_wrong_multiplayer_template_does_not_prove_city_scene(self):
+        report = analyze(payload_for({
+            "role": "server", "template": "multiplayer_deathmatch",
+            "scene": "scn_tbfc_invasion_4",
+        }))
+        self.assertEqual(report["scene_evidence"]["status"], "unknown")
+        self.assertFalse(report["scene_evidence"]["available"])
+        self.assertNotIn("R029", {item["id"] for item in report["findings"]})
+
+    def test_wrong_template_noncity_scene_not_diagnosed_as_city_mismatch(self):
+        report = analyze(payload_for({
+            "role": "server", "template": "multiplayer_deathmatch",
+            "scene": "scn_tbfc_invasion_3",
+        }))
+        self.assertEqual(report["scene_evidence"]["status"], "unknown")
+        self.assertNotIn("R029", {item["id"] for item in report["findings"]})
 
     def test_explicit_noncity_scene_is_candidate_mismatch(self):
         report = analyze(payload_for({
