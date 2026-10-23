@@ -69,6 +69,26 @@ class CityRoundEvidenceTests(unittest.TestCase):
         self.assertIsNone(report["runtime"]["round_start_observations"])
         self.assertIsNone(report["runtime"]["last_reinforced_round_starts"])
 
+    def test_lua_probe_uses_read_only_engine_global_getter(self):
+        lua = (Path(__file__).resolve().parents[1] /
+               "overlay" / "lua" / "main.lua").read_text(encoding="utf-8")
+        # Absence is reported as -1 by the same guarded getter as wave/mode.
+        self.assertIn('global_int("g_round_start_time")', lua)
+        self.assertIn('global_int("zdr_last_reinforced_round_start")', lua)
+        self.assertIn('return guarded_call(function()', lua)
+        self.assertIn('if n ~= nil then return math.floor(n) end', lua)
+        self.assertIn('.. "|round_start="', lua)
+        self.assertIn('.. "|refilled_round_start="', lua)
+
+    def test_client_claimed_round_globals_do_not_count_as_server_round(self):
+        event = {"event": "heartbeat", "source": "logs/log_01.txt",
+                 "line": 1, "fields": {"role": "client", "wave": "2",
+                                          "round_start": "22",
+                                          "refilled_round_start": "22"}}
+        report = incident_for_session([event], [], {}, {}, [])
+        self.assertEqual(report["runtime"]["round_identity"], "unknown")
+        self.assertIsNone(report["runtime"]["last_reinforced_round_starts"])
+
     def test_lua_round_fields_are_optional_measured_values(self):
         fields = {"role": "server", "wave": "2",
                   "round_start": "400", "refilled_round_start": "395"}
