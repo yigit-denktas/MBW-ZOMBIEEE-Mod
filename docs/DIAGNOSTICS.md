@@ -5,7 +5,7 @@
 ## What is recorded
 
 - Versioned ZDB1 events written by the Lua overlay to WSE2's existing engine log: startup, compiled trigger count, hook registration, invasion mission entry, host/client role, total agent count and optional survivor team-0 / zombie team-1 counts when WSE2 exposes the team getter, and a heartbeat every 15 seconds (maximum 480). The probe is read-only.
-- Up to 25 existing engine logs from WSE2/Warband game and Documents folders, plus explicitly supplied custom logs. Last 8 MiB per log; source filenames, modification times and truncation are recorded.
+- Up to 25 existing engine logs from WSE2/Warband game and Documents folders, plus explicitly supplied custom logs. Up to 8 MiB per log: on larger logs, the first 256 KiB and final ~7.75 MiB are retained with an explicit truncation marker, preserving startup and crash context. Source filenames and modification times are recorded.
 - OS version/architecture, Python version, remaster version, source archive SHA-256, WSE2 target, experimental defender count, and installed module file SHA-256 hashes (without distributing mod assets).
 - Session metadata, extracted events.jsonl, SHA-256 manifest, and integrity verification that rejects altered ZIP entries.
 - Best-effort redaction of credentials, email addresses, IP addresses, Steam IDs and user-home paths. No unredacted logs, memory dumps or automatic uploads.
