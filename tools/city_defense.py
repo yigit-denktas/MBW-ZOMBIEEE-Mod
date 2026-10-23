@@ -48,15 +48,28 @@ def patch_orders(original: str, scene_idx: int) -> str:
     if count != 26:
         raise PatchError("City tactics require the opt-in 26-trigger defender build")
     tokens = lines[insert_at - 1].split()
-    if len(tokens) < 14 or tokens[:6] != [
-        "-20.000000", "0.000000", "0.000000", "1", "417", "0"
-    ]:
+    if len(tokens) < 14 or tokens[:3] != [
+        "-20.000000", "0.000000", "0.000000"
+    ] or tokens[4:6] != ["417", "0"]:
         raise PatchError("Unexpected defender spawn trigger; refusing to modify")
-    amount = int(tokens[6])
-    if not 1 <= amount <= 8 or len(tokens) != 7 + 7 * amount:
+    # Server-only triggers use 1 condition. A City-first trigger contains
+    # three: server, current scene, equal to the original City scene ID.
+    # Validate both rather than relying on a fixed token offset.
+    if tokens[3] == "1":
+        count_index = 6
+    elif (tokens[3] == "3" and
+          tokens[6:9] == ["2211", "1", str(LOCAL0)] and
+          tokens[9:13] == ["31", "2", str(LOCAL0),
+                          str(SCENE_BASE + scene_idx)]):
+        count_index = 13
+    else:
+        raise PatchError("Unexpected or incorrectly scoped defender conditions")
+    amount = int(tokens[count_index])
+    first_operation = count_index + 1
+    if not 1 <= amount <= 8 or len(tokens) != first_operation + 7 * amount:
         raise PatchError("Malformed defender spawn operations")
     for i in range(amount):
-        start = 7 + 7 * i
+        start = first_operation + 7 * i
         if tokens[start:start + 2] != ["1265", "5"] or tokens[start + 5:start + 7] != ["0", "0"]:
             raise PatchError("Unknown visitor opcode format")
         tokens[start + 6] = str(DIVISIONS[i % len(DIVISIONS)])
