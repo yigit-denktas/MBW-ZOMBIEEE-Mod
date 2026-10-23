@@ -257,6 +257,7 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
             "archive_crc_verified": True,
             "archive_identity": identity,
             "city_static_acceptance": ({"checks": city_static_report["checks"],
+                "original_invasion_game_type": city_static_report.get("original_invasion_game_type"),
                 "city_overlay_expected_sha256": city_static_report.get("city_overlay_expected_sha256"),
                 "city_overlay_actual_sha256": city_static_report.get("city_overlay_actual_sha256"),
                 "runtime_verified": False} if city_static_report else None),
