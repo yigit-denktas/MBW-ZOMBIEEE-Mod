@@ -15,3 +15,12 @@
 ## Owner-approved publishing decision 2026-10-23
 
 Publish the interactive **public-only tracker now** from branch `gh-pages` at repository root, without CI, without adding action credentials, and without merging the toolkit PR first. Public source is a manually copied review snapshot from proposed scoped ledger. Owner has authorized the publication, not declared runtime gameplay verified. A commit to `gh-pages` is staged separately from GitHub Pages enablement and observed URL health. If hosting settings cannot be edited by the connected app, document the exact remaining GitHub Settings → Pages action and do not claim live deployment.
+
+## Observed live static publication (2026-10-23)
+
+- URL: https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/
+- GitHub Pages publication branch `gh-pages` commit: `3466b7c329b7bf94185b00aabf6ff283de9e86c0`; later HTML title-only update `cb2870f2a49e6785ede1a0374574e230465c6fd0`.
+- Public GET HTML and JSON both succeeded independently, repository API reports `has_pages=true`. Hosted JSON parsed to 23 required leaves, 1 deferred optional leaf and 5 milestones, with 0 accepted outcome gates.
+- Public branch contains only `index.html`, `.nojekyll`, `progress/ledger.json` and a short public `README.md`. No agent assessment details, private logs, game assets, credentials or CI.
+- Page JavaScript syntax and static semantic/focus/responsive markers checked. Real browser click/keyboard and screen-reader tests remain **unverified** due browser-testing wallet limit. Do not claim WCAG certification.
+- This is a **manual Pages snapshot**; new changes on `project-record-setup-v041` will not appear until a reviewed copy is committed to `gh-pages`. Owner explicitly requested immediate publication.

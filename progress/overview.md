@@ -22,3 +22,5 @@
 - **Delegation:** Owner authorises substantial implementation and project operation, including publishing the public tracker now. This grants task-specific operational permission but **does not demonstrate** L1–L5 engineering readiness or justify turning off branch/security safeguards. No CI requested.
 - **Publishing:** Owner explicitly wants an interactive static tracker on GitHub Pages immediately. Public JSON and UI only; detailed agent assessment and game logs remain private. Page source must be confirmed by observed live HTTP response.
 - **Open:** Exact readiness assessment central private store and any non-City version horizon remain undecided. We can proceed with City-first engineering meanwhile.
+
+**Public tracker observed live (2026-10-23):** https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/ — City-first 0/23 required leaves (not accepted) / 0/5 milestones. Static hosted HTML and JSON served; actual interactive click-through and native assistive-technology tests not completed.

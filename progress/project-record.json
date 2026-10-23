@@ -21,8 +21,8 @@
         "renderer": "host",
         "theme": "theme.json",
         "readmeMetric": "work",
-        "progressUrl": null,
-        "existingSite": null
+        "progressUrl": "https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/",
+        "existingSite": "https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/"
       }
     }
   ]

@@ -19,3 +19,5 @@
 ## Owner decision update 2026-10-23
 
 First release City only; original map expansion leaf `ZOM-MAP-01` moved out of the v1.0 required denominator (23 required + 1 optional retained), without deleting its original evidence or ID. User authorises static GitHub Pages publication now. Prepare a separately committed `gh-pages` static snapshot and record deployment observation; do not publish private readiness assessment or game logs. GitHub Pages activation may still require settings permission. This change from proposed 24 to proposed 23 is explained as a scope boundary refinement before baseline approval, not progress.
+
+**Publication observation:** https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/ was retrieved successfully after pushing `gh-pages`; hosted JSON matched the City-first 23+1 scope. GitHub Pages is enabled, no CI. Browser interaction testing not completed; source kit ZIP still not independently downloaded/verified.

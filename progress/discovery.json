@@ -102,6 +102,20 @@
         "Static scripts and tests in repository; WSE2 runtime proof absent"
       ],
       "gap": "No live Windows game, installer install-path check, engine logs or real FPS observed"
+    },
+    {
+      "kind": "github-pages-publication",
+      "source": "https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/",
+      "revision": "3466b7c329b7bf94185b00aabf6ff283de9e86c0",
+      "observedAt": "2026-10-23",
+      "coverage": "hosted-page-and-json-observed",
+      "pagesRead": 2,
+      "findings": [
+        "GitHub repo has_pages=true after dedicated gh-pages branch publish",
+        "Public HTML title and progressive enhancement structure available over HTTPS",
+        "Hosted progress/ledger.json successfully retrieved and parsed: 23 required, 1 optional deferred ZOM-MAP-01, five milestones, zero accepted"
+      ],
+      "gap": "Scripted browser keyboard/click interaction not verified; metered browser session unavailable due external service credit limit. Source-level JavaScript syntax, focus and responsive rule checks performed."
     }
   ],
   "cleanupQueue": [
