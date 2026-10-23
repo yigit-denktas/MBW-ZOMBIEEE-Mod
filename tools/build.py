@@ -16,6 +16,7 @@ from pathlib import Path
 from doctor import inspect_module
 from preflight import report_for_module
 from patch_defenders import patch_file
+from city_defense import apply_module as apply_city_defense
 
 ROOT = Path(__file__).resolve().parent.parent
 ORIGINAL_SHA256 = "9be100ff41ce6f8ebadd4aa27377f70f402883fab271999a8cab8cc1da001d1e"
@@ -72,9 +73,12 @@ def apply_overlay(module_dir: Path) -> None:
     rename_module_title(module_dir / "module.ini")
 
 
-def build(archive: Path, out: Path, replace: bool = False, experimental_defenders: int = 0) -> dict:
+def build(archive: Path, out: Path, replace: bool = False, experimental_defenders: int = 0,
+          city_guardposts: bool = False) -> dict:
     if not 0 <= experimental_defenders <= 8:
         raise ValueError("--experimental-defenders must be between 0 and 8")
+    if city_guardposts and not experimental_defenders:
+        raise ValueError("--city-guardposts requires --experimental-defenders 1..8")
     archive = archive.expanduser().resolve(strict=True)
     out = out.expanduser().resolve()
     if out.name != MODULE_NAME:
@@ -108,6 +112,12 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
             updated = report_for_module(source)
             if not updated["ok"] or updated["mission"]["triggers"] != 26:
                 raise RuntimeError("Experimental defender patch failed post-apply diagnostics")
+        city_report = None
+        if city_guardposts:
+            city_report = apply_city_defense(source)
+            updated = report_for_module(source)
+            if not updated["ok"] or updated["mission"]["triggers"] != 27:
+                raise RuntimeError("City defence failed static post-apply validation")
         if not inspect_module(source)["core_ok"] or not (source / "lua" / "main.lua").is_file():
             raise RuntimeError("Module overlay failed static validation")
         (source / "ZOMBIEEE_REMASTER.json").write_text(json.dumps({
@@ -117,9 +127,10 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
             "runtime_verified": False,
             "archive_crc_verified": True,
             "original_mission_trigger_count": preflight["mission"]["triggers"],
-            "final_trigger_count": 26 if experimental_defenders else 25,
+            "final_trigger_count": 27 if city_guardposts else 26 if experimental_defenders else 25,
             "preflight": preflight,
             "experimental_defender_patch": defender_report,
+            "experimental_city_guardposts": city_report,
         }, indent=2) + "\n", encoding="utf-8")
 
         # Stage the final copy on the destination volume and replace atomically.
@@ -141,7 +152,7 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
             else:
                 if previous:
                     print(f"Previous module retained at {previous}")
-    return {"module": str(out), "source_sha256": digest, "static_validation": "PASS", "experimental_defenders": experimental_defenders, "runtime_verified": False}
+    return {"module": str(out), "source_sha256": digest, "static_validation": "PASS", "experimental_defenders": experimental_defenders, "city_guardposts": city_guardposts, "runtime_verified": False}
 
 
 def main():
@@ -150,9 +161,10 @@ def main():
     parser.add_argument("--out", required=True, type=Path)
     parser.add_argument("--replace", action="store_true")
     parser.add_argument("--experimental-defenders", type=int, default=0, metavar="N", help="Opt-in 1–8 allied bots; default 0 preserves original mission")
+    parser.add_argument("--city-guardposts", action="store_true", help="Optional guarded City tactical post overlay")
     args = parser.parse_args()
     try:
-        print(json.dumps(build(args.archive, args.out, args.replace, args.experimental_defenders), indent=2))
+        print(json.dumps(build(args.archive, args.out, args.replace, args.experimental_defenders, args.city_guardposts), indent=2))
     except (RuntimeError, FileNotFoundError, FileExistsError, ValueError, subprocess.CalledProcessError) as exc:
         print(f"Build refused: {exc}", file=sys.stderr)
         raise SystemExit(2)
