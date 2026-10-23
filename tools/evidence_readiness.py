@@ -18,6 +18,7 @@ def fields_of(event):
 def observed_server_invasion(event):
     fields = fields_of(event)
     return (fields.get("role") == "server"
+            and isinstance(fields.get("template"), str)
             and fields.get("template") in INVASION_TEMPLATES)
 
 
@@ -63,7 +64,9 @@ def matrix_for_session(events: list[dict], findings: list[dict],
               and observed_server_invasion(e)]
     entries = [e for e in events if e.get("event") == "mission_enter"
                and observed_server_invasion(e)]
-    city_entries = [e for e in entries if fields_of(e).get("scene") in CITY_SCENES]
+    city_entries = [e for e in entries
+                    if isinstance(fields_of(e).get("scene"), str)
+                    and fields_of(e).get("scene") in CITY_SCENES]
     seen_waves = sorted({number(e, "wave") for e in server if number(e, "wave") >= 1})
     zombie_observed = any(number(e, "team1") > 0 for e in server)
     sampled_ai = combat.get("observability", {}).get("combat_samples", 0) > 0
