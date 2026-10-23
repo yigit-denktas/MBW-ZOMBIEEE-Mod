@@ -477,13 +477,27 @@ def analyze(payload: dict[str, bytes]) -> dict:
                              "action": "Check mission-start visitor spawns, team assignment, and WSE2 team-query availability. Samples alone cannot prove why."})
     if flight:
         if flight.get("outcome") == "timeout":
-            findings.append({"id": "R027", "severity": "high",
-                             "title": "External flight recorder timed out",
-                             "action": "Inspect actual process lifecycle and final event snapshot; timeout alone is not an engine crash."})
-        if flight.get("exit_code_observed") is True and isinstance(flight.get("exit_code"), int) and flight["exit_code"] != 0:
-            findings.append({"id": "R028", "severity": "medium",
-                             "title": "Observed child exited with a nonzero status",
-                             "action": "Correlate process exit with nearby crash logs; nonzero exit alone does not identify a Warband fault."})
+            findings.append({
+                "id": "R027", "severity": "high",
+                "title": "External flight recorder timed out",
+                "confidence": "recorder_wall_clock_observed; game_state_unknown",
+                "examples": [{"file": "flight_recorder.json", "field": "outcome",
+                              "observed": "timeout",
+                              "utc": flight.get("end_utc")}],
+                "action": "Inspect actual process lifecycle and final event snapshot; timeout alone is not an engine crash.",
+            })
+        if (flight.get("exit_code_observed") is True
+                and type(flight.get("exit_code")) is int
+                and flight["exit_code"] != 0):
+            findings.append({
+                "id": "R028", "severity": "medium",
+                "title": "Observed child exited with a nonzero status",
+                "confidence": "owned_child_exit_code_observed; cause_unknown",
+                "examples": [{"file": "flight_recorder.json", "field": "exit_code",
+                              "observed": flight["exit_code"],
+                              "utc": flight.get("end_utc")}],
+                "action": "Correlate process exit with nearby crash logs; nonzero exit alone does not identify a Warband fault.",
+            })
     tactical_report = analyze_tactical_events(events, installed)
     findings.extend(tactical_report["findings"])
     combat_report = analyze_combat_events(events, installed)
