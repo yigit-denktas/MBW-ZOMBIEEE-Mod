@@ -97,7 +97,15 @@ def report_for_module(module_dir: Path) -> dict:
     try:
         resources = inspect_assets(module_dir)
         mission = read_invasion_mission(module_dir / "mission_templates.txt")
-    except (OSError, ValueError) as exc:
+        # Validate each compiled condition/consequence operation's encoded arity.
+        # Timing/count checks alone can accept syntactically truncated native
+        # operations that would fail only when the game boots.
+        from trace_calls import read_mission_calls
+        decoded = read_mission_calls(module_dir / "mission_templates.txt")
+        if len(decoded) != mission["triggers"]:
+            raise ValueError("Decoded trigger count disagrees with mission header")
+        mission["decoded_native_triggers"] = len(decoded)
+    except (OSError, ValueError, IndexError) as exc:
         return {"ok": False, "error": str(exc), "runtime_verified": False}
     problems = list(resources["missing_mod_resources"])
     if mission["triggers"] == 0:
