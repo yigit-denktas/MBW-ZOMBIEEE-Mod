@@ -49,9 +49,13 @@ class SoloAssistTests(unittest.TestCase):
     @unittest.skipUnless(ORIGINAL.is_dir(), "Set ZOMBIEEE_ORIGINAL_MODULE")
     def test_unsupported_mission_count_fails(self):
         original = (ORIGINAL / "mission_templates.txt").read_bytes().decode()
-        broken = original.replace("25\r\n", "24\r\n", 1)
+        rows = original.splitlines(keepends=True)
+        count_line, count, _ = mission_bounds(rows)
+        self.assertEqual(count, 25)
+        newline = "\r\n" if rows[count_line].endswith("\r\n") else "\n"
+        rows[count_line] = "24" + newline
         with self.assertRaises(PatchError):
-            patch_text(broken)
+            patch_text("".join(rows))
 
     def test_compiled_body_sizes(self):
         parts = solo_assist_trigger().split()
