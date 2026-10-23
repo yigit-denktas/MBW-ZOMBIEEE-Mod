@@ -231,8 +231,8 @@
       "title": "Verify complete original ZOMBIEEE 0.4 archive",
       "groupId": "Runtime",
       "milestoneId": "M1",
-      "state": "backlog",
-      "sourceState": "new scoped proposal; not accepted",
+      "state": "active",
+      "sourceState": "Implementation in draft PR #10, static evidence only; acceptance criterion not met",
       "required": true,
       "blocked": false,
       "dependsOn": [],
@@ -241,6 +241,13 @@
         {
           "kind": "github-issue",
           "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/1"
+        },
+        {
+          "kind": "draft-pull-request",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/10",
+          "revision": "agent/a-city-engine",
+          "observedOn": "2026-10-23",
+          "acceptance": "pending"
         }
       ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
@@ -249,7 +256,7 @@
       "priority": "P0",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/1",
       "criterion": "Windows 7-Zip CRC passes all entries and provenance SHA matches without modifying input",
-      "note": "Implementation prep may proceed offline in separate agent branch; runtime acceptance awaits Windows/WSE2.",
+      "note": "Agent A added original RAR4 signature/size/SHA-256 auditor and optional 7-Zip member-CRC path; historical source identity observed, member CRC not run; actual Windows original extraction remains pending.",
       "deferReason": null,
       "implementationLane": "A"
     },
@@ -258,8 +265,8 @@
       "title": "Boot the original module with supported WSE2",
       "groupId": "Runtime",
       "milestoneId": "M1",
-      "state": "backlog",
-      "sourceState": "new scoped proposal; not accepted",
+      "state": "active",
+      "sourceState": "Implementation in draft PR #10, static evidence only; acceptance criterion not met",
       "required": true,
       "blocked": true,
       "dependsOn": [
@@ -270,6 +277,13 @@
         {
           "kind": "github-issue",
           "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/1"
+        },
+        {
+          "kind": "draft-pull-request",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/10",
+          "revision": "agent/a-city-engine",
+          "observedOn": "2026-10-23",
+          "acceptance": "pending"
         }
       ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
@@ -278,7 +292,7 @@
       "priority": "P0",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/1",
       "criterion": "Pinned or updated WSE2 loads the unmodified invasion module with no fatal parser/resource failure",
-      "note": null,
+      "note": "Agent A added full native trigger arity preflight and City-only scene guards on initial ally spawn, top-ups and fallback; actual WSE2 loading remains unverified.",
       "deferReason": null,
       "implementationLane": "A"
     },
