@@ -1,0 +1,180 @@
+{
+  "archive": {
+    "full_member_crc": "not_checked",
+    "identity_ok": true,
+    "sha256": "9be100ff41ce6f8ebadd4aa27377f70f402883fab271999a8cab8cc1da001d1e",
+    "size": 167493071
+  },
+  "extractor_member_crc": {
+    "full_seven_zip_member_test": "not_performed",
+    "matching": 969,
+    "meaning": "Alternative libarchive decoder is not authoritative",
+    "mismatching": 99
+  },
+  "historical_source": "ZOMBIEEE Beta 0.4",
+  "original_files": {
+    "files": 10,
+    "preserved": true
+  },
+  "original_preflight": {
+    "ok": true,
+    "resources_found": 30,
+    "triggers": 25
+  },
+  "passed": true,
+  "runtime_verified": false,
+  "schema": "zombieee.city-chain-verification.v1",
+  "source_commit": "91b3cfddf2e9f3fefd375cacbf2b0324ee2f6cec",
+  "test_source_revision": "20f600397073ef37cb4c92e178e9b11dc2048d11",
+  "unittest": {
+    "environment": "Linux Python 3.13.5",
+    "failed": 0,
+    "passed": 124,
+    "runtime_verified": false,
+    "skipped": 0,
+    "tests": 124
+  },
+  "variants": {
+    "balanced-ai": {
+      "canonical_city_scene_sha256": "fa935935fd6075e8c509517a2ab0b1b8e168aaff3ced520adfefb2b6448cf411",
+      "chain": [
+        {
+          "count": 25,
+          "deferred_scenes_unchanged": true,
+          "expected": 25,
+          "native_stream_complete": true,
+          "original_25_triggers_unchanged": true,
+          "scenes_table_unchanged": true
+        },
+        {
+          "count": 26,
+          "deferred_scenes_unchanged": true,
+          "expected": 26,
+          "native_stream_complete": true,
+          "original_25_triggers_unchanged": true,
+          "scenes_table_unchanged": true
+        },
+        {
+          "count": 27,
+          "deferred_scenes_unchanged": true,
+          "expected": 27,
+          "native_stream_complete": true,
+          "original_25_triggers_unchanged": true,
+          "scenes_table_unchanged": true
+        },
+        {
+          "count": 29,
+          "deferred_scenes_unchanged": true,
+          "expected": 29,
+          "native_stream_complete": true,
+          "original_25_triggers_unchanged": true,
+          "scenes_table_unchanged": true
+        },
+        {
+          "count": 31,
+          "deferred_scenes_unchanged": true,
+          "expected": 31,
+          "native_stream_complete": true,
+          "original_25_triggers_unchanged": true,
+          "scenes_table_unchanged": true
+        },
+        {
+          "count": 35,
+          "deferred_scenes_unchanged": true,
+          "expected": 35,
+          "native_stream_complete": true,
+          "original_25_triggers_unchanged": true,
+          "scenes_table_unchanged": true
+        }
+      ],
+      "city_static_accepted": true,
+      "final_native_sha256": "bd0b2bba41a5cde5951f56201eb6325b03dff8781311db2733f90f4b60fea2fd",
+      "global_count": 1225,
+      "hotkey_final_accepted": true,
+      "runtime_verified": false
+    },
+    "solo-assist": {
+      "final_accepted": true,
+      "final_native_check": {
+        "count": 32,
+        "deferred_scenes_unchanged": true,
+        "expected": 32,
+        "native_stream_complete": true,
+        "original_25_triggers_unchanged": true,
+        "scenes_table_unchanged": true
+      },
+      "global_count": 1222,
+      "runtime_verified": false
+    },
+    "standard": {
+      "asset_preservation": {
+        "intentional_original_changes": [
+          "SceneObj/scn_tbfc_invasion_4.sco",
+          "mission_templates.txt",
+          "variables.txt"
+        ],
+        "original_files_checked": 1068,
+        "passed": true,
+        "unexpected_changes": 0,
+        "untouched_files": 1065
+      },
+      "canonical_city_scene_sha256": "fa935935fd6075e8c509517a2ab0b1b8e168aaff3ced520adfefb2b6448cf411",
+      "chain": [
+        {
+          "count": 25,
+          "deferred_scenes_unchanged": true,
+          "expected": 25,
+          "native_stream_complete": true,
+          "original_25_triggers_unchanged": true,
+          "scenes_table_unchanged": true
+        },
+        {
+          "count": 26,
+          "deferred_scenes_unchanged": true,
+          "expected": 26,
+          "native_stream_complete": true,
+          "original_25_triggers_unchanged": true,
+          "scenes_table_unchanged": true
+        },
+        {
+          "count": 27,
+          "deferred_scenes_unchanged": true,
+          "expected": 27,
+          "native_stream_complete": true,
+          "original_25_triggers_unchanged": true,
+          "scenes_table_unchanged": true
+        },
+        {
+          "count": 29,
+          "deferred_scenes_unchanged": true,
+          "expected": 29,
+          "native_stream_complete": true,
+          "original_25_triggers_unchanged": true,
+          "scenes_table_unchanged": true
+        },
+        {
+          "count": 31,
+          "deferred_scenes_unchanged": true,
+          "expected": 31,
+          "native_stream_complete": true,
+          "original_25_triggers_unchanged": true,
+          "scenes_table_unchanged": true
+        },
+        {
+          "count": 35,
+          "deferred_scenes_unchanged": true,
+          "expected": 35,
+          "native_stream_complete": true,
+          "original_25_triggers_unchanged": true,
+          "scenes_table_unchanged": true
+        }
+      ],
+      "city_static_accepted": true,
+      "final_native_sha256": "535c232fcef39ecc1ed2d02b154c668b2c57918b9d6e9a29ed26a675588a71a4",
+      "global_count": 1225,
+      "hotkey_final_accepted": true,
+      "runtime_verified": false
+    }
+  },
+  "verified_critical_rar_member_crcs": 10
+}
