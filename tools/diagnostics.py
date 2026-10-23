@@ -19,6 +19,7 @@ import zipfile
 from tactical_analysis import analyze_tactical_events
 from combat_analysis import analyze_combat_events
 from evidence_readiness import matrix_for_session, capability_snapshot
+from city_incidents import incident_for_session
 
 SCHEMA = 1
 MAX_LOG_BYTES = 8 * 1024 * 1024
@@ -178,6 +179,33 @@ def verified_flight(root: Path) -> tuple[dict, list[Path], bytes]:
     return public, logs, scrub(events.decode("utf-8", errors="replace")).encode("utf-8")
 
 
+def sanitized_city_receipt(record: object, *, static: bool) -> dict | None:
+    """Keep only bounded bool/count/source-mode fields; never package paths.
+
+    Raw audit checks, file names, diagnostics, and user-provided 'problems'
+    are NOT copied into a shareable ZIP.
+    """
+    if not isinstance(record, dict):
+        return None
+    checks = record.get("checks")
+    clean = {"runtime_verified": False}
+    if isinstance(checks, dict) and len(checks) <= 100:
+        clean["check_count"] = len(checks)
+        clean["passed_checks"] = sum(v is True for v in checks.values())
+        clean["failed_checks"] = sum(v is not True for v in checks.values())
+        clean["checks_valid"] = bool(checks) and all(type(v) is bool for v in checks.values())
+        # City incident builder consumes these boolean summaries.
+        clean["checks"] = {"all_checks_passed": bool(checks) and all(v is True for v in checks.values())}
+    if static:
+        gtype = record.get("original_invasion_game_type")
+        clean["original_invasion_game_type"] = gtype if type(gtype) is int and 0 <= gtype <= 20 else None
+    else:
+        clean["passed"] = record.get("passed") if type(record.get("passed")) is bool else None
+        mode = record.get("control_mode")
+        clean["control_mode"] = mode if mode in ("none", "private-commands", "solo-assist", "invalid") else "unknown"
+    return clean
+
+
 def collect(game_root: Path | None, module: Path | None, output: Path,
             extra_logs: list[Path], session: str = "final-check",
             flight_root: Path | None = None) -> dict:
@@ -253,6 +281,10 @@ def collect(game_root: Path | None, module: Path | None, output: Path,
                     safe["preflight_ok"] = preflight.get("ok")
                     mission = preflight.get("mission") or {}
                     safe["original_trigger_count"] = mission.get("triggers")
+                safe["city_static_acceptance"] = sanitized_city_receipt(
+                    parsed.get("city_static_acceptance"), static=True)
+                safe["city_final_acceptance"] = sanitized_city_receipt(
+                    parsed.get("city_final_acceptance"), static=False)
                 tactical = parsed.get("experimental_tactical_recovery")
                 if isinstance(tactical, dict):
                     safe["tactical_recovery"] = {
@@ -505,9 +537,22 @@ def analyze(payload: dict[str, bytes]) -> dict:
     findings.extend(combat_report["findings"])
     readiness = matrix_for_session(events, findings, installed, len(logs), combat_report)
     capabilities = capability_snapshot(events)
+    recorder_events = []
+    for line in payload.get("flight_events.jsonl", b"").decode("utf-8", errors="replace").splitlines()[:50000]:
+        if not line.strip():
+            continue
+        try:
+            event = json.loads(line)
+        except (ValueError, TypeError):
+            continue  # an unsealed partial journal is never gameplay proof
+        if isinstance(event, dict):
+            recorder_events.append(event)
+    city_incident = incident_for_session(
+        events, recorder_events, installed, flight, findings, scene_evidence, logs)
     return {"session": session.get("session", "unknown"), "module": installed,
             "flight_recorder": flight, "privacy": privacy,
             "scene_evidence": scene_evidence,
+            "city_incident": city_incident,
             "capability_evidence": capabilities,
             "event_counts": dict(eventcounts), "events": events[:500], "team_evidence": team_evidence,
             "tactical_evidence": {k: v for k, v in tactical_report.items() if k != "findings"},
@@ -551,6 +596,7 @@ def to_markdown(report: dict) -> str:
              f"- External recorder: {json.dumps(report.get('flight_recorder', {}), sort_keys=True)}",
              f"- WSE2 binding declarations: {json.dumps(report.get('capability_evidence', {}), sort_keys=True)}",
              f"- Observed runtime scene: {json.dumps(report.get('scene_evidence', {}), sort_keys=True)}",
+             f"- City source/runtime separation: {json.dumps(report.get('city_incident', {}).get('build', {}), sort_keys=True)}",
              f"- Privacy inspection: {json.dumps(report.get('privacy', {}), sort_keys=True)}",
              f"- Tactical evidence: {json.dumps(report.get('tactical_evidence', {}), sort_keys=True)}",
              f"- Combat evidence: {json.dumps(report.get('combat_evidence', {}), sort_keys=True)}",
@@ -558,6 +604,20 @@ def to_markdown(report: dict) -> str:
              "| Signal | Observation | Evidence |", "| --- | --- | --- |",
              *[f"| {key} | {value['status']} | {value['basis']} |"
                for key, value in report.get("evidence_matrix", {}).get("checks", {}).items()],
+             "", "## City incident timeline", "",
+             "Game log order and recorder wall clock are independent; no inferred cross-clock ordering.",
+             "", *[
+                 f"- {lane}: {json.dumps(details.get('events', []), sort_keys=True)}; "
+                 f"omitted middle entries={details.get('omitted_middle', 0)}"
+                 for lane, details in report.get("city_incident", {}).get("timeline", {}).items()
+                 if isinstance(details, dict)
+             ],
+             "", "## City incident leads", "",
+             *[f"- {item['code']}: {item['title']} — {item['confidence']}; cause unknown; "
+               f"next: {item['next_step']}"
+               for item in report.get("city_incident", {}).get("incident_leads", [])],
+             "", "## Unknown City evidence", "",
+             *[f"- {item}" for item in report.get("city_incident", {}).get("unknowns", [])],
              "", "## Findings", ""]
     if not report["findings"]:
         lines.append("No known error pattern detected; runtime remains unverified.")
