@@ -6,7 +6,7 @@
   "recordBranch": "project-record-setup-v041",
   "trackerUrl": "https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/",
   "releaseScope": "City first; non-City maps deferred; 23 required leaves / one optional expansion",
-  "releaseEvidence": "No WSE2 executable gameplay yet. Do not move a leaf to done on simulated tests alone.",
+  "releaseEvidence": "2026-10-24: B reports genuine loopback-only WSE2 dedicated host boot and City mission map selection, four source-unattributed engine faction errors. No observed join/wave/AI acceptance or sealed C evidence. Original 23 release outcomes unchanged; 18 supplemental discovered leaves tracked separately.",
   "coordination": {
     "lead": "Agent A",
     "handoff": "GitHub branch/PR + evidence, never chat-only handoffs",
@@ -18,7 +18,8 @@
     "privacy": "Never commit original RAR, game assets, Windows user paths, logs containing identity, secrets or private readiness assessments.",
     "integrationRule": "No merge PR #10/#11/#12 until exact branch suite is exercised and identified blockers fixed. Merge then as offline implementation only, never release acceptance.",
     "interfaceDecision": "DECIDED: B owns host/client child process handles; C is passive recorder armed before any game process; canonical marker zombieee.recorder-ready.v1, authenticated attach/stop. See Agent A handoffs/RECORDER_LIFECYCLE_V1.md. Integration-test evidence pending.",
-    "recorderProtocol": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/agent/a-city-engine/handoffs/RECORDER_LIFECYCLE_V1.md"
+    "recorderProtocol": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/agent/a-city-engine/handoffs/RECORDER_LIFECYCLE_V1.md",
+    "discoveredAccounting": "The 24 original assigned leaf IDs remain unchanged. Discovered ZOM-DISC-01..18 are non-additive supporting tasks assigned in lanes' discoveredLedgerIds; completion does not close parent release outcomes."
   },
   "lanes": {
     "A": {
@@ -66,6 +67,18 @@
       "later": [
         "Gameplay bot combat and City positions only after runtime evidence",
         "Original optional non-City maps stay out of first release"
+      ],
+      "discoveredLedgerIds": [
+        "ZOM-DISC-01",
+        "ZOM-DISC-02",
+        "ZOM-DISC-03",
+        "ZOM-DISC-04",
+        "ZOM-DISC-05",
+        "ZOM-DISC-06",
+        "ZOM-DISC-12",
+        "ZOM-DISC-13",
+        "ZOM-DISC-14",
+        "ZOM-DISC-16"
       ]
     },
     "B": {
@@ -112,6 +125,10 @@
         "B-1: recorder-ready handshake before game process; tests for start failure/stale marker",
         "B-2: host-ready vs joined vs actual mission entered; preserve unknown runtime outcome",
         "B-3: raw path and reparse safety before reversible installation, fixture tests"
+      ],
+      "discoveredLedgerIds": [
+        "ZOM-DISC-07",
+        "ZOM-DISC-08"
       ]
     },
     "C": {
@@ -161,6 +178,14 @@
         "C-1: bounded head+tail crash evidence with explicit gap metadata",
         "C-2: versioned recorder-ready acknowledgement for B's state machine",
         "C-3: executed offline tests + reject ancestor symlinks in verified evidence"
+      ],
+      "discoveredLedgerIds": [
+        "ZOM-DISC-09",
+        "ZOM-DISC-10",
+        "ZOM-DISC-11",
+        "ZOM-DISC-15",
+        "ZOM-DISC-17",
+        "ZOM-DISC-18"
       ]
     }
   },
