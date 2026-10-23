@@ -89,9 +89,11 @@ def audit_city(module: Path, original: Path) -> dict:
         variables = (module / "variables.txt").read_text(encoding="utf-8").splitlines()
         base_variables = (original / "variables.txt").read_text(encoding="utf-8").splitlines()
         require("global_variable_append_only",
-                len(variables) == len(base_variables) + 2 and
+                len(variables) == len(base_variables) + 3 and
                 variables[:len(base_variables)] == base_variables and
-                variables[-2:] == ["zdr_last_reinforced_wave", "zdr_defence_mode"],
+                variables[-3:] == ["zdr_last_reinforced_wave",
+                                  "zdr_last_reinforced_round_start",
+                                  "zdr_defence_mode"],
                 "Original global variable table changed")
         src = original / "SceneObj" / SCO_NAME
         new = module / "SceneObj" / SCO_NAME
