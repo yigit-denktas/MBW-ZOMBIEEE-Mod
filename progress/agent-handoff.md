@@ -51,3 +51,9 @@ The owner has approved **City first** and autonomous coding delegation; readines
 **Critical interface handshake, jointly B/C:** B starts recorder only, receives C-issued versioned readiness for the correct session/attempt after durable log offsets are captured, *then* starts the game. Host-ready/client-joined/mission-entered are separate observations. Recorder remains alive until all owned child processes exit. Unknown stays unknown. No Windows game claims are supported by mocked events.
 
 Status remains **0/23 required City outcome leaves accepted, 0/5 milestones accepted**. Code review labels and active prototypes never increase acceptance. The other four maps remain optional/deferred.
+
+### B/C integration mismatch observed at follow-up review
+
+Agent C's current recorder creates an atomic `recorder-ready.json` with `zombieee.recorder_ready.v1`, but requires a child command or **existing** PID; B wants to launch its own host/client *after* receiving readiness. The two models cannot simply be combined without a new passive watcher or changing which agent launches the game. B's discussed schema `zombieee.recorder-ready.v1` also differs (underscore vs hyphen). [B correction](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11#issuecomment-6374020607) · [C correction](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12#issuecomment-6374021323).
+
+C has pushed implementation updates for log head/tail and path checks, but compatible handshake and executed test evidence are still required. **No merge or 0/23 acceptance changed.**

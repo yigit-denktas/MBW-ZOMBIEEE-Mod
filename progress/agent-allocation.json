@@ -16,7 +16,8 @@
     "approval": "Agents may implement/review in own branch; no blind automatic merge, no CI, no Pages edits by agents B/C.",
     "updates": "Only Agent A edits progress/ledger.json and republishes public gh-pages snapshot after scope/evidence review; others propose updates in PR.",
     "privacy": "Never commit original RAR, game assets, Windows user paths, logs containing identity, secrets or private readiness assessments.",
-    "integrationRule": "No merge PR #10/#11/#12 until exact branch suite is exercised and identified blockers fixed. Merge then as offline implementation only, never release acceptance."
+    "integrationRule": "No merge PR #10/#11/#12 until exact branch suite is exercised and identified blockers fixed. Merge then as offline implementation only, never release acceptance.",
+    "interfaceDecision": "OPEN: B-owned processes with C passive recorder vs C-owned child supervisor; do not merge either until one model and identical ready message schema are tested offline."
   },
   "lanes": {
     "A": {
@@ -215,28 +216,30 @@
         "independentlyReproduced": false
       },
       "blockers": [
-        "recorder not ready before game launch",
-        "listen host ready incorrectly means playing",
-        "symlink/junction raw game root not reliably rejected"
+        "recorder before game with authenticated session/attempt and live recorder identity",
+        "distinct game-ready/client-joined/mission-entered transitions",
+        "safe raw input link/junction detection"
       ],
       "reviewComment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11#issuecomment-6373896560",
-      "safeToMerge": false
+      "safeToMerge": false,
+      "latestReview": "B needs strict recorder-ready state before host/client spawn; coordinate exact schema and process ownership, distinguish host-ready from mission-entered."
     },
     "PR12": {
       "branch": "agent/c-flight-recorder",
-      "head": "e069c59d10352f363161e15eda3fad86e2c4bcc2",
+      "head": "134e8bed4c65cdf70d2f2c24b395a19b02ef3996",
       "reviewedOn": "2026-10-23",
       "status": "changes-needed",
       "reportedTests": {
         "executed": false
       },
       "blockers": [
-        "first-only log cap omits late crash text",
-        "missing recorder-ready handshake",
-        "ancestor-directory symlink/reparse protection requires tests"
+        "agree passive vs C-owned process-supervisor model with B",
+        "unify readiness schema hyphen/underscore and watcher id",
+        "execute tests covering >2MiB late crash/ancestor link and cross-agent handshake"
       ],
       "reviewComment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12#issuecomment-6373897277",
-      "safeToMerge": false
+      "safeToMerge": false,
+      "latestReview": "C added head/tail log capture, link safety and recorder-ready marker, but no new test execution evidence yet; passive pre-launch watcher vs owned game lifecycle unresolved."
     },
     "PR10": {
       "branch": "agent/a-city-engine",
