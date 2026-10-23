@@ -79,11 +79,48 @@ def build_status(installed):
     static = installed.get("city_static_acceptance")
     if isinstance(static, dict):
         checks = static.get("checks")
-        if isinstance(checks, dict) and checks:
-            ok = all(v is True for v in checks.values())
-            output["static"] = "source_checked" if ok else "source_check_failed"
-            output["static_check_count"] = len(checks)
-            output["static_failed_checks"] = sum(v is not True for v in checks.values())
+        summary_keys = ("check_count", "passed_checks", "failed_checks", "checks_valid")
+        # The ZIP collector removes individual check names and keeps ONE
+        # aggregate bit. That bit is NOT the number of source audit checks.
+        summarized = (any(key in static for key in summary_keys)
+                      or isinstance(checks, dict) and "all_checks_passed" in checks)
+        if summarized:
+            count = measured(static.get("check_count"), minimum=1, maximum=100)
+            passed = measured(static.get("passed_checks"), minimum=0, maximum=100)
+            failed = measured(static.get("failed_checks"), minimum=0, maximum=100)
+            collapsed = (checks.get("all_checks_passed")
+                         if isinstance(checks, dict) else None)
+            consistent = (
+                count is not None and passed is not None and failed is not None
+                and passed + failed == count
+                and static.get("checks_valid") is True
+                and isinstance(checks, dict)
+                and set(checks) == {"all_checks_passed"}
+                and type(collapsed) is bool
+                and collapsed is (failed == 0)
+            )
+            output["static_summary_consistent"] = consistent
+            if consistent:
+                output["static_check_count"] = count
+                output["static_passed_checks"] = passed
+                output["static_failed_checks"] = failed
+                output["static"] = ("source_checked" if failed == 0
+                                    else "source_check_failed")
+            else:
+                # Invalid/missing/inconsistent counters cannot become source proof.
+                output["static"] = "source_check_failed"
+                output["static_check_count"] = None
+                output["static_failed_checks"] = None
+        elif isinstance(checks, dict):
+            # Direct, non-collected synthetic inputs can carry original checks.
+            # Still bound size and require actual booleans, never truthiness.
+            valid = bool(checks) and len(checks) <= 100 and all(
+                type(value) is bool for value in checks.values())
+            output["static"] = ("source_checked" if valid and all(checks.values())
+                                else "source_check_failed")
+            output["static_check_count"] = len(checks) if valid else None
+            output["static_failed_checks"] = (sum(value is False for value in checks.values())
+                                               if valid else None)
         gtype = measured(static.get("original_invasion_game_type"), maximum=20)
         output["original_invasion_game_type"] = gtype
     final = installed.get("city_final_acceptance")
