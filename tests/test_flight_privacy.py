@@ -29,6 +29,16 @@ class PrivacyAndCapabilitiesTests(unittest.TestCase):
         self.assertEqual(report["potential_patterns"]["email"], 0)
         self.assertEqual(report["potential_patterns"]["ipv4"], 0)
 
+    def test_chat_and_inline_credentials_are_redacted(self):
+        raw = ("[team chat] ExamplePlayer: secret tactics\n"
+               "engine token=abc12345\n"
+               "global_chat: ExamplePlayer says hello\n")
+        safe = scrub(raw)
+        self.assertNotIn("ExamplePlayer", safe)
+        self.assertNotIn("abc12345", safe)
+        self.assertIn("[REDACTED CHAT]", safe)
+        self.assertIn("token=<REDACTED>", safe)
+
     def test_missing_capabilities_stay_unknown(self):
         result = capability_snapshot([])
         self.assertEqual(result["status"], "unknown")
