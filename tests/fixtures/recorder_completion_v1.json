@@ -1,0 +1,26 @@
+{
+  "schema": "zombieee.flight.v1",
+  "session_id": "fixture-city-01",
+  "attempt_id": "attempt-01",
+  "watch_mode": "passive",
+  "simulation": true,
+  "game_runtime": "unknown",
+  "outcome": "stopped",
+  "exit_code": null,
+  "exit_code_observed": false,
+  "log_count": 1,
+  "log_truncated": [
+    false
+  ],
+  "log_omitted_bytes": [
+    0
+  ],
+  "event_count": 3,
+  "event_drops": 0,
+  "metrics": {
+    "cpu_seconds": null,
+    "peak_memory_kib": null,
+    "source": "unavailable"
+  },
+  "launcher": null
+}
