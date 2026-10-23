@@ -14,6 +14,31 @@ def number(event, key, default=-1):
         return default
 
 
+
+CAPABILITY_KEYS = ("agents_it", "team_getter", "group_getter", "npc_getter",
+                   "position_getter", "weapon_getter", "ammo_getter", "kills_getter")
+
+
+def capability_snapshot(events: list[dict]) -> dict:
+    """Availability of Lua bindings, distinct from actual measurement success."""
+    record = next((ev for ev in reversed(events)
+                   if ev.get("event") == "recorder_capabilities"), None)
+    if record is None:
+        return {"status": "unknown", "bindings": {k: "unknown" for k in CAPABILITY_KEYS},
+                "limits": {}, "interpretation": "No capability declaration observed."}
+    result = {}
+    for key in CAPABILITY_KEYS:
+        observed = number(record, key)
+        result[key] = "binding_present" if observed == 1 else (
+            "binding_absent" if observed == 0 else "unknown")
+    return {
+        "status": "declared", "bindings": result,
+        "limits": {k: number(record, k) for k in
+                   ("sampling_interval_s", "max_heartbeats", "max_defenders")},
+        "interpretation": "Function binding presence is not proof a getter executed or yielded usable values.",
+    }
+
+
 def matrix_for_session(events: list[dict], findings: list[dict],
                        module: dict, logs: int, combat: dict) -> dict:
     types = Counter(e.get("event") for e in events)
