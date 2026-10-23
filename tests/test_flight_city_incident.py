@@ -64,5 +64,23 @@ class CityIncidentTests(unittest.TestCase):
         self.assertNotIn("CITY-I07", {x["code"] for x in city["incident_leads"]})
 
 
+    def test_telemetry_gap_keeps_absence_unknown(self):
+        from city_incidents import MAX_TRACKED
+        ev = [event("boot", i + 1) for i in range(MAX_TRACKED + 12)]
+        item = payload(ev)
+        item["logs/log_01.txt"] = b"[ZDB1-OMITTED 500 BYTES BETWEEN HEAD AND TAIL]"
+        city = analyze(item)["city_incident"]
+        self.assertEqual(city["timeline"]["engine"]["omitted_middle"], 12)
+        self.assertTrue(city["recording_gap"])
+        self.assertIn("CITY-I03", {x["code"] for x in city["incident_leads"]})
+
+    def test_wave_regression_is_only_a_candidate(self):
+        waves = [event("wave_change", 1, wave="4"),
+                 event("wave_change", 3, wave="1")]
+        city = analyze(payload(waves))["city_incident"]
+        finding = next(x for x in city["incident_leads"] if x["code"] == "CITY-I04")
+        self.assertEqual(finding["cause"], "unknown")
+
+
 if __name__ == "__main__":
     unittest.main()
