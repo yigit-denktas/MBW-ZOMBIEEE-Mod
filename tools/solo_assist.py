@@ -59,6 +59,13 @@ def patch_text(mission: str, period: int = 12) -> tuple[str, int]:
     line, count, end = mission_bounds(lines)
     if count not in (25, 26, 27, 29, 31):
         raise PatchError("Unknown mission trigger count, refusing solo cheat injection")
+    # Reject a second assist trigger even if the cadence is changed.
+    for row in lines[end - count:end]:
+        tokens = row.split()
+        if (len(tokens) > 20 and
+                tokens[4:8] == ["417", "0", "2147484066", "0"] and
+                "1721" in tokens and "1728" in tokens):
+            raise PatchError("Solo assist already installed")
     marker = solo_assist_trigger(period)
     nl = "\r\n" if "\r\n" in mission else "\n"
     lines[line] = str(count + 1) + nl
