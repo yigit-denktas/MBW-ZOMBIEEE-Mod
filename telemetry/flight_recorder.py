@@ -129,7 +129,13 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
             offsets[index] = path.stat().st_size
         except OSError:
             offsets[index] = 0
-    raw_logs = [bytearray() for _ in source_paths]
+    # Reserve a fixed early portion and a rolling tail. Never grow with log size.
+    head_limit = max(1, max_log_bytes // 4)
+    tail_limit = max_log_bytes - head_limit
+    heads = [bytearray() for _ in source_paths]
+    tails = [bytearray() for _ in source_paths]
+    seen_bytes = [0] * len(source_paths)
+    omitted_bytes = [0] * len(source_paths)
     truncated = [False] * len(source_paths)
     events = []
     event_drops = 0
@@ -144,37 +150,71 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
                      b"".join(json.dumps(e, sort_keys=True, separators=(",", ":")).encode() + b"\n"
                               for e in events))
 
+    def append_bytes(i: int, chunk: bytes, count: int) -> None:
+        # A huge burst is handled by reading only its earliest and latest bytes,
+        # so read amplification and memory stay capped by the configured limit.
+        first = min(len(chunk), head_limit - len(heads[i]))
+        if first:
+            heads[i].extend(chunk[:first])
+        remainder = chunk[first:]
+        if tail_limit:
+            tails[i] = bytearray((tails[i] + remainder)[-tail_limit:])
+        seen_bytes[i] += count
+
+    def render_log(i: int) -> bytes:
+        head = bytes(heads[i])
+        tail = bytes(tails[i])
+        total = seen_bytes[i]
+        if total <= max_log_bytes:
+            omitted_bytes[i] = 0
+            return head + tail
+        # Use a stable fixed-size marker: no ambiguous silent gaps. Reserve
+        # its bytes inside max_log_bytes, then fit the newest tail.
+        marker = b"\\n[ZDB1-OMITTED 00000000000000000000 BYTES BETWEEN HEAD AND TAIL]\\n"
+        reserve = max(0, max_log_bytes - len(head) - len(marker))
+        retained_tail = tail[-reserve:] if reserve else b""
+        missed = total - len(head) - len(retained_tail)
+        marker = ("\\n[ZDB1-OMITTED " + str(missed) +
+                  " BYTES BETWEEN HEAD AND TAIL]\\n").encode()
+        reserve = max(0, max_log_bytes - len(head) - len(marker))
+        retained_tail = tail[-reserve:] if reserve else b""
+        missed = total - len(head) - len(retained_tail)
+        marker = ("\\n[ZDB1-OMITTED " + str(missed) +
+                  " BYTES BETWEEN HEAD AND TAIL]\\n").encode()
+        omitted_bytes[i] = missed
+        return head + marker + retained_tail
+
     def sample_logs() -> None:
         for i, path in enumerate(source_paths):
             try:
                 size = path.stat().st_size
                 if size < offsets[i]:
+                    # Replaced/truncated log; previously observed bytes remain
+                    # visible, but the provenance discontinuity is explicit.
                     offsets[i] = 0
                     event("log_rotated", log_index=i + 1)
                 available = size - offsets[i]
                 if available <= 0:
                     continue
-                room = max_log_bytes - len(raw_logs[i])
-                # Advance to EOF if budget exhausted: no hidden accumulation.
-                if room <= 0:
-                    offsets[i] = size
-                    if not truncated[i]:
-                        truncated[i] = True
-                        event("log_limit", log_index=i + 1)
-                    continue
                 with path.open("rb") as handle:
                     handle.seek(offsets[i])
-                    data = handle.read(min(available, room))
-                offsets[i] += len(data)
-                raw_logs[i].extend(data)
-                if available > len(data):
-                    offsets[i] = size
-                    truncated[i] = True
-                    event("log_limit", log_index=i + 1)
-                # Scrub the *whole* accumulated text, so secrets split across
-                # poll boundaries never reach the on-disk snapshot.
-                clean = scrub(raw_logs[i].decode("utf-8", errors="replace"))
+                    if available <= max_log_bytes:
+                        data = handle.read(available)
+                    else:
+                        early = handle.read(min(available, head_limit - len(heads[i])))
+                        handle.seek(size - tail_limit)
+                        latest = handle.read(tail_limit)
+                        # Account for logical skipped bytes rather than
+                        # pretending only the physically read bytes exist.
+                        data = early + latest
+                append_bytes(i, data, available)
+                offsets[i] = size
+                saved = render_log(i)
+                truncated[i] = omitted_bytes[i] > 0
+                clean = scrub(saved.decode("utf-8", errors="replace"))
                 atomic_write(root / "logs" / f"log_{i+1:02d}.txt", clean.encode())
+                if truncated[i]:
+                    event("log_limit", log_index=i + 1, omitted_bytes=omitted_bytes[i])
             except (OSError, RuntimeError) as exc:
                 event("log_unavailable", log_index=i + 1,
                       error_type=type(exc).__name__)
@@ -236,7 +276,8 @@ def record_session(output_root: Path, session_id: str, logs: list[Path],
             "exit_code": exit_code if child is not None else None,
             "exit_code_observed": child is not None and exit_code is not None,
             "log_count": len(source_paths), "log_bytes_limit_each": max_log_bytes,
-            "log_truncated": truncated, "event_count": len(events),
+            "log_truncated": truncated, "log_omitted_bytes": omitted_bytes,
+            "log_seen_bytes": seen_bytes, "event_count": len(events),
             "duration_seconds": round(time.monotonic() - start, 3),
             "event_drops": event_drops,
             "metrics": child_metrics() if child is not None else {
