@@ -35,7 +35,7 @@ class CityOnlyIntegration(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             original_mission = self.stage_city(root)
-            patch_file(root, 4)
+            patch_file(root, 4, city_only=True)
             city_defense(root)
             wave = wave_topups(root, cap=4, city_only=True)
             tactical = recovery(root, city_only=True)
@@ -63,7 +63,7 @@ class CityOnlyIntegration(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             self.stage_city(root)
-            patch_file(root, 4)
+            patch_file(root, 4, city_only=True)
             city_defense(root)
             wave_topups(root, cap=4, city_only=True)
             recovery(root, city_only=True)
@@ -72,8 +72,9 @@ class CityOnlyIntegration(unittest.TestCase):
             p, count, _ = mission_bounds(text.splitlines(keepends=True))
             self.assertEqual(count, 31)
             city = SCENE_BASE + scene_index(root / "scenes.txt")
-            # Reinforcement and recovery are trigger indexes 28 and 30, 0 based.
-            for index in (28, 30):
+            # Initial ally spawn (25), wave top-up (28), and tactical
+            # recovery (30) must all reject non-City map scenes.
+            for index in (25, 28, 30):
                 parts = rows[p + 1 + index].split()
                 conditions = int(parts[3])
                 cursor = 4
@@ -90,7 +91,7 @@ class CityOnlyIntegration(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             self.stage_city(root)
-            patch_file(root, 3)
+            patch_file(root, 3, city_only=True)
             city_defense(root)
             wave_topups(root, cap=3, city_only=True)
             _, count, _ = mission_bounds((root / "mission_templates.txt").read_text().splitlines(keepends=True))
@@ -102,9 +103,26 @@ class CityOnlyIntegration(unittest.TestCase):
             city = ORIGINAL / "SceneObj" / "scn_tbfc_invasion_4.sco"
             source_bytes = city.read_bytes()
             self.stage_city(root)
-            patch_file(root, 4)
+            patch_file(root, 4, city_only=True)
             city_defense(root)
             self.assertEqual(city.read_bytes(), source_bytes)
+
+    def test_city_guard_orders_reject_wrong_original_scene(self):
+        from city_defense import patch_orders
+        from patch_defenders import patch_text as initial_patch, index_troops
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            self.stage_city(root)
+            city_id = scene_index(root / "scenes.txt")
+            troops = index_troops(root / "troops.txt")
+            compiled = initial_patch((root / "mission_templates.txt").read_text(),
+                                     troops, 4, city_scene=city_id)
+            # City-only guard orders accept the source.
+            allowed = patch_orders(compiled, city_id)
+            self.assertEqual(mission_bounds(allowed.splitlines(keepends=True))[1], 27)
+            # A different scene ID must not silently redirect survivor bots.
+            with self.assertRaisesRegex(ValueError, "incorrectly scoped"):
+                patch_orders(compiled, city_id + 1)
 
 
 if __name__ == "__main__":
