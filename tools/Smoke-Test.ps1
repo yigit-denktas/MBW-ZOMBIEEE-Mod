@@ -6,7 +6,8 @@ param(
     [switch]$Replace,
     [switch]$CityGuardposts,
     [switch]$AllMapDefenses,
-    [switch]$WaveReinforcements
+    [switch]$WaveReinforcements,
+    [switch]$TacticalRecovery
 )
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
@@ -33,6 +34,7 @@ try {
     if ($CityGuardposts) { $argsBuild += '--city-guardposts' }
     if ($AllMapDefenses) { $argsBuild += '--all-map-defenses' }
     if ($WaveReinforcements) { $argsBuild += '--wave-reinforcements' }
+    if ($TacticalRecovery) { $argsBuild += '--tactical-recovery' }
     & py @argsBuild
     if ($LASTEXITCODE -ne 0) { throw 'Module build was refused; check RAR SHA-256, 7-Zip CRC and errors above' }
 
