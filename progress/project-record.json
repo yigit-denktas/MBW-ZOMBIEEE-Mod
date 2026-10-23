@@ -1,0 +1,29 @@
+{
+  "projects": [
+    {
+      "adapter": "normalized-v1",
+      "sourceFile": "ledger.json",
+      "project": {
+        "id": "zombieee-remaster",
+        "name": "ZOMBIEEE Remaster",
+        "repository": "yigit-denktas/MBW-ZOMBIEEE-Mod",
+        "visibility": "public"
+      },
+      "source": {
+        "kind": "file-snapshot",
+        "path": "progress/ledger.json",
+        "commit": null,
+        "observedOn": "2026-10-23",
+        "updatedOn": "2026-10-23",
+        "authority": "Proposed owner-review draft authored from v0.1.8 README/ROADMAP/issue inventory; no accepted baseline"
+      },
+      "presentation": {
+        "renderer": "host",
+        "theme": "theme.json",
+        "readmeMetric": "work",
+        "progressUrl": null,
+        "existingSite": null
+      }
+    }
+  ]
+}

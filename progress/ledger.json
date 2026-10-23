@@ -1,0 +1,895 @@
+{
+  "contractVersion": "0.2.0",
+  "groups": [
+    {
+      "id": "Tracking",
+      "title": "Records & governance",
+      "panel": "Records & governance"
+    },
+    {
+      "id": "Runtime",
+      "title": "Engine compatibility",
+      "panel": "Engine compatibility"
+    },
+    {
+      "id": "Diagnostics",
+      "title": "Telemetry & performance",
+      "panel": "Telemetry & performance"
+    },
+    {
+      "id": "Setup",
+      "title": "Windows installation",
+      "panel": "Windows installation"
+    },
+    {
+      "id": "Solo",
+      "title": "One-click local play",
+      "panel": "One-click local play"
+    },
+    {
+      "id": "Gameplay",
+      "title": "AI, maps and waves",
+      "panel": "AI, maps and waves"
+    },
+    {
+      "id": "Quality",
+      "title": "Testing, legal and release",
+      "panel": "Testing, legal and release"
+    }
+  ],
+  "milestones": [
+    {
+      "id": "M0",
+      "title": "Scoped record ready for owner review",
+      "goal": "Owner reviews baseline; official toolkit check, counts and accessibility evidence exist",
+      "horizon": "Now",
+      "groupIds": [
+        "Tracking"
+      ],
+      "gateItemIds": [
+        "ZOM-REC-01",
+        "ZOM-REC-02",
+        "ZOM-REC-03"
+      ],
+      "acceptanceRule": "all-gate-items",
+      "sourceAccepted": null,
+      "unscopedWork": [],
+      "nextAction": "REC-01",
+      "sourceState": "proposed",
+      "acceptance": "Pending owner baseline and real engine evidence"
+    },
+    {
+      "id": "M1",
+      "title": "Observed WSE2 baseline",
+      "goal": "Original 0.4 launches and completes a City wave with diagnostic and crash evidence",
+      "horizon": "Now",
+      "groupIds": [
+        "Runtime",
+        "Diagnostics"
+      ],
+      "gateItemIds": [
+        "ZOM-ENG-01",
+        "ZOM-ENG-02",
+        "ZOM-ENG-03",
+        "ZOM-OBS-01",
+        "ZOM-OBS-02"
+      ],
+      "acceptanceRule": "all-gate-items",
+      "sourceAccepted": null,
+      "unscopedWork": [],
+      "nextAction": "ENG-01",
+      "sourceState": "proposed",
+      "acceptance": "Pending owner baseline and real engine evidence"
+    },
+    {
+      "id": "M2",
+      "title": "One-click Windows solo start",
+      "goal": "Windows detects owned game and launches private solo invasion from desktop without manual paths",
+      "horizon": "Next",
+      "groupIds": [
+        "Setup",
+        "Solo"
+      ],
+      "gateItemIds": [
+        "ZOM-WIN-01",
+        "ZOM-WIN-02",
+        "ZOM-WIN-03",
+        "ZOM-SOLO-01",
+        "ZOM-SOLO-02"
+      ],
+      "acceptanceRule": "all-gate-items",
+      "sourceAccepted": null,
+      "unscopedWork": [],
+      "nextAction": "WIN-01",
+      "sourceState": "proposed",
+      "acceptance": "Pending owner baseline and real engine evidence"
+    },
+    {
+      "id": "M3",
+      "title": "Five-map and AI gameplay reliable",
+      "goal": "Defenders, waves and all five maps work with recorded combat and real performance data",
+      "horizon": "Next",
+      "groupIds": [
+        "Gameplay",
+        "Diagnostics"
+      ],
+      "gateItemIds": [
+        "ZOM-AI-01",
+        "ZOM-AI-02",
+        "ZOM-AI-03",
+        "ZOM-WAVE-01",
+        "ZOM-MAP-01",
+        "ZOM-PERF-01"
+      ],
+      "acceptanceRule": "all-gate-items",
+      "sourceAccepted": null,
+      "unscopedWork": [],
+      "nextAction": "AI-01",
+      "sourceState": "proposed",
+      "acceptance": "Pending owner baseline and real engine evidence"
+    },
+    {
+      "id": "M4",
+      "title": "Solo release accepted",
+      "goal": "Ten-wave final private run, host permissions, licensing and install/recovery accepted by owner",
+      "horizon": "Later",
+      "groupIds": [
+        "Quality"
+      ],
+      "gateItemIds": [
+        "ZOM-QA-01",
+        "ZOM-QA-02",
+        "ZOM-ADMIN-01",
+        "ZOM-LEGAL-01",
+        "ZOM-REL-01"
+      ],
+      "acceptanceRule": "all-gate-items",
+      "sourceAccepted": null,
+      "unscopedWork": [],
+      "nextAction": "QA-01",
+      "sourceState": "proposed",
+      "acceptance": "Pending owner baseline and real engine evidence"
+    }
+  ],
+  "items": [
+    {
+      "id": "ZOM-REC-01",
+      "title": "Reconcile pinned kit and repeat installer replay",
+      "groupId": "Tracking",
+      "milestoneId": "M0",
+      "state": "review",
+      "sourceState": "review-branch setup pending kit replay",
+      "required": true,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Owner review",
+      "priority": "P2",
+      "issueUrl": null,
+      "criterion": "Verify source ZIP hash, execute official preview/apply and identical second run; preserve original AGENTS",
+      "note": null,
+      "deferReason": null
+    },
+    {
+      "id": "ZOM-REC-02",
+      "title": "Approve the scoped product baseline",
+      "groupId": "Tracking",
+      "milestoneId": "M0",
+      "state": "backlog",
+      "sourceState": "new scoped proposal; not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-REC-01"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Owner / implementing agent (proposed)",
+      "priority": "P2",
+      "issueUrl": null,
+      "criterion": "Owner confirms solo-first outcome, required/deferred leaves, release gates and delegation policy",
+      "note": null,
+      "deferReason": null
+    },
+    {
+      "id": "ZOM-REC-03",
+      "title": "Validate and review branded progress views",
+      "groupId": "Tracking",
+      "milestoneId": "M0",
+      "state": "backlog",
+      "sourceState": "new scoped proposal; not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-REC-02"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Owner / implementing agent (proposed)",
+      "priority": "P2",
+      "issueUrl": null,
+      "criterion": "Toolkit check/pipeline and README-vs-tracker counts pass; keyboard/reflow and contrast reviewed",
+      "note": null,
+      "deferReason": null
+    },
+    {
+      "id": "ZOM-ENG-01",
+      "title": "Verify complete original ZOMBIEEE 0.4 archive",
+      "groupId": "Runtime",
+      "milestoneId": "M1",
+      "state": "backlog",
+      "sourceState": "new scoped proposal; not accepted",
+      "required": true,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/1"
+        }
+      ],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Owner / implementing agent (proposed)",
+      "priority": "P0",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/1",
+      "criterion": "Windows 7-Zip CRC passes all entries and provenance SHA matches without modifying input",
+      "note": null,
+      "deferReason": null
+    },
+    {
+      "id": "ZOM-ENG-02",
+      "title": "Boot the original module with supported WSE2",
+      "groupId": "Runtime",
+      "milestoneId": "M1",
+      "state": "backlog",
+      "sourceState": "new scoped proposal; not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-ENG-01"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/1"
+        }
+      ],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Owner / implementing agent (proposed)",
+      "priority": "P0",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/1",
+      "criterion": "Pinned or updated WSE2 loads the unmodified invasion module with no fatal parser/resource failure",
+      "note": null,
+      "deferReason": null
+    },
+    {
+      "id": "ZOM-ENG-03",
+      "title": "Complete baseline City zombie wave",
+      "groupId": "Runtime",
+      "milestoneId": "M1",
+      "state": "backlog",
+      "sourceState": "new scoped proposal; not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-ENG-02"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/1"
+        }
+      ],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Owner / implementing agent (proposed)",
+      "priority": "P0",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/1",
+      "criterion": "Private City mission starts and finishes at least one wave with usable guns, sounds, ammo and class selection",
+      "note": null,
+      "deferReason": null
+    },
+    {
+      "id": "ZOM-OBS-01",
+      "title": "Validate game-event telemetry inside WSE2",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "active",
+      "sourceState": "source implementation prototype; runtime not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-ENG-02"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6"
+        }
+      ],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Owner / implementing agent (proposed)",
+      "priority": "P0",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
+      "criterion": "Bounded, versioned wave, spawn, team and combat events recorded in one actual session with explicit unknown fields",
+      "note": "Prototype exists in v0.1.8; engine acceptance pending",
+      "deferReason": null
+    },
+    {
+      "id": "ZOM-OBS-02",
+      "title": "Collect crash-resistant external host evidence",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "backlog",
+      "sourceState": "new scoped proposal; not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-ENG-02"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6"
+        }
+      ],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Owner / implementing agent (proposed)",
+      "priority": "P0",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
+      "criterion": "Separate recorder retains startup/crash context when game or Lua exits, plus CPU/memory/process status where measurable",
+      "note": null,
+      "deferReason": null
+    },
+    {
+      "id": "ZOM-WIN-01",
+      "title": "Discover installed licensed Warband and WSE2",
+      "groupId": "Setup",
+      "milestoneId": "M2",
+      "state": "backlog",
+      "sourceState": "new scoped proposal; not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-ENG-01"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Owner / implementing agent (proposed)",
+      "priority": "P1",
+      "issueUrl": null,
+      "criterion": "Windows 11 detector finds supported Steam/custom locations, validates engine and reports ambiguity without false confidence",
+      "note": null,
+      "deferReason": null
+    },
+    {
+      "id": "ZOM-WIN-02",
+      "title": "Deliver safe install, repair and rollback",
+      "groupId": "Setup",
+      "milestoneId": "M2",
+      "state": "backlog",
+      "sourceState": "new scoped proposal; not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-WIN-01"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Owner / implementing agent (proposed)",
+      "priority": "P1",
+      "issueUrl": null,
+      "criterion": "Installer validates original files and pinned dependencies; supports dry run, repair, rollback and uninstall without deleting owned game data",
+      "note": null,
+      "deferReason": null
+    },
+    {
+      "id": "ZOM-WIN-03",
+      "title": "Create user desktop launcher and settings",
+      "groupId": "Setup",
+      "milestoneId": "M2",
+      "state": "backlog",
+      "sourceState": "new scoped proposal; not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-WIN-02"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Owner / implementing agent (proposed)",
+      "priority": "P1",
+      "issueUrl": null,
+      "criterion": "A desktop shortcut opens remaster launcher with Play Solo, settings, logs and repair actions",
+      "note": null,
+      "deferReason": null
+    },
+    {
+      "id": "ZOM-SOLO-01",
+      "title": "Automatically start private invasion host",
+      "groupId": "Solo",
+      "milestoneId": "M2",
+      "state": "backlog",
+      "sourceState": "new scoped proposal; not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-ENG-03",
+        "ZOM-WIN-02"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Owner / implementing agent (proposed)",
+      "priority": "P1",
+      "issueUrl": null,
+      "criterion": "Launcher starts/stops an isolated local listen-server or managed dedicated host without port forwarding",
+      "note": null,
+      "deferReason": null
+    },
+    {
+      "id": "ZOM-SOLO-02",
+      "title": "Join solo player without manual server setup",
+      "groupId": "Solo",
+      "milestoneId": "M2",
+      "state": "backlog",
+      "sourceState": "new scoped proposal; not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-SOLO-01",
+        "ZOM-WIN-03"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Owner / implementing agent (proposed)",
+      "priority": "P1",
+      "issueUrl": null,
+      "criterion": "One click reliably selects mission/map and connects user to private local host; clean shutdown and retry work",
+      "note": null,
+      "deferReason": null
+    },
+    {
+      "id": "ZOM-AI-01",
+      "title": "Verify allied defender team and initial spawns",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "active",
+      "sourceState": "source implementation prototype; runtime not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-ENG-03",
+        "ZOM-OBS-01"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/2"
+        }
+      ],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Owner / implementing agent (proposed)",
+      "priority": "P2",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/2",
+      "criterion": "At least two survivor AI spawn on team 0, use expected loadouts and attack zombies in actual City wave",
+      "note": "Prototype exists in v0.1.8; engine acceptance pending",
+      "deferReason": null
+    },
+    {
+      "id": "ZOM-AI-02",
+      "title": "Establish measurable effective ranged combat",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "active",
+      "sourceState": "source implementation prototype; runtime not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-AI-01",
+        "ZOM-OBS-01"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/2"
+        }
+      ],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Owner / implementing agent (proposed)",
+      "priority": "P2",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/2",
+      "criterion": "Bots equip correct compatible guns/ammo, deal confirmed hits or kills, resupply and avoid ineffective loops",
+      "note": "Prototype exists in v0.1.8; engine acceptance pending",
+      "deferReason": null
+    },
+    {
+      "id": "ZOM-AI-03",
+      "title": "Verify guarded positions and recovery behaviour",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "active",
+      "sourceState": "source implementation prototype; runtime not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-AI-01"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/3"
+        }
+      ],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Owner / implementing agent (proposed)",
+      "priority": "P2",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/3",
+      "criterion": "At least two City guard locations reached; hold/fallback/regroup respond with recorded transitions and no zombie-path obstruction",
+      "note": "Prototype exists in v0.1.8; engine acceptance pending",
+      "deferReason": null
+    },
+    {
+      "id": "ZOM-WAVE-01",
+      "title": "Balance survivor help and zombie wave progression",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "active",
+      "sourceState": "source implementation prototype; runtime not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-AI-02",
+        "ZOM-ENG-03"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/2"
+        }
+      ],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Owner / implementing agent (proposed)",
+      "priority": "P2",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/2",
+      "criterion": "Selected difficulty has bounded reinforcement, controlled wave pacing and reproducible measurements without replacing original waves unintentionally",
+      "note": "Prototype exists in v0.1.8; engine acceptance pending",
+      "deferReason": null
+    },
+    {
+      "id": "ZOM-MAP-01",
+      "title": "Prove each of five original maps playable",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "active",
+      "sourceState": "source implementation prototype; runtime not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-AI-03",
+        "ZOM-ENG-03"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/3"
+        }
+      ],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Owner / implementing agent (proposed)",
+      "priority": "P2",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/3",
+      "criterion": "All five maps load and complete wave with bot path/LOS/collision and weapon checks; candidate navmesh coordinates reviewed",
+      "note": "Prototype exists in v0.1.8; engine acceptance pending",
+      "deferReason": null
+    },
+    {
+      "id": "ZOM-PERF-01",
+      "title": "Measure actual frame pacing and agent costs",
+      "groupId": "Diagnostics",
+      "milestoneId": "M3",
+      "state": "backlog",
+      "sourceState": "new scoped proposal; not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-OBS-02",
+        "ZOM-ENG-03"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/4"
+        }
+      ],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Owner / implementing agent (proposed)",
+      "priority": "P2",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/4",
+      "criterion": "Collect CPU/memory/FPS or frame-time data where supported, compare baseline vs optimizations; no unsourced speed claims",
+      "note": null,
+      "deferReason": null
+    },
+    {
+      "id": "ZOM-QA-01",
+      "title": "Produce one auditable end-session diagnosis",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "active",
+      "sourceState": "source implementation prototype; runtime not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-OBS-01",
+        "ZOM-OBS-02"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6"
+        }
+      ],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Owner / implementing agent (proposed)",
+      "priority": "P2",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
+      "criterion": "Checksummed, redacted evidence bundle and rule report explain observed/unknown game outcomes and actionable failures",
+      "note": "Prototype exists in v0.1.8; engine acceptance pending",
+      "deferReason": null
+    },
+    {
+      "id": "ZOM-QA-02",
+      "title": "Complete sustained integrated Windows solo test",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "backlog",
+      "sourceState": "new scoped proposal; not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-SOLO-02",
+        "ZOM-MAP-01",
+        "ZOM-QA-01"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6"
+        }
+      ],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Owner / implementing agent (proposed)",
+      "priority": "P2",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
+      "criterion": "Solo run plays ten waves with reliable bots and no fatal errors; evidence connects to exact installer build",
+      "note": null,
+      "deferReason": null
+    },
+    {
+      "id": "ZOM-ADMIN-01",
+      "title": "Verify private cheat authority and behavior",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "active",
+      "sourceState": "source implementation prototype; runtime not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-ENG-03"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/4"
+        }
+      ],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Owner / implementing agent (proposed)",
+      "priority": "P2",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/4",
+      "criterion": "Hotkeys work for one-player local host and cannot affect public/dedicated/unauthorised sessions",
+      "note": "Prototype exists in v0.1.8; engine acceptance pending",
+      "deferReason": null
+    },
+    {
+      "id": "ZOM-LEGAL-01",
+      "title": "Resolve publication rights and attribution",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "backlog",
+      "sourceState": "new scoped proposal; not accepted",
+      "required": true,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/5"
+        }
+      ],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Owner / implementing agent (proposed)",
+      "priority": "P2",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/5",
+      "criterion": "Original and OSP contributors credited; installer asset distribution reviewed; unlicensed material never bundled",
+      "note": null,
+      "deferReason": null
+    },
+    {
+      "id": "ZOM-REL-01",
+      "title": "Package installable and accessible solo v1.0 candidate",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "backlog",
+      "sourceState": "new scoped proposal; not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-REC-03",
+        "ZOM-QA-02",
+        "ZOM-WIN-02",
+        "ZOM-LEGAL-01"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/5"
+        }
+      ],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Owner / implementing agent (proposed)",
+      "priority": "P2",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/5",
+      "criterion": "Reviewed Windows installer+shortcut+rollback with release notes, acceptance report and reviewed accessible tracker; no release without owner approval",
+      "note": null,
+      "deferReason": null
+    }
+  ],
+  "warnings": [
+    "DRAFT scope awaiting owner approval; 0/24 describes unaccepted exit criteria, not absence of implementation.",
+    "No Warband/WSE2 runtime evidence yet. Existing v0.1.8 scripts are experimental.",
+    "Original 0.4 assets and WSE2 redistributability unresolved. Friends/co-op excluded from required solo scope.",
+    "No source kit ZIP bytes independently verified in this runtime."
+  ],
+  "governance": {
+    "purpose": "Solo-first local Windows 11 restoration and remaster of original ZOMBIEEE Beta 0.4, with self-installation and forensic diagnostics.",
+    "owner": "Repository owner",
+    "acceptanceAuthority": "Repository owner",
+    "changeAuthority": "Repository owner",
+    "approach": "adaptive evidence-gated",
+    "baselineStatus": "proposed-unapproved",
+    "successCriteria": [
+      "One-click Windows 11 solo play on licensed Warband + compatible WSE2",
+      "Friendly bots and zombie waves function across five original maps",
+      "A local diagnostic report explains failures with build identity",
+      "Owner accepts legal, stability and accessibility gates"
+    ],
+    "wbsCoverage": "provisional 24 leaves; subject to owner review",
+    "workPackages": [
+      {
+        "id": "M0",
+        "title": "Scoped record ready for owner review",
+        "leafIds": [
+          "ZOM-REC-01",
+          "ZOM-REC-02",
+          "ZOM-REC-03"
+        ]
+      },
+      {
+        "id": "M1",
+        "title": "Observed WSE2 baseline",
+        "leafIds": [
+          "ZOM-ENG-01",
+          "ZOM-ENG-02",
+          "ZOM-ENG-03",
+          "ZOM-OBS-01",
+          "ZOM-OBS-02"
+        ]
+      },
+      {
+        "id": "M2",
+        "title": "One-click Windows solo start",
+        "leafIds": [
+          "ZOM-WIN-01",
+          "ZOM-WIN-02",
+          "ZOM-WIN-03",
+          "ZOM-SOLO-01",
+          "ZOM-SOLO-02"
+        ]
+      },
+      {
+        "id": "M3",
+        "title": "Five-map and AI gameplay reliable",
+        "leafIds": [
+          "ZOM-AI-01",
+          "ZOM-AI-02",
+          "ZOM-AI-03",
+          "ZOM-WAVE-01",
+          "ZOM-MAP-01",
+          "ZOM-PERF-01"
+        ]
+      },
+      {
+        "id": "M4",
+        "title": "Solo release accepted",
+        "leafIds": [
+          "ZOM-QA-01",
+          "ZOM-QA-02",
+          "ZOM-ADMIN-01",
+          "ZOM-LEGAL-01",
+          "ZOM-REL-01"
+        ]
+      }
+    ],
+    "baselines": [],
+    "changeRequests": [],
+    "risks": [
+      {
+        "id": "RISK-ENGINE",
+        "description": "Native compiled mission/WSE2 runtime behavior unverified",
+        "status": "active"
+      },
+      {
+        "id": "RISK-ASSET",
+        "description": "Original binary archive redistribution rights not demonstrated",
+        "status": "active"
+      },
+      {
+        "id": "RISK-BOOT",
+        "description": "Automatic Windows discovery/install not implemented",
+        "status": "active"
+      }
+    ],
+    "operations": {
+      "status": "proposed",
+      "reason": "No published web deploy or live game operational evidence; no CI by owner choice"
+    }
+  }
+}

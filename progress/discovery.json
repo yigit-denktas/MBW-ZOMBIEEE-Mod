@@ -1,0 +1,146 @@
+{
+  "projectId": "zombieee-remaster",
+  "status": "scouted-proposed",
+  "observedAt": "2026-10-23",
+  "repository": "yigit-denktas/MBW-ZOMBIEEE-Mod",
+  "sourceRevision": "048564a526de9b36abd55874271c7b80f36e5cf5",
+  "sourceContract": "0.2.0",
+  "sources": [
+    {
+      "kind": "repository-docs",
+      "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/tree/048564a526de9b36abd55874271c7b80f36e5cf5",
+      "revision": "048564a526de9b36abd55874271c7b80f36e5cf5",
+      "observedAt": "2026-10-23",
+      "coverage": "complete-current-main-tree",
+      "pagesRead": 1,
+      "findings": [
+        "README, VERSION, CHANGELOG, ROADMAP, MANUAL_TESTS, ENGINE, PROVENANCE, diagnostic/AI implementation docs read",
+        "No progress ledger, AGENTS or existing tracker in source revision"
+      ],
+      "gap": null
+    },
+    {
+      "kind": "github-issues",
+      "source": "https://api.github.com/repos/yigit-denktas/MBW-ZOMBIEEE-Mod/issues?state=open&per_page=100",
+      "revision": "048564a526de9b36abd55874271c7b80f36e5cf5",
+      "observedAt": "2026-10-23",
+      "coverage": "complete-open-issues-6",
+      "pagesRead": 1,
+      "findings": [
+        "Issue #1 engine, #2 allies, #3 positions, #4 cheats, #5 attribution, #6 final diagnostics; map to proposed work without renumbering"
+      ],
+      "gap": "Closed issues and issue discussion history not exhaustively inspected"
+    },
+    {
+      "kind": "open-prs",
+      "source": "https://api.github.com/repos/yigit-denktas/MBW-ZOMBIEEE-Mod/pulls?state=open&per_page=100",
+      "revision": "048564a526de9b36abd55874271c7b80f36e5cf5",
+      "observedAt": "2026-10-23",
+      "coverage": "complete-open-prs-zero",
+      "pagesRead": 1,
+      "findings": [
+        "No open pull requests before setup branch"
+      ],
+      "gap": "Closed/merged PR history not inspected"
+    },
+    {
+      "kind": "remote-branches",
+      "source": "https://api.github.com/repos/yigit-denktas/MBW-ZOMBIEEE-Mod/branches?per_page=100",
+      "revision": "048564a526de9b36abd55874271c7b80f36e5cf5",
+      "observedAt": "2026-10-23",
+      "coverage": "complete-at-initial-scout",
+      "pagesRead": 1,
+      "findings": [
+        "main was the only branch before this setup review branch"
+      ],
+      "gap": "Deleted or unadvertised branch history not available"
+    },
+    {
+      "kind": "releases",
+      "source": "https://api.github.com/repos/yigit-denktas/MBW-ZOMBIEEE-Mod/releases?per_page=30",
+      "revision": "048564a526de9b36abd55874271c7b80f36e5cf5",
+      "observedAt": "2026-10-23",
+      "coverage": "complete-zero",
+      "pagesRead": 1,
+      "findings": [
+        "No GitHub releases published; VERSION 0.1.8 is development only"
+      ],
+      "gap": null
+    },
+    {
+      "kind": "website",
+      "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod",
+      "revision": "048564a526de9b36abd55874271c7b80f36e5cf5",
+      "observedAt": "2026-10-23",
+      "coverage": "not-present",
+      "pagesRead": 0,
+      "findings": [
+        "Repository homepage null, has_pages=false, no site files in original main tree"
+      ],
+      "gap": "No external pre-existing standalone website identified"
+    },
+    {
+      "kind": "toolkit",
+      "source": "https://github.com/interzettel/project-record-standard/releases/tag/v0.4.1",
+      "revision": "ebc6afb0b977ff3d7605893c73ac63021775c4d3",
+      "observedAt": "2026-10-23",
+      "coverage": "source-blob-verified-archive-unavailable",
+      "pagesRead": 1,
+      "findings": [
+        "Published release kit SHA-256 recorded; 26 skill files match pinned source blobs"
+      ],
+      "gap": "Could not download release ZIP to independently verify actual archive bytes or run official installer/CLI from extracted archive"
+    },
+    {
+      "kind": "local-runtime",
+      "source": "Windows 11 host",
+      "revision": null,
+      "observedAt": "2026-10-23",
+      "coverage": "inaccessible",
+      "pagesRead": 0,
+      "findings": [
+        "Static scripts and tests in repository; WSE2 runtime proof absent"
+      ],
+      "gap": "No live Windows game, installer install-path check, engine logs or real FPS observed"
+    }
+  ],
+  "cleanupQueue": [
+    {
+      "priority": "P0",
+      "action": "Preserve source provenance and verify v0.4.1 ZIP; complete official installer replay",
+      "owner": "Implementer and toolkit access",
+      "effect": "Tracking reproducibility"
+    },
+    {
+      "priority": "P0",
+      "action": "Fix contradictory engine status and old hardcoded manual installation expectations in docs via additive updates",
+      "owner": "Implementer with owner review",
+      "effect": "One authoritative status"
+    },
+    {
+      "priority": "P0",
+      "action": "Plan real WSE2 boot and evidence recorder first; avoid counting static compilation as gameplay proof",
+      "owner": "Implementer",
+      "effect": "Engine acceptance"
+    },
+    {
+      "priority": "P1",
+      "action": "Map issues #1–#6 to stable accounting leaves and prepare read-only GitHub field integration",
+      "owner": "Implementer",
+      "effect": "No parallel issue tracker"
+    },
+    {
+      "priority": "P1",
+      "action": "Prepare accessible host-themed tracker; no publishing before owner review",
+      "owner": "Implementer",
+      "effect": "Read-only progress"
+    }
+  ],
+  "unresolvedDecisions": [
+    "Solo 1.0 acceptance duration vs game features",
+    "Whether optional friends hosting is deferred",
+    "Approved baseline and official tracker view/theme",
+    "Readiness target, R0–R4 delegation and central assessment store",
+    "Redistribution/installer binary-download provenance"
+  ]
+}
