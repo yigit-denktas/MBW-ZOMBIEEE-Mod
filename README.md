@@ -7,19 +7,22 @@ Modernization of the **2012 ZOMBIEEE (Invasion) Beta 0.4** mod for *Mount & Blad
 **Scope:** preserve the original guns, zombies, wave mode, maps and feel; restore current-runtime compatibility; add AI survivor teammates, defensible hold points, quality-of-life features, private cheats, and later LAN co-op. **ZOMBIEEE2 is explicitly excluded.**
 
 <!-- project-record:start -->
-### Project record — proposed solo-first outcome
+### Project record — City-first outcome and discovered work
 
 | Measure | Evidence-gated status | Boundary |
 | --- | ---: | --- |
-| City-first required outcome work | **0/23 · 0.0% accepted** | Owner-selected City-first scope, unaccepted exit criteria; previous source had **no** comparable tracker (Not measured). |
-| Accepted outcome milestones | **0/5 · 0.0% accepted** | Owner acceptance and Windows/WSE2 gameplay evidence outstanding. |
-| Agent readiness | **L0 (provisional)** | Separate from completion; L1 clean Windows bootstrap unverified. |
+| Original required City-release outcomes | **0/23 · 0.0% accepted** | The original 23 required leaf criteria remain unaccepted; the deferred five-map leaf stays optional. |
+| Discovered supporting work <span aria-label="Discovered task">●</span> | **11/15 · 73.3% bounded complete** | Unplanned source bug fixes, hardening, audits and integration tasks; **not additional release credit**. Four still need current-revision verification. |
+| Accepted outcome milestones | **0/5 · 0.0% accepted** | WSE2 City gameplay, durable Windows installation and owner release acceptance remain open. |
+| Agent readiness | **L0 (provisional, not reassessed)** | Separately evidenced readiness, not derived from work completion. |
 
-**Active outcome:** install and launch the original 2012 ZOMBIEEE 0.4 solo on Windows 11 with trustworthy telemetry. **Next evidence gate:** verify original RAR integrity and actually boot/finish a City wave under WSE2. Existing v0.1.8 code is experimental, **not** certified playable.
+**Active outcome:** verified private City mission on Warband/WSE2 with survivor AI and a safe installer and recorder. **Scoped evidence:** B reports full original archive `7z t` CRC and pinned WSE2 1.1.5.4 client/host binary identity. A reports 149/149 local original-asset source tests. The first Windows City boot was announced on **older A/C revisions**, with no completed results posted at this observation. These observations do not establish playable waves, host networking or owner acceptance.
 
-[Live interactive tracker](https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/) · [Agent A/B/C work allocation](progress/agent-handoff.md) · [Scoped overview](progress/overview.md) · [Proposed ledger](progress/ledger.json) · [Readiness limits](progress/readiness-summary.md)
+**<span aria-label="Discovered task">●</span> Discovered** means work absent from the original 2026-10-23 proposal; it is linked to an existing outcome and tracked in a **separate denominator**. [Scope-change history](progress/scope-changes/2026-10-24-discovered-work.json) preserves the original [24-task snapshot](progress/snapshots/ledger-2026-10-23-original.json).
 
-<small>Source observation 2026-10-23 against `048564a`. Scope is **not approved** and this review site is **not published**. Generated counts must be checked with the official v0.4.1 kit before merge.</small>
+[Interactive tracker](https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/) · [A/B/C allocation](progress/agent-handoff.md) · [Scoped overview](progress/overview.md) · [Ledger](progress/ledger.json) · [Readiness limits](progress/readiness-summary.md)
+
+<small>Source observation 2026-10-24. Project Record proposal remains unapproved as a complete release baseline. The GitHub Pages branch was updated with this source; independent live-page/assistive validation of the new revision remains pending. No gameplay or release certification is inferred from a static source test.</small>
 <!-- project-record:end -->
 
 ## Requirements and local development
