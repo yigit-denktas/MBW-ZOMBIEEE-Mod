@@ -20,6 +20,7 @@ from city_defense import apply_module as apply_city_defense
 from all_map_defense import apply_module as apply_all_maps
 from wave_reinforcements import apply_module as apply_wave_support
 from tactical_recovery import apply_module as apply_tactical_recovery
+from bot_loadouts import apply_module as apply_balanced_ai_loadouts
 
 ROOT = Path(__file__).resolve().parent.parent
 ORIGINAL_SHA256 = "9be100ff41ce6f8ebadd4aa27377f70f402883fab271999a8cab8cc1da001d1e"
@@ -78,9 +79,14 @@ def apply_overlay(module_dir: Path) -> None:
 
 def build(archive: Path, out: Path, replace: bool = False, experimental_defenders: int = 0,
           city_guardposts: bool = False, all_map_defenses: bool = False,
-          wave_reinforcements: bool = False, tactical_recovery: bool = False) -> dict:
+          wave_reinforcements: bool = False, tactical_recovery: bool = False,
+          defender_loadouts: str = "original") -> dict:
     if not 0 <= experimental_defenders <= 8:
         raise ValueError("--experimental-defenders must be between 0 and 8")
+    if defender_loadouts not in ("original", "balanced-ai"):
+        raise ValueError("Unknown --defender-loadouts profile")
+    if defender_loadouts != "original" and not experimental_defenders:
+        raise ValueError("AI-only loadouts require experimental defenders")
     if tactical_recovery and not wave_reinforcements:
         raise ValueError("--tactical-recovery requires --wave-reinforcements")
     if tactical_recovery and experimental_defenders < 3:
@@ -117,9 +123,11 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
             raise RuntimeError("Mission/resource preflight failed: " +
                                str(preflight.get("problems", preflight.get("error"))))
         apply_overlay(source)
+        balanced = defender_loadouts == "balanced-ai"
+        loadout_report = apply_balanced_ai_loadouts(source) if balanced else None
         defender_report = None
         if experimental_defenders:
-            defender_report = patch_file(source, experimental_defenders)
+            defender_report = patch_file(source, experimental_defenders, balanced_ai=balanced)
             updated = report_for_module(source)
             if not updated["ok"] or updated["mission"]["triggers"] != 26:
                 raise RuntimeError("Experimental defender patch failed post-apply diagnostics")
@@ -137,7 +145,8 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
                 raise RuntimeError("Five-map defence failed static validation")
         wave_report = None
         if wave_reinforcements:
-            wave_report = apply_wave_support(source, cap=experimental_defenders)
+            wave_report = apply_wave_support(source, cap=experimental_defenders,
+                                             balanced_ai=balanced)
             updated = report_for_module(source)
             if not updated["ok"] or updated["mission"]["triggers"] != 29:
                 raise RuntimeError("Wave reinforcement failed static post-apply validation")
@@ -159,6 +168,8 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
             "final_trigger_count": 31 if tactical_recovery else 29 if wave_reinforcements else 27 if city_guardposts else 26 if experimental_defenders else 25,
             "preflight": preflight,
             "experimental_defender_patch": defender_report,
+            "defender_loadout_profile": defender_loadouts,
+            "ai_only_loadout_clones": loadout_report,
             "experimental_city_guardposts": city_report,
             "experimental_all_map_defenses": all_maps_report,
             "experimental_wave_reinforcements": wave_report,
@@ -185,7 +196,8 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
                 if previous:
                     print(f"Previous module retained at {previous}")
     return {"module": str(out), "source_sha256": digest, "static_validation": "PASS", "experimental_defenders": experimental_defenders, "city_guardposts": city_guardposts, "all_map_defenses": all_map_defenses,
-            "wave_reinforcements": wave_reinforcements, "tactical_recovery": tactical_recovery, "runtime_verified": False}
+            "wave_reinforcements": wave_reinforcements, "tactical_recovery": tactical_recovery,
+            "defender_loadouts": defender_loadouts, "runtime_verified": False}
 
 
 def main():
@@ -198,11 +210,12 @@ def main():
     parser.add_argument("--all-map-defenses", action="store_true", help="Experimental original five-map tactical overlays; implies City posts")
     parser.add_argument("--wave-reinforcements", action="store_true", help="Replenish living defenders to requested cap once per new wave (requires all maps)")
     parser.add_argument("--tactical-recovery", action="store_true", help="Fallback/regroup server AI with hysteresis (requires 3+ defenders and wave reinforcements)")
+    parser.add_argument("--defender-loadouts", choices=("original", "balanced-ai"), default="original", help="Append balanced AI-only troop clones without changing player classes")
     args = parser.parse_args()
     try:
         print(json.dumps(build(args.archive, args.out, args.replace, args.experimental_defenders,
                          args.city_guardposts, args.all_map_defenses, args.wave_reinforcements,
-                         args.tactical_recovery), indent=2))
+                         args.tactical_recovery, args.defender_loadouts), indent=2))
     except (RuntimeError, FileNotFoundError, FileExistsError, ValueError, subprocess.CalledProcessError) as exc:
         print(f"Build refused: {exc}", file=sys.stderr)
         raise SystemExit(2)
