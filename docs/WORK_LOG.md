@@ -1,5 +1,14 @@
 # Work log
 
+## 2026-10-23 — v0.1.8: forensic recorder and auditable private controls
+
+- Added Ctrl+F7/F8/F9 native host-only controls plus a per-command counter in the compiled global table. Private commands require the full reserved-group tactical build and are mutually exclusive with periodic solo assist.
+- Implemented survivor-support story/standard/hard/nightmare profiles with controlled reinforcement start wave and fallback thresholds. Original zombie wave and mission records untouched.
+- Added version-controlled minimal WSE2 Lua operation names and bounded combat activity telemetry: reserved-bot weapons, ammo, kills, movement, native command counter changes.
+- Combined combat/wave/tactics/crash/native-hotkey forensic rules into an evidence matrix, with unavailable observations explicitly unknown. Corrected Lua 0-vs-false server role and Markdown rendering of agent examples.
+- **Local** replay of original-data integration plus the pre-existing suite: 50 tests pass, including a mirrored full 35-trigger, 1,225-global temporary module and native key guards. Additional Python test files are committed for later full verification. Actual WSE2 gameplay is not certified.
+- No CI, no original assets in Git, no ZOMBIEEE2, no repeated manual Windows testing until final candidate.
+
 ## 2026-10-23 — v0.1.7 AI-only loadouts and solo assist
 
 - Original 0.4 compiled items contain 16 duplicated names. Preserved original positional IDs; cloned four AI-only troops using unambiguous original weapons/ammo.

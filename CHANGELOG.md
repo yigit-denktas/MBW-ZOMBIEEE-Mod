@@ -2,6 +2,21 @@
 
 Uses [Semantic Versioning](https://semver.org/) for the remaster, not the historical original.
 
+## [0.1.8] - 2026-10-23
+
+### Added
+- Native, opt-in Left Ctrl+F7/F8/F9 private host controls (heal host, refill ammo, heal/rearm reserved AI defenders), gated by server, non-dedicated, one active player and local living survivor host.
+- Three appended command counters and one reset trigger; game-side execution can be corroborated in read-only WSE2 logs.
+- Explicit story/standard/hard/nightmare survivor-support profiles modifying the first reinforcement wave and tactical fallback hysteresis, without modifying original zombie difficulty.
+- Minimal read-only WSE2 Lua Module System operation bindings to sample bot weapons, ammunition, kills and position where supported.
+- Expanded structured ZDB1 event stream, combat forensic rules R023-R026, and an acceptance matrix marking missing observations as unknown.
+- Fixed Lua integer-zero role detection and a Markdown report crash when bot findings contain non-file structured evidence.
+- New unit tests for native hotkeys, original-data patch integration, combat false positives, acceptance evidence, and report rendering.
+
+### Still unverified
+- Actual Warband/WSE2 Lua bindings, host keypress delivery, remote-player exclusion, AI combat engagement, wave victory, and client/server synchronization. These require the one-time final integrated Windows test.
+- No CI, no ZOMBIEEE2 assets or third-party game binaries.
+
 ## [0.1.7] - 2026-10-23
 
 ### Added

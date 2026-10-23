@@ -56,3 +56,7 @@ Build the experimental 31-trigger variant with --experimental-defenders 4 --all-
 ## v0.1.7 final solo testing
 
 At the final integrated Windows test, enable --experimental-defenders 4 --defender-loadouts balanced-ai --all-map-defenses --wave-reinforcements --tactical-recovery --solo-assist. Validate the four AI-only weapons and ammo, original playable class loadouts, wave-based class rotation, and that solo assist affects only a one-player listen host. Collect one end-of-session evidence ZIP; no incremental testing requested.
+
+## v0.1.8 one-time final forensic gate
+
+Use the complete 35-trigger private build with `--private-commands --difficulty standard` (do not combine with `--solo-assist`). In the final private listen-host session only, verify Left Ctrl+F7/F8/F9 and the corresponding command counters. Leave the game running for at least one 15-second telemetry heartbeat after any hotkey. Capture weapons/ammo/kills samples where possible and check that all zombie waves and five original maps remain usable. The evidence matrix will report missing getters as unknown, not as 0 activity. No incremental user testing before the integrated candidate.

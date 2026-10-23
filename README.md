@@ -2,7 +2,7 @@
 
 Modernization of the **2012 ZOMBIEEE (Invasion) Beta 0.4** mod for *Mount & Blade: Warband*. Original contributors retain credit and ownership of their work.
 
-**Current project version:** `0.1.7` (development scaffold; **not yet playable/engine-verified**).  
+**Current project version:** `0.1.8` (development scaffold; **not yet playable/engine-verified**).  
 **Target:** Warband official 1.174 data format under [WSE2](https://github.com/Ruslan-700/WSE2-Releases/releases/tag/v1.1.5.4) 1.1.5.4 (14 October 2026).  
 **Scope:** preserve the original guns, zombies, wave mode, maps and feel; restore current-runtime compatibility; add AI survivor teammates, defensible hold points, quality-of-life features, private cheats, and later LAN co-op. **ZOMBIEEE2 is explicitly excluded.**
 
@@ -33,6 +33,7 @@ Install [WSE2](https://github.com/Ruslan-700/WSE2-Releases/releases/tag/v1.1.5.4
 - [Five-map defences and wave reinforcements](docs/FIVE_MAP_WAVES.md)
 - [Tactical fallback, regroup and movement diagnostics](docs/TACTICAL_RECOVERY.md)
 - [AI loadouts and solo-host assistance](docs/COMBAT_BALANCE.md)
+- [Forensic recorder, private keys and difficulty](docs/FORENSIC_DIAGNOSTICS.md)
 - [End-of-development diagnostics](docs/DIAGNOSTICS.md)
 - [Version history](CHANGELOG.md)
 
@@ -89,3 +90,12 @@ This option requires at least 3 defenders. The full variant contains **31** comp
 Four appended AI-only troops can be enabled via `--defender-loadouts balanced-ai`, leaving all playable class records untouched. Wave reinforcements now rotate class by original wave number. `--solo-assist` adds a separate host-only, one-player/non-dedicated health-and-ammo refill trigger; it does not disable anti-cheat and is disabled by default. The complete optional build has 985 troop entries, 1,222 variables and 32 invasion triggers; baseline remains 981 troops/25 triggers. Gameplay remains unverified.
 
 See [combat and solo assistance](docs/COMBAT_BALANCE.md) for full flags and limitations.
+
+### v0.1.8 — Diagnosable private host commands and support difficulty
+
+- `--private-commands`: one-player listen-host-only **Left Ctrl+F7** heal host, **Ctrl+F8** refill host ammo, **Ctrl+F9** heal/rearm reserved AI defenders. Adds auditable native command counters. Requires full tactical build; disabled by default and mutually exclusive with periodic `--solo-assist`.
+- `--difficulty story|standard|hard|nightmare`: modifies survivor *reinforcement timing and fallback thresholds*, not original zombie HP or wave sizes. Requires `--wave-reinforcements` unless standard.
+- WSE2 read-only Lua operation mappings for bounded defender weapon, ammo, kill-count and movement sampling. Offline forensic analyzer now includes crash/wave/team/combat/command leads, source hashes and an evidence matrix that distinguishes **observed** from **unknown**.
+- Full private-command variant: **35 invasion triggers, 1,225 globals, 985 troops**, with 25 original triggers intact. This is **not a certified playable release**; a single final WSE2/Windows session will produce our integrated evidence.
+
+[See the detailed forensic plan](docs/FORENSIC_DIAGNOSTICS.md).

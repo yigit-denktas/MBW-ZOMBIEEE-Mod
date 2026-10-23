@@ -62,3 +62,7 @@ Structural checks were performed on a local copy of the user's actual 0.4 tables
 **Not yet verified:** WSE2 launch, actual weapon/ammunition behavior, bot accuracy, cover/LOS, host-only conditions under active multiplayer, and completed waves. Preserve this distinction when reviewing the final evidence bundle.
 
 See [Diagnostic policy](DIAGNOSTICS.md), [Tactical recovery](TACTICAL_RECOVERY.md) and [Warband's native operations](https://github.com/Veehats/WarbandCoop/blob/main/header_operations.py).
+
+## v0.1.8 — actual private hotkeys and support difficulty
+
+The previous timed `--solo-assist` remains optional. The new `--private-commands` is a **different, mutually exclusive** set of local host keypress actions (Left Ctrl+F7/F8/F9) and requires the full tactical build, one non-dedicated player and a living team-0 host. Each successful command increments an appended diagnostic global variable. See [Forensic diagnostics](FORENSIC_DIAGNOSTICS.md). Survivor-support difficulty profile changes reinforcement start and fallback thresholds only; original zombies are unmodified. Keyboard and permissions remain unverified in WSE2.
