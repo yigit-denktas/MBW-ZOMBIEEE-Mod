@@ -95,11 +95,27 @@ def audit_city(module: Path, original: Path) -> dict:
                 "Original global variable table changed")
         src = original / "SceneObj" / SCO_NAME
         new = module / "SceneObj" / SCO_NAME
-        require("city_sco_modified_copy",
-                src.is_file() and new.is_file() and
-                hashlib.sha256(src.read_bytes()).digest() !=
-                hashlib.sha256(new.read_bytes()).digest(),
-                "Missing or unmodified City guard-post scene")
+        # Byte difference alone cannot establish guard-post integrity: an
+        # arbitrary truncated or maliciously modified SCO also differs.
+        # Rebuild the canonical City overlay from the untouched source and
+        # require the candidate's COMPLETE bytes to match its expected output.
+        # This includes the original object table and navigation mesh.
+        from scene_tactics import plan_city, apply_city_overlay
+        if not (src.is_file() and new.is_file()):
+            require("city_sco_canonical_overlay", False,
+                    "Missing original or generated City scene")
+        else:
+            original_city_bytes = src.read_bytes()
+            expected_city_bytes = apply_city_overlay(
+                original_city_bytes, plan_city(original_city_bytes))
+            actual_city_bytes = new.read_bytes()
+            require("city_sco_canonical_overlay",
+                    actual_city_bytes == expected_city_bytes,
+                    "City scene differs from the exact navmesh-derived guard-post overlay")
+            evidence["city_overlay_expected_sha256"] = hashlib.sha256(
+                expected_city_bytes).hexdigest()
+            evidence["city_overlay_actual_sha256"] = hashlib.sha256(
+                actual_city_bytes).hexdigest()
         for number in (1, 2, 3, 5):
             name = f"scn_tbfc_invasion_{number}.sco"
             before_path = original / "SceneObj" / name
