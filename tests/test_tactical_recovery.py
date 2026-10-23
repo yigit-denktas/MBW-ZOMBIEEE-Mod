@@ -43,7 +43,7 @@ class TacticalRecoveryTests(unittest.TestCase):
             after = (root / "mission_templates.txt").read_bytes().decode("utf-8")
             names = (root / "variables.txt").read_text().splitlines()
             self.assertEqual(info["final_trigger_count"], 31)
-            self.assertEqual((len(names), names[-1]), (1222, TACTICAL_GLOBAL))
+            self.assertEqual((len(names), names[-1]), (1223, TACTICAL_GLOBAL))
             p, n, end = mission_bounds(after.splitlines(keepends=True))
             self.assertEqual(n, 31)
             self.assertEqual(after.splitlines()[p + 1:p + 1 + 29],
