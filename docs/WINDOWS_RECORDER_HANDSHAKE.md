@@ -114,6 +114,52 @@ shutdown remains `stopping` and cannot silently report success or retry over a
 live process. B/C still need to agree on a real graceful recorder-stop API and
 how bounded shutdown failure is surfaced; no blind process kill is implemented.
 
+## B adapter implementation
+
+`launcher/recorder.py` (`PassiveRecorder`) implements the B side against C's
+actual `python -m telemetry.flight_recorder --passive` CLI:
+
+- Generates fresh opaque session/attempt/start IDs and a 32-byte control key;
+  the key reaches only the recorder child through
+  `ZOMBIEEE_RECORDER_CONTROL_KEY`. It is never put in argv, game environments,
+  logs or receipts.
+- Keeps the owned recorder `Popen` handle, its PID and the start identity.
+  Readiness comes only from the exact private
+  `<output-root>/<session_id>/recorder-ready.json`, read with a 16 KiB bound and
+  symlink/reparse rejection from the private root down. Validation requires the
+  canonical schema, session/attempt/start correlation, owned PID, non-empty
+  `watcher_id`, `log_offsets_captured`/`watcher_active` true,
+  `engine_ready`/`mission_ready` false, and a live owned handle.
+- Writes atomic HMAC-SHA256 `recorder-attach.json` and `recorder-stop.json`
+  using C's sorted compact ASCII canonical JSON. Attach accepts only B-owned
+  game children, waits for the exact attachment acknowledgment
+  (`attachment_accepted=true`, `game_ready=false`), rejects a pre-existing ack
+  and a second attach, and refuses to stop while any attached game child is
+  still running. Stop is sent only after those children are confirmed exited.
+- Verifies C's `manifest.json` SHA-256 inventory after completion and returns
+  the receipt/evidence summary. Recorder death at any point fails closed; only
+  B's own recorder child may be terminated on failure, never a game process.
+
+Limits: C's attachment acknowledgment is an unsigned local control file, so B
+validates structure, correlation and ordering rather than a MAC; any same-user
+local attacker is outside this offline model. The adapter starts no game and
+does not claim host, join, mission or WSE2 readiness.
+
+Interop fixtures (`tests/test_windows_recorder.py`) run unit checks always and
+six process-level cases when an Agent C checkout is available:
+
+```powershell
+$env:ZOMBIEEE_RECORDER_DIR = 'C:\path\to\agent-c-flight-recorder'
+python -m unittest discover -s tests -p "test_windows_recorder.py" -v
+```
+
+Without that variable, the interop cases skip with an explicit reason. The
+process cases launch C's actual passive CLI and an expendable fake game child:
+ready→attach→stop with verified evidence, forged-HMAC rejection, premature-stop
+rejection and retry after game exit, a >2 MiB late fatal-log tail, recorder
+startup timeout, recorder crash before readiness, and recorder death after
+readiness blocking attachment.
+
 ## Contract and acceptance limits
 
 The local receipt retains A's `zombieee.session.v1` envelope, adds model state,

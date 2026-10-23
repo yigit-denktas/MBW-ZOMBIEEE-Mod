@@ -200,18 +200,54 @@ track only owned child handles, handle partial startup failures, enforce startup
 and shutdown deadlines, preserve failed cleanup for retry and avoid blind kills.
 Neither route is accepted from a fake readiness event.
 
+## Recorder adapter and B/C interop
+
+`launcher/recorder.py` implements B against Agent C's actual passive recorder
+CLI: owned recorder child, fresh session/attempt/start IDs, recorder-only
+control key, bounded per-session readiness marker with redirect rejection,
+canonical marker validation, atomic HMAC-SHA256 attach/stop controls, exact
+attachment acknowledgment, stop only after B's game children exit, and SHA-256
+evidence-manifest verification. It never starts or kills a game process. See
+[the recorder handshake](WINDOWS_RECORDER_HANDSHAKE.md) for the state contract
+and limits.
+
+Process-level interop fixtures run C's exact checkout (`agent/c-flight-recorder`
+at `eade015`) and an expendable fake game child:
+
+```powershell
+$env:ZOMBIEEE_RECORDER_DIR = 'C:\path\to\agent-c-flight-recorder'
+python -m unittest discover -s tests -p "test_windows_recorder.py" -v
+```
+
+Windows result on 2026-10-23: **12 tests, OK, 1 skipped** (symlink creation is
+not permitted in the sandbox); the six interop cases cover ready→attach→stop
+with verified evidence, forged HMAC rejection, premature-stop rejection then
+retry after game exit, >2 MiB late fatal-log retention, recorder startup
+timeout, recorder crash before readiness, and recorder death after readiness.
+Without a C checkout the six process cases skip explicitly. The control key is
+absent from every recorded file; C's attachment ack is unsigned local control,
+so correlation/order is validated rather than a MAC.
+
 ## Evidence and remaining gates
 
 Fixture tests cover modern/legacy Steam libraries, spaces, missing/invalid EXEs,
 unknown versions, corrupt/traversing manifests, duplicate/multiple installs,
 bounded nested WSE2, inaccessible search, read-only operation, Windows junctions,
 manifest staging/collisions, post-lexical access denials, canonical recorder
-marker fields, fake route readiness, crashes, timeout, cleanup and retry.
-Windows version metadata is exercised on the running Python executable
-without starting a candidate. Windows junction fixtures require a process context
-permitted to create junctions; a restricted sandbox may deny them.
+marker fields, recorder adapter interop, fake route readiness, crashes, timeout,
+cleanup and retry. Windows version metadata is exercised on the running Python
+executable without starting a candidate. Windows junction fixtures require a
+process context permitted to create junctions; a restricted sandbox may deny them.
 
-Not demonstrated: actual owned game discovery, verified WSE2 release/startup,
-atomic install/rollback under Windows locks or crash/power loss, actual private
-binding, desktop shortcut, real recorder integration, automatic join or gameplay.
-One combined final Windows session remains pending after A/B/C integration.
+One real-machine read-only discovery run on a local Windows 11 Steam installation
+returned one `found` Warband candidate (`confidence=medium`,
+`version_status=file_resource_only`, ownership unknown) and three `found` WSE2
+candidates with unknown versions, so explicit user selection is required. The
+bounded scan reported `search_limit_reached` for the game directory. Only counts
+and statuses are recorded here; no local paths or logs are committed, and no
+candidate was executed.
+
+Not demonstrated: verified WSE2 release/startup, atomic install/rollback under
+Windows locks or crash/power loss, actual private binding, desktop shortcut,
+real in-engine recorder attachment, automatic join or gameplay. One combined
+final Windows session remains pending after A/B/C integration.

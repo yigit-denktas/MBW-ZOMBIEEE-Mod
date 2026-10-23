@@ -47,6 +47,10 @@ Delivered first slices:
   repair/update/uninstall and consent persistence remain pending.
 - **ZOM-SOLO-01:** fake-process City lifecycle model; route, engine flags,
   private bind, readiness and joining require engine evidence.
+- **B/C recorder adapter:** `launcher/recorder.py` owns C's passive recorder
+  subprocess, gates on the canonical readiness marker, writes atomic HMAC
+  attach/stop controls, and verifies the evidence manifest. Offline interop is
+  verified against C's exact branch; real in-engine attachment remains pending.
 - **ZOM-WIN-03 / ZOM-SOLO-02:** desktop UI/shortcut and real auto-join remain gated.
 
 See [Windows bootstrap](../docs/WINDOWS_BOOTSTRAP.md) for commands, schemas,
@@ -89,7 +93,8 @@ player joined, and a join observation never means the City mission was entered.
 Only `mission_entered` reaches the modeled `playing` state. The marker and C
 responsibilities are documented in
 [Windows recorder handshake](../docs/WINDOWS_RECORDER_HANDSHAKE.md) and
-coordinated on PR #12; C production and a real adapter remain pending.
+coordinated on PR #12; the B adapter is implemented in `launcher/recorder.py`
+and offline-tested against C's exact branch, while C's code remains unmerged.
 B-3 keeps lexical input-root/component/reparse evidence, including root/ancestor
 junctions and journal redirects, guards every later filesystem probe (a denied
 `stat()` returns `path_inspection_failed` evidence instead of aborting the
@@ -137,6 +142,31 @@ mission-entered milestones, join and mission timeouts, retry cleanup,
 top-level/ancestor junctions, journal redirects, post-lexical `stat()` denials
 and malformed configured paths (review P2). No real game process was launched
 or install attempted.
+
+Recorder adapter P0 (A's PR #11 instruction): `launcher/recorder.py` and
+`tests/test_windows_recorder.py` added. The adapter owns the actual C passive
+recorder subprocess, keeps a 256-bit control key out of argv/logs/receipts,
+reads the canonical per-session marker with a 16 KiB bound and redirect
+rejection, writes atomic HMAC-SHA256 attach/stop controls, requires the exact
+attachment ack, refuses stop while a B-owned game child lives, and verifies C's
+SHA-256 evidence manifest. Interop ran against C's exact checkout
+`agent/c-flight-recorder@eade015` in a detached read-only worktree (not copied
+into this branch) with an expendable fake game child: **12 tests, OK, 1 skipped**
+(symlink creation denied here), including ready→attach→stop with verified
+evidence, forged HMAC rejection, premature-stop rejection then retry after game
+exit, >2 MiB late fatal-log retention, recorder startup timeout, and recorder
+crash before/after readiness. Full suite: **160 tests OK, 31 skipped** with the C
+checkout available; **160 OK, 37 skipped** without it (the six interop cases
+skip explicitly). No Warband/WSE2 process was launched; all engine milestones
+remain unknown.
+
+Real-machine read-only discovery: on the local Windows 11 Steam installation
+(game present on D:), discovery returned one `found` Warband candidate
+(`confidence=medium`, `version_status=file_resource_only`, ownership unknown) and
+three `found` WSE2 candidates with unknown versions, so explicit selection is
+required. The bounded scan reported `search_limit_reached` for the game
+directory. Only counts/statuses are recorded; no local paths, logs or candidates
+were committed or executed.
 
 Independent read-only code review found a malformed Steam path could abort
 structured discovery. Fixed normalization handling for invalid custom/library/
