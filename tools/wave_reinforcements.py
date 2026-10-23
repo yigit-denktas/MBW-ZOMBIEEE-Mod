@@ -31,7 +31,8 @@ def initialize_wave_state(sentinel):
                      "1", *op(417), "1", *op(2133, sentinel, 0)])
 
 
-def reinforce_on_wave(g, troop_ids, cap=4, troop_classes=SURVIVOR_CLASSES, first_wave=2):
+def reinforce_on_wave(g, troop_ids, cap=4, troop_classes=SURVIVOR_CLASSES, first_wave=2,
+                      city_scene=None):
     if not 1 <= first_wave <= 10:
         raise PatchError("Reinforcement first_wave must be 1..10")
     if not 1 <= cap <= 8:
@@ -46,6 +47,14 @@ def reinforce_on_wave(g, troop_ids, cap=4, troop_classes=SURVIVOR_CLASSES, first
         op(32, g["wave_number"], g[SENTINEL]),  # gt: one top-up per wave
         op(31, g["g_round_ended"], 0),
     ]
+    if city_scene is not None:
+        if not isinstance(city_scene, int) or city_scene < 0:
+            raise PatchError("Invalid original City scene index")
+        from city_defense import SCENE_BASE
+        conditions.extend([
+            op(2211, LOCAL_BASE + 8),  # store_current_scene for City-only build
+            op(31, LOCAL_BASE + 8, SCENE_BASE + city_scene),
+        ])
     body = [
         op(2133, g[SENTINEL], g["wave_number"]),
         op(2133, loc[0], 0),
@@ -83,7 +92,8 @@ def reinforce_on_wave(g, troop_ids, cap=4, troop_classes=SURVIVOR_CLASSES, first
                      *(value for operation in body for value in operation)])
 
 
-def patch_text(mission, variables, troop_ids, cap=4, troop_classes=SURVIVOR_CLASSES, first_wave=2):
+def patch_text(mission, variables, troop_ids, cap=4, troop_classes=SURVIVOR_CLASSES, first_wave=2,
+               city_scene=None):
     g = globals_from_original(variables)
     lines = mission.splitlines(keepends=True)
     count_row, count, insert_at = mission_bounds(lines)
@@ -93,7 +103,7 @@ def patch_text(mission, variables, troop_ids, cap=4, troop_classes=SURVIVOR_CLAS
     lines[count_row] = "29" + nl
     lines[insert_at:insert_at] = [
         initialize_wave_state(g[SENTINEL]) + nl,
-        reinforce_on_wave(g, troop_ids, cap, troop_classes, first_wave) + nl,
+        reinforce_on_wave(g, troop_ids, cap, troop_classes, first_wave, city_scene) + nl,
     ]
     changed = "".join(lines)
     if mission_bounds(changed.splitlines(keepends=True))[1] != 29:
@@ -102,7 +112,8 @@ def patch_text(mission, variables, troop_ids, cap=4, troop_classes=SURVIVOR_CLAS
     return changed, variables.rstrip("\r\n") + variable_nl + SENTINEL + variable_nl
 
 
-def apply_module(module: Path, cap=4, balanced_ai=False, first_wave=2):
+def apply_module(module: Path, cap=4, balanced_ai=False, first_wave=2,
+                 city_only=False):
     module = Path(module)
     mission_path, variable_path = module / "mission_templates.txt", module / "variables.txt"
     original_m, original_v = mission_path.read_bytes(), variable_path.read_bytes()
@@ -111,9 +122,13 @@ def apply_module(module: Path, cap=4, balanced_ai=False, first_wave=2):
         classes = CLONES
     else:
         classes = SURVIVOR_CLASSES
+    city_scene = None
+    if city_only:
+        from city_defense import scene_index
+        city_scene = scene_index(module / "scenes.txt")
     changed_m, changed_v = patch_text(original_m.decode("utf-8"),
         original_v.decode("utf-8"), index_troops(module / "troops.txt"),
-        cap, classes, first_wave)
+        cap, classes, first_wave, city_scene)
     mission_path.write_bytes(changed_m.encode("utf-8"))
     try:
         variable_path.write_bytes(changed_v.encode("utf-8"))
@@ -125,6 +140,7 @@ def apply_module(module: Path, cap=4, balanced_ai=False, first_wave=2):
         "troop_profile": "balanced-ai" if balanced_ai else "original-0.4",
         "class_rotation": "original_wave_number_plus_replacement_index_mod_4",
         "original_wave_variable": "wave_number", "added_variable": SENTINEL,
+        "city_only": bool(city_only), "scene_gate": city_scene,
         "final_trigger_count": 29, "runtime_verified": False,
         "limitations": "Replacements once per wave; no mid-wave resurrection.",
     }
