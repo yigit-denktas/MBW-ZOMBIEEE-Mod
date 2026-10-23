@@ -80,6 +80,15 @@ reads** on the server at mission entry and each heartbeat:
   never a round identifier.
 - Existing `round` is `g_round_ended` (0/1), **not** round identity.
 
+Only **explicit server-role** `mission_enter`, `heartbeat` and
+`wave_change` events may establish measured round identities. Historical
+`wave_change` events without a `role` field are still accepted as
+**lower-confidence wave-number candidates**, but any accompanying
+`round_start` or `refilled_round_start` fields on such events are
+ignored. Client-role markers cannot establish server round identity,
+even if they contain plausible numbers. The updated Lua probe emits
+`role=server` on newly instrumented wave changes.
+
 The safe getter returns -1 when absent/unknown, which the incident
 report excludes. Only actual server ZDB1 event fields can populate
 `runtime.round_start_observations`,
