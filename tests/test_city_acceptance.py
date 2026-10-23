@@ -45,6 +45,10 @@ class CityAcceptanceTests(unittest.TestCase):
         self.assertFalse(result["runtime_verified"])
         self.assertEqual((result["original_triggers"],
                           result["city_triggers"]), (25, 31))
+        self.assertEqual(result["original_invasion_game_type"], 7)
+        self.assertTrue(result["checks"]["ai_original_invasion_mode_initialization"])
+        self.assertTrue(result["checks"]["ai_reinforcement_correct_mode"])
+        self.assertTrue(result["checks"]["ai_recovery_correct_mode"])
 
     def test_missing_city_gate_is_rejected(self):
         path = self.root / "mission_templates.txt"
