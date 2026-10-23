@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ZOMBIEEE Remaster — Project Record (review draft)</title>
+<meta name="description" content="Proposed evidence-gated roadmap for ZOMBIEEE 0.4 remaster, including WSE2 compatibility, diagnostics and one-click solo play.">
+<style>
+:root{color-scheme:dark;--bg:#111319;--surface:#1d222c;--text:#f0efea;--muted:#bdc2c9;--accent:#e67b70;--line:#687381;--focus:#f4c29b;font-family:system-ui,-apple-system,'Segoe UI',sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);line-height:1.6}a{color:var(--accent)}a:hover{text-decoration-thickness:2px}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px}button,select,input{font:inherit}button,select,input{min-height:44px}
+button{border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:9px;padding:.55rem .8rem;cursor:pointer;text-align:left}
+button:hover{border-color:var(--accent)}button[aria-pressed=true]{border-color:var(--accent);background:#37272d}
+.skip{position:absolute;transform:translateY(-180%);background:var(--accent);color:var(--bg);padding:12px;z-index:99}.skip:focus{transform:translateY(0)}
+header,main,footer{max-width:1160px;margin:auto;padding:1rem clamp(1rem,3vw,2rem)}
+header{border-bottom:1px solid var(--line)}header .eyebrow{font-weight:800;color:var(--accent);font-size:.8rem;letter-spacing:.12em;text-transform:uppercase}h1{font-size:clamp(1.7rem,4vw,3.25rem);line-height:1.15;margin:.5rem 0}
+h2{font-size:1.3rem}h3{font-size:1.08rem}p{max-width:76ch}
+.caption,.muted{color:var(--muted)}.warning{border-left:4px solid var(--accent);padding:.6rem 1rem;background:var(--surface);margin:1rem 0}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem;margin:1.3rem 0}
+.stat,.card,.detail{border:1px solid var(--line);border-radius:12px;padding:1rem;background:var(--surface)}.stat strong{font-size:clamp(1.25rem,3vw,2rem);display:block}.stat span{color:var(--muted)}
+#milestones{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:.75rem} .card h3{margin:.25rem 0}.card p{font-size:.9rem}.card small{color:var(--muted)}
+label{display:grid;gap:.25rem;font-weight:600}.controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem;margin:1rem 0}
+select,input{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:.5rem;color:var(--text);width:100%}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,360px);gap:1rem;align-items:start}.item-list{display:grid;gap:.5rem}
+.item-list button{width:100%;display:grid;gap:.1rem}.item-list button small{font-size:.82rem;color:var(--muted)}
+.detail{position:sticky;top:1rem}.detail p{overflow-wrap:anywhere}.detail h3{margin-top:0}
+.status{font-weight:750;color:var(--accent)}.meta{color:var(--muted);font-size:.86rem}
+footer{border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
+@media(max-width:760px){.stats{grid-template-columns:1fr}.controls{grid-template-columns:1fr}.layout{grid-template-columns:1fr}.detail{position:static}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to roadmap</a>
+<header><p class="eyebrow">ZOMBIEEE / original 0.4 / planning review</p>
+<h1>Project Record</h1>
+<p>Restore five original zombie-invasion maps, ship an automatic Windows 11 installer, launch solo play in one click, and diagnose failures using evidence rather than guesses.</p>
+<p class="caption">Draft tracker, not a published or accepted release plan. No original game assets are distributed here.</p>
+<nav aria-label="Related sources"><a href="../README.md">Project README</a> · <a href="../progress/overview.md">Overview</a> · <a href="../docs/ROADMAP.md">Historical roadmap</a> · <a href="https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues">GitHub issues</a></nav>
+</header>
+<main id="main">
+<div class="warning" role="note"><strong>Evidence boundary:</strong> 0 accepted outcome leaves does not mean no code exists. v0.1.8 has experimental scripts and offline tests, but WSE2 gameplay and the owner-approved scope baseline are outstanding. Agent readiness is L0 provisionally, independent of percentages.</div>
+<section aria-label="Tracking figures"><div class="stats">
+<div class="stat"><strong id="work" aria-live="polite">Not measured</strong><span>Proposed required outcome leaves accepted</span></div>
+<div class="stat"><strong id="gates" aria-live="polite">Not measured</strong><span>Milestones accepted by declared gates</span></div>
+<div class="stat"><strong id="readiness">L0 · provisional</strong><span>Current evidenced agent readiness; target pending</span></div></div>
+<p class="meta" id="source">Loading proposal…</p></section>
+<section aria-labelledby="roadmap-heading"><h2 id="roadmap-heading">Milestone roadmap</h2><div id="milestones" aria-live="polite"></div></section>
+<section aria-labelledby="work-heading"><h2 id="work-heading">Explore the work</h2>
+<p class="muted">Every leaf has one primary milestone and criterion. Select one to inspect dependencies and the linked authoritative GitHub discussion.</p>
+<div class="controls" role="group" aria-label="Filter work items">
+<label>Search work<input id="search" type="search" placeholder="E.g., Windows, diagnostics, wave" autocomplete="off"></label>
+<label>Milestone<select id="milestone"><option value="">All milestones</option></select></label>
+<label>Status<select id="status"><option value="">All states</option><option value="backlog">Planned</option><option value="active">Prototype active</option><option value="review">In review</option><option value="done">Done</option></select></label>
+</div>
+<p id="count" class="meta" role="status"></p>
+<div class="layout"><div id="items" class="item-list" role="list" aria-label="Work items"></div>
+<aside id="detail" class="detail" aria-labelledby="detail-title" tabindex="-1"><h3 id="detail-title">Select a work item</h3><p>Choose an item to see its outcome, evidence, dependencies and source.</p></aside></div>
+</section>
+</main>
+<footer><p>Unpublished review preview · Original ZOMBIEEE Beta 0.4 only · No CI, no public hosting, no gameplay verification inferred from compiled scripts.</p><p>Provisional dark graphite / ember / bone theme; final brand and Pages integration require owner approval.</p></footer>
+<script>
+'use strict';
+let record=null,selectedId=null;
+const $=id=>document.getElementById(id);
+function el(tag,text,className){const node=document.createElement(tag);if(text!==undefined)node.textContent=text;if(className)node.className=className;return node}
+function pct(done,total){return total?(100*done/total).toFixed(1)+'%':'Not measured'}
+function itemsFor(m){return record.items.filter(it=>it.milestoneId===m.id&&it.required)}
+function selectItem(id,push,focus){const it=record.items.find(it=>it.id===id);if(!it)return;
+selectedId=id;if(push){history.pushState({item:id},'', '#'+encodeURIComponent(id))}
+document.querySelectorAll('[data-work-id]').forEach(btn=>btn.setAttribute('aria-pressed',String(btn.dataset.workId===id)));
+const d=$('detail');d.replaceChildren();d.append(el('h3',it.id+' · '+it.title));
+const state=el('p',it.state.toUpperCase(),'status');d.append(state);
+d.append(el('p',it.criterion));d.append(el('p','Evidence: '+it.completionBasis,'meta'));
+d.append(el('p','Dependencies: '+(it.dependsOn.length?it.dependsOn.join(', '):'none'),'meta'));
+d.append(el('p','Primary gate: '+it.milestoneId+' · Priority: '+(it.priority||'not assigned'),'meta'));
+if(it.issueUrl){const a=el('a','Open original GitHub issue');a.href=it.issueUrl; a.rel='noopener noreferrer';d.append(a)}
+if(focus)d.focus();
+}
+function render(){if(!record)return;const q=$('search').value.trim().toLowerCase(),m=$('milestone').value,s=$('status').value;
+const active=record.items.filter(it=>(!m||it.milestoneId===m)&&(!s||it.state===s)&&(!q||(it.id+' '+it.title+' '+it.criterion).toLowerCase().includes(q)));
+const region=$('items');region.replaceChildren();active.forEach(it=>{const outer=el('div');outer.setAttribute('role','listitem');const btn=el('button',undefined);btn.dataset.workId=it.id;btn.setAttribute('aria-pressed',String(it.id===selectedId));btn.append(el('strong',it.id+' — '+it.title));btn.append(el('small',it.milestoneId+' · '+it.state+' · '+it.priority));btn.addEventListener('click',()=>selectItem(it.id,true,true));outer.append(btn);region.append(outer)});
+$('count').textContent=active.length+' visible of '+record.items.length+' proposed work items';
+if(!active.length)region.append(el('p','No work matches those filters.'));
+}
+async function init(){try{const res=await fetch('../progress/ledger.json',{cache:'no-store'});if(!res.ok)throw new Error('HTTP '+res.status);record=await res.json();if(!Array.isArray(record.items)||!Array.isArray(record.milestones))throw Error('Invalid ledger');
+const req=record.items.filter(i=>i.required),done=req.filter(i=>i.state==='done');
+const accepted=record.milestones.filter(m=>m.sourceAccepted===true);
+$('work').textContent=done.length+'/'+req.length+' · '+pct(done.length,req.length);
+$('gates').textContent=accepted.length+'/'+record.milestones.length+' · '+pct(accepted.length,record.milestones.length);
+$('source').textContent='Source: progress/ledger.json · proposed unapproved scope · 2026-10-23 · no runtime acceptance yet';
+for(const m of record.milestones){const option=el('option',m.id+' — '+m.title);option.value=m.id;$('milestone').append(option);
+const card=el('section',undefined,'card');card.append(el('small',m.id+' · '+m.horizon));card.append(el('h3',m.title));const work=itemsFor(m),complete=work.filter(x=>x.state==='done');card.append(el('p',complete.length+'/'+work.length+' proposed leaves complete · '+pct(complete.length,work.length)));card.append(el('p',m.goal));const button=el('button','Show '+m.id+' items');button.addEventListener('click',()=>{$('milestone').value=m.id;render();$('work-heading').scrollIntoView();$('search').focus()});card.append(button);$('milestones').append(card)}
+['search','milestone','status'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',render));
+render();function selectFromHash(){const id=decodeURIComponent(location.hash.slice(1));if(id)selectItem(id,false,false)}window.addEventListener('popstate',selectFromHash);selectFromHash();
+}catch(error){$('source').textContent='Tracker data unavailable: '+error.message+'. Serve from repository root with python -m http.server; file:// cannot fetch local JSON.';const p=el('p','Unable to read proposed ledger; no counts inferred.');p.setAttribute('role','alert');$('milestones').append(p)}}
+init();
+</script>
+</body></html>
