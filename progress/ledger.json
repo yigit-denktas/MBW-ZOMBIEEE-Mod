@@ -315,7 +315,7 @@
       "priority": "P0",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/1",
       "criterion": "Pinned or updated WSE2 loads the unmodified invasion module with no fatal parser/resource failure",
-      "note": "B reports installed official x86 WSE2 1.1.5.4 host/client pair matching pinned full package; no completed actual boot result posted yet. A's 149/149 local source tests and native patch chain are source-only.",
+      "note": "B reported real WSE2 1.1.5.4 dedicated host loaded City module built at A 141a792, `Starting map tbfc_invasion_4 in mode multiplayer_iv`, UDP listener loopback 127.0.0.1:7240. Four Invalid Faction ID:-1 engine script errors occurred; joined player, waves and engine gameplay still unverified.",
       "deferReason": null,
       "implementationLane": "A",
       "review": {
@@ -355,7 +355,7 @@
       "priority": "P0",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/1",
       "criterion": "Private City mission starts and finishes at least one wave with usable guns, sounds, ammo and class selection",
-      "note": null,
+      "note": "Dedicated host selected City mission/map and remains listening in the owner-authorized session. No player joined or original zombie-wave completion has been independently observed yet. Four faction ID script errors require original-source triage.",
       "deferReason": null,
       "implementationLane": "A"
     },
@@ -391,7 +391,7 @@
       "priority": "P0",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
       "criterion": "Bounded, versioned wave, spawn, team and combat events recorded in one actual session with explicit unknown fields",
-      "note": "C City Incident Report v1, check-count correction, server-only round provenance and guarded round-start Lua getter are committed in draft PR #12; exact latest C test suite pending. Actual engine telemetry is not established.",
+      "note": "C forensic source now includes guarded server round identity, strict server+invasion scope, receipt check-count repair and new R030/CITY-I08 for observed faction error. Local partial 10/10 C tests passed at 16a0bad; exact-current focused/full suites pending.",
       "deferReason": null,
       "implementationLane": "C",
       "review": {
@@ -437,7 +437,7 @@
       "priority": "P0",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
       "criterion": "Separate recorder retains startup/crash context when game or Lua exits, plus CPU/memory/process status where measurable",
-      "note": "B/C recorder ownership settled by Agent A: B owns game, C passive recorder; canonical marker zombieee.recorder-ready.v1; HMAC attach/stop; B must prove genuine recorder readiness before any game spawn. C passive source updated, exact integrated offline interoperability test pending. No Windows engine acceptance.",
+      "note": "C e455354 recorder started before host, readiness verified and owned host/client PIDs attached per B live report; signed stop, sealed manifest, manual privacy review and City gameplay sampling remain pending.",
       "deferReason": null,
       "implementationLane": "C",
       "review": {
@@ -520,7 +520,7 @@
       "priority": "P1",
       "issueUrl": null,
       "criterion": "Installer validates original files and pinned dependencies; supports dry run, repair, rollback and uninstall without deleting owned game data",
-      "note": "B drafted inert install plan with stage, rollback and journal paths. A review found top-level input reparse/junction detection can be masked by early Path.resolve(); B must harden raw path components and create negative fixtures. No real installation performed.",
+      "note": "B installed staged City module as a new Modules/ZOMBIEEE_Remaster (1,071 files), without overwrite, and reports static receipt checks passed. This manual add-only operation does NOT verify P1 durable journal, installer rollback or crash recovery.",
       "deferReason": null,
       "implementationLane": "B",
       "review": {
@@ -587,7 +587,7 @@
       "priority": "P1",
       "issueUrl": null,
       "criterion": "Launcher starts/stops an isolated local listen-server or managed dedicated host without port forwarding",
-      "note": "B/C recorder ownership settled by Agent A: B owns game, C passive recorder; canonical marker zombieee.recorder-ready.v1; HMAC attach/stop; B must prove genuine recorder readiness before any game spawn. C passive source updated, exact integrated offline interoperability test pending. No Windows engine acceptance.",
+      "note": "Actual dedicated host was observed bound UDP 127.0.0.1:7240 only by B; no public UDP bind seen. Outbound TCP does not count as listener. Player join, one-click automation and clean teardown are not verified.",
       "deferReason": null,
       "implementationLane": "B",
       "review": {
@@ -838,7 +838,7 @@
       "priority": "P2",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
       "criterion": "Checksummed, redacted evidence bundle and rule report explain observed/unknown game outcomes and actionable failures",
-      "note": "B/C recorder ownership settled by Agent A: B owns game, C passive recorder; canonical marker zombieee.recorder-ready.v1; HMAC attach/stop; B must prove genuine recorder readiness before any game spawn. C passive source updated, exact integrated offline interoperability test pending. No Windows engine acceptance.",
+      "note": "C recorder was armed/attached in the live host attempt and C authored R030/CITY-I08 for four Invalid Faction ID:-1 errors. No complete sealed game evidence ZIP or final forensic interpretation has been reported.",
       "deferReason": null,
       "implementationLane": "C",
       "review": {
@@ -1479,6 +1479,108 @@
       "supportsOutcomeId": "ZOM-QA-01",
       "accountingScope": "supplemental-nonadditive",
       "originReason": "Discovered during the City-first native, Windows, or forensic integration audit; separate from the original planning baseline."
+    },
+    {
+      "id": "ZOM-DISC-16",
+      "title": "Trace observed invalid faction ID to original City trigger 14",
+      "groupId": "Runtime",
+      "milestoneId": "M1",
+      "state": "active",
+      "sourceState": "Observed incident assigned; implementation or exact-current verification still pending",
+      "required": false,
+      "blocked": true,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11#issuecomment-6376361668",
+          "observedOn": "2026-10-24",
+          "acceptance": "pending-current-source-investigation-or-verification"
+        }
+      ],
+      "completionBasis": "Not completed: observed symptom or source correction needs exact attribution/tests, and does not confer parent gameplay acceptance",
+      "kind": "work-item",
+      "owner": "Agent A — incident work; owner retains release acceptance",
+      "priority": "P0",
+      "issueUrl": null,
+      "criterion": "Compare original Beta 0.4 and exact installed City mission trigger 14 opcode 502 and related inputs; report whether baseline-origin, introduced or indeterminate without inventing engine cause.",
+      "note": "B reports four real WSE2 SCRIPT ERROR Invalid Faction ID: -1 at mst_multiplayer_iv Trigger 14, opcode 502. Source attribution and gameplay effects unverified.",
+      "deferReason": null,
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "incident-investigation",
+      "supportsOutcomeId": "ZOM-ENG-03",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Real WSE2 City host boot surfaced a new runtime error or forensic input-classification defect not present in the original 2026-10-23 work breakdown."
+    },
+    {
+      "id": "ZOM-DISC-17",
+      "title": "Classify observed faction errors without assigning an unproven cause",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "review",
+      "sourceState": "Observed incident assigned; implementation or exact-current verification still pending",
+      "required": false,
+      "blocked": true,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12#issuecomment-6376414645",
+          "observedOn": "2026-10-24",
+          "acceptance": "pending-current-source-investigation-or-verification"
+        }
+      ],
+      "completionBasis": "Not completed: observed symptom or source correction needs exact attribution/tests, and does not confer parent gameplay acceptance",
+      "kind": "work-item",
+      "owner": "Agent C — incident work; owner retains release acceptance",
+      "priority": "P0",
+      "issueUrl": null,
+      "criterion": "R030/CITY-I08 detect the bounded Invalid Faction ID: -1 incident signature with cause unknown, and current exact C suite confirms no false attribution.",
+      "note": "C authored R030 and CITY-I08; isolated regex/source tests passed, complete exact-current C tests still pending.",
+      "deferReason": null,
+      "implementationLane": "C",
+      "workOrigin": "discovered",
+      "workType": "diagnostic-hardening",
+      "supportsOutcomeId": "ZOM-OBS-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Real WSE2 City host boot surfaced a new runtime error or forensic input-classification defect not present in the original 2026-10-23 work breakdown."
+    },
+    {
+      "id": "ZOM-DISC-18",
+      "title": "Reject malformed non-scalar Lua telemetry identifiers safely",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "review",
+      "sourceState": "Observed incident assigned; implementation or exact-current verification still pending",
+      "required": false,
+      "blocked": true,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12#issuecomment-6376414645",
+          "observedOn": "2026-10-24",
+          "acceptance": "pending-current-source-investigation-or-verification"
+        }
+      ],
+      "completionBasis": "Not completed: observed symptom or source correction needs exact attribution/tests, and does not confer parent gameplay acceptance",
+      "kind": "work-item",
+      "owner": "Agent C — incident work; owner retains release acceptance",
+      "priority": "P1",
+      "issueUrl": null,
+      "criterion": "Non-string template, scene and event JSON fields fail closed to unknown, never raise TypeError, and the current C focused/full suite passes.",
+      "note": "C found and corrected dict/list event, template and scene TypeError in local exact blob tests; targeted 10/10, full C suite pending.",
+      "deferReason": null,
+      "implementationLane": "C",
+      "workOrigin": "discovered",
+      "workType": "bug-fix",
+      "supportsOutcomeId": "ZOM-OBS-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Real WSE2 City host boot surfaced a new runtime error or forensic input-classification defect not present in the original 2026-10-23 work breakdown."
     }
   ],
   "warnings": [
@@ -1492,8 +1594,9 @@
     "Recorder ownership decision recorded: B launches game after C passive readiness; interface remains integration-test pending.",
     "Agent A local replay executed 20 targeted tests (8 original archive, 6 native preflight, 6 City acceptance) using locally staged source and supplied original files. Exact remote PR #10 full checkout test suite has not been executed.",
     "City static auditor now verifies an exact canonical navmesh-derived SCO overlay rather than merely a modified City scene hash; integration in tools/build.py remains draft/unmerged.",
-    "15 discovered supporting tasks (11 source/fixture bounded Done, 4 in review) are retained outside the original 23 required release-outcome denominator to avoid duplicate credit.",
-    "B reports full 7z archive CRC and pinned dedicated WSE2 binary match. Live owner-authorized boot completion, verified City runtime and current C exact-suite remain unreported."
+    "18 discovered support/investigation leaves: 11 narrowly source/fixture Done, 6 in review, 1 active; none adds to 23 required outcome denominator.",
+    "Actual WSE2 dedicated host/module startup and OS loopback-only UDP listener have been reported by B for live A 141a792/C e455354 candidate; client join, survivor/wave gameplay, controlled teardown and signed C manifest remain unknown.",
+    "Four observed Invalid Faction ID:-1 script errors in original City Invasion trigger 14/opcode 502 are not yet attributed to original source or remaster. Preserve exact source/build identity."
   ],
   "governance": {
     "purpose": "City-first private solo Windows 11 remaster, verified flight-recorder diagnostics; four other original maps deferred until later release.",
@@ -1659,12 +1762,12 @@
       "authority": "Owner expressly requested documenting unplanned work; this does not imply approval of the previously proposed whole release baseline.",
       "marker": "●",
       "label": "Discovered after original baseline",
-      "taxonomy": "bug-fix | hardening | assurance | integration-verification | incident-resolution | investigation | governance",
+      "taxonomy": "bug-fix | hardening | assurance | integration-verification | incident-resolution | investigation | governance | incident-investigation | diagnostic-hardening",
       "mode": "supplemental-nonadditive",
       "requiredReleaseLeavesBefore": 23,
       "requiredReleaseLeavesAfter": 23,
       "originalOptionalLeaves": 1,
-      "additionalSupportingLeaves": 15,
+      "additionalSupportingLeaves": 18,
       "additionalSupportingDone": 11,
       "supportsRule": "Each task has one parent outcome and its own narrow source/fixture criterion. A completed supporting task is not a completed parent outcome.",
       "priorLedger": "progress/snapshots/ledger-2026-10-23-original.json",
@@ -1673,8 +1776,35 @@
       "latestBranchAtReview": {
         "A": "27bb46d8bc95d881e75ab031f49f572360679845",
         "B": "d41aefc0d7b810f0e1ca0c5961c71f107e5d0052",
-        "C": "41412e1e6dc5c42af3db1d3b04cb59be84b6eaf5"
-      }
+        "C": "16a0baddfab04fdfd835f6acf6b89f035e475d75"
+      },
+      "review": 6,
+      "active": 1,
+      "liveHostObservation": {
+        "reportedOn": "2026-10-24",
+        "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11#issuecomment-6376361668",
+        "candidate": {
+          "A": "141a792",
+          "B": "d41aefc",
+          "C": "e455354"
+        },
+        "observations": [
+          "City-only staged module installed without overwrites",
+          "actual WSE2 1.1.5.4 dedicated host boot",
+          "OS observed UDP 127.0.0.1:7240 loopback-only",
+          "C passive recorder ready and attached",
+          "four Invalid Faction ID:-1 engine errors at invasion trigger 14"
+        ],
+        "unknown": [
+          "player joined",
+          "City wave progression",
+          "allied combat",
+          "signed final recorder manifest",
+          "durable rollback installer"
+        ],
+        "classification": "observed subset of real host session; NOT complete City runtime/owner acceptance"
+      },
+      "latestHistory": "progress/scope-changes/2026-10-24-live-incident-amendment.json"
     }
   }
 }
