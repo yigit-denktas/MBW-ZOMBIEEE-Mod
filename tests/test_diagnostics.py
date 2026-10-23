@@ -123,6 +123,26 @@ class DiagnosticsTests(unittest.TestCase):
             self.assertIn("R001", result["resolved_issues_since_first"])
             self.assertFalse(result["new_issues_in_last"])
 
+    def test_server_allies_absent_when_hostiles_present(self):
+        with tempfile.TemporaryDirectory() as td:
+            bundle = self.make_bundle(Path(td),
+                "ZDB1|boot|triggers=26\n"
+                "ZDB1|mission_enter|role=server|agents=8|team0=0|team1=8\n"
+                "ZDB1|heartbeat|role=server|agents=12|team0=0|team1=12\n")
+            report = analyze(read_bundle(bundle))
+            self.assertTrue(report["team_evidence"]["available"])
+            self.assertIn("R018", {f["id"] for f in report["findings"]})
+
+    def test_missing_team_op_does_not_raise_false_alarm(self):
+        with tempfile.TemporaryDirectory() as td:
+            bundle = self.make_bundle(Path(td),
+                "ZDB1|boot|triggers=26\n"
+                "ZDB1|mission_enter|role=server|agents=12|team0=-1|team1=-1\n"
+                "ZDB1|heartbeat|role=server|agents=16|team0=-1|team1=-1\n")
+            report = analyze(read_bundle(bundle))
+            self.assertFalse(report["team_evidence"]["available"])
+            self.assertNotIn("R018", {f["id"] for f in report["findings"]})
+
     def test_invalid_session_label(self):
         with tempfile.TemporaryDirectory() as td:
             with self.assertRaises(ValueError):
