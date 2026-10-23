@@ -75,6 +75,21 @@ transaction paths, redirected destinations, invalid game EXEs and missing
 archives block the proposal. Permissions/free space/process locks are not
 probed by writing and must be revalidated by the eventual installer.
 
+`input_game_root` retains the absolute lexical input before resolution;
+`game_root` is the resolved preview. `path_issues` records symlink/reparse or
+inspection failures in the raw root, every ancestor, executable and all module/
+transaction destinations, including the journal. Junctions cannot disappear
+from evidence through early resolution. Parent traversal is blocked separately.
+Every later `exists()`/`is_dir()`/`is_file()` probe is guarded too: Windows
+access denials can surface from `stat()` after a lexical check succeeded, so an
+inspection failure adds `path_inspection_failed` and `path_issues` evidence
+instead of aborting the JSON proposal. `operation` is `unknown` when the
+installed-target probe cannot be inspected, and `archive_missing`/
+`warband_invalid` are never inferred from an unreadable path.
+`recheck_required_before_write=true` is unconditional: an offline path check
+cannot prevent a later filesystem race. A real installer must recheck through
+owned handles immediately before every write, rename, recovery or removal.
+
 The builder argv uses the current Python interpreter and existing
 `tools/build.py --archive ... --out ...`. Invoke as an argv list with
 `shell=False`, never a joined shell string. The output is a new
@@ -128,25 +143,47 @@ network APIs. `receipt()` is an in-memory simulation snapshot using Agent A's
 provisional `zombieee.session.v1` envelope, with additive simulation/lifecycle
 fields. Unobserved PIDs, versions, fingerprints, timestamps, exit codes and
 evidence references stay null; outcome stays unknown. It is not an on-disk
-session log or proof of runtime evidence. `session_id=simulation-N` is local
-to this model instance; a real adapter must allocate unique opaque IDs.
+session log or proof of runtime evidence. Opaque UUIDs distinguish model
+sessions and startup attempts; real process observations remain unimplemented.
 
 | State/event | Result |
 | --- | --- |
-| idle/stopped/failed + start | start recorder, then host (dedicated) or client (listen); wait for readiness |
-| waiting_host + ready | dedicated: start client and wait for join; listen: modeled playing |
-| joining + joined | modeled playing |
-| waiting_host/joining + deadline | timeout and stop requested game processes |
+| idle/stopped/failed + start | request recorder only; enter waiting_recorder |
+| waiting_recorder + process_started(recorder) | record simulated owned identity; still wait |
+| waiting_recorder + valid recorder_ready | request host (dedicated) or client (listen); waiting_game_start |
+| waiting_game_start + process_started(game) | waiting_host |
+| waiting_host + host_ready | dedicated: request client, waiting_client_start; listen: awaiting_join |
+| waiting_client_start + process_started(client) | awaiting_join |
+| awaiting_join + joined | client joined; awaiting_mission, never playing yet |
+| awaiting_mission + mission_entered | modeled playing |
+| startup/join/mission state + deadline | timeout and stop requested processes |
 | active + stop / unexpected process exit | stop client/host; retain recorder until both exit |
 | stopping + confirmed game exits | stop recorder |
 | stopping + confirmed recorder exit | stopped, or failed with retained error |
 | fully stopped/failed + start | clean new attempt |
 
-Late ready/join events cannot bypass deadlines. Duplicate stop and duplicate
-exit acknowledgements are harmless. Retry is rejected while any previous
-requested process remains. Fake start failures use an `exited` acknowledgement
-for the requested process. If shutdown never acknowledges exit, the model
-remains stopping: it does not claim success or kill unrelated processes.
+Async events require matching session/attempt IDs; started/exited events also
+carry PID and process-start identity. Old attempts and foreign sessions are
+ignored before they can affect timers or process tracking. Recorder readiness
+must be the canonical `zombieee.recorder-ready.v1` marker: known recorder
+identity and `watcher_id`, `log_offsets_captured`/`watcher_active` true,
+`engine_ready`/`mission_ready` false, and a fresh adapter liveness confirmation.
+A dedicated client spawn requires a second liveness confirmation.
+Duplicate/stale readiness cannot start another process. `host_ready`,
+`joined` and `mission_entered` are separate fake observations: host readiness
+never means the player joined, and a join observation never means the City
+mission was entered. Only `mission_entered` reaches the modeled playing state.
+
+Late ready/join events cannot bypass deadlines. Late process-start acknowledgments
+are tracked and stopped so cleanup can still confirm their exits. Duplicate stop
+and exit acknowledgments are harmless. Retry is rejected while any previous
+requested process remains. Spawn failure uses `start_failed`; `exited` requires
+the previously acknowledged owned identity. If shutdown never acknowledges exit,
+the model remains stopping: it does not claim success or kill unrelated processes.
+See [the recorder handshake v1](WINDOWS_RECORDER_HANDSHAKE.md) and Agent A's
+authoritative
+[recorder lifecycle contract](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/agent/a-city-engine/handoffs/RECORDER_LIFECYCLE_V1.md)
+for exact fields, adapter responsibilities and the pending C integration gate.
 
 Only literal loopback `127.0.0.1` is accepted, with fixed original City
 `tbfc_invasion_4` and mission `multiplayer_iv`. This constraint does not prove
@@ -168,10 +205,11 @@ Neither route is accepted from a fake readiness event.
 Fixture tests cover modern/legacy Steam libraries, spaces, missing/invalid EXEs,
 unknown versions, corrupt/traversing manifests, duplicate/multiple installs,
 bounded nested WSE2, inaccessible search, read-only operation, Windows junctions,
-manifest staging/collisions, fake route readiness, crashes, timeout, cleanup and
-retry. Windows version metadata is exercised on the running Python executable
+manifest staging/collisions, post-lexical access denials, canonical recorder
+marker fields, fake route readiness, crashes, timeout, cleanup and retry.
+Windows version metadata is exercised on the running Python executable
 without starting a candidate. Windows junction fixtures require a process context
-permitted to create junctions; the restricted Codex sandbox may deny them.
+permitted to create junctions; a restricted sandbox may deny them.
 
 Not demonstrated: actual owned game discovery, verified WSE2 release/startup,
 atomic install/rollback under Windows locks or crash/power loss, actual private

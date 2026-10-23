@@ -1,0 +1,14 @@
+{
+  "schema": "zombieee.recorder-ready.v1",
+  "session_id": "fixture-city-01",
+  "attempt_id": "attempt-01",
+  "recorder_start_id": "fixture-opaque-start-id",
+  "recorder_pid": 424242,
+  "watcher_id": "fixture-random-watch-token",
+  "ready_utc": "2026-10-23T00:00:00+00:00",
+  "log_offsets_captured": true,
+  "watcher_active": true,
+  "log_source_count": 1,
+  "engine_ready": false,
+  "mission_ready": false
+}

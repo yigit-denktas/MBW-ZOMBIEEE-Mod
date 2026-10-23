@@ -65,6 +65,95 @@ class ManifestTests(unittest.TestCase):
         directory_link(self.root / 'Modules', outside)
         self.assertIn('redirected_destination', plan_install(self.root, self.archive, 'redirect')['blockers'])
 
+    def test_top_level_game_junction_keeps_raw_path_evidence(self):
+        linked = self.root / 'game alias'
+        directory_link(linked, self.root)
+        plan = plan_install(linked, self.archive, 'root-link')
+        self.assertIn('redirected_destination', plan['blockers'])
+        self.assertEqual(plan['input_game_root'], str(linked))
+        self.assertEqual(plan['game_root'], str(self.root))
+        self.assertTrue(any(i['path'] == str(linked) for i in plan['path_issues']))
+        self.assertTrue(plan['recheck_required_before_write'])
+
+    def test_junction_in_game_root_ancestor_is_detected(self):
+        parent = self.root / 'real parent'
+        game = parent / 'game'
+        pe(game / 'mb_warband.exe')
+        alias = self.root / 'parent alias'
+        directory_link(alias, parent)
+        plan = plan_install(alias / 'game', self.archive, 'ancestor')
+        self.assertIn('redirected_destination', plan['blockers'])
+        self.assertTrue(any(i['path'] == str(alias) for i in plan['path_issues']))
+
+    def test_journal_redirect_blocks_plan(self):
+        outside = self.root / 'outside'
+        outside.mkdir()
+        directory_link(self.root / 'Modules/.zombieee-journal-link.json', outside)
+        self.assertIn('redirected_destination', plan_install(self.root, self.archive, 'link')['blockers'])
+
+    def test_unreadable_path_inspection_blocks_plan(self):
+        with patch('installer.manifest.Path.lstat', side_effect=PermissionError('fixture denied')):
+            plan = plan_install(self.root, self.archive, 'denied')
+        self.assertIn('path_inspection_failed', plan['blockers'])
+        self.assertTrue(plan['path_issues'])
+
+    def test_stat_denial_after_lexical_check_stays_structured(self):
+        """Review P2: exists()/is_dir() re-raise access denials after lstat succeeded."""
+        real_stat = Path.stat
+        modules = self.root / 'Modules'
+
+        def deny_modules(path, *args, **kwargs):
+            if Path(path) == modules:
+                raise PermissionError('fixture denied')
+            return real_stat(path, *args, **kwargs)
+
+        with patch('installer.manifest.Path.stat', deny_modules):
+            plan = plan_install(self.root, self.archive, 'denied-stat')
+        self.assertIn('path_inspection_failed', plan['blockers'])
+        self.assertTrue(any(issue['path'] == str(modules)
+                            and issue['reason'] == 'path_inspection_failed'
+                            for issue in plan['path_issues']))
+        self.assertTrue(plan['dry_run'])
+        self.assertFalse(plan['execution_enabled'])
+
+        target = modules / 'ZOMBIEEE_Remaster'
+
+        def deny_target(path, *args, **kwargs):
+            if Path(path) == target:
+                raise PermissionError('fixture denied')
+            return real_stat(path, *args, **kwargs)
+
+        with patch('installer.manifest.Path.stat', deny_target):
+            plan = plan_install(self.root, self.archive, 'denied-target')
+        self.assertEqual(plan['operation'], 'unknown')
+        self.assertIn('path_inspection_failed', plan['blockers'])
+
+    def test_unreadable_archive_and_executable_never_abort_planner(self):
+        real_stat = Path.stat
+        archive = self.archive
+
+        def deny_archive(path, *args, **kwargs):
+            if Path(path) == archive:
+                raise PermissionError('fixture denied')
+            return real_stat(path, *args, **kwargs)
+
+        with patch('installer.manifest.Path.stat', deny_archive):
+            plan = plan_install(self.root, archive, 'archive-denied')
+        self.assertIn('path_inspection_failed', plan['blockers'])
+        self.assertNotIn('archive_missing', plan['blockers'])
+
+        with patch('installer.manifest.executable_status', return_value='unreadable_executable'):
+            plan = plan_install(self.root, self.archive, 'exe-denied')
+        self.assertIn('path_inspection_failed', plan['blockers'])
+        self.assertNotIn('warband_invalid', plan['blockers'])
+
+    def test_embedded_nul_configured_path_returns_structured_plan(self):
+        plan = plan_install(str(self.root) + '\x00x', self.archive, 'nul')
+        self.assertIn('path_inspection_failed', plan['blockers'])
+        self.assertTrue(plan['path_issues'])
+        self.assertTrue(plan['dry_run'])
+        self.assertFalse(plan['execution_enabled'])
+
     def test_cli_plan_preserves_paths_with_spaces_without_writes(self):
         before = sorted(str(p) for p in self.root.rglob('*'))
         result = subprocess.run(

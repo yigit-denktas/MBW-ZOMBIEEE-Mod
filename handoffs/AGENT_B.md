@@ -62,8 +62,12 @@ The optional `--audit-archive-hash` planner flag consumes A's shared
 `tools/archive_audit.py --archive ... --json` subprocess contract. On this
 v0.1.8 branch that tool remains unavailable until A is integrated; fixtures
 exercise the adapter without copying or duplicating A's verifier.
-Please specify the City build profile and validated startup/private-bind/join/
-stop contract in A-owned `handoffs/SESSION_CONTRACT.md` before integration.
+A confirmed the City profile in its PR #11 review: `--experimental-defenders 4
+--city-guardposts --wave-reinforcements --tactical-recovery`, without
+`--all-map-defenses` (optional balanced-ai after static checks), and installed
+receipt `experimental_map_scope=city-only`. It depends on PR #10 and is not
+executed by the v0.1.8 planner. Validated startup/private-bind/join/stop semantics
+still require the shared contract and runtime evidence.
 
 Agent C: B's pure state machine emits intent actions `start:recorder`,
 `start:host`, `start:client`, `stop:client`, `stop:host`, `stop:recorder`.
@@ -73,6 +77,23 @@ duplicating log collection. Current `Session.receipt()` contains only simulation
 state in A's provisional `zombieee.session.v1` envelope, with additive
 simulation fields, null runtime observations and `outcome:unknown`. It is
 **not** the recorder API or a validated evidence receipt.
+
+B-1/B-2 revision: start requests only the recorder and waits for the canonical
+`zombieee.recorder-ready.v1` marker. The consumer verifies
+session/attempt/recorder identity, `watcher_id`, the
+`log_offsets_captured`/`watcher_active` true and `engine_ready`/`mission_ready`
+false fields, and a fresh adapter liveness observation before requesting the
+first game process. Game spawn, `host_ready`, `joined` and `mission_entered` are
+separate correlated milestones for both routes: host readiness never means a
+player joined, and a join observation never means the City mission was entered.
+Only `mission_entered` reaches the modeled `playing` state. The marker and C
+responsibilities are documented in
+[Windows recorder handshake](../docs/WINDOWS_RECORDER_HANDSHAKE.md) and
+coordinated on PR #12; C production and a real adapter remain pending.
+B-3 keeps lexical input-root/component/reparse evidence, including root/ancestor
+junctions and journal redirects, guards every later filesystem probe (a denied
+`stat()` returns `path_inspection_failed` evidence instead of aborting the
+planner) and requires rechecks before future writes.
 
 Real receipts will follow A's shared envelope. Proposed additive fields, pending
 A/C agreement: process start identity, readiness source and lifecycle status.
@@ -100,16 +121,30 @@ No user playtest is requested during this first slice.
 
 ## Verification — 2026-10-23
 
-`python -m unittest discover -s tests -q`: **127 tests, OK, 30 skipped**
-(the existing asset-dependent tests require `ZOMBIEEE_ORIGINAL_MODULE`). All
-35 B fixture/CLI tests passed on Windows, including directory junctions and
+First slice: `python -m unittest discover -s tests -q` → **127 tests, OK, 30
+skipped** (existing asset-dependent tests require `ZOMBIEEE_ORIGINAL_MODULE`);
+all 35 B fixture/CLI tests passed on Windows, including directory junctions and
 read-only file-version inspection. Junction tests ran outside the restricted
 sandbox because it denies junction creation; all fixtures stayed in temporary
 directories. No real game process was launched or install attempted.
 
+B-1/B-2/B-3 revision: `python -m unittest discover -s tests -q` → **148 tests,
+OK, 30 skipped**; all **56** B fixture/CLI tests pass. Added coverage for the
+canonical recorder marker fields, no game start before valid recorder-ready on
+both routes, stale/foreign/duplicate/late readiness, recorder and game crash,
+recorder loss during shutdown, spawn failure, separate host-ready/joined/
+mission-entered milestones, join and mission timeouts, retry cleanup,
+top-level/ancestor junctions, journal redirects, post-lexical `stat()` denials
+and malformed configured paths (review P2). No real game process was launched
+or install attempted.
+
 Independent read-only code review found a malformed Steam path could abort
 structured discovery. Fixed normalization handling for invalid custom/library/
 Steam roots and rejected control characters in install-directory names. The
-regression preserves a valid candidate alongside corrupt inputs. Final full-suite
-verification above includes that fix. Runtime and original-asset checks remain
-pending; test counts do not certify a playable release.
+regression preserves a valid candidate alongside corrupt inputs. A later review
+found that a denied `stat()` after a successful lexical check could abort the
+install planner; every subsequent probe is now guarded and returns
+`path_inspection_failed` evidence. A follow-up review found recorder loss during
+shutdown could be normalized to a clean `stopped`; it now retains
+`recorder_exited_during_shutdown` and ends `failed`. Runtime and original-asset
+checks remain pending; test counts do not certify a playable release.
