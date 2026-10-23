@@ -1,0 +1,69 @@
+{
+  "schema": "zombieee.scope-change.v1",
+  "observedOn": "2026-10-24",
+  "changeType": "new-live-engine-incident",
+  "amends": "progress/scope-changes/2026-10-24-discovered-work.json",
+  "before": {
+    "sourcePath": "progress/snapshots/ledger-2026-10-24-preboot.json",
+    "sourceBlob": "d7fe91cf8facdb7d542c0eb6ca8ba322b51272df",
+    "retainedItems": 39,
+    "requiredOutcomes": 23,
+    "discovered": 15,
+    "discoveredDone": 11,
+    "discoveredInReview": 4,
+    "discoveredFraction": "11/15",
+    "milestonesAccepted": "0/5"
+  },
+  "after": {
+    "sourcePath": "progress/ledger.json",
+    "retainedItems": 42,
+    "requiredOutcomes": 23,
+    "discovered": 18,
+    "discoveredDone": 11,
+    "discoveredInReview": 6,
+    "discoveredActive": 1,
+    "discoveredFraction": "11/18",
+    "discoveredPercentage": 61.1,
+    "requiredFraction": "0/23",
+    "milestonesAccepted": "0/5"
+  },
+  "adds": [
+    {
+      "id": "ZOM-DISC-16",
+      "subject": "Investigate Invalid Faction ID:-1 at original invasion trigger 14, opcode 502",
+      "owner": "A",
+      "state": "active",
+      "evidence": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11#issuecomment-6376361668"
+    },
+    {
+      "id": "ZOM-DISC-17",
+      "subject": "C R030/CITY-I08 noncausal incident classification",
+      "owner": "C",
+      "state": "review",
+      "evidence": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12#issuecomment-6376414645"
+    },
+    {
+      "id": "ZOM-DISC-18",
+      "subject": "C malformed non-string template/scene/event type safety",
+      "owner": "C",
+      "state": "review",
+      "evidence": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12#issuecomment-6376414645"
+    }
+  ],
+  "observation": {
+    "B": "Real WSE2 x86 dedicated host started; reported only UDP 127.0.0.1:7240 bound; server selected tbfc_invasion_4 in multiplayer_iv; four SCRIPT ERROR: Invalid Faction ID:-1 at mst_multiplayer_iv trigger 14 consequences opcode 502; C passive recorder ready/attached, client join still pending.",
+    "A_staged": "141a792",
+    "C_live": "e455354",
+    "C_latest": "16a0baddfab04fdfd835f6acf6b89f035e475d75"
+  },
+  "notObserved": [
+    "joined player",
+    "zombie waves",
+    "AI combat",
+    "round transition",
+    "sealed signed recorder manifest",
+    "journaled reversible installer"
+  ],
+  "accounting": "No new required outcome gate; percentage 11/15 → 11/18 is a discovered-work denominator expansion, not regression or lost completion. The required release measure remains 0/23 and accepted milestones 0/5.",
+  "ownerNext": "A compare original vs built invasion trigger 14 opcode 502 and preserve unknown causality; B finish authorized live session with path-private receipt; C execute full exact-current focused/full suites before merge."
+}
