@@ -165,11 +165,13 @@ def verified_flight(root: Path) -> tuple[dict, list[Path], bytes]:
     public = {k: receipt.get(k) for k in (
         "schema", "session_id", "start_utc", "end_utc", "outcome", "exit_code",
         "exit_code_observed", "log_count", "log_truncated",
-        "log_bytes_limit_each", "event_count", "event_drops", "metrics",
+        "log_bytes_limit_each", "log_omitted_bytes", "log_seen_bytes",
+        "process_output_omitted_bytes", "process_output_capture_complete",
+        "attempt_id", "duration_seconds", "event_count", "event_drops", "metrics",
         "launcher", "caveat")}
     # No original command line, source paths, PIDs or raw process data.
     safe = json.dumps(public, indent=2, sort_keys=True)
-    logs = sorted((root / "logs").glob("log_*.txt"))
+    logs = sorted((root / "logs").glob("*.txt"))
     events = (root / "events.jsonl").read_bytes() if "events.jsonl" in hashes else b""
     return public, logs, scrub(events.decode("utf-8", errors="replace")).encode("utf-8")
 
