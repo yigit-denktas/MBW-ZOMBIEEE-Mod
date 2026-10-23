@@ -17,7 +17,7 @@ import subprocess
 import sys
 import time
 
-from tools.diagnostics import scrub
+from .privacy import scrub
 
 SCHEMA = "zombieee.flight.v1"
 MAX_LOG_BYTES = 2 * 1024 * 1024
