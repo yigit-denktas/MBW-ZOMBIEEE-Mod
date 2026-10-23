@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Opt-in tactical fallback/regroup for original Beta 0.4 compiled missions.
 
-Appends two native triggers after the already patched 29-trigger, 1221-global
+Appends two native triggers after the already patched 29-trigger, 1222-global
 module. It never replaces the original 25 invasion triggers. A periodic
 server-only trigger counts living non-player allied agents in divisions 5..7.
 
@@ -12,10 +12,11 @@ State changes once per transition to avoid thrashing and order spam.
 from pathlib import Path
 from patch_defenders import PatchError, mission_bounds
 from city_defense import scene_index, SCENE_BASE, POS_BASE, DIVISIONS
-from wave_reinforcements import GLOBAL_BASE, LOCAL_BASE, SENTINEL, INVASION_GAME_TYPE
+from wave_reinforcements import (GLOBAL_BASE, LOCAL_BASE, SENTINEL, ROUND_STAMP,
+                                 INVASION_GAME_TYPE)
 
 TACTICAL_GLOBAL = "zdr_defence_mode"
-EXPECTED_PREVIOUS_GLOBALS = 1221
+EXPECTED_PREVIOUS_GLOBALS = 1222
 EXPECTED_PREVIOUS_TRIGGERS = 29
 
 
@@ -26,9 +27,9 @@ def encode(opcode: int, *args: int) -> list[str]:
 def mapping(variables: str) -> dict[str, int]:
     names = variables.splitlines()
     if (len(names) != EXPECTED_PREVIOUS_GLOBALS or
-            names[-1] != SENTINEL or TACTICAL_GLOBAL in names or
+            names[-2:] != [SENTINEL, ROUND_STAMP] or TACTICAL_GLOBAL in names or
             len(set(names)) != len(names)):
-        raise PatchError("Requires unmodified 1221-name remaster wave-variable table")
+        raise PatchError("Requires unmodified 1222-name remaster wave-variable table")
     needed = ("g_multiplayer_game_type", "g_round_ended", "wave_number")
     if any(name not in names for name in needed):
         raise PatchError("Original mission state globals missing")
