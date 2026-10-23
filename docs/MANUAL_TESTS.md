@@ -36,3 +36,7 @@ The additional runtime trigger may make the WSE2-reported count **26** on some l
 | Stability | Ten successive waves and latency/frame-time readings |
 
 No runtime rows have been independently verified. No public hosting or cheat controls until server authority is checked.
+
+## Experimental defender verification
+
+Rebuild the module with `--experimental-defenders 4` (or use `tools/Smoke-Test.ps1`). Static preflight should show 26 triggers, not the original 25. On a **private server**, confirm four new team-0 survivor agents, native zombie waves, and at least one completed wave. Collect `rgl_log.txt`, screenshot and WSE2 version. If there is a fault, use the default unmodified mode and report Issue #2. Do not claim gameplay passed without evidence.

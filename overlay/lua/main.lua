@@ -1,6 +1,6 @@
--- ZOMBIEEE Remaster 0.1.1: non-invasive WSE2 runtime diagnostics.
+-- ZOMBIEEE Remaster 0.1.2: non-invasive WSE2 runtime diagnostics.
 -- Observe WSE2 startup and invasion mission entry. Do not modify original triggers.
-local VERSION = "0.1.1"
+local VERSION = "0.1.2"
 local MISSION = "mst_multiplayer_iv"
 local prefix = "[ZOMBIEEE Remaster " .. VERSION .. "] "
 
