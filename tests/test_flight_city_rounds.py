@@ -89,6 +89,32 @@ class CityRoundEvidenceTests(unittest.TestCase):
         self.assertEqual(report["runtime"]["round_identity"], "unknown")
         self.assertIsNone(report["runtime"]["last_reinforced_round_starts"])
 
+    def test_legacy_wave_marker_never_proves_server_round_identity(self):
+        legacy = {"event": "wave_change", "source": "logs/log_01.txt",
+                  "line": 1, "fields": {"wave": "2",
+                                          "round_start": "55",
+                                          "refilled_round_start": "55"}}
+        client = {"event": "wave_change", "source": "logs/log_01.txt",
+                  "line": 2, "fields": {"role": "client", "wave": "3",
+                                          "round_start": "77",
+                                          "refilled_round_start": "77"}}
+        result = incident_for_session([legacy, client], [], {}, {}, [])
+        self.assertEqual(result["runtime"]["wave_numbers"], [2])
+        self.assertEqual(result["runtime"]["round_identity"], "unknown")
+        self.assertIsNone(result["runtime"]["last_reinforced_round_starts"])
+        self.assertIn("round_start_global_unobserved", result["unknowns"])
+
+    def test_explicit_server_wave_marker_can_attest_read_round_global(self):
+        server = {"event": "wave_change", "source": "logs/log_01.txt",
+                  "line": 1, "fields": {"role": "server", "wave": "2",
+                                          "round_start": "55",
+                                          "refilled_round_start": "55"}}
+        result = incident_for_session([server], [], {}, {}, [])
+        self.assertEqual(result["runtime"]["round_start_observations"], [55])
+        self.assertEqual(result["runtime"]["last_reinforced_round_starts"], [55])
+        self.assertEqual(result["runtime"]["round_identity"], "observed_engine_global")
+        self.assertFalse(result["runtime"]["round_aware_reinforcement_verified"])
+
     def test_lua_round_fields_are_optional_measured_values(self):
         fields = {"role": "server", "wave": "2",
                   "round_start": "400", "refilled_round_start": "395"}
