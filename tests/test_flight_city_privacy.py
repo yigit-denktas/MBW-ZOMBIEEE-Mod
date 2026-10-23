@@ -43,6 +43,29 @@ class CityEvidencePrivacyTests(unittest.TestCase):
             self.assertEqual(report["build"]["static_failed_checks"], 0)
             self.assertFalse(report["runtime"]["gameplay_verified"])
 
+    def test_failed_original_check_survives_collector_summary(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            module = root / "module"
+            module.mkdir()
+            receipt = {
+                "experimental_map_scope": "city-only",
+                "city_static_acceptance": {
+                    "checks": {"check_%02d" % i: i != 8 for i in range(12)},
+                    "original_invasion_game_type": 7},
+                "city_final_acceptance": {"passed": True},
+            }
+            (module / "ZOMBIEEE_REMASTER.json").write_text(json.dumps(receipt))
+            bundle = root / "source-failed.zip"
+            collect(None, module, bundle, [], "failed-source")
+            report = analyze(read_bundle(bundle))["city_incident"]["build"]
+            self.assertTrue(report["static_summary_consistent"])
+            self.assertEqual(report["static_check_count"], 12)
+            self.assertEqual(report["static_passed_checks"], 11)
+            self.assertEqual(report["static_failed_checks"], 1)
+            self.assertEqual(report["static"], "source_check_failed")
+            self.assertFalse(report["source_receipt_claims_passed"])
+
     def test_arbitrary_event_fields_and_paths_are_removed(self):
         event = {"event": "command_exec", "source": "private/user/location",
                  "line": 1, "fields": {"cmd": "private-phrase",
