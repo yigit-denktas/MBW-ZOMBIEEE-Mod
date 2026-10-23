@@ -1,5 +1,6 @@
 """Archive audit tests use fixtures, not copied original game assets."""
 from pathlib import Path
+import os
 import hashlib
 import subprocess
 import sys
@@ -82,7 +83,7 @@ class ArchiveAuditTests(unittest.TestCase):
             self.assertIn("seven_zip_unavailable", r["problems"])
 
     def test_original_user_archive_identity_if_present(self):
-        original = Path("/mnt/data/ZOMBIEEEBeta04.rar")
+        original = Path(os.environ.get("ZOMBIEEE_ORIGINAL_ARCHIVE", "/mnt/data/ZOMBIEEEBeta04.rar"))
         if not original.is_file():
             self.skipTest("Original archive not mounted")
         report = inspect_original_archive(original)
