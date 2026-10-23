@@ -3,7 +3,8 @@ param(
     [Parameter(Mandatory=$true)][string]$Archive,
     [Parameter(Mandatory=$true)][string]$WarbandRoot,
     [ValidateRange(0,8)][int]$Defenders = 4,
-    [switch]$Replace
+    [switch]$Replace,
+    [switch]$CityGuardposts
 )
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
@@ -27,6 +28,7 @@ try {
     $argsBuild = @('-3', 'tools\build.py', '--archive', $archivePath, '--out', $moduleRoot,
                    '--experimental-defenders', [string]$Defenders)
     if ($Replace) { $argsBuild += '--replace' }
+    if ($CityGuardposts) { $argsBuild += '--city-guardposts' }
     & py @argsBuild
     if ($LASTEXITCODE -ne 0) { throw 'Module build was refused; check RAR SHA-256, 7-Zip CRC and errors above' }
 

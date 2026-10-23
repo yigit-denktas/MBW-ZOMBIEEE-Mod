@@ -1,5 +1,13 @@
 # Work log
 
+## 2026-10-23 — 0.1.4: concrete City tactical overlay
+
+- Parsed all five original 2012 SCO scenes using the documented format; City has 226 scene objects, 11 entries, 323 AI mesh vertices and 270 navmesh faces.
+- Sampled 3 post centroids in the connected navmesh, 15–16m from survivor spawn, avoiding original zombie entries 32–40.
+- Inserted only new City entry IDs 2, 3, 4 in an extracted scene COPY. Navigation mesh and existing 226 objects preserved.
+- Segregated survivor allies into private divisions 5/6/7; appended one server-only City-scoped native hold-order trigger. 25 original triggers unchanged; optional combined build has 27.
+- Offline integration against the supplied Beta 0.4 succeeded; original scenes and RAR never modified. No CI, no intermediate Windows handoffs, gameplay still unverified.
+
 ## 2026-10-23 — 0.1.3: unattended evidence and diagnostics
 
 - Added versioned WSE2 read-only events (bootstrap, mission entry, role, bounded agent count/heartbeat).

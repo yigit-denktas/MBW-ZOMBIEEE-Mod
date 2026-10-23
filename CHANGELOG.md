@@ -2,6 +2,19 @@
 
 Uses [Semantic Versioning](https://semver.org/) for the remaster, not the historical original.
 
+## [0.1.4] - 2026-10-23
+
+### Added
+- Source-derived SCO reader for five original maps, including City navigation mesh and survivor/zombie spawn entries.
+- Deterministic three-post City defence plan from the connected walkable navmesh, with guard entries 2/3/4 inserted only into a copy of the original scene.
+- Opt-in `--city-guardposts` installer flag (requires experimental survivor bots).
+- Split allied bots into groups 5/6/7 and issue server-only one-time City hold orders; original 25 mission triggers and zombie entry points preserved.
+- Scene and compiled mission integration tests on original Beta 0.4 data; no CI and no redistribution of original binary assets.
+
+### Still unverified
+- WSE2 gameplay, bot AI pathing/shooting, physical obstacle clearance, multiplayer synchronization and complete zombie waves.
+- Guard post geometry is navmesh-based; gameplay may require adjusting positions.
+
 ## [0.1.3] - 2026-10-23
 
 ### Added

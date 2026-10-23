@@ -5,6 +5,7 @@
 Historical source: ZOMBIEEE Beta **0.4** (2012). This does not determine remaster versions.
 
 - **0.1.x:** repository, guarded installer, archive static doctor, diagnostic Lua bootstrap; not playable.
+- **0.1.4:** Experimental City navmesh-derived guard posts, three isolated defender groups and compiled hold orders (runtime unverified).
 - **0.2.0:** WSE2 startup + original City wave and weapons smoke-tested.
 - **0.3.0:** allied survivor bots, survivor faction and class/loadout verified.
 - **0.4.0:** authored City defence points, hold/rally/fallback orders, navigation tests.

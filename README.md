@@ -2,7 +2,7 @@
 
 Modernization of the **2012 ZOMBIEEE (Invasion) Beta 0.4** mod for *Mount & Blade: Warband*. Original contributors retain credit and ownership of their work.
 
-**Current project version:** `0.1.3` (development scaffold; **not yet playable/engine-verified**).  
+**Current project version:** `0.1.4` (development scaffold; **not yet playable/engine-verified**).  
 **Target:** Warband official 1.174 data format under [WSE2](https://github.com/Ruslan-700/WSE2-Releases/releases/tag/v1.1.5.4) 1.1.5.4 (14 October 2026).  
 **Scope:** preserve the original guns, zombies, wave mode, maps and feel; restore current-runtime compatibility; add AI survivor teammates, defensible hold points, quality-of-life features, private cheats, and later LAN co-op. **ZOMBIEEE2 is explicitly excluded.**
 
@@ -29,6 +29,7 @@ Install [WSE2](https://github.com/Ruslan-700/WSE2-Releases/releases/tag/v1.1.5.4
 - [Next development handoff](docs/NEXT_RUN.md)
 - [Original invasion bot-call reconstruction](docs/BOT_RECON.md)
 - [Experimental allied defenders](docs/EXPERIMENTAL_DEFENDERS.md)
+- [City tactical defence overlay](docs/CITY_DEFENSE.md)
 - [End-of-development diagnostics](docs/DIAGNOSTICS.md)
 - [Version history](CHANGELOG.md)
 
@@ -51,3 +52,13 @@ Development continues with static analysis and automated local tests. When the *
     .\tools\Collect-Diagnostics.ps1 -WarbandRoot 'C:\Program Files (x86)\Steam\steamapps\common\MountBlade Warband' -Session final-solo
 
 This creates a **local, redacted, hashed** evidence ZIP and Markdown diagnostic report. The bundle contains engine logs, mission lifecycle markers, agent counts (if WSE2 exposes them), module hashes and version data. It neither sends data externally nor asks for repeated testing. See [the diagnostics guide](docs/DIAGNOSTICS.md). **Windows gameplay remains unverified.**
+
+### New experimental City positions (v0.1.4)
+
+Three AI-mesh-derived City guard posts are placed in a **COPY** of the 2012 scene. A private defender squad is split into groups 5, 6 and 7 and receives server-authoritative hold-position orders only when the current map is City. Original 25 triggers and all original zombie entries remain intact. This option is disabled unless explicitly requested:
+
+```powershell
+py -3 tools\build.py --archive "C:\Downloads\ZOMBIEEEBeta04.rar" --out "C:\Games\MountBlade Warband\Modules\ZOMBIEEE_Remaster" --experimental-defenders 4 --city-guardposts
+```
+
+Normal build: 25 invasion triggers. Experimental allies: 26. Allies plus City defence: 27. **Offline compatibility verified against supplied scene and compiled mission data; Windows engine gameplay and AI behaviour remain unverified.** See [technical analysis](docs/CITY_DEFENSE.md).

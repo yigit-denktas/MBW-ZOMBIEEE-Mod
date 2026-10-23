@@ -1,4 +1,4 @@
-# End-of-development diagnostic recorder (v0.1.3)
+# End-of-development diagnostic recorder (v0.1.4)
 
 **No step-by-step game testing required.** Continue development and local static verification normally. After the final build is ready, play one private WSE2 session, exit the game, and run the collector once. It packages evidence for later analysis rather than making you troubleshoot each intermediate build.
 
@@ -41,7 +41,7 @@ Pass comparison ZIP paths explicitly, in chronological order. Comparison reports
 | R011 | Lua bootstrap event absent |
 | R012 | No invasion entry despite bootstrap event |
 | R013 | Mission entered but heartbeat absent |
-| R014 | Wrong trigger count (25 original, 26 with experimental defenders) |
+| R014 | Wrong trigger count (25 original, 26 with defenders, 27 with City tactical positions) |
 | R015 | Logs older than seven days, potentially unrelated |
 | R016 | WSE2 Lua diagnostic hook failed to register |
 | R017 | Installed module manifest missing; cannot correlate build and runtime |
@@ -56,3 +56,7 @@ Local tests: python -m unittest discover -s tests -v. No CI. Original Beta 0.4 o
 The mission probe uses WSE2's documented agent iterator. If the optional native team getter is unavailable, team0/team1 are reported as -1, **not zero**. The analyzer records team-data availability and never diagnoses missing allies from unavailable metrics. When at least two server-side samples show team 0 empty while team 1 is populated, it flags a *candidate* ally-spawn issue (R018), not a proven cause. Bot combat competence, navigation and wave victory still require the final game session.
 
 The guarded installer also stores `archive_crc_verified`, `original_mission_trigger_count` and `final_trigger_count`. The evidence pack includes only allowlisted build metadata plus SHA-256 hashes of installed module files, so a later report can distinguish an unknown archive from a modified installation. None of the mod assets are included.
+
+## Scene overlay receipt
+
+The v0.1.4 installer records `final_trigger_count=27` if `--city-guardposts` is active. Original City data still has 226 objects; a patched copy has 229. The existing module fingerprint captures the modified `mission_templates.txt`, while the unmodified original archive remains untouched. Read the [City defence overlay](CITY_DEFENSE.md) for source-derived entry coordinates and offline checks.
