@@ -35,7 +35,7 @@ class CityEvidencePrivacyTests(unittest.TestCase):
             safe = payload["module.json"].decode()
             self.assertNotIn("DO_NOT_EXPORT_PRIVATE_METADATA", safe)
             report = analyze(payload)["city_incident"]
-            self.assertTrue(report["build"]["source_verified"])
+            self.assertTrue(report["build"]["source_receipt_claims_passed"])
             self.assertFalse(report["runtime"]["gameplay_verified"])
 
     def test_arbitrary_event_fields_and_paths_are_removed(self):
