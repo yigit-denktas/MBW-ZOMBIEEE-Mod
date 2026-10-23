@@ -1,0 +1,162 @@
+"""Synthetic City incident privacy and collector tests."""
+import hashlib
+import json
+from pathlib import Path
+import sys
+import tempfile
+import unittest
+import zipfile
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
+from diagnostics import collect, analyze, read_bundle
+
+
+class CityEvidencePrivacyTests(unittest.TestCase):
+    def test_build_receipt_private_metadata_does_not_enter_archive(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            mod = base / "module"
+            mod.mkdir()
+            receipt = {
+                "experimental_map_scope": "city-only",
+                "city_static_acceptance": {
+                    "checks": {"original": True, "city_native": True,
+                               **{"audit_rule_%02d" % n: True for n in range(21)}},
+                    "original_invasion_game_type": 7,
+                    "hidden_metadata": "DO_NOT_EXPORT_PRIVATE_METADATA",
+                },
+                "city_final_acceptance": {
+                    "passed": True, "control_mode": "none",
+                    "problems": ["DO_NOT_EXPORT_PRIVATE_METADATA"],
+                },
+            }
+            (mod / "ZOMBIEEE_REMASTER.json").write_text(json.dumps(receipt))
+            archive = base / "evidence.zip"
+            collect(None, mod, archive, [], "fixture")
+            payload = read_bundle(archive)
+            safe = payload["module.json"].decode()
+            self.assertNotIn("DO_NOT_EXPORT_PRIVATE_METADATA", safe)
+            report = analyze(payload)["city_incident"]
+            self.assertTrue(report["build"]["source_receipt_claims_passed"])
+            self.assertTrue(report["build"]["static_summary_consistent"])
+            self.assertEqual(report["build"]["static_check_count"], 23)
+            self.assertEqual(report["build"]["static_passed_checks"], 23)
+            self.assertEqual(report["build"]["static_failed_checks"], 0)
+            self.assertFalse(report["runtime"]["gameplay_verified"])
+
+    def test_failed_original_check_survives_collector_summary(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            module = root / "module"
+            module.mkdir()
+            receipt = {
+                "experimental_map_scope": "city-only",
+                "city_static_acceptance": {
+                    "checks": {"check_%02d" % i: i != 8 for i in range(12)},
+                    "original_invasion_game_type": 7},
+                "city_final_acceptance": {"passed": True},
+            }
+            (module / "ZOMBIEEE_REMASTER.json").write_text(json.dumps(receipt))
+            bundle = root / "source-failed.zip"
+            collect(None, module, bundle, [], "failed-source")
+            report = analyze(read_bundle(bundle))["city_incident"]["build"]
+            self.assertTrue(report["static_summary_consistent"])
+            self.assertEqual(report["static_check_count"], 12)
+            self.assertEqual(report["static_passed_checks"], 11)
+            self.assertEqual(report["static_failed_checks"], 1)
+            self.assertEqual(report["static"], "source_check_failed")
+            self.assertFalse(report["source_receipt_claims_passed"])
+
+    def test_changed_summary_count_fails_closed_even_with_valid_zip_hashes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            module = root / "module"
+            module.mkdir()
+            receipt = {
+                "experimental_map_scope": "city-only",
+                "city_static_acceptance": {
+                    "checks": {"source_%02d" % i: True for i in range(8)},
+                    "original_invasion_game_type": 7},
+                "city_final_acceptance": {"passed": True},
+            }
+            (module / "ZOMBIEEE_REMASTER.json").write_text(json.dumps(receipt))
+            original = root / "complete.zip"
+            collect(None, module, original, [], "counter-test")
+            with zipfile.ZipFile(original) as archive:
+                base = {name: archive.read(name) for name in archive.namelist()}
+            for bad_count in (1, 7, 200, True):
+                with self.subTest(bad_count=bad_count):
+                    files = dict(base)
+                    safe = json.loads(files["module.json"])
+                    safe["city_static_acceptance"]["check_count"] = bad_count
+                    files["module.json"] = json.dumps(safe).encode()
+                    manifest = json.loads(files["manifest.json"])
+                    manifest["sha256"]["module.json"] = hashlib.sha256(
+                        files["module.json"]).hexdigest()
+                    files["manifest.json"] = json.dumps(manifest).encode()
+                    altered = root / ("changed-%s.zip" % str(bad_count))
+                    with zipfile.ZipFile(altered, "w") as archive:
+                        for name, data in files.items():
+                            archive.writestr(name, data)
+                    result = analyze(read_bundle(altered))["city_incident"]["build"]
+                    self.assertFalse(result["source_receipt_claims_passed"])
+                    self.assertFalse(result["static_summary_consistent"])
+                    self.assertIsNone(result["static_check_count"])
+                    self.assertEqual(result["static"], "source_check_failed")
+
+    def test_arbitrary_event_fields_and_paths_are_removed(self):
+        event = {"event": "command_exec", "source": "private/user/location",
+                 "line": 1, "fields": {"cmd": "private-phrase",
+                                       "wave": "2", "token": "hidden-value"}}
+        payload = {"events.jsonl": (json.dumps(event) + "\n").encode(),
+                   "logs/log_01.txt": b"ZDB1|boot\n"}
+        result = analyze(payload)["city_incident"]
+        data = json.dumps(result)
+        self.assertNotIn("private-phrase", data)
+        self.assertNotIn("hidden-value", data)
+        self.assertNotIn("private/user/location", data)
+        self.assertIn("unattributed_log", data)
+
+    def test_clock_lanes_are_not_mixed(self):
+        game = {"event": "boot", "source": "logs/log_01.txt", "line": 5,
+                "fields": {"triggers": "31"}}
+        rec = {"event": "recorder_ready", "utc": "2026-10-23T21:00:00+00:00"}
+        payload = {"events.jsonl": (json.dumps(game) + "\n").encode(),
+                   "flight_events.jsonl": (json.dumps(rec) + "\n").encode(),
+                   "logs/log_01.txt": b"ZDB1|boot\n"}
+        city = analyze(payload)["city_incident"]
+        self.assertEqual(city["timeline"]["cross_lane_order"],
+                         "unknown_without_shared_clock")
+        self.assertEqual(city["timeline"]["engine"]["ordering"], "per_file_line_only")
+        self.assertEqual(city["timeline"]["recorder"]["ordering"], "recorder_utc_only")
+
+    def test_simulation_and_omissions_are_explicit(self):
+        flight = {"simulation": True, "game_runtime": "unknown",
+                  "outcome": "timeout", "log_omitted_bytes": [88],
+                  "event_drops": 3}
+        payload = {"flight_recorder.json": json.dumps(flight).encode(),
+                   "logs/log_01.txt": b"harmless\n"}
+        city = analyze(payload)["city_incident"]
+        self.assertTrue(city["runtime"]["simulation"])
+        self.assertTrue(city["recording_gap"])
+        self.assertIn("synthetic_session_not_gameplay", city["unknowns"])
+
+
+    def test_tampered_evidence_never_reaches_incident_analysis(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            valid = root / "valid.zip"
+            collect(None, None, valid, [], "synthetic")
+            with zipfile.ZipFile(valid) as z:
+                content = {name: z.read(name) for name in z.namelist()}
+            content["module.json"] = b'{"city_final_acceptance":{"passed":true}}'
+            forged = root / "forged.zip"
+            with zipfile.ZipFile(forged, "w") as z:
+                for name, value in content.items():
+                    z.writestr(name, value)
+            with self.assertRaisesRegex(ValueError, "entry mismatch"):
+                read_bundle(forged)
+
+
+if __name__ == "__main__":
+    unittest.main()

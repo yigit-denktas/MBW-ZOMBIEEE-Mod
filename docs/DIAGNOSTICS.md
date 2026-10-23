@@ -80,3 +80,205 @@ The full experimental build receipt records final_trigger_count=31 plus the tact
 A locally authored minimal `overlay/lua/msfiles/header_operations.py` maps only read-only Warband native getters that our WSE2 Lua telemetry uses. The runtime attempts `combat_sample` (agent/group/wave/known weapon ID/ammo/kill count) and `command_exec` events from native command counter increments, up to 16 non-player reserved-group defenders every 15 seconds. No real player coordinates or names are required. Unavailable native operations are recorded as unknown.
 
 New offline codes: **R023** candidate ammunition depletion, **R024** prolonged engagement with no observed defender kill increments, **R025** hotkey execution inconsistent with build receipt, **R026** missing AI combat observability. The final JSON and Markdown reports include an **acceptance evidence matrix** for engine startup, mission entry, zombie waves, allied agents, combat activity, fallback/regroup and private commands. Unknown does not mean failed or passed. An error-free log is not proof of playability. [Full forensic reference](FORENSIC_DIAGNOSTICS.md).
+
+
+## Agent C: external flight recorder (development prototype)
+
+**Status: offline prototype on `agent/c-flight-recorder`; Windows/WSE2 integration not verified.** The recorder runs as a separate Python process, observes a subprocess launched with `--` or a pre-existing PID with `--observe-pid`, and independently stores atomic, bounded evidence snapshots. No game memory injection, shell execution, external telemetry or background uploads. It does not replace the final WSE2 session.
+
+Run from the repository root. The following commands use a **fake Python game**, not an actual Warband invocation:
+
+~~~powershell
+py -3 -m unittest discover -s tests -p 'test_flight_*.py' -v
+py -3 -m telemetry.flight_recorder --output-root .\evidence\flight --session fake-city --timeout 10 -- py -3 -c "import sys; sys.exit(7)"
+py -3 tools\diagnostics.py collect --flight-root .\evidence\flight\fake-city --output .\evidence\fake-city.zip --session fake-city
+py -3 tools\diagnostics.py verify .\evidence\fake-city.zip
+py -3 tools\diagnostics.py analyze .\evidence\fake-city.zip --report .\evidence\fake-city.md
+~~~
+
+A real integrated session should pass existing WSE2/Warband log paths using repeated `--log` arguments. For Agent B's future launcher, pass its **optional** private per-user `zombieee.session.v1` JSON receipt with `--launcher-receipt`; only allowlisted fields are reproduced. This is an interface prototype, **not** a claim that automatic City launch or WSE2 flags work.
+
+- **Recorder storage:** `evidence/flight/<session_id>/recorder.json`, `events.jsonl`, redacted `logs/log_XX.txt` and `manifest.json`, atomically written with SHA-256 digests over the actual redacted bytes.
+- **Collection:** `diagnostics.py collect --flight-root <completed-session-dir> ...` verifies all recorder entries first, refuses a modified source, then carries the scrubbed snapshots plus their process receipt into the existing self-checked evidence ZIP.
+- **Log window:** the recorder starts at the log files' current end (not historical prior-session text), polls without modifying the game, stores at most 12 logs × 2 MiB each, limits event records to 2,048 and records truncation. Each source preserves its early records plus a rolling late tail; omitted bytes are recorded in `log_omitted_bytes` and marked with `ZDB1-OMITTED ... BYTES BETWEEN HEAD AND TAIL`. A second size guard applies after redaction expansion. Capture still cannot prove every engine event was logged.
+- **Process evidence:** owned-child exit codes are observed; a merely watched PID has **unknown** exit code. Timeout and startup failure are recorded separately. Per-process CPU, memory and FPS are **unknown**, not fake values; wall-clock duration is measured.
+- **Privacy:** common credentials, home paths, IPs, email addresses and Steam IDs are redacted best-effort. `verify` additionally reports counts for *potential* remaining sensitive strings, never the offending values. It **always requires manual privacy review before any ZIP is shared**, even when all automated counts are zero. SHA-256 verifies accidental modifications, not provenance or proof that logs are safe.
+- **Forensic leads:** R027 means external recorder timed out; R028 means an owned child exited nonzero. Neither is an automatic verdict of a Warband crash. Actual WSE2 Lua and game-run acceptance checks retain the `unknown` state until observed.
+
+Run the full offline suite with `py -3 -m unittest discover -s tests -v` before review. These test files do not require original mod or WSE2 assets, and there is **no CI**.
+
+## Agent A review hardening — C-1/C-2/C-3
+
+- **Crash tail (C-1):** bounded early log plus rolling late tail, an exact per-source omission marker, and independent post-redaction output-size enforcement. Early startup and later crash signatures survive an oversized middle log segment. A clean recorder does not prove every game event was emitted.
+- **Passive recorder handshake (C-2):** Agent B launches the separate recorder **before any game PID exists**. C waits passively and writes an atomic `recorder-ready.json` only after creating private session storage, capturing initial log offsets and entering the watcher. The canonical marker schema is **`zombieee.recorder-ready.v1`** (hyphen, not underscore). It includes opaque `session_id`, `attempt_id`, `recorder_start_id`, `watcher_id`, the local recorder PID, and booleans `log_offsets_captured:true`, `watcher_active:true`, `engine_ready:false`, `mission_ready:false`. Agent B must independently validate its owned recorder's PID, process start identity, liveness and freshness before starting the game; neither game nor City mission readiness is inferred from recorder readiness.
+- **Authenticated attach/stop:** Agent B passes a random 32-byte control key to C in private environment variable `ZOMBIEEE_RECORDER_CONTROL_KEY` (64 hex digits; no key is persisted or forwarded to the game). B then starts the host/client and writes `recorder-attach.json` with `schema:zombieee.recorder-attach.v1`, the matching three identity strings, positive `host_pid` and/or `client_pid`, and `mac`. `mac` is HMAC-SHA256 with the control key over the JSON object excluding `mac`, serialized using Python `json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")`. C rejects stale/wrong attempts, invalid PID types and incorrect MACs; on acceptance it writes `recorder-attachment-ack.json` but never asserts that host, game or mission is ready. After both game processes have ended, B writes a similarly signed `recorder-stop.json` with schema `zombieee.recorder-stop.v1` to finish and seal C's evidence. All PIDs and control files stay local and do not enter the publishable ZIP.
+- **Unsafe paths and child output (C-3):** verification and ZIP import reject filesystem symlinks and Windows reparse points including an intermediate `logs` directory. In **owned-child mode only**, stdout/stderr are drained on bounded threads, redacted, hashed, and annotated with separate source-omission and post-redaction omitted-byte counts. A process externally owned by B has no inferred stderr stream or exit code; use WSE2/host logs and B's local launcher receipt.
+- **No real host flags guessed:** B's explicit private-local lifecycle and actual WSE2 startup are still unverified. Any insecure or public host route is out of scope.
+
+### Passive startup example (standalone Python; no game launched)
+
+```powershell
+# Agent B generates a fresh random key and correlation ID for each attempt.
+# The environment variable is PRIVATE to the C process.
+$env:ZOMBIEEE_RECORDER_CONTROL_KEY = '<64 hex digits generated securely by B>'
+py -3 -m telemetry.flight_recorder --passive --output-root '.\\evidence\\flight' --session city-attempt-1 --attempt attempt-1 --recorder-start-id '<opaque-id>' --log 'C:\\path\\to\\rgl_log.txt' --timeout 3600
+```
+
+Agent B owns the supervising process and writes authenticated control JSON from the same user account; the command above runs until a signed stop message or timeout. It **does not** launch Warband. B waits for `recorder-ready.json` before proceeding. When C finishes, `py -3 tools\\diagnostics.py collect --flight-root .\\evidence\\flight\\city-attempt-1 --output .\\evidence\\city-attempt-1.zip --session city-attempt-1` verifies and packages the local session without automatically uploading data.
+
+### Offline validation scope
+
+Regression files `tests/test_flight_recorder.py`, `tests/test_flight_review.py` and `tests/test_flight_passive.py` cover fake child crashes, late crash tails, bounded redacted subprocess output, handshake-first ordering, **true game-PID-free passive startup**, HMAC-authenticated attach/stop, stale-token rejection, unsafe symlinks, timeouts, and unknown observation states. A locally recreated Linux recorder/fixture mirror ran **16 focused tests with 16 passing**, plus one additional expanding-redaction assertion. The **exact GitHub branch full suite and collector integration tests remain unexecuted** because local GitHub DNS is unavailable. They are still required on an accessible checkout before merge. No Windows gameplay tests or CI were performed.
+
+## Agent integration boundary
+
+Agent B owns launcher and installer orchestration. Agent C owns this recorder and evidence processing, consumes B's optional local JSON session receipt without storing full paths, PIDs, command lines, chat or credentials in report outputs. Agent A owns the [provisional session contract](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/agent/a-city-engine/handoffs/SESSION_CONTRACT.md) on its branch and must review any schema change. Only Agent A can declare a final WSE2 City result accepted based on objective runtime evidence, not these offline fixtures.
+
+## Additional Agent C forensic hardening (Issue #6)
+
+- **Read-only Windows PID liveness:** `windows_pid_alive` uses a Windows process handle with `SYNCHRONIZE` and `WaitForSingleObject(handle, 0)` instead of POSIX-style `os.kill(pid, 0)`. It never sends a Windows termination signal. Access denied or an unsupported state is *unknown*. Regression fixtures use mock handles, not a real game or Windows process.
+- **Stop ordering:** the passive watcher does not seal evidence while any attached host/client PID is still seen alive or cannot be confirmed exited. An authenticated early stop remains retryable after process exit. This is an additional safety check, not a substitute for B's independently owned process handles or authority.
+- **Large logs and rotated paths:** only the first truncation event per log is emitted to limit I/O; the final receipt retains exact `log_omitted_bytes` for each source. Regression cases cover rotation after startup and a credential split across polling intervals; redaction is best effort and manual ZIP inspection remains mandatory.
+- **End-to-end fake B/C process test:** `tests/test_flight_b_interop.py` uses a separate C CLI process, validates the launch gate, rejects a bad HMAC, starts a B-simulated crashing host, refuses early shutdown, then checks the late fatal log and verified ZIP. This test is purely synthetic; it is **not** Agent B's actual launcher implementation or a WSE2 runtime test.
+- **R029 scene/build mismatch:** the analyzer checks `experimental_map_scope=city-only` against a *measured* server-side `scene` field **if one is present**. When a scene getter is missing, the report explicitly says `unknown`. The mission-template field and B's intended City destination are never treated as proof of the loaded scene. A known explicit non-City scene produces a candidate mismatch with source/line evidence, not a gameplay verdict. No undocumented WSE2 scene getter has been added.
+- **Process leads R027/R028:** findings now attach recorder-source timestamps and calibrated confidence that distinguishes local timeout/nonzero exit from an actual engine cause.
+
+**Execution evidence boundary:** the reconstructed Linux C recorder mirror passed its existing 16 focused tests and another eight safety/process/rotation checks (24 passing, 0 failures/skips across these runs). These are *not* an execution of the exact remote branch. The new GitHub tests, complete `tools/diagnostics.py` suite, and Windows/WSE2 behavior still need validation on an accessible checkout. No CI or repeated manual gameplay sessions are requested.
+
+
+
+## C recorder protocol/evidence follow-up (Agent A P0 review)
+
+Agent B's newest `launcher/solo.py` at `69dd354` implements the canonical
+`waiting_recorder` state **only as an offline state machine**; it is not an
+executable process adapter. The next actual B+C acceptance fixture must launch
+B's *real future adapter* with C's passive CLI, not merely duplicate C's
+standalone B-simulated fake-host test.
+
+**New source files:** `telemetry/identity.py` reads process birth identities
+read-only (Linux `/proc/<pid>/stat` start ticks, Windows `GetProcessTimes`
+creation FILETIME). This is C's best-effort local safety guard, **not** a new
+v1 wire field or proof of B's process ownership. When a signed stop sees a
+different start identity than it saw on attachment, C refuses to seal with a
+clean stop and records `pid_start_identity_status=reused_suspected`.
+Inaccessible OS identity is `unknown` in forensic output; no raw PID, process
+birth time or control key is exported in the public ZIP. The proposed,
+**unapproved** optional attach identity fields and residual OS race caveats
+are documented in [PID_REUSE_REVIEW.md](PID_REUSE_REVIEW.md). Agent A and Agent B
+must approve any shared schema extension before implementation.
+
+**Simulated sessions:** pass `--simulation` to C's CLI, or
+`simulation=True` when calling its Python API. The recorder JSON (and
+attachment acknowledgment) then records `simulation=true`,
+`game_runtime=unknown`; real host/game behavior remains unknown in every
+recorder receipt until a separately verified engine session. Python/Windows
+process *start* is not City mission start. The collector carries safe status
+fields (but not the underlying OS process identity) into the diagnostic ZIP.
+
+**Protocol fixture examples (all values synthetic):**
+`tests/fixtures/recorder_ready_v1.json`,
+`tests/fixtures/recorder_attachment_ack_v1.json`,
+`tests/fixtures/recorder_completion_v1.json`, and
+`tests/fixtures/recorder_incomplete_v1.json`.
+The readiness marker's `recorder_pid=424242` is **an invented fixture PID**,
+not anyone's process. The completion JSON is a small **illustrative subset**
+of the full `recorder.json` schema, not a digest-verified real session.
+Fixture examples do not contain actual HMACs, paths or game-owned PIDs.
+
+### Recorder death / incomplete evidence
+
+`python -m telemetry.recovery <local-session-folder>` performs a **read-only**
+inspection of a private session. This is useful if the recorder crashes or
+is terminated by the OS before it writes `manifest.json`. It returns a
+path-free `zombieee.flight.recovery.v1` receipt:
+`session_complete=false`, `integrity_verified=false`,
+`shareable_without_review=false`, `game_runtime=unknown` and
+`manual_privacy_review_required=true` for an incomplete session.
+A present but invalid final manifest is also explicitly unverified.
+It **does not** reconstruct missing events, fabricate a checksum, automatically
+bundle or transmit sensitive logs, or mark a failed game test successful.
+Its exit status is 0 only for a valid complete recorder session, 1 for
+incomplete/invalid, and 2 for refused inspection.
+
+**Current validation boundary:** these newer C source/test changes are
+committed on GitHub but have **not** been executed against the exact remote
+branch because Github DNS/network checkout is blocked in this environment.
+Older recorder-mirror test runs are not accepted as current-branch evidence.
+Run on a branch checkout: `python -m unittest discover -s tests -p
+'test_flight_*.py' -v`, followed by `python -m unittest discover -s tests
+-v`. Record exact revision/platform/pass/skip/failure counts and keep
+original module data out of Git and any public bundle. No CI or intermediate
+Windows gameplay test.
+
+
+### Recorder event-journal cost bound
+
+Event writes now append an individually flushed and fsynced line to
+`events.jsonl` rather than atomically replacing the entire accumulated
+journal on every event. This avoids quadratic write amplification across
+up to 2,048 events. The per-run event count and `event_drops` remain explicit,
+and the final manifest SHA-256 covers the complete finished journal. A hard
+OS termination can leave an incomplete final line; the recovery inspector
+reports the session as **unsealed**, never verified. This is a bounded
+offline implementation change, **not an observed WSE2 performance claim**.
+
+The current C source also contains tests for process birth-identity sampling,
+PID reuse fail-closed shutdown, synthetic protocol fixtures, recorder death
+inspection, and per-event append-only cost. These tests **require exact
+GitHub branch execution** before PR #12 can be accepted. The latest B adapter
+has independently tested an earlier C revision `eade015` on Windows; that
+does **not** certify later C commits, so B/A should rerun the combined offline
+suite against C's current head after reviewing new fields.
+
+
+## City Incident Report v1 (Agent C P1)
+
+`tools/diagnostics.py analyze <local-evidence.zip> --report <local-output.md>`
+now returns `city_incident` (schema `zombieee.city-incident.v1`), in
+addition to the existing R001–R029 rules and acceptance matrix.
+
+The incident report preserves the actual count of A's source audit checks
+from bounded sanitized receipt summaries (not the single aggregate pass bit).
+Counts that are missing, inconsistent, non-integer or out of range fail closed,
+even if the ZIP hashes are internally consistent. This new read-only layer separates source-receipt **claims** from actual
+runtime observations, correlates scene/wave/defender/tactical markers within
+each log, and summarizes recorder startup, rotation, bounded omissions,
+abnormal exits and build inconsistencies as noncausal investigation leads.
+The observed historical invasion initializer is **game type 7** in the
+updated Agent A source contract; a source assertion is not proof that a
+live session entered the City mission. Existing absent or negative getter
+values stay **unknown**, never zero.
+
+It stores **two distinct timeline lanes**: ZDB1 source/line ordering (within
+a log source only) versus C flight-recorder UTC timestamps. No fabricated
+cross-source timestamp or game success. Log excerpts, arbitrary event
+strings, local paths, control keys and PIDs are not copied to this summary.
+The collector exports only summaries of A's `city_static_acceptance`
+and `city_final_acceptance` receipts; even an all-green installed receipt
+only sets `source_receipt_claims_passed=true` and
+`independently_reverified=false`, not authenticated source provenance.
+
+Details and reproduction commands:
+[City Incident Report v1](CITY_INCIDENT_V1.md). Added 13 synthetic test
+methods across `test_flight_city_incident.py`,
+`test_flight_city_privacy.py`, `test_flight_city_limits.py`. These are
+**committed, not reported as executed** until B/A complete an exact checkout
+run. No CI, public network, copyrighted assets or repeated owner tests.
+
+
+### Optional observed round identity (post-A round-aware source revision)
+
+The Lua probe now tries read-only server global getters for
+`g_round_start_time` (`round_start`) and
+`zdr_last_reinforced_round_start` (`refilled_round_start`) at mission
+entry/heartbeat, plus round identity on `wave_change`. A `-1` getter is
+**unknown**; source/build receipts must not synthesize an observed round.
+Invasion `g_round_ended` (`round`) is merely a state flag, not a round
+identifier. The existing `refilled` is the saved wave number only.
+
+City incident v1 can distinguish a decreasing wave with an actually changed
+round ID (expected) from a decreasing wave without observed changed round
+(candidate `CITY-I04`; cause always unknown). Same-wave observations
+across different measured rounds do not imply within-round progression.
+Even observing both round globals does **not** prove successful AI top-up.
+See [the round evidence contract](CITY_INCIDENT_V1.md#round-aware-reinforcement-source-contract-versus-observed-globals).

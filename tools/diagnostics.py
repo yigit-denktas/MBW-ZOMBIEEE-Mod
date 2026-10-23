@@ -18,7 +18,8 @@ import sys
 import zipfile
 from tactical_analysis import analyze_tactical_events
 from combat_analysis import analyze_combat_events
-from evidence_readiness import matrix_for_session
+from evidence_readiness import matrix_for_session, capability_snapshot, observed_server_invasion
+from city_incidents import incident_for_session
 
 SCHEMA = 1
 MAX_LOG_BYTES = 8 * 1024 * 1024
@@ -42,7 +43,35 @@ def scrub(text: str) -> str:
     text = re.sub(r"\b[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}\b", "<EMAIL>", text)
     text = re.sub(r"(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?::\d{1,5})?(?![\d.])", "<IP_ADDRESS>", text)
     text = re.sub(r"(?i)\b(?:Bearer\s+)[A-Za-z0-9._~+/\-]{12,}", "Bearer <REDACTED>", text)
+    text = re.sub(r"(?im)^.*(?:\b(?:global|team|private)[ _-]?chat\b|\bchat(?:_message)?\s*[:=]|\[chat\]).*$",
+                  "[REDACTED CHAT]", text)
+    text = re.sub(r"(?i)\b(password|passwd|token|api[_-]?key|auth[_-]?token)\s*[:=]\s*[\w.+/~\-]{3,}",
+                  r"\1=<REDACTED>", text)
     return text
+
+
+def privacy_audit(payload: dict[str, bytes]) -> dict:
+    """Heuristic disclosure check. Clean matches NEVER mean safe to publish."""
+    patterns = {
+        "email": re.compile(r"\b[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}\b"),
+        "ipv4": re.compile(r"(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d.])"),
+        "steam_id": re.compile(r"(?<!\d)7656119\d{10}(?!\d)"),
+        "home_path": re.compile(r"(?i)(?:[a-z]:\\Users\\|/Users/|/home/)[^\s]+"),
+        "credential_label": re.compile(r"(?i)\b(?:api[_-]?key|auth[_-]?token|authorization|password|passwd)\b\s*[:=]\s*(?!<REDACTED>)\S+"),
+    }
+    counts = {key: 0 for key in patterns}
+    for name, data in payload.items():
+        if name == "manifest.json" or name == "module_hashes.json":
+            continue
+        if not (name.endswith(".txt") or name.endswith(".json") or name.endswith(".jsonl")):
+            continue
+        decoded = data.decode("utf-8", errors="replace")
+        for key, pattern in patterns.items():
+            counts[key] += len(pattern.findall(decoded))
+    return {"automatic_review": "potential_disclosure" if any(counts.values()) else "no_known_patterns_found",
+            "manual_review_required": True,
+            "potential_patterns": counts,
+            "caveat": "Pattern checks and redaction are not exhaustive. Do not publish raw logs or assume a clean scan guarantees privacy."}
 
 
 def candidate_logs(game_root: Path | None, extra: list[Path]) -> list[Path]:
@@ -94,8 +123,92 @@ def extract_events(log: str, log_file: str) -> list[dict]:
     return events
 
 
+
+def verified_flight(root: Path) -> tuple[dict, list[Path], bytes]:
+    """Read C's completed, hashed external recorder without trusting paths."""
+    root = root.expanduser().absolute()
+    # Reject intermediate symlink/junction substitutions before reading ZIP inputs.
+    for component in [root, *root.parents]:
+        if component.exists() and (component.is_symlink()
+                or (getattr(component.lstat(), "st_file_attributes", 0) & 0x400)):
+            raise ValueError("Unsafe recorder path link/reparse point")
+    for component in root.rglob("*"):
+        if component.is_symlink() or (getattr(component.lstat(), "st_file_attributes", 0) & 0x400):
+            raise ValueError("Unsafe recorder path link/reparse point")
+    manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
+    if manifest.get("schema") != "zombieee.flight.v1":
+        raise ValueError("Unknown flight-recorder schema")
+    hashes = manifest.get("sha256")
+    if not isinstance(hashes, dict) or len(hashes) > 20:
+        raise ValueError("Invalid flight-recorder manifest")
+    actual = {str(p.relative_to(root)).replace(os.sep, "/")
+              for p in root.rglob("*") if p.is_file() and not p.name.endswith(".tmp")
+              and p.name != "manifest.json"}
+    if set(hashes) != actual or "recorder.json" not in hashes:
+        raise ValueError("Flight-recorder entry mismatch")
+    total_bytes = 0
+    for name, expected in hashes.items():
+        if (not isinstance(name, str) or name.startswith("/")
+                or "\\" in name or ".." in Path(name).parts):
+            raise ValueError("Unsafe flight-recorder path")
+        file = root / name
+        if file.is_symlink() or not file.is_file():
+            raise ValueError("Unsafe flight-recorder file: " + name)
+        size = file.stat().st_size
+        total_bytes += size
+        if size > MAX_LOG_BYTES or total_bytes > 12 * MAX_LOG_BYTES + 4 * 1024 * 1024:
+            raise ValueError("Flight-recorder size exceeds safety limit")
+        if sha256(file.read_bytes()) != expected:
+            raise ValueError("Flight-recorder integrity failure: " + name)
+    receipt = json.loads((root / "recorder.json").read_text(encoding="utf-8"))
+    if receipt.get("schema") != "zombieee.flight.v1":
+        raise ValueError("Flight-recorder receipt mismatch")
+    public = {k: receipt.get(k) for k in (
+        "schema", "session_id", "watch_mode", "start_utc", "end_utc", "outcome", "exit_code",
+        "exit_code_observed", "log_count", "log_truncated",
+        "log_bytes_limit_each", "log_omitted_bytes", "log_seen_bytes",
+        "process_output_omitted_bytes", "post_redaction_output_omitted_bytes",
+        "post_redaction_log_omitted_bytes", "process_output_capture_complete",
+        "attempt_id", "simulation", "game_runtime", "pid_start_identity_status",
+        "duration_seconds", "event_count", "event_drops", "metrics",
+        "launcher", "caveat")}
+    # No original command line, source paths, PIDs or raw process data.
+    safe = json.dumps(public, indent=2, sort_keys=True)
+    logs = sorted((root / "logs").glob("*.txt"))
+    events = (root / "events.jsonl").read_bytes() if "events.jsonl" in hashes else b""
+    return public, logs, scrub(events.decode("utf-8", errors="replace")).encode("utf-8")
+
+
+def sanitized_city_receipt(record: object, *, static: bool) -> dict | None:
+    """Keep only bounded bool/count/source-mode fields; never package paths.
+
+    Raw audit checks, file names, diagnostics, and user-provided 'problems'
+    are NOT copied into a shareable ZIP.
+    """
+    if not isinstance(record, dict):
+        return None
+    checks = record.get("checks")
+    clean = {"runtime_verified": False}
+    if isinstance(checks, dict) and len(checks) <= 100:
+        clean["check_count"] = len(checks)
+        clean["passed_checks"] = sum(v is True for v in checks.values())
+        clean["failed_checks"] = sum(v is not True for v in checks.values())
+        clean["checks_valid"] = bool(checks) and all(type(v) is bool for v in checks.values())
+        # City incident builder consumes these boolean summaries.
+        clean["checks"] = {"all_checks_passed": bool(checks) and all(v is True for v in checks.values())}
+    if static:
+        gtype = record.get("original_invasion_game_type")
+        clean["original_invasion_game_type"] = gtype if type(gtype) is int and 0 <= gtype <= 20 else None
+    else:
+        clean["passed"] = record.get("passed") if type(record.get("passed")) is bool else None
+        mode = record.get("control_mode")
+        clean["control_mode"] = mode if mode in ("none", "private-commands", "solo-assist", "invalid") else "unknown"
+    return clean
+
+
 def collect(game_root: Path | None, module: Path | None, output: Path,
-            extra_logs: list[Path], session: str = "final-check") -> dict:
+            extra_logs: list[Path], session: str = "final-check",
+            flight_root: Path | None = None) -> dict:
     if not re.fullmatch(r"[A-Za-z0-9_.-]{1,64}", session):
         raise ValueError("Invalid session label")
     output = output.expanduser().resolve()
@@ -105,7 +218,27 @@ def collect(game_root: Path | None, module: Path | None, output: Path,
     if output.exists():
         raise FileExistsError("Evidence ZIP already exists: " + str(output))
     entries: dict[str, bytes] = {}
-    sources = candidate_logs(game_root, extra_logs)
+    flight = None
+    flight_events = b""
+    if flight_root is not None:
+        flight, recorder_logs, flight_events = verified_flight(flight_root)
+        # Final-session snapshots are trusted for time window, not historical
+        # auto-discovery. Include only these and explicitly opted-in extras.
+        sources, seen = [], set()
+        for path in [*recorder_logs, *extra_logs]:
+            try:
+                candidate = path.expanduser().resolve()
+                if candidate.is_file() and candidate not in seen:
+                    sources.append(candidate)
+                    seen.add(candidate)
+            except (OSError, RuntimeError):
+                pass
+        sources = sources[:MAX_FILES]
+    else:
+        sources = candidate_logs(game_root, extra_logs)
+    if flight is not None:
+        entries["flight_recorder.json"] = (json.dumps(flight, indent=2, sort_keys=True) + "\n").encode()
+        entries["flight_events.jsonl"] = flight_events
     if module:
         marker = module / "ZOMBIEEE_REMASTER.json"
         if marker.is_file():
@@ -114,7 +247,7 @@ def collect(game_root: Path | None, module: Path | None, output: Path,
                 safe = {k: parsed.get(k) for k in (
                     "remaster_version", "source_archive_sha256", "target", "runtime_verified",
                     "archive_crc_verified", "original_mission_trigger_count", "final_trigger_count",
-                    "defender_loadout_profile", "difficulty")}
+                    "defender_loadout_profile", "difficulty", "experimental_map_scope")}
                 assist = parsed.get("solo_assist")
                 if isinstance(assist, dict):
                     safe["solo_assist"] = {
@@ -148,6 +281,10 @@ def collect(game_root: Path | None, module: Path | None, output: Path,
                     safe["preflight_ok"] = preflight.get("ok")
                     mission = preflight.get("mission") or {}
                     safe["original_trigger_count"] = mission.get("triggers")
+                safe["city_static_acceptance"] = sanitized_city_receipt(
+                    parsed.get("city_static_acceptance"), static=True)
+                safe["city_final_acceptance"] = sanitized_city_receipt(
+                    parsed.get("city_final_acceptance"), static=False)
                 tactical = parsed.get("experimental_tactical_recovery")
                 if isinstance(tactical, dict):
                     safe["tactical_recovery"] = {
@@ -186,7 +323,7 @@ def collect(game_root: Path | None, module: Path | None, output: Path,
         text = scrub(data.decode("utf-8-sig", errors="replace"))
         stored = f"logs/log_{i+1:02d}.txt"
         entries[stored] = text.encode("utf-8")
-        fileinfo.append({"file": stored, "source_kind": path.name.lower(),
+        fileinfo.append({"file": stored, "source_kind": path.name.lower() if path.name.lower() in LOG_NAMES else "custom_log",
                          "original_bytes": length, "truncation": "head_and_tail" if length > MAX_LOG_BYTES else "none",
                          "modified_utc": datetime.fromtimestamp(path.stat().st_mtime, timezone.utc).isoformat()})
     event_records = []
@@ -240,12 +377,17 @@ RULES = (
     ("R003", "high", re.compile(r"(?i)(script error|invalid opcode|illegal operation|stack overflow|invalid troop|invalid agent)"), "Compiled script or operation error", "Locate the first failing opcode and its associated mission trigger."),
     ("R004", "high", re.compile(r"(?i)(error.*lua|lua.*error|main\.lua:\d+)"), "WSE2 Lua startup or trigger failure", "Inspect bootstrap and WSE2 Lua support/version."),
     ("R005", "medium", re.compile(r"(?i)(missing (?:texture|sound|mesh|resource)|could not load (?:texture|sound))"), "Missing media reference", "Inspect resource paths and original archive integrity."),
+    ("R030", "high", re.compile(r"(?i)\binvalid\s+faction\s+id\s*:\s*-1\b"),
+     "Engine reported invalid faction ID (-1)",
+     "Review the exact local WSE2 mission/trigger/opcode context and compare the pinned original with the staged remaster. A log match alone cannot establish root cause or effect on waves."),
 )
 
 
 def analyze(payload: dict[str, bytes]) -> dict:
     session = json.loads(payload.get("session.json", b"{}").decode())
     installed = json.loads(payload.get("module.json", b"{}").decode())
+    flight = json.loads(payload.get("flight_recorder.json", b"{}").decode())
+    privacy = privacy_audit(payload)
     logs = {k: data.decode("utf-8", errors="replace") for k, data in payload.items()
             if k.startswith("logs/") and k.endswith(".txt")}
     events = [json.loads(line) for line in payload.get("events.jsonl", b"").decode().splitlines() if line.strip()]
@@ -305,6 +447,46 @@ def analyze(payload: dict[str, bytes]) -> dict:
             except ValueError:
                 pass
             break
+    # City-only is a build scope, not proof that City was loaded.
+    # A mission template name or intended launch destination is NOT scene
+    # evidence. Only an explicit runtime scene field is considered, and
+    # unknown/malformed scene strings never produce a mismatch allegation.
+    scene_samples = []
+    for event in events:
+        if event.get("event") not in ("mission_enter", "heartbeat"):
+            continue
+        if not observed_server_invasion(event):
+            continue
+        fields = event.get("fields", {})
+        scene = str(fields.get("scene", ""))
+        normalized = scene[4:] if scene.startswith("scn_") else scene
+        if re.fullmatch(r"tbfc_invasion_[1-5]", normalized):
+            scene_samples.append({
+                "scene": normalized, "source": event.get("source", "unknown"),
+                "line": event.get("line"), "event": event.get("event"),
+            })
+    observed_scenes = sorted({sample["scene"] for sample in scene_samples})
+    expected_scene = ("tbfc_invasion_4"
+                      if installed.get("experimental_map_scope") == "city-only"
+                      else None)
+    scene_evidence = {
+        "available": bool(scene_samples),
+        "observed_scenes": observed_scenes,
+        "expected_scene": expected_scene,
+        "status": ("unknown" if not scene_samples else
+                   "mismatch_observed" if expected_scene and
+                   any(scene != expected_scene for scene in observed_scenes) else
+                   "observed"),
+        "caveat": "Only explicit server-side invasion-template scene fields are scene evidence; launcher intent does not count.",
+    }
+    if expected_scene and any(scene != expected_scene for scene in observed_scenes):
+        findings.append({
+            "id": "R029", "severity": "medium",
+            "title": "Observed scene differs from City-only build scope",
+            "confidence": "observed_scene_field; cause_unknown",
+            "action": "Check source build flags, selected scene, host launch receipt and the WSE2 scene getter before diagnosing map-specific AI behavior.",
+            "examples": scene_samples[:5],
+        })
     known_sides = []
     for event in events:
         fields = event.get("fields", {})
@@ -329,12 +511,52 @@ def analyze(payload: dict[str, bytes]) -> dict:
             findings.append({"id": "R018", "severity": "medium",
                              "title": "Allied survivor team absent in sampled server frames",
                              "action": "Check mission-start visitor spawns, team assignment, and WSE2 team-query availability. Samples alone cannot prove why."})
+    if flight:
+        if flight.get("outcome") == "timeout":
+            findings.append({
+                "id": "R027", "severity": "high",
+                "title": "External flight recorder timed out",
+                "confidence": "recorder_wall_clock_observed; game_state_unknown",
+                "examples": [{"file": "flight_recorder.json", "field": "outcome",
+                              "observed": "timeout",
+                              "utc": flight.get("end_utc")}],
+                "action": "Inspect actual process lifecycle and final event snapshot; timeout alone is not an engine crash.",
+            })
+        if (flight.get("exit_code_observed") is True
+                and type(flight.get("exit_code")) is int
+                and flight["exit_code"] != 0):
+            findings.append({
+                "id": "R028", "severity": "medium",
+                "title": "Observed child exited with a nonzero status",
+                "confidence": "owned_child_exit_code_observed; cause_unknown",
+                "examples": [{"file": "flight_recorder.json", "field": "exit_code",
+                              "observed": flight["exit_code"],
+                              "utc": flight.get("end_utc")}],
+                "action": "Correlate process exit with nearby crash logs; nonzero exit alone does not identify a Warband fault.",
+            })
     tactical_report = analyze_tactical_events(events, installed)
     findings.extend(tactical_report["findings"])
     combat_report = analyze_combat_events(events, installed)
     findings.extend(combat_report["findings"])
     readiness = matrix_for_session(events, findings, installed, len(logs), combat_report)
+    capabilities = capability_snapshot(events)
+    recorder_events = []
+    for line in payload.get("flight_events.jsonl", b"").decode("utf-8", errors="replace").splitlines()[:50000]:
+        if not line.strip():
+            continue
+        try:
+            event = json.loads(line)
+        except (ValueError, TypeError):
+            continue  # an unsealed partial journal is never gameplay proof
+        if isinstance(event, dict):
+            recorder_events.append(event)
+    city_incident = incident_for_session(
+        events, recorder_events, installed, flight, findings, scene_evidence, logs)
     return {"session": session.get("session", "unknown"), "module": installed,
+            "flight_recorder": flight, "privacy": privacy,
+            "scene_evidence": scene_evidence,
+            "city_incident": city_incident,
+            "capability_evidence": capabilities,
             "event_counts": dict(eventcounts), "events": events[:500], "team_evidence": team_evidence,
             "tactical_evidence": {k: v for k, v in tactical_report.items() if k != "findings"},
             "combat_evidence": {k: v for k, v in combat_report.items() if k != "findings"},
@@ -374,12 +596,31 @@ def to_markdown(report: dict) -> str:
              f"Status: **{report['status']}**", "", "## Evidence", "",
              f"- Log files: {report['evidence']['logs']}", f"- Parsed telemetry events: {report['evidence']['events']}",
              f"- Event counts: {json.dumps(report['event_counts'], sort_keys=True)}",
+             f"- External recorder: {json.dumps(report.get('flight_recorder', {}), sort_keys=True)}",
+             f"- WSE2 binding declarations: {json.dumps(report.get('capability_evidence', {}), sort_keys=True)}",
+             f"- Observed runtime scene: {json.dumps(report.get('scene_evidence', {}), sort_keys=True)}",
+             f"- City source/runtime separation: {json.dumps(report.get('city_incident', {}).get('build', {}), sort_keys=True)}",
+             f"- Privacy inspection: {json.dumps(report.get('privacy', {}), sort_keys=True)}",
              f"- Tactical evidence: {json.dumps(report.get('tactical_evidence', {}), sort_keys=True)}",
              f"- Combat evidence: {json.dumps(report.get('combat_evidence', {}), sort_keys=True)}",
              "", "## Acceptance evidence matrix", "",
              "| Signal | Observation | Evidence |", "| --- | --- | --- |",
              *[f"| {key} | {value['status']} | {value['basis']} |"
                for key, value in report.get("evidence_matrix", {}).get("checks", {}).items()],
+             "", "## City incident timeline", "",
+             "Game log order and recorder wall clock are independent; no inferred cross-clock ordering.",
+             "", *[
+                 f"- {lane}: {json.dumps(details.get('events', []), sort_keys=True)}; "
+                 f"omitted middle entries={details.get('omitted_middle', 0)}"
+                 for lane, details in report.get("city_incident", {}).get("timeline", {}).items()
+                 if isinstance(details, dict)
+             ],
+             "", "## City incident leads", "",
+             *[f"- {item['code']}: {item['title']} — {item['confidence']}; cause unknown; "
+               f"next: {item['next_step']}"
+               for item in report.get("city_incident", {}).get("incident_leads", [])],
+             "", "## Unknown City evidence", "",
+             *[f"- {item}" for item in report.get("city_incident", {}).get("unknowns", [])],
              "", "## Findings", ""]
     if not report["findings"]:
         lines.append("No known error pattern detected; runtime remains unverified.")
@@ -408,6 +649,7 @@ def main() -> int:
     col.add_argument("--log", action="append", type=Path, default=[])
     col.add_argument("--output", type=Path, required=True)
     col.add_argument("--session", default="final-check")
+    col.add_argument("--flight-root", type=Path, help="Optional completed Agent C recorder folder")
     an = sub.add_parser("analyze", help="Offline diagnosis; no game required")
     an.add_argument("bundle", type=Path)
     an.add_argument("--report", type=Path)
@@ -418,13 +660,14 @@ def main() -> int:
     args = parser.parse_args()
     try:
         if args.command == "collect":
-            result = collect(args.game_root, args.module, args.output, args.log, args.session)
+            result = collect(args.game_root, args.module, args.output, args.log, args.session,
+                             flight_root=args.flight_root)
         elif args.command == "compare":
             result = aggregate(args.bundles)
         else:
             data = read_bundle(args.bundle)
             if args.command == "verify":
-                result = {"verified": True, "files": len(data)}
+                result = {"verified": True, "files": len(data), "privacy": privacy_audit(data)}
             else:
                 result = analyze(data)
                 if args.report:
