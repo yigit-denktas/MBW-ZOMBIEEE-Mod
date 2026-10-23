@@ -1,3 +1,5 @@
+> **Superseded intermediate regression report.** The 139-test `neq(wave, last_wave)` fix did not handle adjacent rounds ending at the *same* numbered wave. The active code now keys the last top-up by **(original round start, wave)**, preserves the original 25 triggers, and passes **140/140** local original-asset tests. See [current definitive round-aware report](CITY_ROUND_AWARE_REINFORCEMENT_2026-10-24.md). This page describes the earlier intermediate revision only.
+
 # City wave reinforcements across round restarts — source audit
 
 Agent A · 2026-10-24 · City-only experimental native patch · **not** in-engine validation.
