@@ -41,7 +41,7 @@ class PrivateCommandsTests(unittest.TestCase):
         wave_topups(root, cap=4, balanced_ai=True, first_wave=2)
         recovery(root, low_water=1, high_water=3)
 
-    def test_true_source_patched_to_35_triggers_and_1225_globals(self):
+    def test_true_source_patched_to_35_triggers_and_1226_globals(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             self.stage(root)
@@ -51,7 +51,7 @@ class PrivateCommandsTests(unittest.TestCase):
             original = self.original_mission.splitlines()
             self.assertEqual(mission_bounds(new.splitlines(keepends=True))[1], 35)
             self.assertEqual(len(read_mission_calls(root / "mission_templates.txt")), 35)
-            self.assertEqual(len((root / "variables.txt").read_text().splitlines()), 1225)
+            self.assertEqual(len((root / "variables.txt").read_text().splitlines()), 1226)
             self.assertEqual((root / "variables.txt").read_text().splitlines()[-3:], list(COUNTERS))
             self.assertEqual(report["max_active_players"], 1)
             self.assertEqual(report["dedicated_allowed"], False)
@@ -66,7 +66,7 @@ class PrivateCommandsTests(unittest.TestCase):
         for key, effect, target in ((0x41, "heal", "1721"), (0x42, "ammo", "1728"),
                                      (0x43, "squad", "1721")):
             with self.subTest(effect=effect):
-                op = build_hotkey(key, GLOBAL_BASE + 1222, effect).split()
+                op = build_hotkey(key, GLOBAL_BASE + 1223, effect).split()
                 self.assertEqual(op[:4], ["0.000000", "0.000000", "0.000000", "4"])
                 self.assertEqual(op[4:8], ["417", "0", "2147484066", "0"])
                 self.assertIn("70", op)  # left Ctrl held

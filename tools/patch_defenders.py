@@ -83,7 +83,8 @@ def mission_bounds(lines: list[str]) -> tuple[int, int, int]:
 
 
 def build_trigger(count: int, troop_ids: dict[str, int],
-                  troop_classes: tuple[str, ...] = SURVIVOR_CLASSES) -> str:
+                  troop_classes: tuple[str, ...] = SURVIVOR_CLASSES,
+                  city_scene: int | None = None) -> str:
     if not 1 <= count <= 8:
         raise PatchError("Allied squad size must be between 1 and 8")
     missing = [name for name in troop_classes if name not in troop_ids]
@@ -95,18 +96,30 @@ def build_trigger(count: int, troop_ids: dict[str, int],
         entry = SURVIVOR_ENTRIES[index % 2]
         operand = TROOP_BASE + troop_ids[name]
         ops.extend(["1265", "5", str(entry), str(operand), "1", "0", "0"])
-    # 1 condition op (server only), count consequence ops (native MP spawns)
+    # A City-first build must not spawn our experimental AI on other maps.
+    # The default and all-map builds deliberately preserve the prior 1-op
+    # server-only trigger. City mode adds native current-scene/equality guards.
+    if city_scene is None:
+        conditions = ["1", SERVER_ONLY]
+    else:
+        if city_scene < 0:
+            raise PatchError("Invalid City scene index")
+        from city_defense import SCENE_BASE, LOCAL0
+        conditions = ["3", SERVER_ONLY,
+                      "2211", "1", str(LOCAL0),
+                      "31", "2", str(LOCAL0), str(SCENE_BASE + city_scene)]
     return " ".join([AFTER_START, "0.000000", "0.000000",
-                     "1", SERVER_ONLY, str(count), *ops])
+                     *conditions, str(count), *ops])
 
 
 def patch_text(original: str, troops: dict[str, int], count: int,
-               troop_classes: tuple[str, ...] = SURVIVOR_CLASSES) -> str:
+               troop_classes: tuple[str, ...] = SURVIVOR_CLASSES,
+               city_scene: int | None = None) -> str:
     lines = original.splitlines(keepends=True)
     p, triggers, end = mission_bounds(lines)
     if triggers != 25 or lines[p].strip() != "25":
         raise PatchError(f"Refusing non-original invasion trigger count: {triggers}")
-    trigger = build_trigger(count, troops, troop_classes)
+    trigger = build_trigger(count, troops, troop_classes, city_scene)
     newline = "\r\n" if "\r\n" in original else "\n"
     lines[p] = "26" + newline
     lines.insert(end, trigger + newline)
@@ -116,7 +129,8 @@ def patch_text(original: str, troops: dict[str, int], count: int,
     return result
 
 
-def patch_file(module_dir: Path, count: int, balanced_ai: bool = False) -> dict:
+def patch_file(module_dir: Path, count: int, balanced_ai: bool = False,
+               city_only: bool = False) -> dict:
     module_dir = Path(module_dir)
     path = module_dir / "mission_templates.txt"
     original = path.read_bytes().decode("utf-8")
@@ -126,12 +140,18 @@ def patch_file(module_dir: Path, count: int, balanced_ai: bool = False) -> dict:
         troop_classes = CLONES
     else:
         troop_classes = SURVIVOR_CLASSES
-    patched = patch_text(original, troops, count, troop_classes)
+    city_scene = None
+    if city_only:
+        from city_defense import scene_index
+        city_scene = scene_index(module_dir / "scenes.txt")
+    patched = patch_text(original, troops, count, troop_classes, city_scene)
     path.write_bytes(patched.encode("utf-8"))
     return {
         "experimental_defenders": count,
         "troop_profile": "balanced-ai" if balanced_ai else "original-0.4",
         "team": SURVIVOR_TEAM,
+        "city_only": bool(city_only),
+        "scene_gate": city_scene,
         "spawn_entries": SURVIVOR_ENTRIES,
         "original_invasion_triggers": 25,
         "patched_invasion_triggers": 26,

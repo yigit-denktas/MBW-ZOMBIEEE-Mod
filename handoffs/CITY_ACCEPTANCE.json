@@ -1,0 +1,172 @@
+{
+  "schema": "zombieee.city.acceptance.v1",
+  "sourceRef": "main@048564a526de9b36abd55874271c7b80f36e5cf5",
+  "lastUpdated": "2026-10-23",
+  "owner": "Agent A",
+  "scope": {
+    "firstRelease": "original City tbfc_invasion_4 only",
+    "deferred": [
+      "tbfc_invasion_1",
+      "tbfc_invasion_2",
+      "tbfc_invasion_3",
+      "tbfc_invasion_5"
+    ],
+    "noPublicServers": true
+  },
+  "game": {
+    "engine": "Mount & Blade: Warband stable 1.174",
+    "wse2Target": "1.1.5.4",
+    "runtimeStatus": "unverified",
+    "originalArchiveSha256": "9be100ff41ce6f8ebadd4aa27377f70f402883fab271999a8cab8cc1da001d1e",
+    "originalArchiveSize": 167493071,
+    "originalSourceCRC": "unverified",
+    "mission": "mst_multiplayer_iv",
+    "mode": "multiplayer_iv",
+    "scene": "scn_tbfc_invasion_4",
+    "sceneEntryMarker": "tbfc_invasion_4"
+  },
+  "expectedStaticVariants": {
+    "original": {
+      "triggers": 25,
+      "globals": 1220,
+      "sourceSCOOnly": true
+    },
+    "citySquad": {
+      "triggers": 26,
+      "globals": 1220
+    },
+    "cityDefence": {
+      "triggers": 27,
+      "globals": 1220
+    },
+    "cityWaves": {
+      "triggers": 29,
+      "globals": 1221
+    },
+    "cityRecovery": {
+      "triggers": 31,
+      "globals": 1222,
+      "citySpecificSceneGuardsOn": [
+        25,
+        28,
+        30
+      ]
+    },
+    "cityRecoveryPrivateHotkeys": {
+      "triggers": 35,
+      "globals": 1225,
+      "excludesTimedSoloAssist": true
+    }
+  },
+  "acceptanceGates": [
+    {
+      "id": "archive_identity",
+      "evidence": "RAR4 signature, original byte count, SHA-256 match",
+      "status": "observed",
+      "canProve": "source archive identity only",
+      "cannotProve": "per-member CRC"
+    },
+    {
+      "id": "member_crc",
+      "evidence": "successful Windows 7-Zip t against exact archive and recorded exit code",
+      "status": "unknown",
+      "canProve": "RAR member integrity",
+      "cannotProve": "native runtime"
+    },
+    {
+      "id": "original_city_structure",
+      "evidence": "source 64 mission entries, 25 compiled triggers, 30/30 referenced BRFs",
+      "status": "observed",
+      "canProve": "static source structure",
+      "cannotProve": "scene actually loads"
+    },
+    {
+      "id": "city_overlay_structure",
+      "evidence": "full generated 31-trigger City patch and scene-specific condition stream, 1222 globals, original 25 trigger prefix unchanged",
+      "status": "implementation-in-review",
+      "canProve": "native token structure and provenance",
+      "cannotProve": "AI actually obeys commands"
+    },
+    {
+      "id": "other_scenes_preserved",
+      "evidence": "hashes of four original scene SCO files match derived module; City SCO may change only to add three defensible posts",
+      "status": "implementation-in-review",
+      "canProve": "non-City file preservation",
+      "cannotProve": "other scene playability"
+    },
+    {
+      "id": "launcher_discovery",
+      "evidence": "Agent B detector identifies owned Warband and WSE2 without guessing missing paths",
+      "status": "unknown",
+      "canProve": "installed dependencies",
+      "cannotProve": "playable mission"
+    },
+    {
+      "id": "city_host_ready",
+      "evidence": "Agent B records actual localhost game host start and client join, with exit status",
+      "status": "unknown",
+      "canProve": "launch/start/join path",
+      "cannotProve": "mission wave completion"
+    },
+    {
+      "id": "city_wave_progresses",
+      "evidence": "C recorder shows entered City mission, zombies spawned, wave counter advanced after clear",
+      "status": "unknown",
+      "canProve": "real game loop state changes",
+      "cannotProve": "entire multi-hour stability"
+    },
+    {
+      "id": "survivors_engage",
+      "evidence": "actual game includes living allied agents in reserved 5/6/7 with observed combat impact and no blocking exception",
+      "status": "unknown",
+      "canProve": "survivors exist and contribute",
+      "cannotProve": "all unobserved combat metrics"
+    },
+    {
+      "id": "sustained_city_session",
+      "evidence": "agreed sustained ten-wave one-time City private Windows session, exit/error checks, owner confirms playable",
+      "status": "unknown",
+      "canProve": "release candidate runtime",
+      "cannotProve": "uninspected maps/friends hosting"
+    },
+    {
+      "id": "forensic_bundle",
+      "evidence": "C recorder survives forced-crash precheck, redacts data, provides SHA-256 verified bundle and analysis with unknown statuses",
+      "status": "unknown",
+      "canProve": "captured evidence integrity",
+      "cannotProve": "automatic root cause without supported event"
+    }
+  ],
+  "responsibility": {
+    "A": [
+      "archive_identity",
+      "member_crc",
+      "original_city_structure",
+      "city_overlay_structure",
+      "other_scenes_preserved",
+      "survivors_engage"
+    ],
+    "B": [
+      "launcher_discovery",
+      "city_host_ready"
+    ],
+    "C": [
+      "city_wave_progresses",
+      "forensic_bundle",
+      "sustained_city_session"
+    ],
+    "ownerAcceptance": "sustained_city_session"
+  },
+  "testPolicy": {
+    "intermediateManualRuns": "none requested",
+    "runtimePlan": "one integrated final Windows City session",
+    "offlineAllowed": true,
+    "uiAcceptance": "real user-side Windows evidence required",
+    "noCI": true
+  },
+  "notes": [
+    "No part of this contract marks WSE2 engine use as verified.",
+    "Agent A owns record; Agents B and C can append evidence to their own PRs, not alter recorded acceptance unilaterally.",
+    "Original assets and game binaries must never be copied into GitHub."
+  ]
+}

@@ -24,6 +24,9 @@ from bot_loadouts import apply_module as apply_balanced_ai_loadouts
 from solo_assist import apply_module as apply_solo_assist
 from private_commands import apply_module as apply_private_commands
 from difficulty import profile, PROFILES
+from archive_audit import inspect_original_archive
+from city_acceptance import audit_city
+from final_city_gate import audit_final_city_controls
 
 ROOT = Path(__file__).resolve().parent.parent
 ORIGINAL_SHA256 = "9be100ff41ce6f8ebadd4aa27377f70f402883fab271999a8cab8cc1da001d1e"
@@ -102,8 +105,8 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         raise ValueError("--tactical-recovery requires --wave-reinforcements")
     if tactical_recovery and experimental_defenders < 3:
         raise ValueError("--tactical-recovery requires at least 3 experimental defenders")
-    if wave_reinforcements and not all_map_defenses:
-        raise ValueError("--wave-reinforcements requires --all-map-defenses")
+    if wave_reinforcements and not (city_guardposts or all_map_defenses):
+        raise ValueError("--wave-reinforcements requires --city-guardposts or --all-map-defenses")
     city_guardposts = city_guardposts or all_map_defenses
     if city_guardposts and not experimental_defenders:
         raise ValueError("Defence positions require --experimental-defenders 1..8")
@@ -113,9 +116,12 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         raise ValueError(f"Output directory must be named {MODULE_NAME}: {out}")
     if out.exists() and not replace:
         raise FileExistsError(f"Destination already exists (use --replace after backup): {out}")
-    digest = sha256(archive)
-    if digest != ORIGINAL_SHA256:
-        raise ValueError("Unknown/modified archive: SHA-256 mismatch " + digest)
+    # Identity (RAR signature, pinned size and SHA-256) is separate from
+    # per-member CRC verification. The installer receipt records both.
+    identity = inspect_original_archive(archive)
+    if not identity["identity_ok"]:
+        raise ValueError("Original RAR identity failed: " + ", ".join(identity["problems"]))
+    digest = identity["actual_sha256"]
 
     exe = find_7zip()
     run7(exe, "t", archive)
@@ -133,12 +139,29 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         if not preflight["ok"]:
             raise RuntimeError("Mission/resource preflight failed: " +
                                str(preflight.get("problems", preflight.get("error"))))
+        # Preserve a minimal, private source evidence copy BEFORE applying
+        # any gameplay overlay. The stage and evidence are both deleted on
+        # failure; original user files remain untouched. Use this for the
+        # complete City tactical profile, including optional host controls.
+        audit_city_profile = city_guardposts and tactical_recovery and not all_map_defenses
+        original_evidence = None
+        if audit_city_profile:
+            original_evidence = stage / "original-city-evidence"
+            (original_evidence / "SceneObj").mkdir(parents=True)
+            for name in ("mission_templates.txt", "scenes.txt", "variables.txt"):
+                shutil.copy2(source / name, original_evidence / name)
+            for n in range(1, 6):
+                scene_name = f"scn_tbfc_invasion_{n}.sco"
+                shutil.copy2(source / "SceneObj" / scene_name,
+                             original_evidence / "SceneObj" / scene_name)
         apply_overlay(source)
         balanced = defender_loadouts == "balanced-ai"
         loadout_report = apply_balanced_ai_loadouts(source) if balanced else None
         defender_report = None
         if experimental_defenders:
-            defender_report = patch_file(source, experimental_defenders, balanced_ai=balanced)
+            defender_report = patch_file(source, experimental_defenders,
+                                         balanced_ai=balanced,
+                                         city_only=city_guardposts and not all_map_defenses)
             updated = report_for_module(source)
             if not updated["ok"] or updated["mission"]["triggers"] != 26:
                 raise RuntimeError("Experimental defender patch failed post-apply diagnostics")
@@ -158,7 +181,8 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         if wave_reinforcements:
             wave_report = apply_wave_support(source, cap=experimental_defenders,
                                              balanced_ai=balanced,
-                                             first_wave=support.first_reinforcement_wave)
+                                             first_wave=support.first_reinforcement_wave,
+                                             city_only=not all_map_defenses)
             updated = report_for_module(source)
             if not updated["ok"] or updated["mission"]["triggers"] != 29:
                 raise RuntimeError("Wave reinforcement failed static post-apply validation")
@@ -166,10 +190,31 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         if tactical_recovery:
             recovery_report = apply_tactical_recovery(source,
                 low_water=support.fallback_at_or_below,
-                high_water=support.regroup_at_or_above)
+                high_water=support.regroup_at_or_above,
+                city_only=not all_map_defenses)
             updated = report_for_module(source)
             if not updated["ok"] or updated["mission"]["triggers"] != 31:
                 raise RuntimeError("Tactical recovery failed static post-apply validation")
+        # Fail closed on a structurally damaged City patch BEFORE adding the
+        # optional private controls. At this point the complete native City
+        # build must have 31 triggers. The checker also ensures that the
+        # original 25 triggers, all four non-City scenes, and the canonical
+        # City SCO geometry still match the original source.
+        city_static_report = None
+        if audit_city_profile:
+            city_static_report = audit_city(source, original_evidence)
+            if not city_static_report["city_accepted"]:
+                raise RuntimeError("City static acceptance failed: " +
+                                   ", ".join(city_static_report["problems"]))
+        # Freeze the fully audited 31-trigger City core before any optional
+        # host controls append native triggers or global variables.
+        verified_city_snapshot = None
+        if city_static_report is not None:
+            verified_city_snapshot = (
+                (source / "mission_templates.txt").read_bytes(),
+                (source / "variables.txt").read_bytes(),
+                city_static_report["city_overlay_expected_sha256"],
+            )
         solo_report = None
         if solo_assist:
             solo_report = apply_solo_assist(source)
@@ -184,6 +229,24 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
             updated = report_for_module(source)
             if not updated["ok"] or updated["mission"]["triggers"] != 35:
                 raise RuntimeError("Private hotkey commands failed static validation")
+        # A pre-control City PASS is not sufficient to certify the final
+        # installation. Replay the explicitly selected additive host-control
+        # patch against the frozen audited core and compare COMPLETE bytes.
+        # In particular reject mutations to the original/native tactical
+        # triggers, appended globals, or City SCO after the earlier audit.
+        city_final_report = None
+        if verified_city_snapshot is not None:
+            city_final_report = audit_final_city_controls(
+                source,
+                verified_mission=verified_city_snapshot[0],
+                verified_variables=verified_city_snapshot[1],
+                verified_city_sha256=verified_city_snapshot[2],
+                private_commands=private_commands,
+                solo_assist=solo_assist,
+            )
+            if not city_final_report["passed"]:
+                raise RuntimeError("Final City static gate failed: " +
+                                   ", ".join(city_final_report["problems"]))
         if not inspect_module(source)["core_ok"] or not (source / "lua" / "main.lua").is_file():
             raise RuntimeError("Module overlay failed static validation")
         (source / "ZOMBIEEE_REMASTER.json").write_text(json.dumps({
@@ -192,6 +255,13 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
             "target": "Warband 1.174 core / WSE2 1.1.5.4",
             "runtime_verified": False,
             "archive_crc_verified": True,
+            "archive_identity": identity,
+            "city_static_acceptance": ({"checks": city_static_report["checks"],
+                "original_invasion_game_type": city_static_report.get("original_invasion_game_type"),
+                "city_overlay_expected_sha256": city_static_report.get("city_overlay_expected_sha256"),
+                "city_overlay_actual_sha256": city_static_report.get("city_overlay_actual_sha256"),
+                "runtime_verified": False} if city_static_report else None),
+            "city_final_acceptance": city_final_report,
             "original_mission_trigger_count": preflight["mission"]["triggers"],
             "final_trigger_count": (31 if tactical_recovery else 29 if wave_reinforcements else 27 if city_guardposts else 26 if experimental_defenders else 25) + int(solo_assist) + (4 if private_commands else 0),
             "preflight": preflight,
@@ -204,6 +274,9 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
             "difficulty_parameters": {"first_reinforcement_wave": support.first_reinforcement_wave,
                                       "fallback_at_or_below": support.fallback_at_or_below,
                                       "regroup_at_or_above": support.regroup_at_or_above},
+            "experimental_map_scope": ("all-original-maps" if all_map_defenses
+                                       else "city-only" if city_guardposts
+                                       else "original-baseline"),
             "experimental_city_guardposts": city_report,
             "experimental_all_map_defenses": all_maps_report,
             "experimental_wave_reinforcements": wave_report,
@@ -231,6 +304,9 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
                     print(f"Previous module retained at {previous}")
     return {"module": str(out), "source_sha256": digest, "static_validation": "PASS", "experimental_defenders": experimental_defenders, "city_guardposts": city_guardposts, "all_map_defenses": all_map_defenses,
             "wave_reinforcements": wave_reinforcements, "tactical_recovery": tactical_recovery,
+            "experimental_map_scope": ("all-original-maps" if all_map_defenses
+                                        else "city-only" if city_guardposts
+                                        else "original-baseline"),
             "defender_loadouts": defender_loadouts, "solo_assist": solo_assist,
             "private_commands": private_commands, "difficulty": difficulty,
             "runtime_verified": False}
@@ -244,7 +320,7 @@ def main():
     parser.add_argument("--experimental-defenders", type=int, default=0, metavar="N", help="Opt-in 1–8 allied bots; default 0 preserves original mission")
     parser.add_argument("--city-guardposts", action="store_true", help="Optional guarded City tactical post overlay")
     parser.add_argument("--all-map-defenses", action="store_true", help="Experimental original five-map tactical overlays; implies City posts")
-    parser.add_argument("--wave-reinforcements", action="store_true", help="Replenish living defenders to requested cap once per new wave (requires all maps)")
+    parser.add_argument("--wave-reinforcements", action="store_true", help="Once-per-wave defender top-up, for City-only or all-map tactical overlays")
     parser.add_argument("--tactical-recovery", action="store_true", help="Fallback/regroup server AI with hysteresis (requires 3+ defenders and wave reinforcements)")
     parser.add_argument("--defender-loadouts", choices=("original", "balanced-ai"), default="original", help="Append balanced AI-only troop clones without changing player classes")
     parser.add_argument("--solo-assist", action="store_true", help="EXPERIMENTAL: only local non-dedicated host in a 1-player session gets periodic health/ammo")

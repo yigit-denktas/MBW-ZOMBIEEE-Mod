@@ -1,0 +1,26 @@
+{
+  "schema": "zombieee.wse2-upstream-pin.v1",
+  "observed_date": "2026-10-23",
+  "upstream_repository": "Ruslan-700/WSE2-Releases",
+  "upstream_release": "https://github.com/Ruslan-700/WSE2-Releases/releases/tag/v1.1.5.4",
+  "release_tag": "v1.1.5.4",
+  "published_at": "2026-10-14T13:52:59Z",
+  "engine_family": "Mount & Blade Warband",
+  "assets": [
+    {
+      "name": "WSE2.zip",
+      "byte_count": 70730391,
+      "sha256_published": "118ed9517356a7016bfb911bccb600a3d95682407687ec0552fdc5acdb91f06a",
+      "source": "https://github.com/Ruslan-700/WSE2-Releases/releases/download/v1.1.5.4/WSE2.zip"
+    },
+    {
+      "name": "WSE2_Installer.exe",
+      "byte_count": 20821783,
+      "sha256_published": "b358a41fb415eefac8668903f1f0849fda7186f2cc98269c2cfe8b7d916332aa",
+      "source": "https://github.com/Ruslan-700/WSE2-Releases/releases/download/v1.1.5.4/WSE2_Installer.exe"
+    }
+  ],
+  "verification_status": "publication_metadata_only_no_artifact_download_or_runtime_execution",
+  "limits": "SHA-256 digests were read from official GitHub release metadata, not independently checked against downloaded files. Installer rights, edition compatibility, module playability and consent remain separate unresolved conditions.",
+  "permissions": "Do not redistribute, silently download, install or elevate based only on this metadata. B must obtain consent and validate licence/download rights first."
+}

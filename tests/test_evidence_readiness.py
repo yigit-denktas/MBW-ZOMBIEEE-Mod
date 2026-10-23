@@ -22,8 +22,8 @@ class EvidenceReadinessTests(unittest.TestCase):
         self.assertEqual(self.state(report, "fatal_error_in_log"), "unknown")
 
     def test_observed_progression_is_not_claimed_wave_completion(self):
-        events = [ev("boot"), ev("mission_enter")]
-        events += [ev("heartbeat", role="server", count=i, wave=i,
+        events = [ev("boot"), ev("mission_enter", role="server", template="multiplayer_iv")]
+        events += [ev("heartbeat", role="server", count=i, wave=i, template="multiplayer_iv",
                       team0=4, team1=20) for i in (1, 2, 3)]
         report = matrix_for_session(events, [], {}, 1,
                                     {"observability": {"combat_samples": 0},
@@ -48,6 +48,49 @@ class EvidenceReadinessTests(unittest.TestCase):
         self.assertEqual(self.state(report, "regroup_after_fallback"), "observed")
         self.assertEqual(self.state(report, "private_command_executed"), "observed")
         self.assertEqual(report["build_flags"]["difficulty"], "story")
+
+    def test_client_only_mission_is_not_server_entry(self):
+        evs = [ev("mission_enter", role="client", template="multiplayer_iv",
+                   scene="scn_tbfc_invasion_4")]
+        report = matrix_for_session(evs, [], {}, 1, {})
+        self.assertEqual(self.state(report, "invasion_mission_entered"), "unknown")
+        self.assertEqual(self.state(report, "city_scene_observed"), "unknown")
+
+    def test_wrong_server_mission_never_counts_as_city(self):
+        evs = [ev("mission_enter", role="server", template="other_mode",
+                   scene="scn_tbfc_invasion_4"),
+               ev("heartbeat", role="server", template="other_mode", wave=2, team1=10),
+               ev("heartbeat", role="server", template="other_mode", wave=3, team1=11)]
+        report = matrix_for_session(evs, [], {}, 1, {})
+        self.assertEqual(self.state(report, "invasion_mission_entered"), "unknown")
+        self.assertEqual(self.state(report, "wave_progression"), "unknown")
+        self.assertEqual(self.state(report, "zombies_visible"), "unknown")
+        self.assertEqual(report["observed_waves"], [])
+
+    def test_server_mission_not_proof_of_city_without_scene(self):
+        evs = [ev("mission_enter", role="server", template="mst_multiplayer_iv"),
+               ev("heartbeat", role="server", template="multiplayer_iv", wave=1, team1=3)]
+        report = matrix_for_session(evs, [], {}, 1, {})
+        self.assertEqual(self.state(report, "invasion_mission_entered"), "observed")
+        self.assertEqual(self.state(report, "city_scene_observed"), "unknown")
+        self.assertEqual(self.state(report, "zombies_visible"), "observed")
+
+    def test_explicit_server_city_marker_is_narrow_observation(self):
+        evs = [ev("mission_enter", role="server", template="multiplayer_iv",
+                   scene="scn_tbfc_invasion_4")]
+        report = matrix_for_session(evs, [], {}, 1, {})
+        self.assertEqual(self.state(report, "city_scene_observed"), "observed")
+        self.assertEqual(self.state(report, "wave_progression"), "unknown")
+
+    def test_unknown_roles_and_malformed_heartbeats_fail_closed(self):
+        evs = [ev("mission_enter", template="multiplayer_iv"),
+               ev("heartbeat", role="client", template="multiplayer_iv", wave=2, team1=3),
+               {"event": "heartbeat", "fields": "not-a-map"},
+               ev("heartbeat", role="server", template="multiplayer_iv", wave="nan")]
+        report = matrix_for_session(evs, [], {}, 1, {})
+        self.assertEqual(self.state(report, "invasion_mission_entered"), "unknown")
+        self.assertEqual(self.state(report, "wave_progression"), "unknown")
+        self.assertEqual(self.state(report, "zombies_visible"), "unknown")
 
     def test_absence_of_crash_pattern_is_not_a_stability_pass(self):
         data = {"observability": {}, "observed_kill_increments": 0}
