@@ -7,6 +7,8 @@ GLOBAL_BASE = 144115188075855872
 LOCAL_BASE = 1224979098644774912
 SENTINEL = "zdr_last_reinforced_wave"
 ORIGINAL_GLOBALS = 1220
+# Verified in original mst_multiplayer_iv ti_before_mission_start (-19).
+INVASION_GAME_TYPE = 7
 GROUPS = (5, 6, 7)
 
 
@@ -42,7 +44,7 @@ def reinforce_on_wave(g, troop_ids, cap=4, troop_classes=SURVIVOR_CLASSES, first
     loc = [LOCAL_BASE + n for n in range(8)]
     conditions = [
         op(417),  # multiplayer_is_server
-        op(31, g["g_multiplayer_game_type"], 6),  # Invasion
+        op(31, g["g_multiplayer_game_type"], INVASION_GAME_TYPE),  # original Invasion
         op(30, g["wave_number"], first_wave),  # ge: threshold from support difficulty
         op(32, g["wave_number"], g[SENTINEL]),  # gt: one top-up per wave
         op(31, g["g_round_ended"], 0),
