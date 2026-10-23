@@ -84,8 +84,11 @@ class CityOnlyIntegration(unittest.TestCase):
                     cursor += 2
                     encoded.append((op, tuple(int(x) for x in parts[cursor:cursor + argc])))
                     cursor += argc
-                self.assertIn((2211, (LOCAL_BASE + 8,)), encoded)
-                self.assertIn((31, (LOCAL_BASE + 8, city)), encoded)
+                # Initial spawn uses City LOCAL0; later triggers deliberately
+                # reserve LOCAL_BASE+8 to avoid conflicting with their loops.
+                scene_register = LOCAL_BASE if index == 25 else LOCAL_BASE + 8
+                self.assertIn((2211, (scene_register,)), encoded)
+                self.assertIn((31, (scene_register, city)), encoded)
 
     def test_all_maps_not_required_to_apply_city_waves(self):
         with tempfile.TemporaryDirectory() as temp:
