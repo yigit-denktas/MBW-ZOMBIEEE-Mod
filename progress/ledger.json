@@ -4457,13 +4457,20 @@
       "dependsOn": [
         "ZOM-DISC-62"
       ],
-      "evidence": [],
+      "evidence": [
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-idle-20261024-191909-measure-rear-10m",
+          "observedOn": "2026-10-24",
+          "acceptance": "sealed-8-file-verified"
+        }
+      ],
       "completionBasis": "Pending AI/skill fix + D play validation",
       "kind": "work-item",
       "owner": "Agent A AI/skills; C telemetry; D play",
       "priority": "P0",
       "criterion": "Gun survivors hold ranged, do not charge, time-to-first-shot/shots-per-min improve without fake damage.",
-      "note": "firearm_balance.py: 2012 module treats firearms as crossbow-type; raise crossbow/archery proficiency, fire_at_will/use_ranged, prevent scripted charge. | Confirmed firearms crossbow-type; task assigned. | C support branch 80684c0: firearms time_to_first_shot/shots_per_minute/weapon_modes, charge/backward projection; summary-only. | Clean run shows zero shots; fix order precedence so fire_at_will/use_ranged survives stand_ground. | Next checks: order scope to defender sub-classes, extra ammo stacks, forced short-range engagement.",
+      "note": "firearm_balance.py: 2012 module treats firearms as crossbow-type; raise crossbow/archery proficiency, fire_at_will/use_ranged, prevent scripted charge. | Confirmed firearms crossbow-type; task assigned. | C support branch 80684c0: firearms time_to_first_shot/shots_per_minute/weapon_modes, charge/backward projection; summary-only. | Clean run shows zero shots; fix order precedence so fire_at_will/use_ranged survives stand_ground. | Next checks: order scope to defender sub-classes, extra ammo stacks, forced short-range engagement. | Rear measurement raw: 13 ammo decreases/5 agents, first ~223s, 1.06 shots/min; gate fails but summary parser false-zero; C fixing agent= key.",
       "deferReason": "Supplemental AI/combat behavior.",
       "implementationLane": "A",
       "workOrigin": "discovered",
