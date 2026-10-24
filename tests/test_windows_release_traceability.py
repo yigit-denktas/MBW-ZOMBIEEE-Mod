@@ -141,7 +141,10 @@ class RepositoryTraceabilityTests(unittest.TestCase):
         self.assertIn('no binaries', support['G-TASK-49']['summary'])
         self.assertIn('NOT a runtime/telemetry artifact',
                       support['C-TASK-48']['summary'])
-        self.assertEqual(support['C-TASK-48']['pending_commit'], '50fa25b')
+        self.assertIs(support['C-TASK-48']['merged'], True)
+        self.assertEqual(support['C-TASK-48']['merge_commit'],
+                         '7bf941cd2dbcdca95e68a3c31652ce5c7870147d')
+        self.assertIn('50fa25b', support['C-TASK-48']['commits'])
         self.assertEqual(self.trace['version_decision']['candidate'], self.version)
         self.assertIn('0.3.0 milestone', self.trace['version_decision']['milestone_awarded'])
         self.assertEqual(self.trace['version_decision']['owner_approval'], 'pending')

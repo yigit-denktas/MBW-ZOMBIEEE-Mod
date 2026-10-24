@@ -7,7 +7,7 @@ Uses [Semantic Versioning](https://semver.org/) for the remaster, not the histor
 **Pre-release candidate — not released, not accepted.** This consolidates the
 UI/launcher/telemetry/AI work merged since 0.2.0 into the SemVer pre-release
 candidate **`0.3.0-beta.1`** (a beta, not an RC: 0.3.0 milestone acceptance is
-still active) at source revision `56b50e0`. The `0.3.0` milestone remains reserved
+still active) at source revision `9a17711`. The `0.3.0` milestone remains reserved
 for verified allied survivor/class/loadout acceptance ([docs/ROADMAP.md](docs/ROADMAP.md));
 work-item → PR → commit → version links are in
 [docs/RELEASE_TRACEABILITY.md](docs/RELEASE_TRACEABILITY.md) and

@@ -6,7 +6,7 @@
   "acceptance": "none",
   "runtime_verified": false,
   "observed_on": "2026-10-24",
-  "source_revision": "755c7b9a679a871158c3fb06867c13d0e4d7f2de",
+  "source_revision": "9a177113391f3e51d6f22cc6ef2212bf06ee770d",
   "version_sources": {
     "version": "VERSION",
     "changelog": "CHANGELOG.md#030-beta1-2026-10-24",
@@ -412,16 +412,17 @@
     {
       "id": "C-TASK-48",
       "kind": "research-docs",
-      "summary": "Modder diagnostics/telemetry reuse research; docs-only reference and explicitly NOT a runtime/telemetry artifact. Pending final E pass branch commit is not part of this candidate.",
-      "state": "merged-docs-only; final E review pass pending",
+      "summary": "Modder diagnostics/telemetry reuse research; docs-only and explicitly NOT a runtime/telemetry artifact. Path-hygiene pass merged via 7bf941c.",
+      "state": "merged-docs-only",
       "acceptance": "none",
       "commits": [
         "f74c0c2",
-        "12b8f91"
+        "12b8f91",
+        "c0c3034",
+        "50fa25b"
       ],
-      "merge_commit": "148f7f3",
-      "pending_branch": "agent/c-task48-final-amend",
-      "pending_commit": "50fa25b"
+      "merge_commit": "7bf941cd2dbcdca95e68a3c31652ce5c7870147d",
+      "merged": true
     },
     {
       "id": "G-TASK-49",

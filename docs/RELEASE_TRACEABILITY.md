@@ -1,7 +1,7 @@
 # Release traceability — ZOMBIEEE Remaster
 
 Observed candidate: **`0.3.0-beta.1`** (pre-release), source revision
-`755c7b9a679a871158c3fb06867c13d0e4d7f2de`, 2026-10-24.
+`9a177113391f3e51d6f22cc6ef2212bf06ee770d`, 2026-10-24.
 Machine-readable source: [`release-traceability.json`](release-traceability.json).
 
 This file links each work item to the pull requests/commits that implement it
@@ -56,7 +56,7 @@ runtime or telemetry artifact and neither affects `runtime_verified`:
 | Artifact | Commits | Merge | Note |
 | --- | --- | --- | --- |
 | C-TASK-35 Warband AI modding research | `6d47146`, `a777039` | `4ba24e2` | Docs-only evidence context. |
-| C-TASK-48 modder diagnostics research | `f74c0c2`, `12b8f91` | `148f7f3` | Docs-only; **not** a runtime/telemetry artifact. Final E pass (`50fa25b`, branch `agent/c-task48-final-amend`) is pending and not included. |
+| C-TASK-48 modder diagnostics research | `f74c0c2`, `12b8f91`, `c0c3034`, `50fa25b` | merged at `7bf941c` | Docs-only; **not** a runtime/telemetry artifact; path-hygiene pass included. |
 | G-TASK-49 free-asset catalogue/icon mapping | `85b9c0b` (PR #31) | merged at `8b38f7d` | Docs/definitions only, no binaries; independent E licence review; **no legal clearance, acceptance or playable-release claim**. |
 
 ## Gaps and review status

@@ -322,6 +322,17 @@ def _traceability_checks(root, version_text, check, git_runner=None):
     summary['gaps'] = len(gaps)
     check('traceability_gaps', bool(gaps) and all(isinstance(item, str) for item in gaps),
           '%d gaps recorded' % len(gaps))
+    source = data.get('source_revision')
+    if isinstance(source, str) and re.fullmatch(r'[0-9a-fA-F]{40}', source):
+        short = source[:7]
+        changelog_text = _read_bounded(root / 'CHANGELOG.md')
+        readme_text = _read_bounded(root / 'README.md')
+        trace_md = _read_bounded(root / 'docs/RELEASE_TRACEABILITY.md')
+        check('traceability_source_revision',
+              short in changelog_text and short in readme_text
+              and (source in trace_md or short in trace_md),
+              'source_revision=%s must appear in CHANGELOG, README and '
+              'traceability doc' % source)
     ancestry = _ancestry_checks(root, data, git_runner=git_runner)
     summary['ancestry_status'] = ancestry['status']
     summary['ancestry_commits'] = ancestry['checked']
