@@ -23,6 +23,7 @@ from wave_reinforcements import apply_module as apply_wave_support
 from tactical_recovery import apply_module as apply_tactical_recovery
 from bot_loadouts import apply_module as apply_balanced_ai_loadouts
 from firearm_balance import apply_module as apply_firearm_balance
+from zombie_block import apply_module as apply_zombie_block
 from solo_assist import apply_module as apply_solo_assist
 from private_commands import apply_module as apply_private_commands
 from difficulty import profile, PROFILES
@@ -90,7 +91,8 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
           wave_reinforcements: bool = False, tactical_recovery: bool = False,
           defender_loadouts: str = "original", solo_assist: bool = False,
           private_commands: bool = False, difficulty: str = "standard",
-          firearm_accuracy: str = "default") -> dict:
+          firearm_accuracy: str = "default",
+          zombie_bot_roster: str = "weak", zombie_block: str = "default") -> dict:
     support = profile(difficulty)
     if difficulty != "standard" and not wave_reinforcements:
         raise ValueError("Nonstandard difficulty needs --wave-reinforcements")
@@ -104,6 +106,10 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         raise ValueError("Unknown --defender-loadouts profile")
     if firearm_accuracy not in ("default", "stock"):
         raise ValueError("Unknown --firearm-accuracy profile")
+    if zombie_bot_roster not in ("weak", "full"):
+        raise ValueError("Unknown --zombie-bot-roster profile")
+    if zombie_block not in ("default", "stock"):
+        raise ValueError("Unknown --zombie-block profile")
     if defender_loadouts != "original" and not experimental_defenders:
         raise ValueError("AI-only loadouts require experimental defenders")
     if tactical_recovery and not wave_reinforcements:
@@ -176,6 +182,7 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         # changes compiled scripts only and is recorded in the receipt.
         city_roster_profile = city_guardposts and not all_map_defenses
         roster_report = None
+        zombie_block_report = None
         if city_roster_profile:
             # City builds also use the native bot-spawn path for the allied squad
             # (D's sealed run: native team-0 bots spawn, team-0 add_visitors do not).
@@ -193,12 +200,20 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
                 if "g_multiplayer_game_type" not in variables:
                     raise RuntimeError("Missing g_multiplayer_game_type for defender roster")
                 game_type_global = GLOBAL_BASE + variables.index("g_multiplayer_game_type")
+            invader_range = ((894, 898) if zombie_bot_roster == "weak"
+                             else (894, 912))
             roster_report = apply_native_roster(source, defender_range=defender_range,
-                                                game_type_global=game_type_global)
+                                                game_type_global=game_type_global,
+                                                invader_range=invader_range)
             if not roster_report.get("applied") or not roster_report.get("invader_candidates"):
                 raise RuntimeError("Native Zombie roster patch failed static validation")
             if defender_range and not roster_report.get("defender_candidates"):
                 raise RuntimeError("Native defender roster range has no faction-15 troops")
+            if zombie_block == "default":
+                zombie_block_report = apply_zombie_block(source)
+                if (not zombie_block_report.get("applied")
+                        or not zombie_block_report.get("troops")):
+                    raise RuntimeError("Zombie shield/block patch failed static validation")
         defender_report = None
         if experimental_defenders:
             defender_report = patch_file(source, experimental_defenders,
@@ -318,6 +333,8 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
             "preflight": preflight,
             "native_roster_patch": roster_report,
             "firearm_accuracy": firearm_report,
+            "zombie_bot_roster": zombie_bot_roster,
+            "zombie_block": zombie_block_report,
             "experimental_defender_patch": defender_report,
             "defender_loadout_profile": defender_loadouts,
             "ai_only_loadout_clones": loadout_report,
@@ -380,12 +397,15 @@ def main():
     parser.add_argument("--private-commands", action="store_true", help="EXPERIMENTAL solo listen-host-only Ctrl+F7/F8/F9 actions, audited by counters")
     parser.add_argument("--difficulty", choices=tuple(PROFILES), default="standard", help="Survivor-support difficulty: controls reinforcement wave and fallback thresholds")
     parser.add_argument("--firearm-accuracy", choices=("default", "stock"), default="default", help="Default build profile buffs automatic firearm accuracy (+5..10 pts); stock keeps original stats")
+    parser.add_argument("--zombie-bot-roster", choices=("weak", "full"), default="weak", help="City generic invader bots: weak 894..897 only or full native 894..911 roster")
+    parser.add_argument("--zombie-block", choices=("default", "stock"), default="default", help="Give City invader troops a shield for block capability; stock keeps original equipment")
     args = parser.parse_args()
     try:
         print(json.dumps(build(args.archive, args.out, args.replace, args.experimental_defenders,
                          args.city_guardposts, args.all_map_defenses, args.wave_reinforcements,
                          args.tactical_recovery, args.defender_loadouts, args.solo_assist,
-                         args.private_commands, args.difficulty, args.firearm_accuracy), indent=2))
+                         args.private_commands, args.difficulty, args.firearm_accuracy,
+                         args.zombie_bot_roster, args.zombie_block), indent=2))
     except (RuntimeError, FileNotFoundError, FileExistsError, ValueError, subprocess.CalledProcessError) as exc:
         print(f"Build refused: {exc}", file=sys.stderr)
         raise SystemExit(2)

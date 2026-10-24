@@ -50,6 +50,14 @@ class NativeRosterPatchTests(unittest.TestCase):
             apply_module(self.module, defender_range=(875, 879),
                          game_type_global=game_type)
 
+    def test_weak_invader_range_stages_only_basic_zombies(self):
+        report = apply_module(self.module, invader_range=(894, 898))
+        self.assertTrue(report["applied"])
+        self.assertEqual(report["invader_troop_range"], [894, 898])
+        self.assertEqual(report["invader_candidates"], [894, 895, 896, 897])
+        for index in report["invader_candidates"]:
+            self.assertEqual(self.factions[index], 16)
+
     def test_invader_candidates_are_native_zombie_troops(self):
         report = apply_module(self.module)
         self.assertTrue(report["applied"])

@@ -79,3 +79,17 @@ stats; the receipt records changed items and SHA-256 before/after with
 `runtime_verified=false`. See `reference/CITY_FIREARM_BALANCE_2026-10-24.md`.
 No gameplay validation is claimed; D/Lead validate in a sealed run.
 
+## City combat regression profiles (task-30, 2026-10-24)
+
+- **No scripted-destination override:** the 5 s City adoption trigger no longer sets
+  `agent_set_scripted_destination`; defenders keep native combat aiming (owner saw
+  them charge into melee instead of shooting). Division/group writes and team hold
+  orders remain. Hold stability is intentionally not claimed.
+- **Weak wave-1 generic bots (default):** `--zombie-bot-roster weak` restricts city
+  generic invader bots to the weak native block 894..897 (Zombie/Tough/Fast/Cop);
+  `full` restores 894..911. Receipt records the range/profile.
+- **Zombie block (default on):** `--zombie-block default` gives native invader
+  troops 894..911 the `itm_wooden_shield` item (they already have shield skill);
+  other troops unchanged; `stock` disables. Runtime block behaviour needs D's sealed
+  validation. No acceptance claim; 0/23 outcomes unchanged.
+

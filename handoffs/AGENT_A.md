@@ -141,3 +141,14 @@ While actual B boot results remained unposted, A fixed a **false-positive diagno
   mission patch not recommended (changes native difficulty; keep original 25 triggers intact).
 - Tool `tools/round_wave_lifecycle.py`, tests, docs reference. Static only; D validates wave>=2.
 
+## Task-30 live combat regressions (branch `agent/a-live-regressions`)
+
+- Removed the per-agent `agent_set_scripted_destination` from the City adoption trigger
+  (it overrode combat aiming; defenders charged instead of shooting). Division/group
+  adoption + team hold orders remain.
+- `--zombie-bot-roster weak` (default) stages generic invader bots to 894..897;
+  `full` restores 894..911. `--zombie-block default` appends `itm_wooden_shield` to
+  invader troops 894..911 only (shield skill already present); `stock` disables.
+- Build receipt + chain verification include both profiles (`troops.txt` intentional
+  City change). Offline 514 tests OK/7 skips; no gameplay acceptance; D validates.
+

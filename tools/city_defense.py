@@ -35,9 +35,10 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None) -> str:
     one step per division using the original ``wave_number`` global (dynamic
     entry numbers 2..4), so the squad re-uses adjacent map sectors instead of
     standing in one spot forever while still holding. The same trigger adopts
-    native team-0 bots into divisions 5-7; D proved native spawning works while
-    team-0 add_visitors produced no allied agents on the dedicated host.
-    Without ``wave_global`` (unit tests) the original fixed assignments run.
+    native team-0 bots into divisions 5-7 (division/group writes only). It must
+    NOT set agent scripted destinations: that overrode combat aiming in the
+    owner's live run, making defenders charge instead of shooting. Without
+    ``wave_global`` (unit tests) the original fixed assignments run.
     """
     conditions = ["417", "0", "2211", "1", str(LOCAL0),
                   "31", "2", str(LOCAL0), str(SCENE_BASE + scene_idx)]
@@ -52,10 +53,9 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None) -> str:
         # Native team-0 bots (proven engine spawn path; team-0 add_visitors
         # produced no allies in D's sealed run) are adopted into the reserved
         # divisions 5-7 round-robin before the sector orders are issued.
-        l0, l1, l2, l3, l4 = (str(LOCAL0 + n) for n in (0, 1, 2, 3, 4))
+        l0, l1, l2, l3 = (str(LOCAL0 + n) for n in (0, 1, 2, 3))
         l5, l6, l7 = (str(LOCAL0 + n) for n in (5, 6, 7))
-        # Sector rotation parity is computed once and shared by the scripted
-        # destination fallback and the team orders below.
+        # Sector rotation parity is computed once and shared by the team orders.
         ops.append(["2119", "3", l5, str(wave_global), "2"])  # store_mod parity
         ops.append(["2133", "2", l0, "0"])                 # count = 0
         ops.append(["12", "1", l1])                        # try_for_agents
@@ -67,15 +67,6 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None) -> str:
         ops.append(["2120", "3", l3, l3, "5"])             # division 5..7
         ops.append(["1783", "2", l1, l3])                  # agent_set_division
         ops.append(["1766", "2", l1, l3])                  # agent_set_group (order sub_class)
-        # Per-agent scripted destination fallback: even if the engine ignores
-        # the group of a native team-0 bot, the bot still moves to and holds its
-        # rotated sector post instead of staying at the spawn point.
-        ops.append(["2121", "3", l4, l3, "5"])            # division - 5
-        ops.append(["2120", "3", l4, l4, l5])               # + wave parity
-        ops.append(["2119", "3", l4, l4, "3"])             # % 3 sectors
-        ops.append(["2120", "3", l4, l4, "2"])             # + first guard entry
-        ops.append(["1780", "2", str(pos), l4])            # dynamic entry position
-        ops.append(["1730", "4", l1, str(pos), "1", "0"])  # agent_set_scripted_destination
         ops.append(["2120", "3", l0, l0, "1"])             # count += 1
         ops.append(["3", "0"])                             # try_end
         for group in DIVISIONS:
