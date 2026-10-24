@@ -975,5 +975,27 @@ class ReceiptSummaryTests(unittest.TestCase):
             self.assertEqual(fire["shot_intervals_ms"]["min"], 1000)
             self.assertEqual(fire["agents_fired_ratio"], 1.0)
 
+
+    def test_refill_off_build_receipt_clears_refill_gap(self):
+        lines = [
+            "ZDB1|heartbeat|count=1|role=server|team0=1|team1=5|wave=1",
+            "ZDB1|ai_sample|role=server|tick=1|team=0|id=1|group=5|troop=981"
+            "|defender=1|weapon=7|ammo=10|alive=1|weapon_mode=ranged"
+            "|attack_action=2|x=10|y=10|kills=0|wave=1",
+            "ZDB1|ai_sample|role=server|tick=2|team=0|id=1|group=5|troop=981"
+            "|defender=1|weapon=7|ammo=8|alive=1|weapon_mode=ranged"
+            "|attack_action=2|x=10|y=10|kills=0|wave=1",
+        ]
+        with tempfile.TemporaryDirectory() as td:
+            session = seal(Path(td), {"host_stdout.log": "\n".join(lines)})
+            receipt = Path(td) / "MEASUREMENT.json"
+            receipt.write_text(json.dumps({"ammo_refill": "off (ammo-burn measurement build)"}),
+                               encoding="utf-8")
+            summary = summarize_receipt(session, build_receipt=receipt)
+            self.assertTrue(summary["firearms"]["shot_measurement"]["ammo_refill_off"])
+            self.assertTrue(summary["firearms"]["shot_measurement"]["refill_masking_excluded"])
+            self.assertNotIn("ammo_refill_masks_shots", summary["evidence_gaps"])
+            self.assertIn("attack_action_is_not_shot_count", summary["evidence_gaps"])
+
 if __name__ == "__main__":
     unittest.main()

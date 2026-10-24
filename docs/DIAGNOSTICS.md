@@ -427,6 +427,13 @@ The probe adds a 1 s `adaptive_tick` trigger:
 build/settings; compare CPU/memory/log size/event rate/heartbeat cadence and
 heatmap point density. No acceptance/visual claim.
 
+**Build-receipt context:** the summary CLI accepts `--build-receipt PATH`.
+If the receipt’s `ammo_refill` contains `off`, it sets
+`shot_measurement.ammo_refill_off=true`/`refill_masking_excluded=true` and
+removes `ammo_refill_masks_shots`; shots remain an ammo-delta proxy with
+`proven=false`, and `attack_action_is_not_shot_count` still applies. Without a
+receipt the refill gap remains.
+
 **Shot-measurement caveat (refill):** `refill_ammo` can increase ammo, which
 looks like a reload/reset in ammo-delta inference and can mask or inflate
 apparent shot intervals. Summary therefore exposes

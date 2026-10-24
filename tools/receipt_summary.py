@@ -225,7 +225,23 @@ def _lifecycle(events) -> dict:
     return grouped
 
 
-def summarize_receipt(target: Path) -> dict:
+def _find_named_value(data, wanted):
+    if isinstance(data, dict):
+        for key, value in data.items():
+            if str(key).lower() == wanted.lower():
+                return value
+            found = _find_named_value(value, wanted)
+            if found is not None:
+                return found
+    elif isinstance(data, list):
+        for item in data:
+            found = _find_named_value(item, wanted)
+            if found is not None:
+                return found
+    return None
+
+
+def summarize_receipt(target: Path, build_receipt: Path | None = None) -> dict:
     root = resolve_receipt_root(Path(target))
     verified = verify_manifest(root)
     receipt = verified["receipt"]
@@ -234,6 +250,18 @@ def summarize_receipt(target: Path) -> dict:
     for _name, text in artifacts:
         events.extend(parse_zdbi(text))
     events = events[:MAX_EVENTS]
+
+    refill_off = False
+    build_receipt_value = None
+    if build_receipt is not None:
+        try:
+            data = json.loads(Path(build_receipt).read_text(encoding="utf-8"))
+            value = _find_named_value(data, "ammo_refill")
+            if value is not None:
+                build_receipt_value = str(value)
+                refill_off = "off" in build_receipt_value.lower()
+        except (OSError, ValueError, TypeError):
+            build_receipt_value = "unreadable"
 
     heartbeats = [e for e in events if e["event"] == "heartbeat"]
     entries = [e for e in events if e["event"] == "mission_enter"]
@@ -1286,6 +1314,9 @@ def summarize_receipt(target: Path) -> dict:
         "shot_measurement": {
             "proxy": True,
             "proven": False,
+            "ammo_refill_off": refill_off,
+            "build_receipt_ammo_refill": build_receipt_value,
+            "refill_masking_excluded": refill_off,
             "reason": ("shots are inferred from ammo decreases; refill_ammo "
                        "can increase ammo and reset the interval baseline, so "
                        "shot counts/zero shots are not proven; attack_action "
@@ -1315,7 +1346,7 @@ def summarize_receipt(target: Path) -> dict:
     }
     if firearms_team0["samples"] or firearms_team1["samples"]:
         gaps_hint = list(gaps_hint) + [
-            "ammo_refill_masks_shots",
+            *([] if refill_off else ["ammo_refill_masks_shots"]),
             "attack_action_is_not_shot_count",
         ]
         if (firearms_team0.get("shots_observed") == 0
@@ -1728,9 +1759,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Summarize a sealed flight receipt")
     parser.add_argument("receipt", type=Path)
     parser.add_argument("--json", action="store_true", help="Emit JSON instead of text")
+    parser.add_argument("--build-receipt", type=Path, default=None,
+                        help="optional build/measurement receipt for refill context")
     args = parser.parse_args()
     try:
-        summary = summarize_receipt(args.receipt)
+        summary = summarize_receipt(args.receipt, args.build_receipt)
     except ReceiptError as exc:
         print("Receipt verification failed: " + str(exc), file=sys.stderr)
         raise SystemExit(2)
