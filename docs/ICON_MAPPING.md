@@ -178,7 +178,8 @@ reticle; any visual acceptance requires the in-game screenshot comparison in §1
 `https://game-icons.net/1x1/<author>/<icon>.html`; candidate pages checked 2026-10-24.
 
 3D character/cosmetic candidate sources (Kenney Animated Characters Survivors, MakeHuman community
-categories) are tracked in `reference/FREE_ASSET_SOURCES.md` §3.8/§3.9; they are not icon slots.
+categories) are tracked in `reference/FREE_ASSET_SOURCES.md` §3.8/§3.9; they are not icon slots. Any
+candidate asset must pass `reference/ASSET_INTAKE_CHECKLIST.md` before a binary is added.
 
 ---
 

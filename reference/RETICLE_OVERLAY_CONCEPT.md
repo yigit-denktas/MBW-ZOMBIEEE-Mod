@@ -92,10 +92,15 @@ below the 2 px stroke without redrawing.
 | game-icons `reticule` | [lorc/reticule](https://game-icons.net/1x1/lorc/reticule.html) — **CC BY 3.0** | "Icons made by Lorc. Available on https://game-icons.net" + licence link + changes | SVG monochrome, fits atlas; needs attribution register row |
 | game-icons `crosshair` | [delapouite/crosshair](https://game-icons.net/1x1/delapouite/crosshair.html) — **CC BY 3.0** | "Icons made by Delapouite. Available on https://game-icons.net" + licence link + changes | Alternative silhouette |
 | Font Awesome `crosshairs` | [Font Awesome Free](https://fontawesome.com/license/free) — icons **CC BY 4.0** | CC BY 4.0 attribution + licence link; keep header | Fallback; heavier attribution bookkeeping |
+| game-icons `targeting` | [lorc/targeting](https://game-icons.net/1x1/lorc/targeting.html) — **CC BY 3.0** | "Icons made by Lorc…" + licence link + changes | Additional silhouette |
+| game-icons `crosshair-arrow` | [lorc/crosshair-arrow](https://game-icons.net/1x1/lorc/crosshair-arrow.html) — **CC BY 3.0** | "Icons made by Lorc…" + licence link + changes | Arrow-marked crosshair |
+| game-icons `convergence-target` | [delapouite/convergence-target](https://game-icons.net/1x1/delapouite/convergence-target.html) — **CC BY 3.0** | "Icons made by Delapouite…" + licence link + changes | Convergence/target style |
+| game-icons `bullseye` | [skoll/bullseye](https://game-icons.net/1x1/skoll/bullseye.html) — **CC BY 3.0** | "Icons made by Skoll…" + licence link + changes | Ring/bullseye alternative |
 
-All three candidate pages were checked **HTTP 200** on 2026-10-24. No candidate is downloaded or
+All candidate pages were checked **HTTP 200** on 2026-10-24. No candidate is downloaded or
 committed here. Any chosen candidate needs a `THIRD_PARTY_NOTICES.md` row (primary; `docs/CREDITS.md`
-alternative) and E clearance.
+alternative) and E clearance. The intake checklist is
+[`reference/ASSET_INTAKE_CHECKLIST.md`](ASSET_INTAKE_CHECKLIST.md).
 
 ### 3.1 Candidate evidence status
 
@@ -105,6 +110,10 @@ alternative) and E clearance.
 | game-icons `reticule` (Lorc) | 2026-10-24 | no | pending | pending | candidate |
 | game-icons `crosshair` (Delapouite) | 2026-10-24 | no | pending | pending | candidate |
 | Font Awesome `crosshairs` | 2026-10-24 | no | pending | pending | candidate |
+| game-icons `targeting` (Lorc) | 2026-10-24 | no | pending | pending | candidate |
+| game-icons `crosshair-arrow` (Lorc) | 2026-10-24 | no | pending | pending | candidate |
+| game-icons `convergence-target` (Delapouite) | 2026-10-24 | no | pending | pending | candidate |
+| game-icons `bullseye` (Skoll) | 2026-10-24 | no | pending | pending | candidate |
 
 No binary exists for any row; a chosen CC BY candidate needs a `THIRD_PARTY_NOTICES.md` row before an
 asset PR.

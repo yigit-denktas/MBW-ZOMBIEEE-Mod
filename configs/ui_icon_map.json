@@ -1154,7 +1154,8 @@
     "Independent licence review by Agent E completed 2026-10-24 (reference/CROSS_REVIEW_LEGAL_RELEASE_2026-10-24.md §A, PR #31 review comment); findings folded; no legal clearance or acceptance claimed.",
     "No acceptance claim for any ledger leaf, legal gate or City outcome.",
     "task-64 cosmetic/prop/reticle candidates: visual validation requires in-game screenshots (docs/ICON_MAPPING.md §10); none taken; no native reticle resize claimed.",
-    "task-64 follow-up register §3.9: OGA/Kenney/MakeHuman candidates licence-checked but not downloaded; SHA-256, OGA KillGorack embedded-texture check, and D screenshots pending; no binaries."
+    "task-64 follow-up register §3.9: OGA/Kenney/MakeHuman candidates licence-checked but not downloaded; SHA-256, OGA KillGorack embedded-texture check, and D screenshots pending; no binaries.",
+    "batch-2 candidates (EP-10/EP-11, extra reticle icons) are licence-checked but not downloaded; intake checklist + E review + D screenshots pending; no binaries."
   ],
   "review": {
     "reviewer": "Agent E",
@@ -1231,6 +1232,61 @@
     "status": "licence-checked-candidates-not-downloaded",
     "screenshots": false,
     "assetPrGate": "owner approval + E licence clearance + THIRD_PARTY_NOTICES row + D screenshots",
-    "acceptance": false
-  }
+    "acceptance": false,
+    "batch2": {
+      "status": "licence-checked-candidates-not-downloaded",
+      "candidates": [
+        "EP-10 OGA Breakable Boxes",
+        "EP-11 Kenney City Kit (Roads)"
+      ],
+      "screenshots": false,
+      "review": "pending",
+      "acceptance": false
+    }
+  },
+  "reticleCandidates": [
+    {
+      "icon": "reticule",
+      "author": "Lorc",
+      "licence": "CC-BY-3.0",
+      "url": "https://game-icons.net/1x1/lorc/reticule.html"
+    },
+    {
+      "icon": "crosshair",
+      "author": "Delapouite",
+      "licence": "CC-BY-3.0",
+      "url": "https://game-icons.net/1x1/delapouite/crosshair.html"
+    },
+    {
+      "icon": "crosshairs",
+      "author": "Fonticons, Inc.",
+      "licence": "CC-BY-4.0",
+      "url": "https://fontawesome.com/icons/crosshairs?f=free&s=solid"
+    },
+    {
+      "icon": "targeting",
+      "author": "Lorc",
+      "licence": "CC-BY-3.0",
+      "url": "https://game-icons.net/1x1/lorc/targeting.html"
+    },
+    {
+      "icon": "crosshair-arrow",
+      "author": "Lorc",
+      "licence": "CC-BY-3.0",
+      "url": "https://game-icons.net/1x1/lorc/crosshair-arrow.html"
+    },
+    {
+      "icon": "convergence-target",
+      "author": "Delapouite",
+      "licence": "CC-BY-3.0",
+      "url": "https://game-icons.net/1x1/delapouite/convergence-target.html"
+    },
+    {
+      "icon": "bullseye",
+      "author": "Skoll",
+      "licence": "CC-BY-3.0",
+      "url": "https://game-icons.net/1x1/skoll/bullseye.html"
+    }
+  ],
+  "intakeChecklist": "reference/ASSET_INTAKE_CHECKLIST.md"
 }

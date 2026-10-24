@@ -20,6 +20,9 @@ an acceptance (§9).
 [`configs/ui_icon_map.json`](../configs/ui_icon_map.json) (definitions-only proposal, no binaries),
 [`reference/LEGAL_RIGHTS_AND_CREDITS.md`](LEGAL_RIGHTS_AND_CREDITS.md) (ZOMBIEEE rights dossier).
 
+**Intake process:** every candidate must pass [`reference/ASSET_INTAKE_CHECKLIST.md`](ASSET_INTAKE_CHECKLIST.md)
+(licence → engine fit → provenance → owner/E → D screenshots) before any binary is added.
+
 **Non-claims.** No original ZOMBIEEE or Warband asset is licence-cleared by this document. Nothing
 here changes ledger state: City required outcomes stay **0/23**, milestones **0/5**,
 `runtime_verified=false`, `ZOM-LEGAL-01` stays open. "Frictionless" below means *licence clarity +
@@ -287,6 +290,8 @@ screenshots** (owner/Lead); none were taken in this docs-only pass.
 | EP-07 | [OGA — Crates Chests Coins and Barrels Collection](https://opengameart.org/content/crates-chests-coins-and-barrels-collection) (mabaci, 2025-01-26) | **CC0** (page verified) | Yes | Yes | Not required | Low-poly medieval wooden crates/barrels/chests; 902 KB zip; ideal crate/barrel fallback for cover; per-asset scale/texture check | **ADAPT** — crate/barrel fallback |
 | EP-08 | [OGA — Containers Pack](https://opengameart.org/content/containers-pack) (loafbrr_1, 2023-02-13) | **CC0** (page verified) | Yes | Yes | Not required | 34 modern industrial container props (propane/oxygen tanks, gas cans, water drums); FBX/glTF/blend + 1k textures; page reports 52,826 tris total — budget-check before use | **ADAPT** — modern props |
 | EP-09 | [OGA — Crate and barrel](https://opengameart.org/content/crate-and-barrel-no-pun-intended) (KillGorack, 2026-03-30) | **CC0** (page states CC0) | Yes | Yes | Not required | Blender crate/barrel; **embedded wood textures + HDRI link to the author's asset pages — verify those licences separately** before use; otherwise check-first | **ADAPT (verify embedded)** |
+| EP-10 | [OGA — Breakable Boxes](https://opengameart.org/content/breakable-boxes) (loafbrr_1, 2021-12-30) | **CC0** (page verified) | Yes | Yes | Not required | Crate 460 tris (+68 collision), barrel 1592 tris (+348), jar 1446 tris; FBX/blend + 1k textures; page provides tri counts; good breakable cover candidate; convert/scale + collision check | **ADAPT** — breakable crate/barrel |
+| EP-11 | [Kenney — City Kit (Roads)](https://kenney.nl/assets/city-kit-roads) (90 files, CC0) | **CC0** (asset page verified) | Yes | Yes | Not required | Road/city prop kit incl. road signs, traffic lights, dumpster; per-file relevance to cover/barricades must be checked; low-poly style | **ADAPT** — city props, per-file check |
 
 **Collision/navmesh warning:** a barricade that changes walkable space needs a scene/navmesh update and
 D runtime validation; decorative cover that does not block pathing is the lower-risk first step.
@@ -318,10 +323,12 @@ not a licence clearance for a public bundle. Owner approval + E review + screens
 | Candidate | Source | Licence (observed) | Licence evidence | Download / SHA-256 | Screenshot | Gate |
 | --- | --- | --- | --- | --- | --- | --- |
 | EP-01 Poly Haven barrier/crate/barrel/fence ids | `polyhaven.com/models` (API list) | CC0 | licence page 2026-10-24; API lists 11 ids | not downloaded; SHA pending | D capture pending | owner approval → E review → asset PR |
-| EP-02 Kenney Survival Kit (80 models) | `kenney.nl/assets/survival-kit` | CC0 | asset page 2026-10-24 | not downloaded; contents unverified | pending | per-asset contents check |
+| EP-02 Kenney Survival Kit (80 models) | `kenney.nl/assets/survival-kit`; [OGA mirror](https://opengameart.org/content/survival-kit) (2024-04-03) | CC0 | both pages 2026-10-24 (OGA credits optional) | not downloaded; contents unverified | pending | per-asset contents check |
 | EP-07 OGA crates/barrels (mabaci) | `opengameart.org/content/crates-chests-coins-and-barrels-collection` | CC0 | page 2026-10-24 | not downloaded; SHA pending | pending | low-poly crate/barrel fallback |
 | EP-08 OGA Containers Pack (loafbrr_1) | `opengameart.org/content/containers-pack` | CC0 | page 2026-10-24 | not downloaded; SHA pending | pending | modern industrial props; poly budget check |
 | EP-09 OGA crate/barrel (KillGorack) | `opengameart.org/content/crate-and-barrel-no-pun-intended` | CC0 (page) | page 2026-10-24 | not downloaded | pending | **embedded textures/HDRI need separate licence check** |
+| EP-10 OGA Breakable Boxes (loafbrr_1) | `opengameart.org/content/breakable-boxes` | CC0 | page 2026-10-24 | not downloaded; SHA pending | pending | tri counts on page; collision check |
+| EP-11 Kenney City Kit (Roads) | `kenney.nl/assets/city-kit-roads` | CC0 | page 2026-10-24 | not downloaded; SHA pending | pending | per-file relevance check |
 | C-01 MakeHuman categories | assets page Wayback 2024-12-29 | core licence + per-asset community terms | licence page verified; per-asset check required | not exported | pending | document official/unmodified export; verify each contributed asset |
 | C-03/C-08 KayKit + Kenney survivors | KayKit itch page; `kenney.nl/assets/animated-characters-survivors` | CC0 (free tiers) | pages 2026-10-24 | not downloaded | pending | placeholder only |
 | C-05/C-06 icons + reticle candidates | game-icons.net / Font Awesome | CC BY 3.0 / CC BY 4.0 | pages 2026-10-24 (HTTP 200) | not downloaded | D capture pending | attribution register row before binaries |
@@ -370,6 +377,7 @@ commits yet.
 | 11 | **C-01/C-02/C-04 survivor body/cosmetic base** (MakeHuman CC0 exports + Blender base + authored) | Licence-clean bodies/faces/hair/clothing route; no modern-CC0 off-the-shelf set | Document MakeHuman export process; prototype one male/female cosmetic variant; screenshots for review |
 | 12 | **C-05/C-06 upgrade icons + reticle candidates** | Between-wave upgrade UI + additive reticle option with clear attribution | Generate attribution rows from the JSON; screenshot comparison (`docs/ICON_MAPPING.md` §10) before any visual claim |
 | 13 | **EP-07/EP-08 OGA CC0 crates/barrels/containers** | Concrete licence-cleared prop candidates for cover/barricades | Record page/date + source SHA once owner approves; convert OBJ/FBX→BRF; collision/navmesh check |
+| 14 | **EP-10/EP-11 OGA Breakable Boxes + Kenney City Kit (Roads)** | More CC0 prop candidates with published tri counts/per-file lists | Use `reference/ASSET_INTAKE_CHECKLIST.md`; record page/date + SHA; no binary before approval |
 
 **Deliberately not in the first integration:** any 3D modern clothing/armour (gap), third-party OSP
 assets (terms unknown), native assets (no redistribution right recorded; treat as non-redistributable),
@@ -484,6 +492,9 @@ All URLs fetched 2026-10-24 unless noted.
 | Kenney Animated Characters Survivors | `kenney.nl/assets/animated-characters-survivors` (HTTP 200) | CC0, 8 files, survivor/zombie tags |
 | MakeHuman user-contributed assets | Wayback capture 2024-12-29 of `user_contributed_assets.html` (HTTP 200) | categories clothes/body extensions/skins/models/proxies; **community assets are per-author — check each** |
 | ambientCG 3D-prop API check | `https://ambientcg.com/api/v2/full_json?type=3DModel&limit=500` (HTTP 200) | 500 assets returned but no barrier/crate/barrel 3D prop ids matched → texture/material source, not a prop source |
+| OGA Breakable Boxes | `opengameart.org/content/breakable-boxes` (HTTP 200) | CC0; crate 460 tris, barrel 1592, jar 1446 (+collision) |
+| OGA Survival Kit (Kenney) | `opengameart.org/content/survival-kit` (HTTP 200) | CC0, 80 low-poly models, credit optional |
+| Kenney City Kit (Roads) | `kenney.nl/assets/city-kit-roads` (HTTP 200) | CC0, 90 files, road signs/traffic lights/dumpster |
 | Native assets not in repo | `git ls-tree`/`git grep` on branch (`reference/`, `docs/`, `configs/`) | No `.brf/.dds/.wav/.ogg/.ttf/.png` assets added by this task |
 
 ---
@@ -519,3 +530,5 @@ All URLs fetched 2026-10-24 unless noted.
 9. **Follow-up register §3.9 is evidence-only:** new OGA/Kenney/MakeHuman candidates are licence-checked
    but not downloaded; source SHA-256, OGA KillGorack embedded-texture/HDRI provenance, and D-captured
    screenshots are pending. No binary may be committed until those fields are filled and E clears.
+10. **Batch-2 candidates (EP-10/EP-11) are evidence-only too:** OGA Breakable Boxes and Kenney City Kit
+    (Roads) pages verified CC0, not downloaded; intake checklist and E review pending. No visual claim.
