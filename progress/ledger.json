@@ -4372,6 +4372,35 @@
       "originReason": "Two seals were analyzed before detecting broken heartbeat/hit telemetry.",
       "discoveredDuring": "owner/agent debugging 2026-10-24",
       "graphImpact": "Prevents false analysis on broken probes."
+    },
+    {
+      "id": "ZOM-DISC-81",
+      "title": "P0 P2 fixes + playable build (visible acceptance)",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "active",
+      "sourceState": "review-b2 accepted P0; A fixing P2s",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-69"
+      ],
+      "evidence": [],
+      "completionBasis": "P2 fixes/rebase + play build/run pending",
+      "kind": "work-item",
+      "owner": "Agent A fixes; Lead install; D 10-min play",
+      "priority": "P0",
+      "criterion": "P2s fixed, P0 rebased, play build installed, 10-min survivor run with only visible blockers fixed.",
+      "note": "review-b2: P0 9b97e15 accepted no P0/P1; P2 add_visitors group_no premise + verifier speed-on bug. No new telemetry branches.",
+      "deferReason": "Converts diagnostics to visible progress.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "integration",
+      "supportsOutcomeId": "ZOM-AI-03",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner: stop bumps, convert to tangible playable work.",
+      "discoveredDuring": "review-b2 2026-10-24",
+      "graphImpact": "Unblocks visible play iteration."
     }
   ],
   "warnings": [
