@@ -557,5 +557,24 @@ class ReceiptSummaryTests(unittest.TestCase):
         self.assertFalse(summary["defenders"]["hold_behavior_observed"])
         self.assertIn("defenders_not_observed", summary["evidence_gaps"])
 
+
+    def test_defenders_observed_by_troops_but_divisions_unreadable(self):
+        # D's DISC-28 negative: defenders visible by troop id (981-984) but every
+        # agent_get_group read failed; divisions must be unobservable, not zero.
+        lines = ["ZDB1|heartbeat|count=1|role=server|team0=4|team1=17"
+                 "|bots_team0=4|bot_agents_team0=4|troops_team0=981:2,982:2"
+                 "|groups_team0=none|groups_team1=none|group_read_unknown=17"
+                 "|defenders_team0=0|defender_alive_team0=0"
+                 "|defender_kills_team0=0|defender_read_unknown=0"]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        defenders = summary["defenders"]
+        self.assertTrue(defenders["observed"])          # troop fallback
+        self.assertIsNone(defenders["divisions"])
+        self.assertEqual(defenders["division_source"], "unavailable")
+        self.assertEqual(defenders["positions_sampled"], 0)
+        self.assertFalse(defenders["hold_behavior_observed"])
+        self.assertIn("defender_division_unreadable", summary["evidence_gaps"])
+        self.assertIn("division_reads_unreliable", summary["evidence_gaps"])
+
 if __name__ == "__main__":
     unittest.main()
