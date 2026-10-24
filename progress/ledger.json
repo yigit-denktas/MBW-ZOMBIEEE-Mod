@@ -2617,6 +2617,363 @@
       "deferReason": "Supplemental bug-fix/diagnostics-hardening support work; not part of the required City release denominator.",
       "implementationLane": "A",
       "workOrigin": "discovered"
+    },
+    {
+      "id": "ZOM-DISC-30",
+      "title": "Community Warband AI behavior research + hold/fire/speed prototype",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "done",
+      "sourceState": "bounded source review complete; runtime behavior unverified",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/4cc36bf/reference/WARBAND_AI_MODDING.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-review"
+        }
+      ],
+      "completionBasis": "Research + offline prototype delivered; no runtime acceptance",
+      "kind": "work-item",
+      "owner": "Agent C — research/prototype; owner retains runtime acceptance",
+      "priority": "P1",
+      "criterion": "Cited community sources establish exact hold/fire, speed-control and wave ops; prototype validates plan shape without launching the game.",
+      "note": "Sources include TaleWorlds/Modding Wiki/Chinese forum/tgsmod/WSE2; no code copied. Occurred while diagnosing task-30 survivors charging.",
+      "deferReason": "Supplemental research/prototype that supports required AI/wave leaves; not part of the required denominator.",
+      "implementationLane": "C",
+      "workOrigin": "discovered",
+      "workType": "research",
+      "supportsOutcomeId": "ZOM-AI-03",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Discovered while the owner tested the task-30 rear-line build and reported survivors charging/sprinting.",
+      "discoveredDuring": "task-30 live owner test; survivors charging + sprint complaints",
+      "graphImpact": "Unblocks task-38 speed/hold implementation; supports ZOM-AI-02/ZOM-AI-03/ZOM-WAVE-01."
+    },
+    {
+      "id": "ZOM-DISC-31",
+      "title": "Cited Warband AI community source pack and licence limits",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "done",
+      "sourceState": "source pack verified; no runtime effect",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/4cc36bf/reference/WARBAND_AI_COMMUNITY_SOURCES.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-review"
+        }
+      ],
+      "completionBasis": "Source pack delivered; no acceptance",
+      "kind": "work-item",
+      "owner": "Agent E — provenance/credits; owner retains release acceptance",
+      "priority": "P2",
+      "criterion": "Community AI sources and licence limits are cited with dates, URLs and explicit accessibility gaps.",
+      "note": "FormAI/Battle AI/Native AI treated as one Motomataru lineage; link-only.",
+      "deferReason": "Supplemental provenance research; not part of the required denominator.",
+      "implementationLane": "E",
+      "workOrigin": "discovered",
+      "workType": "research",
+      "supportsOutcomeId": "ZOM-LEGAL-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Requested by the owner to stop guessing AI behavior and trust the community.",
+      "discoveredDuring": "task-30/35 research sweep",
+      "graphImpact": "Feeds task-35 synthesis and legal/attribution review."
+    },
+    {
+      "id": "ZOM-DISC-32",
+      "title": "No-launch AI/profile matrix and pre-launch gate",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "done",
+      "sourceState": "read-only matrix/tests complete; runtime evidence separate",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-34"
+      ],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/4cc36bf/launcher/profile_matrix.py",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-tests"
+        }
+      ],
+      "completionBasis": "Planner/tests delivered; no runtime acceptance",
+      "kind": "work-item",
+      "owner": "Agent F — launcher/test harness; owner retains release acceptance",
+      "priority": "P1",
+      "criterion": "A read-only planner validates team counts, rotation hashes, receipt fields, rear hold, wave visitors, refill target and block mode without launching a host.",
+      "note": "`play_city matrix`; tests mock process launch to prove no host.",
+      "deferReason": "Supplemental validation tooling; not part of the required denominator.",
+      "implementationLane": "F",
+      "workOrigin": "discovered",
+      "workType": "test-harness",
+      "supportsOutcomeId": "ZOM-QA-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Needed to gate repeated task-30/task-34 rebuilds without launching a live game.",
+      "discoveredDuring": "task-34 validation queue",
+      "graphImpact": "D pre-launch gate for wave/refill/hold validation."
+    },
+    {
+      "id": "ZOM-DISC-33",
+      "title": "Rear defensive line and 8-defender spawn_agent refill",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "active",
+      "sourceState": "sealed task-34 refill/rear positions observed; hold behaviour not asserted",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-28"
+      ],
+      "evidence": [
+        {
+          "kind": "sealed-evidence",
+          "source": "_zom-d-profiles/local/session/play-city/launches/ee8c7f885f6d4b30aca40ba50cf9f6fb",
+          "observedOn": "2026-10-24",
+          "acceptance": "sealed-8-file-verified"
+        }
+      ],
+      "completionBasis": "Implementation and sealed counts observed; no acceptance",
+      "kind": "work-item",
+      "owner": "Agent A — implementation; Agent D sealed it; owner retains acceptance",
+      "priority": "P0",
+      "criterion": "Defenders hold near the rear line and refill toward 8 after deaths without a forward scripted destination.",
+      "note": "D sealed: alive=8 at end, max_team0=8, troops 981..984, ranged 61/61, kills 7/deaths 15; hold_behavior_observed=false.",
+      "deferReason": "Supplemental defensive-line support work; not part of the required denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "bug-fix",
+      "supportsOutcomeId": "ZOM-AI-03",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner reported survivors charging and being wiped during live task-30 testing.",
+      "discoveredDuring": "task-30 rear-line live owner test",
+      "graphImpact": "Keeps the AI squad alive; prerequisite for speed/hold tuning and wave survival."
+    },
+    {
+      "id": "ZOM-DISC-34",
+      "title": "Gate native wave visitors to slow Zombie 894",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "active",
+      "sourceState": "wave-1 sealed 894-only; wave-2 visitor ids not yet observed",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-33"
+      ],
+      "evidence": [
+        {
+          "kind": "sealed-evidence",
+          "source": "_zom-d-profiles/local/session/play-city/launches/ee8c7f885f6d4b30aca40ba50cf9f6fb",
+          "observedOn": "2026-10-24",
+          "acceptance": "sealed-8-file-verified"
+        }
+      ],
+      "completionBasis": "Wave-1 gating observed; longer wave-2 run pending",
+      "kind": "work-item",
+      "owner": "Agent A — implementation; Agent D validating",
+      "priority": "P0",
+      "criterion": "Native wave slots 200..244 are rewritten to 894, and sealed runs show no Fast/Tank/mounted/ranged visitors.",
+      "note": "D wave1 classes {native_zombie:17}, troops {894:17}; wave max 1 in 3-min run; wave-2 pending.",
+      "deferReason": "Supplemental wave-balance support work; not part of the required denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "bug-fix",
+      "supportsOutcomeId": "ZOM-WAVE-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner saw strong/mounted/Fast enemies in wave 1/2 during live testing.",
+      "discoveredDuring": "task-34 wave-2 Fast Zombie wipe",
+      "graphImpact": "Blocks strong/mounted wave spikes; must pass before ZOM-WAVE-01 balance can be judged."
+    },
+    {
+      "id": "ZOM-DISC-35",
+      "title": "Community-backed zombie speed clamp and team hold/fire orders",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "active",
+      "sourceState": "implementation queued; no runtime evidence yet",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-30",
+        "ZOM-DISC-33",
+        "ZOM-DISC-34"
+      ],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/4cc36bf/reference/WARBAND_AI_MODDING.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-design-only"
+        }
+      ],
+      "completionBasis": "Design complete; implementation/validation pending",
+      "kind": "work-item",
+      "owner": "Agent A — implementation; Agent D validation",
+      "priority": "P0",
+      "criterion": "Zombies move at a bounded speed modifier and defenders hold/fire with team orders, no scripted-destination override.",
+      "note": "Plan: agent_set_speed_modifier 2093 ~70% wave-scaled; team_set_order_position 1791 + mordr_hold/hold_fire/fire_at_will/use_ranged_weapons; WSE2 3343/3314 only if needed.",
+      "deferReason": "Supplemental combat-behavior support work; not part of the required denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "feature",
+      "supportsOutcomeId": "ZOM-AI-03",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner reported continuous sprinting and survivors charging instead of holding/shooting.",
+      "discoveredDuring": "owner speed/charge complaints after task-30",
+      "graphImpact": "Primary unblock for ZOM-AI-03 hold behavior and ZOM-WAVE-01 balance; depends on research + rear line + wave gating."
+    },
+    {
+      "id": "ZOM-DISC-36",
+      "title": "Speed/order/movement/wave-2/refill telemetry",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "done",
+      "sourceState": "probe/tests delivered; rebuild required to emit new fields",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-30"
+      ],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/4cc36bf/docs/DIAGNOSTICS.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-tests"
+        }
+      ],
+      "completionBasis": "Telemetry/tests delivered; runtime unverified",
+      "kind": "work-item",
+      "owner": "Agent C — telemetry; Agent D re-seal",
+      "priority": "P1",
+      "criterion": "Per-agent speed/order readbacks, movement rate, wave-2 classes and refill series are observable with unknown semantics.",
+      "note": "No behavior/speed getter assumed; capability flags and gaps explicit.",
+      "deferReason": "Supplemental diagnostics support work; not part of the required denominator.",
+      "implementationLane": "C",
+      "workOrigin": "discovered",
+      "workType": "diagnostics",
+      "supportsOutcomeId": "ZOM-OBS-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Without speed/order telemetry the task-38 fix would be unprovable.",
+      "discoveredDuring": "task-38 preparation; no speed/order readback existed",
+      "graphImpact": "Unblocks proof for task-38 and D's final validation."
+    },
+    {
+      "id": "ZOM-DISC-37",
+      "title": "Installer uninstall/repair + desktop/settings + release gate",
+      "groupId": "Setup",
+      "milestoneId": "M2",
+      "state": "active",
+      "sourceState": "implementation in review; no runtime acceptance",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-REC-01"
+      ],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/4cc36bf/launcher/city_launch.py",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static"
+        }
+      ],
+      "completionBasis": "Work in progress; no acceptance",
+      "kind": "work-item",
+      "owner": "Agent F — implementation; owner retains release acceptance",
+      "priority": "P1",
+      "criterion": "Installer uninstall/repair, desktop launcher/settings and release-candidate checks are verified without deleting owned data.",
+      "note": "Task-39 lane; no game launch.",
+      "deferReason": "Supplemental M2 release-gate work; not part of the required denominator.",
+      "implementationLane": "F",
+      "workOrigin": "discovered",
+      "workType": "feature",
+      "supportsOutcomeId": "ZOM-WIN-02",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Required M2 gates remain open; owner requested milestone work alongside AI fixes.",
+      "discoveredDuring": "M2 milestone review",
+      "graphImpact": "Supports ZOM-WIN-02/ZOM-WIN-03 and ZOM-REL-01; cannot close M2 alone."
+    },
+    {
+      "id": "ZOM-DISC-38",
+      "title": "Publication rights, credits and redistribution gate dossier",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "active",
+      "sourceState": "dossier complete; owner/licence decisions and qualified review open",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/4cc36bf/reference/LEGAL_RIGHTS_AND_CREDITS.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static"
+        }
+      ],
+      "completionBasis": "Dossier delivered; gate open, no acceptance",
+      "kind": "work-item",
+      "owner": "Agent E — evidence; owner/legal acceptance",
+      "priority": "P0",
+      "criterion": "Rights-holder map, redistribution matrix, attribution and risk register are documented with explicit unresolved items.",
+      "note": "High-severity R-03 imported-model statements; not legal findings; ZOM-LEGAL-01 remains backlog.",
+      "deferReason": "Supplemental legal evidence work; not part of the required denominator.",
+      "implementationLane": "E",
+      "workOrigin": "discovered",
+      "workType": "legal-gate",
+      "supportsOutcomeId": "ZOM-LEGAL-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "M4 legal gate was open; owner asked for real credits/rights rather than assumptions.",
+      "discoveredDuring": "M4 legal/publication gate",
+      "graphImpact": "Supports ZOM-LEGAL-01 and blocks ZOM-REL-01 until owner decisions/qualified review."
+    },
+    {
+      "id": "ZOM-DISC-39",
+      "title": "Sealed task-34 validation of refill, rear line and wave-1 gating",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "done",
+      "sourceState": "two sealed no-install runs; wave-2 not observed",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-33",
+        "ZOM-DISC-34"
+      ],
+      "evidence": [
+        {
+          "kind": "sealed-evidence",
+          "source": "_zom-d-profiles/local/session/play-city/launches/ee8c7f885f6d4b30aca40ba50cf9f6fb",
+          "observedOn": "2026-10-24",
+          "acceptance": "sealed-8-file-verified"
+        }
+      ],
+      "completionBasis": "Sealed support evidence collected; no acceptance",
+      "kind": "work-item",
+      "owner": "Agent D — sealed validation; owner retains acceptance",
+      "priority": "P1",
+      "criterion": "A sealed run shows 8 defenders refilling, rear positions, ranged-only modes and wave-1 894-only composition.",
+      "note": "ee8c7f88: alive=8/max=8, ranged 61/61, wave1 894:17, kills 7/deaths 15; 684864b6 baseline same shape.",
+      "deferReason": "Supplemental validation evidence; not part of the required denominator.",
+      "implementationLane": "D",
+      "workOrigin": "discovered",
+      "workType": "validation",
+      "supportsOutcomeId": "ZOM-QA-02",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "The owner/live queue needed sealed evidence for the task-34 behavior change.",
+      "discoveredDuring": "task-34 validation run",
+      "graphImpact": "Supports ZOM-QA-02; waves.max=1 leaves wave-2 acceptance open."
     }
   ],
   "warnings": [
@@ -2635,7 +2992,12 @@
     "Final canonical sealed evidence bounds: defender SPAWN proven (bots_team0=4, troops 981..984) and defender movement away from spawn observed, but C's troop-id fallback samples defender positions (62 samples, median 2.2 m from spawn, p90 15.6 m, max 49.9 m, 16% beyond 10 m, 8/14 ids toward the guard side; disc28d median 3.1/p90 26.5/max 39.1); defenders move out of spawn but no plateau/stability near guard entries, so division 5-7 adoption, entry identity and hold stability are NOT observed; WAVE 2 IS OBSERVED in the configured hands-off defender-heavy variant: sealed local/session/ai-evidence-wave2c-attempt, build a590a05, 600 s, set_bot_count 1 8 / 2 4 and set_player_respawn_as_bot 1: waves.max=2, multiple_observed=true, observed=[0,1,2], bots_team0=8, max_team0=9, max_team1=22, engagement.reliable=true (lifetime kills 10/8, not a victory), 7 rounds. This is a survival/clearance observation of the native lifecycle, not a counter fix; wave completion/wave 3+, defender hold/entry identity and combat feel remain unproven.",
     "Probe boundary: C's agent_get_group (1765) read fails for every agent in the sealed disc28 run (group_read_unknown=17, groups_team0/1=none), so defender division 5-7 adoption/hold rotation remains unobservable; DISC-28 stays active pending C hotfix. no_player reads the last heartbeat only; use composition.mode.",
     "DISC-28 behavioral boundary (build a590a05, sealed ai-evidence-disc28d-scripted): defender spawn is proven and scripted-destination movement away from spawn is observed (20-39 m for several bots), but group/division reads are unknown (groups none, read_unknown=22), so division 5-7 adoption, combat_sample and hold-at-sector remain unproven; do not describe movement as holding.",
-    "Final one-line state (D task-18, local/session/PLAYABLE_EVIDENCE.md): Native defenders (981-984) spawn, move between >=16 distinct coarse positions over 300 s (out-of-spawn movement proven; median 2.2 m / p90 15.6 m / max 49.9 m); team1 native zombies 894..911 fight (reliable kills both teams); wave 2 reached in the defender-heavy variant; play_city validated on the same install - 5-7 adoption/hold and wave-carryover remain unobserved/unimplemented; no acceptance. Build 8ea6b34 (module_sha256 e4b44f94...)."
+    "Final one-line state (D task-18, local/session/PLAYABLE_EVIDENCE.md): Native defenders (981-984) spawn, move between >=16 distinct coarse positions over 300 s (out-of-spawn movement proven; median 2.2 m / p90 15.6 m / max 49.9 m); team1 native zombies 894..911 fight (reliable kills both teams); wave 2 reached in the defender-heavy variant; play_city validated on the same install - 5-7 adoption/hold and wave-carryover remain unobserved/unimplemented; no acceptance. Build 8ea6b34 (module_sha256 e4b44f94...).",
+    {
+      "id": "W-DISC-30-39",
+      "date": "2026-10-24",
+      "message": "New supplemental discovered work added for community AI research, wave gating/refill, speed/hold patch, telemetry, installer/release and legal gates; required denominator unchanged."
+    }
   ],
   "governance": {
     "purpose": "City-first private solo Windows 11 remaster, verified flight-recorder diagnostics; four other original maps deferred until later release.",

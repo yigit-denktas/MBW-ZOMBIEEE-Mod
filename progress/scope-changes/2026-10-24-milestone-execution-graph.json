@@ -1,0 +1,49 @@
+{
+  "id": "2026-10-24-milestone-execution-graph",
+  "date": "2026-10-24",
+  "reason": "Owner requested the stale project record be updated with new discovered work, ownership and a dependency mermaid graph.",
+  "denominatorEffect": "none — all added items are supplemental non-additive discovered work; required 23 unchanged.",
+  "added": [
+    "ZOM-DISC-30",
+    "ZOM-DISC-31",
+    "ZOM-DISC-32",
+    "ZOM-DISC-33",
+    "ZOM-DISC-34",
+    "ZOM-DISC-35",
+    "ZOM-DISC-36",
+    "ZOM-DISC-37",
+    "ZOM-DISC-38",
+    "ZOM-DISC-39"
+  ],
+  "dependencies": {
+    "ZOM-DISC-30": [],
+    "ZOM-DISC-31": [],
+    "ZOM-DISC-32": [
+      "ZOM-DISC-34"
+    ],
+    "ZOM-DISC-33": [
+      "ZOM-DISC-28"
+    ],
+    "ZOM-DISC-34": [
+      "ZOM-DISC-33"
+    ],
+    "ZOM-DISC-35": [
+      "ZOM-DISC-30",
+      "ZOM-DISC-33",
+      "ZOM-DISC-34"
+    ],
+    "ZOM-DISC-36": [
+      "ZOM-DISC-30"
+    ],
+    "ZOM-DISC-37": [
+      "ZOM-REC-01"
+    ],
+    "ZOM-DISC-38": [],
+    "ZOM-DISC-39": [
+      "ZOM-DISC-33",
+      "ZOM-DISC-34"
+    ]
+  },
+  "milestoneEffect": "M1/M2/M3/M4 support edges only; no milestone gate state changed; 0/5 accepted.",
+  "authority": "Proposed owner-review record; owner retains acceptance."
+}

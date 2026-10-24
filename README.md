@@ -1,23 +1,137 @@
-# ZOMBIEEE — Remaster & Preservation
+# ZOMBIEEE â€” Remaster & Preservation
 
-A private, City-first compatibility rebuild of the 2012 **ZOMBIEEE (Invasion) Beta 0.4** multiplayer mod for *Mount & Blade: Warband* — built from a legally owned original archive, instrumented with a local flight recorder, and documented without overclaiming.
+A private, City-first compatibility rebuild of the 2012 **ZOMBIEEE (Invasion) Beta 0.4** multiplayer mod for *Mount & Blade: Warband* â€” built from a legally owned original archive, instrumented with a local flight recorder, and documented without overclaiming.
 
-> **Status: not accepted as a playable release.** Runtime evidence now exists — native Zombie roster, native allied defenders, hands-off AI-vs-AI combat, wave 2 in a defender-heavy variant, and a live-validated `play_city` path — but the City release still sits at **0/23 required outcomes / 0/5 accepted milestones** with `runtime_verified=false`. Division/hold behavior, wave 3+/completion, combat feel, redistribution and public release gates remain open. Do not treat any build here as an accepted release.
+> **Status: not accepted as a playable release.** Runtime evidence now exists â€” native Zombie roster, native allied defenders, hands-off AI-vs-AI combat, wave 2 in a defender-heavy variant, and a live-validated `play_city` path â€” but the City release still sits at **0/23 required outcomes / 0/5 accepted milestones** with `runtime_verified=false`. Division/hold behavior, wave 3+/completion, combat feel, redistribution and public release gates remain open. Do not treat any build here as an accepted release.
 
 **Current project version:** `0.2.0` (runtime-evidenced City candidate; **not release-accepted**).
 
 <!-- project-record:start -->
-[![ZOMBIEEE Remaster · current required scope](./progress.svg)](https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/)
+[![ZOMBIEEE Remaster Â· current required scope](./progress.svg)](https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/)
 
 | Measure | Completion | Meaning |
 | --- | ---: | --- |
-| Required work | 8/23 · 34.8% | Completed leaf items in the named required scope. |
-| Accepted milestones | 0/5 · 0.0% | Milestones whose declared outcome gates passed. |
+| Required work | 8/23 Â· 34.8% | Completed leaf items in the named required scope. |
+| Accepted milestones | 0/5 Â· 0.0% | Milestones whose declared outcome gates passed. |
 
-[Interactive roadmap](https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/) · Source file: `progress/ledger.json` (content-addressed file snapshot).
+[Interactive roadmap](https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/) Â· Source file: `progress/ledger.json` (content-addressed file snapshot).
 
-Observed 2026-10-24 against `6ea8f31a`.
+Observed 2026-10-24 against `57915156`.
 <!-- project-record:end -->
+
+## Work dependency graph
+
+The authoritative ledger now records the new discovered work from the live AI/balance loop, its owner, what it was discovered during, its dependencies, and how it supports or blocks the required gates. Full graph and reading guide: [docs/DEPENDENCY-GRAPH.md](docs/DEPENDENCY-GRAPH.md).
+
+<details>
+<summary>Mermaid dependency graph (required gates + discovered work)</summary>
+```mermaid
+flowchart TB
+  classDef done fill:#d9f2e3,stroke:#1f7a4d,color:#073b24;
+  classDef active fill:#fff0c2,stroke:#a66a00,color:#4a3000;
+  classDef blocked fill:#ffd9d6,stroke:#b3261e,color:#5c120e;
+  classDef req fill:#e8eefc,stroke:#4b5b86,color:#1b2745;
+  classDef disc fill:#f5e8ff,stroke:#7a3fa0,color:#321047;
+  subgraph M0["M0 Â· Scoped record ready for owner review (0/5 accepted)"]
+    ZOM_REC_01["ZOM-REC-01<br/>Reconcile pinned kit and repeat installer replay<br/><small>Agent A</small>"]
+    ZOM_REC_02["ZOM-REC-02<br/>Approve the scoped product baseline<br/><small>Agent A</small>"]
+    ZOM_REC_03["ZOM-REC-03<br/>Validate and review branded progress views<br/><small>Agent A</small>"]
+  end
+  subgraph M1["M1 Â· Observed WSE2 baseline (0/5 accepted)"]
+    ZOM_ENG_01["ZOM-ENG-01<br/>Verify complete original ZOMBIEEE 0.4 archive<br/><small>Agent A</small>"]
+    ZOM_ENG_02["ZOM-ENG-02<br/>Boot the original module with supported WSE2<br/><small>Agent A</small>"]
+    ZOM_ENG_03["ZOM-ENG-03<br/>Complete baseline City zombie wave<br/><small>Agent A</small>"]
+    ZOM_OBS_01["ZOM-OBS-01<br/>Validate game-event telemetry inside WSE2<br/><small>Agent C</small>"]
+    ZOM_OBS_02["ZOM-OBS-02<br/>Collect crash-resistant external host evidence<br/><small>Agent C</small>"]
+  end
+  subgraph M2["M2 Â· One-click Windows solo start (0/5 accepted)"]
+    ZOM_WIN_01["ZOM-WIN-01<br/>Discover installed licensed Warband and WSE2<br/><small>Agent B</small>"]
+    ZOM_WIN_02["ZOM-WIN-02<br/>Deliver safe install, repair and rollback<br/><small>Agent B</small>"]
+    ZOM_WIN_03["ZOM-WIN-03<br/>Create user desktop launcher and settings<br/><small>Agent B</small>"]
+    ZOM_SOLO_01["ZOM-SOLO-01<br/>Automatically start private invasion host<br/><small>Agent B</small>"]
+    ZOM_SOLO_02["ZOM-SOLO-02<br/>Join solo player without manual server setup<br/><small>Agent B</small>"]
+  end
+  subgraph M3["M3 Â· City survivor AI and combat reliable (0/5 accepted)"]
+    ZOM_AI_01["ZOM-AI-01<br/>Verify allied defender team and initial spawns<br/><small>Agent A</small>"]
+    ZOM_AI_02["ZOM-AI-02<br/>Establish measurable effective ranged combat<br/><small>Agent A</small>"]
+    ZOM_AI_03["ZOM-AI-03<br/>Verify guarded positions and recovery behaviour<br/><small>Agent A</small>"]
+    ZOM_WAVE_01["ZOM-WAVE-01<br/>Balance survivor help and zombie wave progression<br/><small>Agent A</small>"]
+    ZOM_PERF_01["ZOM-PERF-01<br/>Measure actual frame pacing and agent costs<br/><small>Agent C</small>"]
+  end
+  subgraph M4["M4 Â· City-first solo release accepted (0/5 accepted)"]
+    ZOM_QA_01["ZOM-QA-01<br/>Produce one auditable end-session diagnosis<br/><small>Agent C</small>"]
+    ZOM_QA_02["ZOM-QA-02<br/>Complete sustained integrated City solo test<br/><small>Agent C</small>"]
+    ZOM_ADMIN_01["ZOM-ADMIN-01<br/>Verify private cheat authority and behavior<br/><small>Agent A</small>"]
+    ZOM_LEGAL_01["ZOM-LEGAL-01<br/>Resolve publication rights and attribution<br/><small>Agent B</small>"]
+    ZOM_REL_01["ZOM-REL-01<br/>Package City-first accessible solo v1.0 candidate<br/><small>Agent B</small>"]
+  end
+  subgraph DISC["New discovered work Â· 2026-10-24 live loop"]
+    ZOM_DISC_30["ZOM-DISC-30<br/>Community Warband AI behavior research + hold/fire/speed prototype<br/><small>Agent C</small>"]
+    ZOM_DISC_31["ZOM-DISC-31<br/>Cited Warband AI community source pack and licence limits<br/><small>Agent E</small>"]
+    ZOM_DISC_32["ZOM-DISC-32<br/>No-launch AI/profile matrix and pre-launch gate<br/><small>Agent F</small>"]
+    ZOM_DISC_33["ZOM-DISC-33<br/>Rear defensive line and 8-defender spawn_agent refill<br/><small>Agent A</small>"]
+    ZOM_DISC_34["ZOM-DISC-34<br/>Gate native wave visitors to slow Zombie 894<br/><small>Agent A</small>"]
+    ZOM_DISC_35["ZOM-DISC-35<br/>Community-backed zombie speed clamp and team hold/fire orders<br/><small>Agent A</small>"]
+    ZOM_DISC_36["ZOM-DISC-36<br/>Speed/order/movement/wave-2/refill telemetry<br/><small>Agent C</small>"]
+    ZOM_DISC_37["ZOM-DISC-37<br/>Installer uninstall/repair + desktop/settings + release gate<br/><small>Agent F</small>"]
+    ZOM_DISC_38["ZOM-DISC-38<br/>Publication rights, credits and redistribution gate dossier<br/><small>Agent E</small>"]
+    ZOM_DISC_39["ZOM-DISC-39<br/>Sealed task-34 validation of refill, rear line and wave-1 gating<br/><small>Agent D</small>"]
+  end
+  ZOM_DISC_34 --> ZOM_DISC_32
+  ZOM_DISC_28 --> ZOM_DISC_33
+  ZOM_DISC_33 --> ZOM_DISC_34
+  ZOM_DISC_30 --> ZOM_DISC_35
+  ZOM_DISC_33 --> ZOM_DISC_35
+  ZOM_DISC_34 --> ZOM_DISC_35
+  ZOM_DISC_30 --> ZOM_DISC_36
+  ZOM_REC_01 --> ZOM_DISC_37
+  ZOM_DISC_33 --> ZOM_DISC_39
+  ZOM_DISC_34 --> ZOM_DISC_39
+  ZOM_DISC_30 -.->|supports| ZOM_AI_03
+  ZOM_DISC_31 -.->|supports| ZOM_LEGAL_01
+  ZOM_DISC_32 -.->|supports| ZOM_QA_01
+  ZOM_DISC_33 -.->|supports| ZOM_AI_03
+  ZOM_DISC_34 -.->|supports| ZOM_WAVE_01
+  ZOM_DISC_35 -.->|supports| ZOM_AI_03
+  ZOM_DISC_36 -.->|supports| ZOM_OBS_01
+  ZOM_DISC_37 -.->|supports| ZOM_WIN_02
+  ZOM_DISC_38 -.->|supports| ZOM_LEGAL_01
+  ZOM_DISC_39 -.->|supports| ZOM_QA_02
+  class ZOM_REC_01 req;
+  class ZOM_REC_02 blocked;
+  class ZOM_REC_03 blocked;
+  class ZOM_ENG_01 done;
+  class ZOM_ENG_02 done;
+  class ZOM_ENG_03 blocked;
+  class ZOM_OBS_01 done;
+  class ZOM_OBS_02 blocked;
+  class ZOM_WIN_01 done;
+  class ZOM_WIN_02 blocked;
+  class ZOM_WIN_03 blocked;
+  class ZOM_SOLO_01 done;
+  class ZOM_SOLO_02 done;
+  class ZOM_AI_01 done;
+  class ZOM_AI_02 blocked;
+  class ZOM_AI_03 blocked;
+  class ZOM_WAVE_01 blocked;
+  class ZOM_PERF_01 blocked;
+  class ZOM_QA_01 done;
+  class ZOM_QA_02 req;
+  class ZOM_ADMIN_01 blocked;
+  class ZOM_LEGAL_01 req;
+  class ZOM_REL_01 blocked;
+  class ZOM_DISC_30 done;
+  class ZOM_DISC_31 done;
+  class ZOM_DISC_32 done;
+  class ZOM_DISC_33 active;
+  class ZOM_DISC_34 active;
+  class ZOM_DISC_35 active;
+  class ZOM_DISC_36 done;
+  class ZOM_DISC_37 active;
+  class ZOM_DISC_38 active;
+  class ZOM_DISC_39 done;
+```
+</details>
 
 ## Scope
 
@@ -45,7 +159,7 @@ Observed 2026-10-24 against `6ea8f31a`.
 ## What does not work yet
 
 - **No accepted end-to-end release loop.** Launch/join/mission/stop works in the validated `play_city` path, but wave 3+/completion, stable squad hold/guard-entry identity, combat feel, installer/public release and redistribution gates are not accepted.
-- **AI behavior is partially proven.** Native Zombie troops (894..911) and native defenders (981..984) spawn and fight; wave 2 is only observed in the defender-heavy variant (`set_bot_count 1 8 / 2 4` + `player_respawn_as_bot 1`), not in stock squad configurations. Division 5–7 adoption/hold is unobservable in this runtime; no wave-carryover patch is shipped.
+- **AI behavior is partially proven.** Native Zombie troops (894..911) and native defenders (981..984) spawn and fight; wave 2 is only observed in the defender-heavy variant (`set_bot_count 1 8 / 2 4` + `player_respawn_as_bot 1`), not in stock squad configurations. Division 5â€“7 adoption/hold is unobservable in this runtime; no wave-carryover patch is shipped.
 - **Strict no-client cannot start a round.** The pure no-client run seals only the spawn/pre-round snapshot; AI-vs-AI combat evidence uses one **unattended client with zero human input**, not a literal player-less round.
 - **One-click launcher is implemented and live-validated**, but there is no desktop shortcut, public installer/redistribution or release packaging yet.
 
@@ -61,7 +175,7 @@ You must supply, and keep private, everything proprietary:
 
 ## Build
 
-Paths below are examples only — never commit real local paths.
+Paths below are examples only â€” never commit real local paths.
 
 ```powershell
 # 1. Verify the archive identity and (optionally) its member CRC with 7-Zip.
@@ -85,7 +199,7 @@ py -3 tools\verify_city_chain.py --original "D:\path\to\extracted\ZOMBIEEE" `
 | City tactical core | `--experimental-defenders 4 --city-guardposts --wave-reinforcements --tactical-recovery` |
 | Balanced AI-only loadouts | add `--defender-loadouts balanced-ai` (requires defenders) |
 | Support difficulty | add `--difficulty story\|standard\|hard\|nightmare` (non-standard requires `--wave-reinforcements`) |
-| Private host controls / solo assist | add `--private-commands` *(requires `--tactical-recovery`)* **or** `--solo-assist` — mutually exclusive |
+| Private host controls / solo assist | add `--private-commands` *(requires `--tactical-recovery`)* **or** `--solo-assist` â€” mutually exclusive |
 | All five original maps (deferred scope) | `--all-map-defenses` instead of `--city-guardposts` |
 
 `tools/build.py` refuses to overwrite an existing destination; move it aside or pass `--replace` only after taking a backup. The complete optional profiles are counted in the receipt and are **not** claimed playable.
@@ -98,9 +212,9 @@ py -3 -m unittest discover -s tests -v
 
 Tests are offline and require **no game launch**. Set `ZOMBIEEE_ORIGINAL_MODULE` and `ZOMBIEEE_ORIGINAL_ARCHIVE` to your private extracted module and original RAR to enable the original-asset source tests; without them those tests skip explicitly rather than pass by default. There is **no CI** by owner choice.
 
-Latest recorded run (2026-10-24, Windows 11, Python 3.11.9, rebased on `main` `3823168`): **410 tests discovered, 7 skipped, 1 error**. The error is a pre-existing Windows-only launcher bug (`test_windows_discovery…` passes an embedded-NUL path to `os.scandir`) and also fails on unmodified `main`; it is not caused by docs changes, but the suite must not be described as green until it is fixed.
+Latest recorded run (2026-10-24, Windows 11, Python 3.11.9, rebased on `main` `3823168`): **410 tests discovered, 7 skipped, 1 error**. The error is a pre-existing Windows-only launcher bug (`test_windows_discoveryâ€¦` passes an embedded-NUL path to `os.scandir`) and also fails on unmodified `main`; it is not caused by docs changes, but the suite must not be described as green until it is fixed.
 
-## Run (target path — unverified)
+## Run (target path â€” unverified)
 
 The following is the intended private, local-only path. It has **not** been accepted; treat it as a design target:
 
@@ -113,26 +227,26 @@ See [docs/MANUAL_TESTS.md](docs/MANUAL_TESTS.md) and [docs/INTEGRATED_CITY_ACCEP
 
 ## Evidence and project record
 
-- **Canonical Project Record ledger** (tracker branch): [progress/ledger.json](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/project-record-setup-v041/progress/ledger.json) — 23 required City outcomes, 0 accepted; milestones 0/5; additional leaves are explicitly non-additive support work.
+- **Canonical Project Record ledger** (tracker branch): [progress/ledger.json](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/project-record-setup-v041/progress/ledger.json) â€” 23 required City outcomes, 0 accepted; milestones 0/5; additional leaves are explicitly non-additive support work.
 - **Public static tracker** (GitHub Pages, documented as observed in the tracker): <https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/>
-- **Integrated City acceptance ledger** (14 gates G00–G13, evidence classes and strict semantics): [docs/INTEGRATED_CITY_ACCEPTANCE_2026-10-24.md](docs/INTEGRATED_CITY_ACCEPTANCE_2026-10-24.md)
+- **Integrated City acceptance ledger** (14 gates G00â€“G13, evidence classes and strict semantics): [docs/INTEGRATED_CITY_ACCEPTANCE_2026-10-24.md](docs/INTEGRATED_CITY_ACCEPTANCE_2026-10-24.md)
 - **Diagnostics, recorder and sealed receipts:** [docs/DIAGNOSTICS.md](docs/DIAGNOSTICS.md), [docs/CITY_INCIDENT_V1.md](docs/CITY_INCIDENT_V1.md)
 - **Ownership, permission and archive provenance:** [docs/PROVENANCE.md](docs/PROVENANCE.md), [reference/ARCHIVE.txt](reference/ARCHIVE.txt)
 - **Open work:** [#5](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/5) attribution/legal, [#6](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6) final-session evidence, [#8](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/8)/[#9](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/9) Windows launcher, [#13](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/13)/[#14](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/14) roster/rotation, [#15](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/15) recorder read race. (`#16` sealing is closed; the live sealed-attempt gate is still open.)
 
-**Evidence bundles never enter Git.** `local/`, `evidence/`, `*.rar`, `*.exe`, `*.dll`, `Modules/` and logs are ignored. The public repository contains tooling, documentation and tests only — no game assets, executables, serial keys, session logs or personal paths.
+**Evidence bundles never enter Git.** `local/`, `evidence/`, `*.rar`, `*.exe`, `*.dll`, `Modules/` and logs are ignored. The public repository contains tooling, documentation and tests only â€” no game assets, executables, serial keys, session logs or personal paths.
 
-## Current status — 2026-10-24
+## Current status â€” 2026-10-24
 
 - **Release reality:** City required outcomes **0/23**, accepted milestones **0/5**, `runtime_verified=false`. Every "done" item in the ledger is bounded support work, not release acceptance.
 - **Observed (unsealed, Lead-reported)** on merged main `4c56242` with C's corrected probe: dedicated host loopback-only `127.0.0.1:7240`, `role=server`, `game_type=7`, `ready_for_spawn=1`; `set_bot_count 2 32` produced `team1=41`, `wave=1`. This is a candidate observation, not acceptance.
 - **Open defects:** stable squad hold/guard-entry identity (division 5-7 adoption unobservable); wave 3+/completion and stock-squad wave 2; combat feel with the firearm profile; legal redistribution/public release gates. Native Zombie roster, native defenders, wave 2 in the defender-heavy variant and sealed ZDB1/play_city evidence are demonstrated but are not release acceptance.
-- **Known original quirk:** repeated engine `SCRIPT ERROR: Invalid Faction ID: -1` is decoded as four trailing `faction_set_slot(-1, 200, …)` writes in the 2012 mission (trigger 14), byte-identical to the pinned original prefix. It is non-fatal and not proven causal; no gameplay patch is authorized.
+- **Known original quirk:** repeated engine `SCRIPT ERROR: Invalid Faction ID: -1` is decoded as four trailing `faction_set_slot(-1, 200, â€¦)` writes in the 2012 mission (trigger 14), byte-identical to the pinned original prefix. It is non-fatal and not proven causal; no gameplay patch is authorized.
 - **Version:** project version `0.2.0` marks the first runtime-evidenced City candidate (WSE2 startup, native Zombie roster, native defenders, wave 2 in the defender-heavy variant). City release acceptance remains **0/23 required outcomes / 0/5 milestones**; `v0.3+` remains reserved for wave-3+/hold/legal release gates. See [CHANGELOG.md](CHANGELOG.md), [docs/ROADMAP.md](docs/ROADMAP.md), [docs/ENGINE.md](docs/ENGINE.md).
 
 ## Attribution and permission
 
-The original **ZOMBIEEE (Invasion) Beta 0.4** was publicly released in 2012 for the Warband community. Its team and credits below were verified from the **archived original TaleWorlds thread OP** (Wayback capture of 2023-10-08; permalink `…/threads/wb-zombieee-invasion-we-need-your-advice.219327/`, first post `/post-5251005`). The live TaleWorlds forum now blocks automated access behind Cloudflare.
+The original **ZOMBIEEE (Invasion) Beta 0.4** was publicly released in 2012 for the Warband community. Its team and credits below were verified from the **archived original TaleWorlds thread OP** (Wayback capture of 2023-10-08; permalink `â€¦/threads/wb-zombieee-invasion-we-need-your-advice.219327/`, first post `/post-5251005`). The live TaleWorlds forum now blocks automated access behind Cloudflare.
 
 **Original team (as listed in the OP):**
 
@@ -147,7 +261,7 @@ The original **ZOMBIEEE (Invasion) Beta 0.4** was publicly released in 2012 for 
 
 **OSP / third-party credits (same OP):** Shredzor's OSP, Arch3r's Invasion OSP, Modern Buildings OSP, Thel's OSP, Polished Landscapes, MatBerserker, Highlander, Revan Shan, Specialist, BattleOfValmy, Belendor, Shikimaru and the WTF clan.
 
-**Permission record.** The repository owner personally knew the original ZOMBIEEE team and attests that the original TaleWorlds page explicitly allowed anyone to take and play the mod; this private, local preservation build is treated as authorized on that basis. That attestation is recorded in [docs/PROVENANCE.md](docs/PROVENANCE.md) together with the archived evidence and the list of what remains **unverified** — notably, no re-checkable free-reuse sentence was found in the archived thread pages, because the live page is bot-blocked.
+**Permission record.** The repository owner personally knew the original ZOMBIEEE team and attests that the original TaleWorlds page explicitly allowed anyone to take and play the mod; this private, local preservation build is treated as authorized on that basis. That attestation is recorded in [docs/PROVENANCE.md](docs/PROVENANCE.md) together with the archived evidence and the list of what remains **unverified** â€” notably, no re-checkable free-reuse sentence was found in the archived thread pages, because the live page is bot-blocked.
 
 **Redistribution is not implied.** The original RAR, its assets, Warband/WSE2 binaries and all third-party OSP content stay under their own terms and **out of this repository**. This project's own code and documentation are separate from the historical mod. If a public packaged release is ever considered, issue [#5](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/5) tracks the per-asset provenance/permission work that must happen first.
 
