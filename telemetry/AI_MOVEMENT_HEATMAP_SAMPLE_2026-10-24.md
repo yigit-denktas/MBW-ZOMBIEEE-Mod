@@ -59,6 +59,25 @@ identity. `run_metadata_partial`, `missing_class`, `missing_division`, `missing_
   the report only exposes northward/fallback movement and cohesion proxies for A/D to
   interpret.
 
+### 2.1 Pre-analysis gate: `probe-health`
+
+Run C's gate (`agent/c-probe-doctor` @ `c7d58a0` or later) before `heatmap-export` or
+this tool:
+
+```text
+python -m tools.telemetry_studio probe-health <sealed-bundle> --json
+```
+
+| Bundle | Status | Heartbeat | Key checks/gaps |
+| --- | --- | --- | --- |
+| task45-wave2 | **warn** (`ok=true`) | 42 | hit counters absent (old probe); `SCRIPT ERROR x4` |
+| task55-p0 | **warn** (`ok=true`) | 41 | hit counters absent; no critical error family |
+| D partial pre-round | **fail** (`ok=false`) | 0 | `no_heartbeat_events`; trigger registered but heartbeat path not emitting |
+
+Gate rule: **zero heartbeats ⇒ stop, do not treat as heatmap evidence**. Warnings
+(old-probe hit counters, script errors) are recorded and must be carried into the run
+gaps; a `fail` is never converted into a pass by this analysis.
+
 ## 3. Initial observations (bounded)
 
 - **Conditions are dominated by outnumbered windows** in these samples:
@@ -110,7 +129,8 @@ movement classes are track-level):
 
 D supplied a sealed partial (`heatmap-preround-171455.json`): **56 points, 0 heartbeats,
 8 unique IDs**, ticks 0-6, `health/class/division` present in some points, all conditions
-`unknown`, gaps `run_metadata_partial`. Our tool renders it without error
+`unknown`, gaps `run_metadata_partial`. **`probe-health` = fail
+(`no_heartbeat_events`)**; our tool still renders it without error
 (`telemetry/spatial_partial/`), confirming the C schema/consumer path. This is **not
 heatmap evidence**: no round, waves, fallback, mode, build/probe SHA, formation, sample
 interval or spectator metadata; D is blocked by the `hit_param_invalid` nil error in the
