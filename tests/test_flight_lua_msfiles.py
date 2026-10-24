@@ -540,5 +540,12 @@ class LuaOperationMetadataTests(unittest.TestCase):
                       "observed=round_end_transition", "previous_round_ended == 0"):
             self.assertIn(token, self.main)
 
+
+    def test_native_hit_trigger_surface(self):
+        for token in ("|hit_trigger=-28", "|hit_attribution=1",
+                      "store_trigger_param_", "on_agent_hit", "hit_sample",
+                      "hit_events_cap"):
+            self.assertIn(token, self.main)
+
 if __name__ == "__main__":
     unittest.main()

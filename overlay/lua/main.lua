@@ -114,6 +114,7 @@ emit("recorder_capabilities",
     .. "|reload_getter=" .. binding_flag("agent_get_reload_speed_modifier")
     .. "|reticle_getter=0|aim_error_getter=0|fire_mode_getter=0"
     .. "|invalid_agent_guard=1"
+    .. "|hit_trigger=-28|hit_attribution=1|hit_events_cap=2000"
     .. "|speed_modifier_getter=" .. binding_flag("agent_get_speed_modifier")
     .. "|time_multiplier_getter=" .. binding_flag("agent_get_time_speed_multiplier")
     .. "|action_speed_getter=" .. binding_flag("agent_get_action_speed_modifier")
@@ -1279,6 +1280,43 @@ local function heartbeat()
         previous_round_start = round_start
     end
     return false
+end
+local hit_events = 0
+local hit_cap_emitted = false
+local MAX_HIT_EVENTS = 2000
+local function hit_param(index)
+    local fn = game["store_trigger_param_" .. index]
+    if type(fn) ~= "function" then return -1 end
+    local ok, value = pcall(fn, 0)
+    if ok and type(value) == "number" then return math.floor(value) end
+    return -1
+end
+local function on_agent_hit()
+    local role = resolve_role()
+    if role ~= "server" then return false end
+    if hit_events >= MAX_HIT_EVENTS then
+        if not hit_cap_emitted then
+            hit_cap_emitted = true
+            emit("probe_anomaly", "|kind=hit_event_cap|cap=" .. MAX_HIT_EVENTS)
+        end
+        return false
+    end
+    local victim = hit_param(1)
+    local dealer = hit_param(2)
+    local damage = hit_param(3)
+    local missile = hit_param(5)
+    if victim <= 0 and dealer <= 0 then return false end
+    emit("hit_sample", "|victim=" .. victim .. "|dealer=" .. dealer
+        .. "|damage=" .. damage .. "|missile=" .. missile
+        .. "|kind=" .. (missile > 0 and "missile" or "melee"))
+    hit_events = hit_events + 1
+    return false
+end
+local ok_hit, hit_idx = pcall(game.addTrigger, MISSION, -28, 0, 0, on_agent_hit)
+if ok_hit then
+    emit("probe_registered", "|kind=hit|index=" .. tostring(hit_idx))
+else
+    emit("probe_failed", "|kind=hit")
 end
 local ok_heart, heart_idx = pcall(game.addTrigger, MISSION, 15.0, 0, 0, heartbeat)
 if ok_heart then

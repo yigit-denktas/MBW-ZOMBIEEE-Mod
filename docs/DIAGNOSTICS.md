@@ -375,6 +375,20 @@ D's task-42 sealed runs exposed three readback gaps, now closed:
   `ammo > 0 -> 0` transitions plus `weapon_mode=melee`. This is an inference,
   not a direct AI-mode getter; the note records that explicitly.
 
+### Native hit attribution (ti_on_agent_hit)
+
+WSE2 Lua can add a mission-template trigger for native `ti_on_agent_hit`
+(trigger id `-28`) and read `store_trigger_param_1/2/3/5`:
+`1=victim`, `2=dealer`, `3=damage`, `5=missile flag`. The probe now emits a
+bounded `hit_sample` event per hit (server role only, max 2000 per run) with
+`victim`, `dealer`, `damage`, `missile`, `kind`; a capability line reports
+`hit_trigger=-28|hit_attribution=1`. The summary adds `hits` with total/damage,
+missile-vs-melee counts, dealer/victim team and troop breakdowns (from sampled
+agent metadata), friendly-fire count, unattributed hits and metadata
+availability. This replaces the old `hit_telemetry_unavailable` gap when hits
+are observed; the hit trigger still needs a sealed run to validate. No hit
+causality beyond the engine's own trigger params is claimed.
+
 ### Wall-clock timestamps and explicit round-ended event
 
 Every ZDB1 line now carries `ts_ms` from WSE2 `getTime()` when available
