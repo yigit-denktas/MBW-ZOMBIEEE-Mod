@@ -124,19 +124,20 @@ So in the multiplayer bot path, **group = owning/leading player id**. It is a di
 
 ### 4.3 Correcting the "26/28/29/31" evidence
 
-Earlier project docs (`docs/DIAGNOSTICS.md`, written while the `agent_get_group` call convention was still being fixed) recorded native defender bots "in groups 26/28/29/31". The sealed log shows why:
+Earlier project docs (`docs/DIAGNOSTICS.md`, written while the `agent_get_group` call convention was still being fixed) recorded native defender bots "in groups 26/28/29/31". The sealed logs show the getter has never produced a trustworthy value:
 
 - pre-fix sample lines: `id=26|group=26`, `id=28|group=28`, … — **group equals the agent id**, i.e. the getter returned its own argument (wrong call convention / echo), not a group.
-- post-fix samples in a later sealed host log: `groups_team0=9:1,11:1,12:1,15:1`, `groups_team1=8:1,10:1,13:1,14:1`.
+- a later sealed log aggregates `groups_team0=9:1,11:1,12:1,15:1`, `groups_team1=8:1,10:1,13:1,14:1`, which looks like new values. But C's audit of that same log finds **206 of 222 parsed sample lines have `group == id`** (e.g. `id=8|group=8`): the 8..15 aggregates are the **same echo pattern**, not an independently observed group identity.
+- the latest sealed `ai-evidence-task55-p0` bundle reads `group=-1` on **all 987 `ai_sample` lines** (getter unavailable).
 
 Therefore:
 
-1. **26/28/29/31 were never group values** — they were agent ids echoed by the then-unfixed accessor. The doc claim should be treated as superseded.
-2. Real observed values after the fix are **8..15**, four per team in that run. Their exact identity is **not established**. Candidate hypotheses:
-   - H1 leader/owner player ids (the documented Native meaning) — but a bot-only host should not have eight human leader ids; if the engine/WSE2 assigns bots to virtual leader slots, this remains plausible.
-   - H2 an engine/WSE2 bot-group slot namespace (8..15 is consistent with a small per-team slot pool);
+1. **26/28/29/31 were never group values** — they were agent ids echoed by the then-unfixed accessor. The doc claim is superseded.
+2. **Group readback remains unreliable.** No stable, validated post-fix group value exists yet. The 8..15 aggregates must not be treated as observed group identities; the defensible statement is that `agent_get_group` currently returns either an echo of the caller's agent id or unavailable (`-1`), depending on build/convention.
+3. The **documented Native multiplayer meaning** (leader/owner player id, §4.2) still explains why group is not a formation slot. But **do not use any `agent_get_group` value as a division or `team_give_order` sub-class** until a corrected getter is validated against `agent_get_division`/`agent_get_class` (and ideally `player_is_active`). Candidate hypotheses stay open with no observed evidence favouring one:
+   - H1 leader/owner player id (documented Native meaning);
+   - H2 an engine/WSE2 bot-slot namespace;
    - H3 a spawn/entry-derived id unrelated to both.
-3. Either way, **these values are not `team_give_order` sub-classes**. Passing them as `sub_class` would not address the agent's class/division and may address nothing (or class 8/9 semantics), which is why "adopt bots into groups 5–7" via orders cannot work as written.
 
 ### 4.4 Correct path for our survivor/defender adoption
 
@@ -145,7 +146,7 @@ Therefore:
 3. Read back with `agent_get_division` (and `agent_get_class`) and verify with `agent_get_simple_behavior` before assuming orders reach the agent.
 4. Issue `team_give_order(team, division, order)` / `team_set_order_position(team, division, pos)` to those divisions only.
 5. **Do not** pass leader/group ids as `sub_class`, and **do not** pass 5–7 as the `group` argument of `add_visitors_to_current_scene` in multiplayer: the Native MP call passes the **leader player id** there. Passing a formation slot is a type error.
-6. **Known current-builder defect (A, 2026-10-24):** `tools/wave_reinforcements.py` currently passes formation 5/6/7 as the 5th (`group`) argument of `add_visitors_to_current_scene`. This matches D's earlier observation that native team-0 bots spawn but team-0 `add_visitors` do not. A is correcting it; **do not claim visitor spawning works until it is rebuilt and re-sealed**.
+6. **Known current-builder defect (A/C, 2026-10-24):** `tools/wave_reinforcements.py:102` calls `add_visitors_to_current_scene(1265, index%2, troop, 1, 0, GROUPS[index%3])` with `GROUPS=(5,6,7)` — the formation slot is passed as the MP `group` argument. `tools/patch_defenders.py` passes `0` and is consistent. This is a real conflict with A's build and matches D's observation that native team-0 bots spawn while team-0 `add_visitors` do not. A is correcting it; **do not claim visitor spawning works until rebuilt and re-sealed**.
 
 **Experiment gate:** division adoption is **still unproven**. A's build re-applies `agent_set_division` (1783)/`agent_set_group` (1766) to 5/6/7 every 5 s, yet D/C readbacks show no addressable 5–7 order effect. Whether the engine retains a scripted division change for MP bots, and whether orders to division 5/6/7 actually steer them, is **unverified**; the division round-trip in §10 is the decisive test.
 
@@ -158,7 +159,7 @@ Therefore:
 The scoring is engine-internal; Native exposes read-only accessors:
 
 - `agent_ai_get_look_target` (2080), `agent_ai_get_move_target` (2081), `agent_ai_get_behavior_target` (2082) — S1.
-- `agent_ai_get_num_cached_enemies` (2670) and `agent_ai_get_cached_enemy` (2671) — "nearby enemies, nearest to farthest" (S1); these are **absent from the 2015 header** (S3) and present in 1.174-era S1, so treat as later-native and test availability on the pinned runtime. **[unverified]** exact patch.
+- `agent_ai_get_num_cached_enemies` (2670) and `agent_ai_get_cached_enemy` (2671) — "nearby enemies, nearest to farthest" in the Veehats header commit cited here (S1). They are **absent from the 2015 header** (S3) and, per C/A, from the public 1.174 header they check; they may be WSE2-bound. Treat as **unverified / not assumed available**; only a capability probe on the pinned build decides. **[unverified]**
 - `agent_get_attack_action` (1763) exposes attack state machine values (`free/readying/releasing/completing/parried/reloading/after_release/cancelling`) — S1.
 - Scripted influence: `agent_set_scripted_destination` / `_no_attack` (1730/1748), `agent_clear_scripted_mode` (1735), `agent_force_rethink` (1732), plus WSE2 `agent_set_scripted_destination_no_attack` semantics; pitfalls documented in S6.
 
@@ -322,8 +323,8 @@ All write experiments are **test-mode only**, not evidence runs. Read-only probe
 
 ### C — telemetry/summary
 
-1. **Add confirmed readbacks:** `agent_get_simple_behavior` (aisb table), `agent_is_routed`, `agent_ai_get_behavior_target`, `agent_ai_get_look_target`, `agent_ai_get_move_target`, cached enemies (bounded count), `agent_get_attack_action`, `agent_is_alarmed`, `agent_get_division`, `agent_get_class`, team movement/hold-fire/weapon-usage order readbacks. Each with a capability flag and `unknown` semantics.
-2. **Group semantics probe:** for observed group values, read `player_is_active(g)` and `player_get_team_no(g)` (guarded, valid agents only), and compare bot-only vs human-join runs. Report group histogram, division histogram and troop histogram together; never call it "division" without proof.
+1. **Add confirmed readbacks:** `agent_get_simple_behavior` (aisb table), `agent_is_routed`, `agent_ai_get_behavior_target`, `agent_ai_get_look_target`, `agent_ai_get_move_target`, cached enemies (bounded count; unverified ops, probe first), `agent_get_attack_action`, `agent_is_alarmed`, `agent_get_division`, `agent_get_class`, team movement/hold-fire/weapon-usage order readbacks. **Current probe reads only `agent_get_attack_action` (1763, task-60 branch); every new op needs its msfiles lhs/can_fail declaration plus a capability flag** — availability must not be assumed from the header alone.
+2. **Group semantics probe (after a corrected getter is validated):** only then read `player_is_active(g)` and `player_get_team_no(g)` (guarded, valid agents only), compare bot-only vs human-join runs, and report group/division/troop histograms together. With the current getter returning echoes or `-1`, the first task is the getter fix itself; do not build semantics on echo values.
 3. **Order-reachability evidence:** consume the `ti_on_order_issued` events if A adds the trigger; otherwise correlate division readbacks with positions. This is the decisive check for "orders reached the division".
 4. **Retreat/rout:** report `agent_is_routed` counts per team per sample, plus forward/backward displacement as a secondary proxy; distinguish "routed" from "moving back" and from "not moving".
 5. **Wave/arrival:** use spawn/death event triggers where available for wave and arrival events; otherwise counts + transition deltas; label proxies explicitly.
@@ -343,13 +344,13 @@ All write experiments are **test-mode only**, not evidence runs. Read-only probe
 
 ## 11. Open questions / unverified list
 
-1. **Meaning of observed groups 8..15**: leader player ids, engine bot slots, or another namespace — **[unverified]**; the `player_is_active` experiment decides.
+1. **Meaning of `agent_get_group` values**: currently unreliable — pre-fix values echoed agent ids, the 8..15 aggregates are also `id == group` echoes in a later log, and the latest p0 seal reads `-1` for all samples. Exact identity unestablished; do not use group values as division/sub-class until a corrected getter is validated against `agent_get_division`/`agent_get_class`. **[unverified]**
 2. **Why 8..15 appear with no human players**: dedicated/WSE2 bot leader assignment is not documented; **[unverified]**.
 3. **Division persistence for MP bots**: whether `agent_set_division` survives native re-planning/`multiplayer_server_manage_bots`; **[unverified]**.
 4. **`add_visitors` team/group semantics in our WSE2 build**: Native code passes a leader id; the engine's validation and default group when omitted are **[unverified]**.
 5. **Native courage trigger presence in the built ZOMBIEEE template**: project audit says the 25-trigger chain is the invasion controller, but a static confirmation (and a runtime `agent_is_routed` sample) is still needed.
 6. **Exact native version for later ops** (`agent_ai_get_num_cached_enemies`/`cached_enemy`, `ti_on_order_issued`): present in 1.174-era headers, absent from 2015 headers; exact patch introduction **[unverified]**.
-7. **`ti_on_order_issued` payload semantics and support under WSE2**: community-documented (trigger param 1 = order, param 2 = agent), not officially documented; it is present in the Veehats header commit but A reports it absent from the pinned project header/docs — capability probe only.
+7. **`ti_on_order_issued` payload semantics and support under WSE2**: community-documented (trigger param 1 = order, param 2 = agent), not officially documented. It is present at `header_triggers.py:113` of the Veehats commit cited here (S1), but absent from the header copies A and C check — capability probe only; exact header lineage/version is unresolved.
 8. **Alarm semantics**: the header exposes get/set but not what "alarmed" changes in AI decisions; **[unverified]**.
 9. **Native tactic layer active in our template**: S5 quotes it active in Native, S2 has it commented out; per-template check required.
 10. **Trigger minimum interval / evaluation order**: header documents intervals but not the engine floor or ordering guarantees; **[unverified]**.
@@ -368,6 +369,6 @@ All write experiments are **test-mode only**, not evidence runs. Read-only probe
 ### Review record
 
 - **agent-a, 2026-10-24, against `24c03af`: APPROVE with corrections**, all applied in this revision: (a) division adoption remains explicitly unproven (A re-applies `agent_set_division`/`agent_set_group` but readbacks show no 5–7 order effect); (b) `tools/wave_reinforcements.py` passing 5/6/7 as the `add_visitors` group argument is documented as a current-builder defect and the likely cause of missing team-0 visitors (A correcting; no spawn claim until re-sealed); (c) `ti_on_order_issued` demoted to capability-probe-only because A reports it absent from the pinned header/docs; (d) morale/rout caveat strengthened: the engine may route agents outside the module-script path, so the honest test is observed `agent_is_routed` plus absence of retreat/fallback orders, not "rout is impossible"; (e) A's experiment order applied — `add_visitors` first, then division round-trip, order-addressability, zombie no-retreat audit.
-- **agent-c**: review requested; findings will be appended before the task is closed.
+- **agent-c, 2026-10-24, against `24c03af`: one concrete finding, applied here:** the 8..15 aggregates are **not** independently observed group values — C's audit of that log finds 206/222 sample lines with `group == id` (echo), and the latest `ai-evidence-task55-p0` seal reads `group=-1` on all 987 samples. The "real groups 8..15" claim was removed; group readback is now documented as unreliable (§4.3, §11 item 1). C also confirmed the live builder conflict: `tools/wave_reinforcements.py:102` passes `GROUPS=(5,6,7)` as the `add_visitors` MP group argument (now documented in §4.4 item 6), and confirmed the readback ops 1738/1699/1806/2080/2081/2082 while flagging 2670/2671 and `ti_on_order_issued` as unverified/not in its header copy (now marked). Central conclusion (group ≠ division/sub-class) stands and is strengthened.
 
 *End of research document.*
