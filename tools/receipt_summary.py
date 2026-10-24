@@ -1220,6 +1220,10 @@ def summarize_receipt(target: Path) -> dict:
             "shots_observed": shots,
             "ammo_burn": burn,
             "reloads_observed": reloads,
+            "reloads_or_refills_observed": reloads,
+            "ammo_increase_masks_shots": True,
+            "shots_are_lower_bound_proxy": True,
+            "shot_count_proven": False,
             "shot_intervals_ticks": (
                 {"count": len(intervals), "min": min(intervals),
                  "avg": round(sum(intervals) / len(intervals), 3),
@@ -1279,6 +1283,14 @@ def summarize_receipt(target: Path) -> dict:
     firearms = {
         "team0": firearms_team0,
         "team1": firearms_team1,
+        "shot_measurement": {
+            "proxy": True,
+            "proven": False,
+            "reason": ("shots are inferred from ammo decreases; refill_ammo "
+                       "can increase ammo and reset the interval baseline, so "
+                       "shot counts/zero shots are not proven; attack_action "
+                       "release/ready transitions are not a shot counter"),
+        },
         "source": "ammo_decrease_between_bounded_ai_and_combat_samples",
         "tick_units": "recorder heartbeat/sample tick (wall-clock unknown)",
         "fire_mode_expected_source": (
@@ -1301,6 +1313,14 @@ def summarize_receipt(target: Path) -> dict:
                  "readback; no hit/reticle/manual-mode/item-accuracy getter "
                  "exists here, so those stay unknown."),
     }
+    if firearms_team0["samples"] or firearms_team1["samples"]:
+        gaps_hint = list(gaps_hint) + [
+            "ammo_refill_masks_shots",
+            "attack_action_is_not_shot_count",
+        ]
+        if (firearms_team0.get("shots_observed") == 0
+                and firearms_team1.get("shots_observed") == 0):
+            gaps_hint = list(gaps_hint) + ["zero_shots_not_proven"]
     ranged_gaps = sorted(set(
         (firearms_team0.get("ranged_gaps") or [])
         + (firearms_team1.get("ranged_gaps") or [])))

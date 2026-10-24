@@ -427,6 +427,16 @@ The probe adds a 1 s `adaptive_tick` trigger:
 build/settings; compare CPU/memory/log size/event rate/heartbeat cadence and
 heatmap point density. No acceptance/visual claim.
 
+**Shot-measurement caveat (refill):** `refill_ammo` can increase ammo, which
+looks like a reload/reset in ammo-delta inference and can mask or inflate
+apparent shot intervals. Summary therefore exposes
+`firearms.shot_measurement={proxy:true,proven:false}`,
+`shots_are_lower_bound_proxy`, `ammo_increase_masks_shots`, and gaps
+`ammo_refill_masks_shots`, `attack_action_is_not_shot_count`, plus
+`zero_shots_not_proven` when both teams show zero. **Zero shots are not proven**
+and `attack_action` release/ready transitions are not a shot counter. Wait for
+A’s refill-off measurement build before claiming cadence/shots.
+
 ### Ranged/fire-cadence telemetry (task-82)
 
 Summary `firearms.team0/1` now adds, from bounded ai/combat samples:
