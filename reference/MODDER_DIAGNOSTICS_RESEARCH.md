@@ -26,7 +26,7 @@ Baseline for comparison is our own diagnostic stack: `overlay/lua/main.lua` (ZDB
 ### WSE2 engine-side diagnostics (the usable reuse)
 
 - **Engine log file (install-verified by D, 2026-10-24):** the live log is
-  `D:\Program Files (x86)\Steam\steamapps\common\MountBlade Warband\rgl_log.txt`
+  `<game-install>\rgl_log.txt`
   (config `sLogPath=rgl_log.txt`), overwritten per launch and containing the
   client command line and Steam init lines. The **stable** secondary artifact is
   the rotated `…\MountBlade Warband\Logs\rgl_log_<DD.MM.YYYY_HH.MM.SS>.txt`
