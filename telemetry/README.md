@@ -42,8 +42,9 @@ behaviour.
 
 `telemetry/spatial_analysis.py` consumes `zombieee.heatmap-input.v1` and writes
 `spatial-analysis.json`, `SPATIAL_ANALYSIS.md`, and simple per-team/wave SVG
-grids: occupancy/flow, round panels, cohesion, movement classes, situation
-panels (outnumbered/advantage/even from heartbeats), chokepoint *candidates*,
+grids: occupancy/flow, round panels, cohesion (anchor distance and pairwise
+per-tick distance), movement classes, situation panels selected by heartbeat
+condition (outnumbered/advantage/even), chokepoint *candidates*,
 health/class coverage and gaps. It is descriptive only; chokepoints are
 occupancy candidates, UNKNOWN never passes, and there is no visual/acceptance
 claim.

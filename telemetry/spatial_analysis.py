@@ -104,20 +104,46 @@ def analyze(heatmap: dict, *, bin_size: float = DEFAULT_BIN) -> dict[str, Any]:
         round_panels.append({"team": team, "round": round_no,
                              "grid": _grid(rows, bin_size)})
 
-    # Cohesion from input anchors/dist-to-anchor.
+    # Cohesion: anchor distance is kept separately from true pairwise cohesion.
     cohesion = {}
     for team in (0, 1):
         rows = by_team.get(team) or []
         distances = [_num(point.get("dist_to_anchor")) for point in rows]
         distances = [d for d in distances if d is not None]
-        spread = [_num(point.get("cohesion_rms")) for point in rows]
-        spread = [s for s in spread if s is not None]
+        by_tick = defaultdict(list)
+        for point in rows:
+            tick = _int(point.get("tick"))
+            if tick is not None:
+                by_tick[tick].append(point)
+        pairwise_means = []
+        pairwise_pairs = 0
+        for tick, tick_rows in by_tick.items():
+            coords = [(_num(point.get("x")), _num(point.get("y")))
+                      for point in tick_rows[:32]]
+            coords = [pair for pair in coords if pair[0] is not None and pair[1] is not None]
+            if len(coords) < 2:
+                continue
+            total = 0.0
+            pairs = 0
+            for i in range(len(coords)):
+                for j in range(i + 1, len(coords)):
+                    total += math.dist(coords[i], coords[j])
+                    pairs += 1
+            if pairs:
+                pairwise_means.append(total / pairs)
+                pairwise_pairs += pairs
         cohesion[f"team{team}"] = {
             "points": len(rows),
-            "mean_dist_to_anchor": (round(sum(distances) / len(distances), 3)
-                                    if distances else None),
-            "mean_cohesion_rms": (round(sum(spread) / len(spread), 3)
-                                  if spread else None),
+            "anchor_mean_distance": (round(sum(distances) / len(distances), 3)
+                                     if distances else None),
+            "anchor_points": len(distances),
+            "pairwise_mean_distance": (round(sum(pairwise_means) / len(pairwise_means), 3)
+                                       if pairwise_means else None),
+            "pairwise_ticks": len(pairwise_means),
+            "pairwise_pairs": pairwise_pairs,
+            "basis": ("anchor_mean_distance=distance to team centroid per tick; "
+                      "pairwise_mean_distance=mean pairwise agent distance per tick "
+                      "(capped 32 agents/tick)"),
         }
 
     # Per-agent movement classes (track-level, ID reuse across rounds is a gap).
@@ -153,16 +179,49 @@ def analyze(heatmap: dict, *, bin_size: float = DEFAULT_BIN) -> dict[str, Any]:
             else:
                 label = "even"
         situations[label].append(hb)
+    hb_rows = sorted((row for row in (heatmap.get("heartbeats") or [])
+                      if _int(row.get("tick")) is not None),
+                     key=lambda row: _int(row.get("tick")))
+    situation_points = defaultdict(list)
+    for point in points:
+        point_tick = _int(point.get("tick"))
+        point_ts = _int(point.get("ts_ms"))
+        chosen = None
+        for hb in hb_rows:
+            hb_tick = _int(hb.get("tick"))
+            hb_ts = _int(hb.get("ts_ms"))
+            if point_tick is not None and hb_tick is not None:
+                if hb_tick <= point_tick:
+                    chosen = hb
+                else:
+                    break
+            elif point_ts is not None and hb_ts is not None:
+                if hb_ts <= point_ts:
+                    chosen = hb
+                else:
+                    break
+        if chosen is None:
+            situation_points["unknown"].append(point)
+            continue
+        alive0, alive1 = _int(chosen.get("alive0")), _int(chosen.get("alive1"))
+        label = "unknown"
+        if alive0 is not None and alive1 is not None:
+            if alive0 < alive1:
+                label = "outnumbered"
+            elif alive0 > alive1:
+                label = "advantage"
+            else:
+                label = "even"
+        situation_points[label].append(point)
     situation_panels = []
-    for label, rows in situations.items():
-        wave_points = [point for point in points
-                       if label == "unknown" or True]
-        # Join situations to points by wave when available; otherwise descriptive only.
-        waves = {_int(row.get("wave")) for row in rows} - {None}
-        selected = [point for point in points if _int(point.get("wave")) in waves]
+    for label in sorted(set(situations) | set(situation_points)):
+        rows = situations.get(label, [])
+        selected = situation_points.get(label, [])
         situation_panels.append({
             "situation": label, "heartbeats": len(rows),
-            "waves": sorted(waves), "points": len(selected),
+            "waves": sorted({_int(point.get("wave")) for point in selected}
+                            - {None}),
+            "points": len(selected),
             "grid": _grid(selected, bin_size) if selected else None,
         })
 
@@ -192,6 +251,9 @@ def analyze(heatmap: dict, *, bin_size: float = DEFAULT_BIN) -> dict[str, Any]:
         gaps.append("health_not_available_for_spatial")
     if not class_points:
         gaps.append("class_not_available_for_spatial")
+    round_points = sum(1 for point in points if point.get("round") is not None)
+    if not round_points:
+        gaps.append("round_not_available_for_panels")
     return {
         "schema": SPATIAL_SCHEMA,
         "run": run,
@@ -241,6 +303,39 @@ def _svg_grid(grid: dict, title: str) -> str:
     return "\n".join(parts)
 
 
+def _svg_flow(grid: dict, title: str) -> str:
+    if not grid or not grid.get("cells"):
+        return ""
+    cells = grid["cells"]
+    flow_cells = [cell for cell in cells
+                  if cell.get("mean_dx") is not None and cell.get("mean_dy") is not None]
+    if not flow_cells:
+        return ""
+    scale = 20
+    min_gx = min(cell["gx"] for cell in cells)
+    min_gy = min(cell["gy"] for cell in cells)
+    max_gx = max(cell["gx"] for cell in cells)
+    max_gy = max(cell["gy"] for cell in cells)
+    width = (max_gx - min_gx + 1) * scale + 40
+    height = (max_gy - min_gy + 1) * scale + 40
+    parts = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}">',
+             f'<text x="10" y="20" font-family="monospace">{title} flow</text>']
+    for cell in cells:
+        x = (cell["gx"] - min_gx) * scale + 10
+        y = (cell["gy"] - min_gy) * scale + 30
+        parts.append(f'<rect x="{x}" y="{y}" width="{scale - 1}" height="{scale - 1}" '
+                     f'fill="rgba(80,80,80,0.08)"/>')
+    for cell in flow_cells:
+        x = (cell["gx"] - min_gx) * scale + 10 + scale / 2
+        y = (cell["gy"] - min_gy) * scale + 30 + scale / 2
+        dx = max(-scale * 2, min(scale * 2, cell["mean_dx"]))
+        dy = max(-scale * 2, min(scale * 2, cell["mean_dy"]))
+        parts.append(f'<line x1="{x}" y1="{y}" x2="{x + dx}" y2="{y + dy}" '
+                     f'stroke="rgba(20,80,200,0.8)" stroke-width="2"/>')
+    parts.append("</svg>")
+    return "\n".join(parts)
+
+
 def write_outputs(result: dict, out_dir: Path) -> dict:
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -249,16 +344,36 @@ def write_outputs(result: dict, out_dir: Path) -> dict:
                          encoding="utf-8")
     svg_paths = []
     for panel in result.get("occupancy") or []:
-        title = f"team{panel['team']} wave{panel['wave']}"
-        svg = _svg_grid(panel["grid"], title)
-        if svg:
-            path = out_dir / f"occupancy-team{panel['team']}-wave{panel['wave']}.svg"
-            path.write_text(svg, encoding="utf-8")
+        team, wave = panel["team"], panel["wave"]
+        grid_svg = _svg_grid(panel["grid"], f"team{team} wave{wave}")
+        if grid_svg:
+            path = out_dir / f"occupancy-team{team}-wave{wave}.svg"
+            path.write_text(grid_svg, encoding="utf-8")
             svg_paths.append(str(path))
+        flow_svg = _svg_flow(panel["grid"], f"team{team} wave{wave}")
+        if flow_svg:
+            path = out_dir / f"flow-team{team}-wave{wave}.svg"
+            path.write_text(flow_svg, encoding="utf-8")
+            svg_paths.append(str(path))
+    for panel in result.get("round_panels") or []:
+        team, round_no = panel["team"], panel["round"]
+        grid_svg = _svg_grid(panel["grid"], f"team{team} round{round_no}")
+        if grid_svg:
+            path = out_dir / f"round-team{team}-round{round_no}.svg"
+            path.write_text(grid_svg, encoding="utf-8")
+            svg_paths.append(str(path))
+    for panel in result.get("situations") or []:
+        label = panel["situation"]
+        if panel.get("grid"):
+            grid_svg = _svg_grid(panel["grid"], f"situation {label}")
+            if grid_svg:
+                path = out_dir / f"situation-{label}.svg"
+                path.write_text(grid_svg, encoding="utf-8")
+                svg_paths.append(str(path))
     lines = ["# Spatial analysis (descriptive only)", "",
              f"Points: {result['points']} | bin={result['bin_size']} | "
              f"gaps: {', '.join(result['gaps']) or 'none'}", "",
-             "## Cohesion", ""]
+             "## Cohesion (anchor distance + pairwise)", ""]
     for team, row in (result.get("cohesion") or {}).items():
         lines.append(f"- {team}: {row}")
     lines += ["", "## Movement classes", "",
