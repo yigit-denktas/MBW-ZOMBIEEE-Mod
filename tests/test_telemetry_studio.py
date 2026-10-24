@@ -20,6 +20,7 @@ from tools.telemetry_studio import (
 )
 from tools.telemetry_studio.balance import analyze_balance, render_balance_report
 from tools.telemetry_studio.loop import run_iteration
+from tools.telemetry_studio.heatmap_input import extract_heatmap, HEATMAP_SCHEMA
 from tools.telemetry_studio.ingest import IngestError
 from tools.telemetry_studio.__main__ import main
 from tools.telemetry_studio.tail import tail_events
@@ -268,6 +269,49 @@ class LoopTests(unittest.TestCase):
             state = json.loads(Path(result["state"]).read_text(encoding="utf-8"))
             self.assertEqual(len(state["iterations"]), 1)
             self.assertIs(state["iterations"][0]["not_acceptance"], True)
+
+
+class HeatmapInputTests(unittest.TestCase):
+    def test_extract_points_anchors_deltas_and_gaps(self):
+        lines = [
+            "ZDB1|heartbeat|count=1|role=server|team0=2|team1=1|wave=1",
+            "ZDB1|ai_sample|tick=1|ts_ms=1000|team=0|id=1|troop=981|class=1"
+            "|division=5|hp=90|alive=1|x=10.0|y=10.0|kills=0|wave=1",
+            "ZDB1|ai_sample|tick=1|ts_ms=1000|team=0|id=2|troop=982|class=2"
+            "|division=5|hp=80|alive=1|x=14.0|y=10.0|kills=0|wave=1",
+            "ZDB1|ai_sample|tick=2|ts_ms=16000|team=0|id=1|troop=981|class=1"
+            "|division=5|hp=70|alive=1|x=12.0|y=12.0|kills=0|wave=1",
+            "ZDB1|ai_sample|tick=2|ts_ms=16000|team=0|id=2|troop=982|class=2"
+            "|division=5|hp=60|alive=0|x=16.0|y=10.0|kills=0|wave=1",
+        ]
+        with tempfile.TemporaryDirectory() as td:
+            root = _bundle(Path(td), lines, sealed=False)
+            data = extract_heatmap(ingest_bundle(root, allow_unsealed=True))
+            self.assertEqual(data["schema"], HEATMAP_SCHEMA)
+            self.assertEqual(len(data["points"]), 4)
+            self.assertEqual(len(data["agents"]), 2)
+            self.assertEqual(data["points"][0]["team"], 0)
+            self.assertEqual(data["points"][0]["class_id"], 1)
+            self.assertEqual(data["points"][0]["division"], 5)
+            self.assertEqual(data["points"][0]["hp"], 90)
+            self.assertAlmostEqual(data["points"][0]["dist_to_anchor"], 2.0)
+            agent1 = data["agents"]["1"]
+            self.assertEqual(agent1["samples"], 2)
+            self.assertGreater(agent1["movement_total"], 0)
+            self.assertEqual(data["sampling_density"]["unique_ticks"], 2)
+            self.assertEqual(len(data["heartbeats"]), 1)
+            self.assertEqual(data["run"]["sample_interval_s"], 15)
+            self.assertNotIn("no_position_points", data["gaps"])
+            self.assertTrue(data["not_visual_validation"])
+
+    def test_empty_bundle_reports_heatmap_gaps(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = _bundle(Path(td), ["ZDB1|heartbeat|count=1|role=server"],
+                           sealed=False)
+            data = extract_heatmap(ingest_bundle(root, allow_unsealed=True))
+            self.assertEqual(data["points"], [])
+            self.assertIn("heatmap_has_no_points", data["gaps"])
+            self.assertIn("no_position_points", data["gaps"])
 
 if __name__ == "__main__":
     unittest.main()

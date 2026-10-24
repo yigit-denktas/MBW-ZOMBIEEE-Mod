@@ -10,6 +10,7 @@ from pathlib import Path
 from .anomaly import detect_anomalies
 from .balance import analyze_balance, render_balance_report
 from .loop import run_iteration
+from .heatmap_input import extract_heatmap
 from .compare import compare_ingests
 from .ingest import IngestError, ingest_bundle
 from .perf import analyze_performance
@@ -90,6 +91,12 @@ def main(argv: list[str] | None = None) -> int:
     p_loop.add_argument("--allow-unsealed", action="store_true")
     p_loop.add_argument("--json", action="store_true")
 
+    p_heat = sub.add_parser("heatmap-export", help="export heatmap-ready JSON from a bundle")
+    p_heat.add_argument("bundle", type=Path)
+    p_heat.add_argument("--out", type=Path, default=None)
+    p_heat.add_argument("--allow-unsealed", action="store_true")
+    p_heat.add_argument("--json", action="store_true")
+
     p_report = sub.add_parser("report", help="render an iteration receipt")
     p_report.add_argument("baseline", type=Path)
     p_report.add_argument("candidate", type=Path, nargs="?")
@@ -152,6 +159,20 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"wrote {args.out}")
             else:
                 print(_json.dumps(result, indent=2, sort_keys=True) if args.json else text)
+            return 0
+        if args.command == "heatmap-export":
+            ingest = ingest_bundle(args.bundle, allow_unsealed=args.allow_unsealed)
+            data = extract_heatmap(ingest)
+            text = json.dumps(data, indent=2, sort_keys=True)
+            if args.out:
+                args.out.parent.mkdir(parents=True, exist_ok=True)
+                args.out.write_text(text + "\n", encoding="utf-8")
+                print(f"wrote {args.out}")
+            else:
+                print(text if args.json else json.dumps(
+                    {"schema": data["schema"], "points": len(data["points"]),
+                     "agents": len(data["agents"]), "gaps": data["gaps"]},
+                    indent=2, sort_keys=True))
             return 0
         if args.command == "report":
             base, base_perf = _ingest(args.baseline, args.allow_unsealed)

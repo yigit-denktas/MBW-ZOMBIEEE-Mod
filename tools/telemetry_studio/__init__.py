@@ -29,5 +29,7 @@ __all__ = [
     "inspect_module",
     "render_iteration_report",
     "analyze_balance",
+    "extract_heatmap",
+    "HEATMAP_SCHEMA",
     "render_balance_report",
 ]

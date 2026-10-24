@@ -115,6 +115,9 @@ emit("recorder_capabilities",
     .. "|reticle_getter=0|aim_error_getter=0|fire_mode_getter=0"
     .. "|invalid_agent_guard=1"
     .. "|hit_trigger=-28|hit_attribution=1|hit_events_cap=2000"
+    .. "|class_getter=" .. binding_flag("agent_get_class")
+    .. "|division_getter=" .. binding_flag("agent_get_division")
+    .. "|hp_getter=" .. binding_flag("store_agent_hit_points")
     .. "|speed_modifier_getter=" .. binding_flag("agent_get_speed_modifier")
     .. "|time_multiplier_getter=" .. binding_flag("agent_get_time_speed_multiplier")
     .. "|action_speed_getter=" .. binding_flag("agent_get_action_speed_modifier")
@@ -687,6 +690,12 @@ local function sample_world()
                                 "agent_get_accuracy_modifier", agent)
                             local reload_modifier = read_agent_number(
                                 "agent_get_reload_speed_modifier", agent)
+                            local agent_class = read_agent_number(
+                                "agent_get_class", agent)
+                            local division = read_agent_number(
+                                "agent_get_division", agent)
+                            local hp = read_agent_number(
+                                "store_agent_hit_points", agent, 1)
                             result.ai_samples[#result.ai_samples + 1] =
                                 { team = side, id = agent, x = x, y = y,
                                   kills = kills, group = group, troop = troop,
@@ -696,7 +705,9 @@ local function sample_world()
                                   time_multiplier = fixed, action_speed = action,
                                   attack_action = attack_action,
                                   accuracy_modifier = accuracy_modifier,
-                                  reload_modifier = reload_modifier }
+                                  reload_modifier = reload_modifier,
+                                  class = agent_class, division = division,
+                                  hp = hp }
                         end
                     end
                 end
@@ -1040,6 +1051,12 @@ local function sample_defenders(tick, mode, wave)
                     "agent_get_accuracy_modifier", agent)
                 local reload_modifier = read_agent_number(
                     "agent_get_reload_speed_modifier", agent)
+                local agent_class = read_agent_number(
+                    "agent_get_class", agent)
+                local division = read_agent_number(
+                    "agent_get_division", agent)
+                local hp = read_agent_number(
+                    "store_agent_hit_points", agent, 1)
                 local alive_flag = is_alive(agent) == true and 1 or 0
                 if kills >= 0 or ammo >= 0 or weapon >= 0 then
                     emit("combat_sample", "|tick=" .. tick .. "|id=" .. agent
@@ -1052,6 +1069,8 @@ local function sample_defenders(tick, mode, wave)
                         .. "|attack_action=" .. attack_action
                         .. "|accuracy_modifier=" .. accuracy_modifier
                         .. "|reload_speed_modifier=" .. reload_modifier
+                        .. "|class=" .. agent_class .. "|division=" .. division
+                        .. "|hp=" .. hp
                         .. "|shield=-1|action=-1")
                 end
                 if type(game.agent_get_position) == "function" then
@@ -1105,6 +1124,9 @@ local function emit_ai_samples(world, role, wave, tick)
             .. "|attack_action=" .. (sample.attack_action or -1)
             .. "|accuracy_modifier=" .. (sample.accuracy_modifier or -1)
             .. "|reload_speed_modifier=" .. (sample.reload_modifier or -1)
+            .. "|class=" .. (sample.class or -1)
+            .. "|division=" .. (sample.division or -1)
+            .. "|hp=" .. (sample.hp or -1)
             .. "|shield=-1|action=-1"
             .. "|x=" .. sample.x .. "|y=" .. sample.y
             .. "|kills=" .. (sample.kills or -1) .. "|wave=" .. wave)

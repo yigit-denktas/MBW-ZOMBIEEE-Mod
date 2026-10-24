@@ -53,6 +53,9 @@ OPS = {
     "agent_get_kill_count": (1723, "lhs"),
     "agent_get_attack_action": (1763, "lhs"),
     "agent_get_accuracy_modifier": (2066, "lhs"),
+    "agent_get_class": (1772, "lhs"),
+    "agent_get_division": (1773, "lhs"),
+    "store_agent_hit_points": (1720, "lhs"),
     "agent_get_reload_speed_modifier": (2068, "lhs"),
     "agent_get_wielded_item": (1726, "lhs"),
     "agent_get_ammo": (1727, "lhs"),
@@ -546,6 +549,15 @@ class LuaOperationMetadataTests(unittest.TestCase):
                       "store_trigger_param_", "on_agent_hit", "hit_sample",
                       "hit_events_cap"):
             self.assertIn(token, self.main)
+
+
+    def test_heatmap_probe_surface(self):
+        for token in ("agent_get_class = 1772", "agent_get_division = 1773",
+                      "store_agent_hit_points = 1720",
+                      "|class_getter=", "|division_getter=", "|hp_getter=",
+                      "|class=", "|division=", "|hp="):
+            source = header_text() if token.endswith(("1772", "1773", "1720")) else self.main
+            self.assertIn(token, source)
 
 if __name__ == "__main__":
     unittest.main()

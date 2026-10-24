@@ -394,6 +394,26 @@ friendly-fire count and unattributed hits. **Friendly-fire is a metadata-limited
 undercount**, not a total; hits without both dealer and victim metadata are
 `unattributed`. No hit causality beyond the engine trigger params is claimed.
 
+### Heatmap-ready ZDB1 input (task-74)
+
+`tools/telemetry_studio/heatmap_input.py` exports `zombieee.heatmap-input.v1`
+from a sealed bundle without rendering or validating a heatmap. Probe additions:
+per sampled bot `class` (`agent_get_class` 1772), `division`
+(`agent_get_division` 1773) and absolute `hp` (`store_agent_hit_points` 1720),
+with capability flags `class_getter`/`division_getter`/`hp_getter`.
+
+Schema (E's preferred shape): top-level `run{run_id,build_sha,probe_sha,
+formation_mode,map,entry_ids,seed,sample_interval_s,spectator_or_overview}`,
+flat `points[]` (`agent_id,team,troop,class_id,division,tick,ts_ms,x,y,hp,
+alive,wave,round,mode,source`), required `heartbeats[]`
+(`tick,ts_ms,wave,round,mode,team0/1,alive0/1`), explicit `gaps[]`; optional
+`agents{}`/`anchors[]`/`sampling_density` extras. `tick` is primary; `ts_ms` is
+probe-relative only; hp/class_id/division/alive may be null with gaps. Missing
+run metadata is `run_metadata_partial`, never invented. CLI:
+`python -m tools.telemetry_studio heatmap-export <bundle> --out points.json`.
+Coordinate with E's `telemetry/spatial_analysis.py`; this is input data, not
+visual validation.
+
 ### Probe-relative `ts_ms` and explicit round-ended event
 
 Every ZDB1 line now carries `ts_ms` from WSE2 `getTime()` when available

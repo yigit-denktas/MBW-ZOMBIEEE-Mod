@@ -33,6 +33,7 @@ python -m tools.telemetry_studio report <baseline> [candidate] --out receipt.md 
     --hypothesis "..." --next "..." [--module <installed-module-dir>]
 python -m tools.telemetry_studio balance <run1> [run2 ...] \
     [--params params.json] [--out balance.md] [--json]
+python -m tools.telemetry_studio heatmap-export <bundle> [--out points.json]
 python -m tools.telemetry_studio loop <baseline> [candidate] \
     --hypothesis "..." --next "..." [--decision pending|keep|discard] \
     [--out-dir telemetry/iterations] [--state state.json] [--module DIR]
