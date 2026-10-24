@@ -29,6 +29,25 @@ footer{border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 
 .graph-panel{margin:1.4rem 0}.graph-scroll{overflow:auto;border:1px solid var(--line);border-radius:12px;background:#151922;padding:1rem;max-height:72vh}.graph-scroll .mermaid{min-width:980px;text-align:center}.graph-panel .graph-note{font-size:.9rem;color:var(--muted)}.graph-panel .mermaid svg{max-width:none;height:auto}.graph-fallback{margin-top:.6rem;font-size:.85rem}
+
+.dep-section{margin:1.6rem 0;border-top:1px solid var(--line);padding-top:1rem}
+.dep-head{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;flex-wrap:wrap}
+.dep-controls{display:flex;gap:.5rem;flex-wrap:wrap}.dep-controls button{min-height:38px;padding:.35rem .7rem;font-size:.85rem}
+.dep-map{position:relative;min-width:0;background:#151922;border:1px solid var(--line);border-radius:12px;padding:1rem;margin-top:.8rem;overflow:hidden}
+.dep-lanes{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.65rem;position:relative;z-index:1}
+.dep-lane{display:grid;gap:.4rem;align-content:start;min-height:60px;padding:.45rem;border:1px dashed #3a4354;border-radius:10px;background:rgba(29,34,44,.55)}
+.dep-lane h3{font-size:.78rem;line-height:1.3;letter-spacing:.04em;margin:0 0 .2rem;color:var(--muted);font-weight:750}
+.dep-lane h3 button{border:0;background:none;color:inherit;padding:0;min-height:0;font:inherit;text-align:left}.dep-lane h3 button:hover{color:var(--accent)}
+.dep-node{position:relative;z-index:3;display:block;width:100%;text-align:left;padding:.45rem .55rem;border:1px solid #3c4658;border-left-width:4px;border-radius:8px;background:#1d222c;color:var(--text);min-height:0;cursor:pointer;font-size:.82rem;line-height:1.35}
+.dep-node:hover,.dep-node:focus-visible{border-color:var(--focus);background:#252c39;transform:translateY(-1px)}
+.dep-node strong{display:block;font-size:.76rem;letter-spacing:.03em;color:var(--muted)}.dep-node span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:var(--text);margin:.1rem 0;min-height:1.8em}.dep-node small{display:block;color:var(--muted);font-size:.72rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dep-node.state-done{border-left-color:#5bbf86}.dep-node.state-active{border-left-color:#e6b85c}.dep-node.state-blocked{border-left-color:#e67b70}.dep-node.state-req{border-left-color:#7e8fc7}.dep-node.state-open{border-left-color:#687381}
+.dep-node.connected{background:#2a3340;border-color:#aab6c8}.dep-node.dimmed{opacity:.3}
+.dep-edges{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;overflow:visible}
+.dep-edge{fill:none;stroke:#687381;stroke-width:1.25;opacity:.42}.dep-edge.support{stroke:#e67b70;stroke-dasharray:5 5;opacity:.6}.dep-edge.hot{opacity:1;stroke-width:2.4}
+.dep-legend{display:flex;gap:1rem;flex-wrap:wrap;font-size:.8rem;color:var(--muted);margin:.7rem 0}.dep-legend i{display:inline-block;width:1.2rem;height:2px;background:#687381;vertical-align:middle;margin-right:.3rem}.dep-legend i.support{background:linear-gradient(90deg,var(--accent) 50%,transparent 50%);background-size:6px 2px}.dep-legend b{display:inline-block;width:.65rem;height:.65rem;border-radius:2px;margin-right:.3rem}
+.dep-summary{font-size:.82rem;color:var(--muted)}.dep-scroll{overflow:auto;padding-bottom:.3rem}
+@media(max-width:760px){.dep-map{min-width:900px}.dep-section{margin-left:0;margin-right:0}}
 </style>
 </head>
 <body>
@@ -61,116 +80,14 @@ footer{border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
 <aside id="detail" class="detail" aria-labelledby="detail-title" tabindex="-1"><h3 id="detail-title">Select a work item</h3><p>Choose an item to see its outcome, evidence, dependencies and source.</p></aside></div>
 </section>
 
-<section class="card graph-panel" aria-labelledby="graph-heading" id="dependency-graph">
-<h2 id="graph-heading">Work dependency graph</h2>
-<p class="graph-note">Required gates plus the new discovered work, its owner, what it was discovered during, and whether it opens or blocks the next gate. Solid arrows are prerequisites; dashed arrows support a required outcome. Discovered work is supplemental and never earns required credit.</p>
-<div class="graph-scroll" role="region" aria-label="Work dependency Mermaid graph" tabindex="0"><pre class="mermaid">
-flowchart TB
-  classDef done fill:#d9f2e3,stroke:#1f7a4d,color:#073b24;
-  classDef active fill:#fff0c2,stroke:#a66a00,color:#4a3000;
-  classDef blocked fill:#ffd9d6,stroke:#b3261e,color:#5c120e;
-  classDef req fill:#e8eefc,stroke:#4b5b86,color:#1b2745;
-  classDef disc fill:#f5e8ff,stroke:#7a3fa0,color:#321047;
-  subgraph M0["M0 · Scoped record ready for owner review (0/5 accepted)"]
-    ZOM_REC_01["ZOM-REC-01<br/>Reconcile pinned kit and repeat installer replay<br/><small>Agent A</small>"]
-    ZOM_REC_02["ZOM-REC-02<br/>Approve the scoped product baseline<br/><small>Agent A</small>"]
-    ZOM_REC_03["ZOM-REC-03<br/>Validate and review branded progress views<br/><small>Agent A</small>"]
-  end
-  subgraph M1["M1 · Observed WSE2 baseline (0/5 accepted)"]
-    ZOM_ENG_01["ZOM-ENG-01<br/>Verify complete original ZOMBIEEE 0.4 archive<br/><small>Agent A</small>"]
-    ZOM_ENG_02["ZOM-ENG-02<br/>Boot the original module with supported WSE2<br/><small>Agent A</small>"]
-    ZOM_ENG_03["ZOM-ENG-03<br/>Complete baseline City zombie wave<br/><small>Agent A</small>"]
-    ZOM_OBS_01["ZOM-OBS-01<br/>Validate game-event telemetry inside WSE2<br/><small>Agent C</small>"]
-    ZOM_OBS_02["ZOM-OBS-02<br/>Collect crash-resistant external host evidence<br/><small>Agent C</small>"]
-  end
-  subgraph M2["M2 · One-click Windows solo start (0/5 accepted)"]
-    ZOM_WIN_01["ZOM-WIN-01<br/>Discover installed licensed Warband and WSE2<br/><small>Agent B</small>"]
-    ZOM_WIN_02["ZOM-WIN-02<br/>Deliver safe install, repair and rollback<br/><small>Agent B</small>"]
-    ZOM_WIN_03["ZOM-WIN-03<br/>Create user desktop launcher and settings<br/><small>Agent B</small>"]
-    ZOM_SOLO_01["ZOM-SOLO-01<br/>Automatically start private invasion host<br/><small>Agent B</small>"]
-    ZOM_SOLO_02["ZOM-SOLO-02<br/>Join solo player without manual server setup<br/><small>Agent B</small>"]
-  end
-  subgraph M3["M3 · City survivor AI and combat reliable (0/5 accepted)"]
-    ZOM_AI_01["ZOM-AI-01<br/>Verify allied defender team and initial spawns<br/><small>Agent A</small>"]
-    ZOM_AI_02["ZOM-AI-02<br/>Establish measurable effective ranged combat<br/><small>Agent A</small>"]
-    ZOM_AI_03["ZOM-AI-03<br/>Verify guarded positions and recovery behaviour<br/><small>Agent A</small>"]
-    ZOM_WAVE_01["ZOM-WAVE-01<br/>Balance survivor help and zombie wave progression<br/><small>Agent A</small>"]
-    ZOM_PERF_01["ZOM-PERF-01<br/>Measure actual frame pacing and agent costs<br/><small>Agent C</small>"]
-  end
-  subgraph M4["M4 · City-first solo release accepted (0/5 accepted)"]
-    ZOM_QA_01["ZOM-QA-01<br/>Produce one auditable end-session diagnosis<br/><small>Agent C</small>"]
-    ZOM_QA_02["ZOM-QA-02<br/>Complete sustained integrated City solo test<br/><small>Agent C</small>"]
-    ZOM_ADMIN_01["ZOM-ADMIN-01<br/>Verify private cheat authority and behavior<br/><small>Agent A</small>"]
-    ZOM_LEGAL_01["ZOM-LEGAL-01<br/>Resolve publication rights and attribution<br/><small>Agent B</small>"]
-    ZOM_REL_01["ZOM-REL-01<br/>Package City-first accessible solo v1.0 candidate<br/><small>Agent B</small>"]
-  end
-  subgraph DISC["New discovered work · 2026-10-24 live loop"]
-    ZOM_DISC_30["ZOM-DISC-30<br/>Community Warband AI behavior research + hold/fire/speed prototype<br/><small>Agent C</small>"]
-    ZOM_DISC_31["ZOM-DISC-31<br/>Cited Warband AI community source pack and licence limits<br/><small>Agent E</small>"]
-    ZOM_DISC_32["ZOM-DISC-32<br/>No-launch AI/profile matrix and pre-launch gate<br/><small>Agent F</small>"]
-    ZOM_DISC_33["ZOM-DISC-33<br/>Rear defensive line and 8-defender spawn_agent refill<br/><small>Agent A</small>"]
-    ZOM_DISC_34["ZOM-DISC-34<br/>Gate native wave visitors to slow Zombie 894<br/><small>Agent A</small>"]
-    ZOM_DISC_35["ZOM-DISC-35<br/>Community-backed zombie speed clamp and team hold/fire orders<br/><small>Agent A</small>"]
-    ZOM_DISC_36["ZOM-DISC-36<br/>Speed/order/movement/wave-2/refill telemetry<br/><small>Agent C</small>"]
-    ZOM_DISC_37["ZOM-DISC-37<br/>Installer uninstall/repair + desktop/settings + release gate<br/><small>Agent F</small>"]
-    ZOM_DISC_38["ZOM-DISC-38<br/>Publication rights, credits and redistribution gate dossier<br/><small>Agent E</small>"]
-    ZOM_DISC_39["ZOM-DISC-39<br/>Sealed task-34 validation of refill, rear line and wave-1 gating<br/><small>Agent D</small>"]
-  end
-  ZOM_DISC_34 --> ZOM_DISC_32
-  ZOM_DISC_28 --> ZOM_DISC_33
-  ZOM_DISC_33 --> ZOM_DISC_34
-  ZOM_DISC_30 --> ZOM_DISC_35
-  ZOM_DISC_33 --> ZOM_DISC_35
-  ZOM_DISC_34 --> ZOM_DISC_35
-  ZOM_DISC_30 --> ZOM_DISC_36
-  ZOM_REC_01 --> ZOM_DISC_37
-  ZOM_DISC_33 --> ZOM_DISC_39
-  ZOM_DISC_34 --> ZOM_DISC_39
-  ZOM_DISC_30 -.->|supports| ZOM_AI_03
-  ZOM_DISC_31 -.->|supports| ZOM_LEGAL_01
-  ZOM_DISC_32 -.->|supports| ZOM_QA_01
-  ZOM_DISC_33 -.->|supports| ZOM_AI_03
-  ZOM_DISC_34 -.->|supports| ZOM_WAVE_01
-  ZOM_DISC_35 -.->|supports| ZOM_AI_03
-  ZOM_DISC_36 -.->|supports| ZOM_OBS_01
-  ZOM_DISC_37 -.->|supports| ZOM_WIN_02
-  ZOM_DISC_38 -.->|supports| ZOM_LEGAL_01
-  ZOM_DISC_39 -.->|supports| ZOM_QA_02
-  class ZOM_REC_01 req;
-  class ZOM_REC_02 blocked;
-  class ZOM_REC_03 blocked;
-  class ZOM_ENG_01 done;
-  class ZOM_ENG_02 done;
-  class ZOM_ENG_03 blocked;
-  class ZOM_OBS_01 done;
-  class ZOM_OBS_02 blocked;
-  class ZOM_WIN_01 done;
-  class ZOM_WIN_02 blocked;
-  class ZOM_WIN_03 blocked;
-  class ZOM_SOLO_01 done;
-  class ZOM_SOLO_02 done;
-  class ZOM_AI_01 done;
-  class ZOM_AI_02 blocked;
-  class ZOM_AI_03 blocked;
-  class ZOM_WAVE_01 blocked;
-  class ZOM_PERF_01 blocked;
-  class ZOM_QA_01 done;
-  class ZOM_QA_02 req;
-  class ZOM_ADMIN_01 blocked;
-  class ZOM_LEGAL_01 req;
-  class ZOM_REL_01 blocked;
-  class ZOM_DISC_30 done;
-  class ZOM_DISC_31 done;
-  class ZOM_DISC_32 done;
-  class ZOM_DISC_33 active;
-  class ZOM_DISC_34 active;
-  class ZOM_DISC_35 active;
-  class ZOM_DISC_36 done;
-  class ZOM_DISC_37 active;
-  class ZOM_DISC_38 active;
-  class ZOM_DISC_39 done;
-</pre></div>
-<p class="graph-fallback"><a href="https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/main/docs/DEPENDENCY-GRAPH.md">Open the full graph, owner/while table and frontier notes</a></p>
+
+<section class="dep-section" aria-labelledby="dep-heading" id="dependency-graph">
+<div class="dep-head"><div><p class="eyebrow">Execution map</p><h2 id="dep-heading">Dependencies &amp; frontier</h2><p class="muted">Every node is a real task card. Click a node to open its detail; hover to isolate its edges. Solid lines are prerequisites; dashed lines support a required outcome. The diagram is generated from the same ledger as the cards above.</p></div>
+<div class="dep-controls" role="group" aria-label="Dependency map filters"><button id="dep-frontier" aria-pressed="true">Frontier only</button><button id="dep-all" aria-pressed="false">All required + discovered</button></div></div>
+<div class="dep-legend" aria-label="Legend"><span><i></i> prerequisite</span><span><i class="support"></i> supports required outcome</span><span><b style="background:#5bbf86"></b>done</span><span><b style="background:#e6b85c"></b>active</span><span><b style="background:#e67b70"></b>blocked</span><span><b style="background:#7e8fc7"></b>required gate</span></div>
+<div class="dep-scroll" tabindex="0"><div class="dep-map" id="dep-map"><svg class="dep-edges" id="dep-edges" aria-hidden="true"><defs><marker id="dep-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#687381"></path></marker><marker id="dep-arrow-support" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#e67b70"></path></marker><marker id="dep-arrow-hot" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f4c29b"></path></marker></defs><g id="dep-paths"></g></svg><div class="dep-lanes" id="dep-lanes"></div></div></div>
+<p class="dep-summary" id="dep-summary" role="status"></p>
+<p class="meta"><a href="https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/main/docs/DEPENDENCY-GRAPH.md">Full graph and owner/occurred-while table</a></p>
 </section>
 </main>
 <footer><p>Unpublished review preview · Original ZOMBIEEE Beta 0.4 only · No CI, no public hosting, no gameplay verification inferred from compiled scripts.</p><p>Provisional dark graphite / ember / bone theme; final brand and Pages integration require owner approval.</p></footer>
@@ -198,6 +115,70 @@ const region=$('items');region.replaceChildren();active.forEach(it=>{const outer
 $('count').textContent=active.length+' visible of '+record.items.length+' work items · '+record.items.filter(i=>i.workOrigin==='discovered').length+' discovered';
 if(!active.length)region.append(el('p','No work matches those filters.'));
 }
+
+let depFrontierOnly=true;
+function depStateClass(it){if(it.state==='done')return 'state-done';if(it.blocked)return 'state-blocked';if(it.state==='active'||it.state==='review'||it.state==='ready')return 'state-active';if(it.required)return 'state-req';return 'state-open'}
+function depOwner(it){if(it.implementationLane)return it.implementationLane;const o=it.owner||'';const m=o.match(/Agent\s+([A-F])/i);return m?m[1]:'—'}
+function depNode(it){
+ const b=document.createElement('button');b.type='button';b.className='dep-node '+depStateClass(it);b.dataset.workId=it.id;
+ const id=document.createElement('strong');id.textContent=it.id;b.append(id);
+ const sp=document.createElement('span');sp.textContent=it.title;b.append(sp);
+ const small=document.createElement('small');small.textContent=depOwner(it)+' · '+(it.discoveredDuring||it.state);b.append(small);
+ b.setAttribute('aria-label',it.id+' '+it.title+' · '+it.state+' · owner '+depOwner(it));
+ b.addEventListener('click',()=>{selectItem(it.id,true,true);const d=$('detail');if(d)d.scrollIntoView({behavior:'smooth',block:'center'});});
+ b.addEventListener('mouseenter',()=>depHighlight(it.id,true));
+ b.addEventListener('mouseleave',()=>depHighlight(it.id,false));
+ b.addEventListener('focus',()=>depHighlight(it.id,true));
+ b.addEventListener('blur',()=>depHighlight(it.id,false));
+ return b;
+}
+function depHighlight(id,on){
+ const map=$('dep-map');if(!map)return;
+ map.querySelectorAll('.dep-edge').forEach(e=>{const hit=e.dataset.from===id||e.dataset.to===id;e.classList.toggle('hot',on&&hit);e.classList.toggle('dim',on&&!hit)});
+ map.querySelectorAll('.dep-node').forEach(n=>{const hit=n.dataset.workId===id||[...map.querySelectorAll('.dep-edge.hot')].some(e=>e.dataset.from===n.dataset.workId||e.dataset.to===n.dataset.workId);n.classList.toggle('connected',on&&hit);n.classList.toggle('dimmed',on&&!hit)});
+}
+function depNodeCenter(el,map){let x=0,y=0,n=el;while(n&&n!==map){x+=n.offsetLeft;y+=n.offsetTop;n=n.offsetParent}return{x:x+el.offsetWidth/2,y:y+el.offsetHeight/2,w:el.offsetWidth,h:el.offsetHeight}}
+function depDrawEdges(nodes){
+ const map=$('dep-map'),svg=$('dep-edges'),paths=$('dep-paths');if(!map||!svg||!paths)return;
+ const els={};map.querySelectorAll('.dep-node').forEach(el=>{els[el.dataset.workId]=el});
+ paths.replaceChildren();
+ const shown={};nodes.forEach(n=>shown[n.id]=n);
+ const edges=[];
+ nodes.forEach(n=>(n.dependsOn||[]).forEach(dep=>{if(shown[dep])edges.push({from:dep,to:n.id,kind:'dep'})}));
+ nodes.forEach(n=>{if(n.supportsOutcomeId&&shown[n.supportsOutcomeId])edges.push({from:n.id,to:n.supportsOutcomeId,kind:'support'})});
+ const width=Math.max(map.scrollWidth,...Object.values(els).map(e=>e.offsetLeft+e.offsetWidth))+16;
+ const height=Math.max(map.scrollHeight,...Object.values(els).map(e=>e.offsetTop+e.offsetHeight))+16;
+ svg.setAttribute('viewBox','0 0 '+width+' '+height);svg.style.width=width+'px';svg.style.height=height+'px';
+ for(const ed of edges){const a=els[ed.from],b=els[ed.to];if(!a||!b)continue;const p=document.createElementNS('http://www.w3.org/2000/svg','path');const ca=depNodeCenter(a,map),cb=depNodeCenter(b,map);
+  let d;if(Math.abs(ca.x-cb.x)>20&&Math.abs(ca.y-cb.y)<40){const sx=ca.x<cb.x?ca.x+ca.w/2:ca.x-ca.w/2;const tx=ca.x<cb.x?cb.x-cb.w/2:cb.x+cb.w/2;d='M '+sx+' '+ca.y+' C '+(sx+tx)/2+' '+ca.y+', '+(sx+tx)/2+' '+cb.y+', '+tx+' '+cb.y}else{const sy=ca.y<cb.y?ca.y+ca.h/2:ca.y-ca.h/2;const ty=ca.y<cb.y?cb.y-cb.h/2:cb.y+cb.h/2;d='M '+ca.x+' '+sy+' C '+ca.x+' '+(sy+ty)/2+', '+cb.x+' '+(sy+ty)/2+', '+cb.x+' '+ty}
+  p.setAttribute('d',d);p.setAttribute('class','dep-edge'+(ed.kind==='support'?' support':''));p.dataset.from=ed.from;p.dataset.to=ed.to;p.setAttribute('marker-end',ed.kind==='support'?'url(#dep-arrow-support)':'url(#dep-arrow)');paths.append(p)}
+}
+function renderDependencyMap(){
+ const lanes=$('dep-lanes'),summary=$('dep-summary');if(!record||!lanes)return;
+ const req=record.items.filter(i=>i.required);
+ const disc=record.items.filter(i=>i.workOrigin==='discovered'&&/^ZOM-DISC-(2[89]|3[0-9])$/.test(i.id));
+ let nodes=req.concat(disc);
+ if(depFrontierOnly){nodes=nodes.filter(i=>i.required?i.state!=='done':['active','review','ready','blocked'].includes(i.state));}
+ lanes.replaceChildren();
+ for(const m of record.milestones){
+  const lane=document.createElement('section');lane.className='dep-lane';
+  const h=document.createElement('h3');const hb=document.createElement('button');hb.type='button';hb.textContent=m.id+' · '+m.title;hb.title='Filter the work list to '+m.id;hb.addEventListener('click',()=>{$('milestone').value=m.id;render();$('work-heading').scrollIntoView({behavior:'smooth',block:'start'});$('search').focus()});h.append(hb);lane.append(h);
+  const list=nodes.filter(i=>i.milestoneId===m.id).sort((a,b)=>(a.required===b.required?0:a.required?-1:1)||(a.state==='active'?-1:b.state==='active'?1:0));
+  if(!list.length){const e=document.createElement('p');e.className='muted';e.textContent='No gates in this view.';lane.append(e)}
+  list.forEach(it=>lane.append(depNode(it)));
+  lanes.append(lane);
+ }
+ const counts=nodes.reduce((a,i)=>{a.total++;if(i.required)a.req++;if(i.state==='done')a.done++;if(i.blocked)a.blocked++;a.res[i.state]=(a.res[i.state]||0)+1;return a},{total:0,req:0,done:0,blocked:0,res:{}});
+ summary.textContent=nodes.length+' nodes shown · '+counts.req+' required gates · '+counts.done+' done · '+counts.blocked+' blocked · '+(depFrontierOnly?'frontier view':'all required + new discovered work');
+ requestAnimationFrame(()=>{depDrawEdges(nodes);const n=($('dep-edges')||{}).querySelectorAll? $('dep-edges').querySelectorAll('path').length:0;summary.textContent=summary.textContent+' · '+n+' links';});
+}
+function bindDepControls(){
+ const f=$('dep-frontier'),a=$('dep-all');if(!f||!a||f.dataset.bound)return;f.dataset.bound='1';
+ f.addEventListener('click',()=>{depFrontierOnly=true;f.setAttribute('aria-pressed','true');a.setAttribute('aria-pressed','false');renderDependencyMap()});
+ a.addEventListener('click',()=>{depFrontierOnly=false;a.setAttribute('aria-pressed','true');f.setAttribute('aria-pressed','false');renderDependencyMap()});
+ let timer=null;window.addEventListener('resize',()=>{clearTimeout(timer);timer=setTimeout(()=>{if(record)renderDependencyMap()},140)});
+}
+
 async function init(){try{let res=null;for(const p of ['progress/ledger.json','../progress/ledger.json']){res=await fetch(p,{cache:'no-store'});if(res.ok)break;}if(!res||!res.ok)throw new Error('HTTP '+(res?res.status:'no-response'));record=await res.json();if(!Array.isArray(record.items)||!Array.isArray(record.milestones))throw Error('Invalid ledger');
 const req=record.items.filter(i=>i.required),done=req.filter(i=>i.state==='done');
 const accepted=record.milestones.filter(m=>m.sourceAccepted===true);
@@ -209,13 +190,9 @@ $('source').textContent='Source: progress/ledger.json · 2026-10-24 · v0.2.0 ·
 for(const m of record.milestones){const option=el('option',m.id+' — '+m.title);option.value=m.id;$('milestone').append(option);
 const card=el('section',undefined,'card');card.append(el('small',m.id+' · '+m.horizon));card.append(el('h3',m.title));const work=itemsFor(m),complete=work.filter(x=>x.state==='done');card.append(el('p',complete.length+'/'+work.length+' proposed leaves complete · '+pct(complete.length,work.length)));card.append(el('p',m.goal));const button=el('button','Show '+m.id+' items');button.addEventListener('click',()=>{$('milestone').value=m.id;render();$('work-heading').scrollIntoView();$('search').focus()});card.append(button);$('milestones').append(card)}
 ['search','milestone','status','origin'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',render));
-render();function selectFromHash(){const id=decodeURIComponent(location.hash.slice(1));if(id)selectItem(id,false,false)}window.addEventListener('popstate',selectFromHash);selectFromHash();
-$('source').textContent='Source: progress/ledger.json · 2026-10-24 · v0.2.0 · main · single tracker in main · dependency graph on this page · required City outcomes 8/23 · discovered work 39 · milestones 0/5 · no City acceptance';
+render();bindDepControls();renderDependencyMap();function selectFromHash(){const id=decodeURIComponent(location.hash.slice(1));if(id)selectItem(id,false,false)}window.addEventListener('popstate',selectFromHash);selectFromHash();
+}catch(error){$('source').textContent='Tracker data unavailable: '+error.message+'. Serve from repository root with python -m http.server; file:// cannot fetch local JSON.';const p=el('p','Unable to read proposed ledger; no counts inferred.');p.setAttribute('role','alert');$('milestones').append(p)}}
 init();
 </script>
 
-<script type="module">
-import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
-mermaid.initialize({startOnLoad:true,securityLevel:'loose',theme:'base',themeVariables:{background:'#151922',primaryColor:'#242b38',primaryTextColor:'#f0efea',primaryBorderColor:'#687381',lineColor:'#bdc2c9',secondaryColor:'#37272d',tertiaryColor:'#111319',edgeLabelBackground:'#1d222c',fontFamily:'system-ui, -apple-system, Segoe UI, sans-serif',fontSize:'13px'}});
-</script>
 </body></html>
