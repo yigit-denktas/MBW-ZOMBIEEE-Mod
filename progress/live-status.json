@@ -1,1 +1,8 @@
-﻿{"updated":"2026-10-24T18:45:00+02:00","phase":"Nextplay no-fire fix","build":"Installed EF6E332C: hold+fire_at_will+use_ranged, stand_ground/aggressiveness removed, no 1730, accuracy 100.","now":"D running 10-min survivor POV reseal; acceptance ammo_burn>0 and first shot <30s.","next":"If still zero shots, isolate team-order fire suppression/range state. No acceptance.","acceptance":false}
+﻿{
+  "updated": "2026-10-24T18:58:00+02:00",
+  "phase": "Ranged volume still low",
+  "build": "Installed EF6E332C (hold+fire_at_will+use_ranged, no stand_ground).",
+  "now": "Reseal gate passes: ammo_burn 4, shots 4, 2/15 agents fired, first shot 15s; shots/min 1.6, charge ratio .683, KD 16/8; clean screenshots, no console spam.",
+  "next": "A checks order scope/ammo stacks/range; forced-engagement test. Volume must rise materially. No acceptance.",
+  "acceptance": false
+}
