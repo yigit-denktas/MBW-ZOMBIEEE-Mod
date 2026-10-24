@@ -94,7 +94,10 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
           private_commands: bool = False, difficulty: str = "standard",
           firearm_accuracy: str = "default",
           zombie_bot_roster: str = "weak", zombie_block: str = "default",
-          defensive_line: str = "rear") -> dict:
+          defensive_line: str = "rear",
+          wave_visitors: str = "slow",
+          defender_reinforce: str = "default",
+          defender_target: int = 8) -> dict:
     support = profile(difficulty)
     if difficulty != "standard" and not wave_reinforcements:
         raise ValueError("Nonstandard difficulty needs --wave-reinforcements")
@@ -114,6 +117,12 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         raise ValueError("Unknown --zombie-block profile")
     if defensive_line not in ("rear", "forward"):
         raise ValueError("Unknown --defensive-line profile")
+    if wave_visitors not in ("slow", "original"):
+        raise ValueError("Unknown --wave-visitors profile")
+    if defender_reinforce not in ("default", "stock"):
+        raise ValueError("Unknown --defender-reinforce profile")
+    if not 1 <= defender_target <= 8:
+        raise ValueError("--defender-target must be between 1 and 8")
     if defender_loadouts != "original" and not experimental_defenders:
         raise ValueError("AI-only loadouts require experimental defenders")
     if tactical_recovery and not wave_reinforcements:
@@ -229,7 +238,9 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         city_report = None
         if city_guardposts:
             city_report = apply_city_defense(
-                source, REAR_HOLD_ENTRIES if defensive_line == "rear" else GUARD_ENTRIES)
+                source, REAR_HOLD_ENTRIES if defensive_line == "rear" else GUARD_ENTRIES,
+                wave_visitors=wave_visitors,
+                defender_target=defender_target if defender_reinforce == "default" else 0)
             updated = report_for_module(source)
             if not updated["ok"] or updated["mission"]["triggers"] != 27:
                 raise RuntimeError("City defence failed static post-apply validation")
@@ -405,13 +416,17 @@ def main():
     parser.add_argument("--zombie-bot-roster", choices=("weak", "full"), default="weak", help="City generic invader bots: weak original Zombie 894 only or full native 894..911 roster")
     parser.add_argument("--zombie-block", choices=("default", "stock"), default="default", help="Give City invader troops a shield for block capability; stock keeps original equipment")
     parser.add_argument("--defensive-line", choices=("rear", "forward"), default="rear", help="City defender hold line: rear/spawn line (default) or the old forward guard sectors")
+    parser.add_argument("--wave-visitors", choices=("slow", "original"), default="slow", help="City wave visitors: slow Zombie 894 only (default) or original 0.4 wave table")
+    parser.add_argument("--defender-reinforce", choices=("default", "stock"), default="default", help="City defender spawn_agent refill to --defender-target; stock disables")
+    parser.add_argument("--defender-target", type=int, default=8, metavar="N", help="City team-0 defender target (1..8) for reinforcement")
     args = parser.parse_args()
     try:
         print(json.dumps(build(args.archive, args.out, args.replace, args.experimental_defenders,
                          args.city_guardposts, args.all_map_defenses, args.wave_reinforcements,
                          args.tactical_recovery, args.defender_loadouts, args.solo_assist,
                          args.private_commands, args.difficulty, args.firearm_accuracy,
-                         args.zombie_bot_roster, args.zombie_block, args.defensive_line), indent=2))
+                         args.zombie_bot_roster, args.zombie_block, args.defensive_line,
+                         args.wave_visitors, args.defender_reinforce, args.defender_target), indent=2))
     except (RuntimeError, FileNotFoundError, FileExistsError, ValueError, subprocess.CalledProcessError) as exc:
         print(f"Build refused: {exc}", file=sys.stderr)
         raise SystemExit(2)

@@ -114,7 +114,7 @@ class CityDefenseTests(unittest.TestCase):
     def test_orders_rotate_sectors_per_wave(self):
         wave_global = 144115188075855872 + 1209  # original wave_number index
         orders = orders_trigger(0, wave_global).split()
-        self.assertEqual(orders.count("1780"), 3)
+        self.assertEqual(orders.count("1780"), 4)
         self.assertEqual(orders.count("1791"), 3)
         self.assertEqual(orders.count("1790"), 3)
         self.assertIn("2119", orders)  # wave parity / sector modulo
@@ -133,19 +133,21 @@ class CityDefenseTests(unittest.TestCase):
     def test_rear_defensive_line_holds_spawn_entries(self):
         wave_global = 144115188075855872 + 1209
         orders = orders_trigger(0, wave_global, REAR_HOLD_ENTRIES).split()
-        self.assertEqual(orders.count("1780"), 3)
+        self.assertEqual(orders.count("1780"), 4)
         self.assertEqual(orders.count("1791"), 3)
         self.assertEqual(orders.count("1790"), 3)
         self.assertNotIn("1730", orders)
+        self.assertIn("1972", orders)  # spawn_agent reinforcement
+        self.assertEqual(orders.count("502"), len(range(200, 245)))
         entries = []
         for index, token in enumerate(orders):
             if token == "1780" and index + 3 < len(orders):
                 entries.append(orders[index + 3])
-        self.assertEqual(entries, ["0", "1", "0"])
+        self.assertEqual(entries, ["0", "0", "1", "0"])
         self.assertTrue(all(entry in ("0", "1") for entry in entries))
         self.assertNotIn("2", entries)
-        # The defensive-line variant is static: no forward sector entry math.
-        self.assertNotIn("2121", orders)
+        # The defensive-line variant is static: no forward sector rotation math.
+        self.assertEqual(orders.count("2121"), 1)  # missing = target - count
 
     def test_original_triggers_still_untouched(self):
         before = (self.module / "mission_templates.txt").read_bytes().decode("utf-8")
