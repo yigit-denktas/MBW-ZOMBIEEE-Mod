@@ -353,6 +353,28 @@ def summarize_receipt(target: Path) -> dict:
     waves = sorted({v for v in (
         _bounded_int(e["fields"].get("wave"), minimum=0) for e in events
         if e["event"] in ("heartbeat", "wave_change", "mission_enter", "wave_started")) if v is not None})
+    wave1_classes = {"generic": 0, "native_zombie": 0, "defender": 0,
+                     "survivor": 0, "unknown": 0}
+    wave1_observed = False
+    for event in samples:
+        if _bounded_int(event["fields"].get("wave")) != 1:
+            continue
+        hist = _histogram(event["fields"].get("troops_team1"))
+        if not hist:
+            continue
+        wave1_observed = True
+        for troop, count in hist.items():
+            if troop in ROSTER_GENERIC:
+                bucket = "generic"
+            elif troop in ROSTER_NATIVE_ZOMBIE:
+                bucket = "native_zombie"
+            elif troop in ROSTER_DEFENDER:
+                bucket = "defender"
+            elif troop in ROSTER_SURVIVOR:
+                bucket = "survivor"
+            else:
+                bucket = "unknown"
+            wave1_classes[bucket] = max(wave1_classes[bucket], count)
     # Division (agent_get_group) telemetry: bounded per-team group histograms and
     # sampled-bot groups, so hold/sector claims have a measured field. Defender
     # divisions are 5-7 by A's contract; absence is reported, never assumed.
@@ -452,6 +474,38 @@ def summarize_receipt(target: Path) -> dict:
     defender_alive = _max_field("defender_alive_team0")
     defender_kills = _max_field("defender_kills_team0")
     defender_read_unknown = _max_field("defender_read_unknown")
+    defender_weapons = {}
+    defender_modes = {}
+    defender_alive_samples = 0
+    ammo_zero = ammo_positive = 0
+    for event in defender_samples:
+        fields = event["fields"]
+        weapon = _bounded_int(fields.get("weapon"), minimum=0)
+        if weapon is not None:
+            defender_weapons[weapon] = defender_weapons.get(weapon, 0) + 1
+        mode = fields.get("weapon_mode")
+        if mode in ("ranged", "melee", "unknown"):
+            defender_modes[mode] = defender_modes.get(mode, 0) + 1
+        if _bounded_int(fields.get("alive"), minimum=0, maximum=1) == 1:
+            defender_alive_samples += 1
+        ammo = _bounded_int(fields.get("ammo"))
+        if ammo is not None:
+            if ammo > 0:
+                ammo_positive += 1
+            elif ammo == 0:
+                ammo_zero += 1
+    defender_weapons = dict(sorted(defender_weapons.items(),
+                                   key=lambda kv: (-kv[1], kv[0]))[:MAX_HIST_ENTRIES])
+    defender_modes_observed = (defender_modes.get("ranged", 0)
+                               + defender_modes.get("melee", 0)) > 0
+    defender_deaths = _max_field("defender_deaths")
+    ranged_agents_team0 = _max_field("ranged_team0")
+    melee_fallback_team0 = _max_field("melee_team0")
+    shield_values = [_bounded_int(e["fields"].get("shield_team0"), minimum=0)
+                     for e in samples]
+    shield_values = [value for value in shield_values if value is not None]
+    action_values = [_bounded_int(e["fields"].get("action"), minimum=0) for e in samples]
+    action_values = [value for value in action_values if value is not None]
     defenders = {
         "observed": bool(sum(defender_divisions.values())) or bool(defender_troop_counts),
         "divisions": ({group: count for group, count in defender_divisions.items() if count}
@@ -471,6 +525,17 @@ def summarize_receipt(target: Path) -> dict:
                                key=lambda kv: (-kv[1], kv[0]))[:MAX_HIST_ENTRIES])
                    or None),
         "division_source": division_source,
+        "weapons": defender_weapons or None,
+        "weapon_modes": defender_modes or None,
+        "weapon_mode_observed": defender_modes_observed,
+        "ranged_agents_team0": ranged_agents_team0,
+        "melee_fallback_team0": melee_fallback_team0,
+        "alive_samples": defender_alive_samples,
+        "ammo": ({"zero": ammo_zero, "positive": ammo_positive}
+                 if (ammo_zero + ammo_positive) else None),
+        "deaths": defender_deaths,
+        "shield": None,
+        "action": None,
         "note": ("team-0 non-player defenders; guard_entries_reached is a bounded "
                  "distinct-coarse-position proxy, not a guard-entry identity; "
                  "hold behaviour is not asserted from samples."),
@@ -553,6 +618,23 @@ def summarize_receipt(target: Path) -> dict:
         "alive_team0": alive_max[0], "alive_team1": alive_max[1],
     })
 
+    def _id_list(name):
+        for event in reversed(samples):
+            raw = event["fields"].get(name)
+            if isinstance(raw, str) and raw not in ("", "none", "-1"):
+                ids = [int(part) for part in raw.split(",") if part.isdigit()][:8]
+                return ids or None
+        return None
+
+    mounted_values = [_bounded_int(e["fields"].get("mounted_team1"), minimum=0)
+                      for e in samples]
+    mounted_values = [value for value in mounted_values if value is not None]
+    teams.update({
+        "mounted_team1": mounted_values[-1] if mounted_values else None,
+        "horse_ids_team0": _id_list("horse_ids_team0"),
+        "horse_ids_team1": _id_list("horse_ids_team1"),
+    })
+
     # no_player: explicit probe marker; None when the probe could not measure it.
     no_player = None
     for event in reversed(events):
@@ -593,6 +675,8 @@ def summarize_receipt(target: Path) -> dict:
         "measured_team0": measured0, "measured_team1": measured1,
         "unknown_agents_team0": unknown0, "unknown_agents_team1": unknown1,
         "reliable": kills_reliable,
+        "defender_kills": defender_kills,
+        "defender_deaths": defender_deaths,
         "note": ("kills_* are agent lifetime kill counters summed over observed "
                  "agents, not session kills; unknown/unreliable must not be read "
                  "as zero or as a victory claim."),
@@ -680,6 +764,14 @@ def summarize_receipt(target: Path) -> dict:
         gaps_hint.append("kill_telemetry_unavailable")
 
     gaps = list(gaps_hint)
+    if defender_samples and not defenders["weapon_mode_observed"]:
+        gaps.append("weapon_mode_unobserved")
+    if teams["mounted_team1"] is None:
+        gaps.append("mounted_telemetry_unavailable")
+    if not shield_values:
+        gaps.append("shield_telemetry_unavailable")
+    if not action_values:
+        gaps.append("action_telemetry_unavailable")
     if group_convention == "unknown":
         gaps.append("group_convention_unknown")
     if defenders["observed"] and not defenders["divisions"]:
@@ -749,7 +841,9 @@ def summarize_receipt(target: Path) -> dict:
         "divisions": divisions,
         "defenders": defenders,
         "waves": {"observed": waves, "max": waves[-1] if waves else None,
-                  "multiple_observed": len([w for w in waves if w >= 1]) >= 2},
+                  "multiple_observed": len([w for w in waves if w >= 1]) >= 2,
+                  "wave1": {"observed": wave1_observed,
+                            "team1_classes": wave1_classes if wave1_observed else None}},
         "rounds": {"round_starts": rounds[:MAX_ROUNDS],
                    "count": len(rounds),
                    "multiple_observed": len(rounds) >= 2,
@@ -782,7 +876,9 @@ def format_summary(summary: dict) -> str:
         f"game_type={probe['game_type']} ready_for_spawn={probe['ready_for_spawn']} "
         f"troop_map={probe['troop_map']}",
         f"teams:           max team0={teams['max_team0']} team1={teams['max_team1']}; "
-        f"last team0={teams['last_team0']} team1={teams['last_team1']}",
+        f"last team0={teams['last_team0']} team1={teams['last_team1']} "
+        f"mounted_team1={teams['mounted_team1']} "
+        f"horse_ids_team1={teams['horse_ids_team1']}",
     ]
     comp = summary["composition"]
 
@@ -857,9 +953,14 @@ def format_summary(summary: dict) -> str:
                  f"guard_entries_reached={defend['guard_entries_reached']} "
                  f"division_source={defend['division_source']} groups={defend['groups']} "
                  f"moving={defend['moving']} hold_samples={defend['hold_samples']} "
-                 f"hold_behavior_observed={defend['hold_behavior_observed']}")
+                 f"hold_behavior_observed={defend['hold_behavior_observed']} "
+                 f"weapons={defend['weapons']} modes={defend['weapon_modes']} "
+                 f"ranged_team0={defend['ranged_agents_team0']} "
+                 f"melee_team0={defend['melee_fallback_team0']} "
+                 f"deaths={defend['deaths']}")
     lines.append(f"waves:           observed={summary['waves']['observed']} "
-                 f"max={summary['waves']['max']}")
+                 f"max={summary['waves']['max']} "
+                 f"wave1={summary['waves']['wave1']}")
     lines.append(f"rounds:          {summary['rounds']['count']} distinct "
                  f"round_start values")
     done = ", ".join(f"{kind}={len(items)}" for kind, items in summary["lifecycle"].items())

@@ -629,5 +629,62 @@ class ReceiptSummaryTests(unittest.TestCase):
         self.assertNotIn("defender_positions_unobserved", summary["evidence_gaps"])
         self.assertIn("defender_division_unreadable", summary["evidence_gaps"])
 
+
+    def test_combat_loadout_modes_deaths_horses_and_wave1_classes(self):
+        lines = [
+            "ZDB1|recorder_capabilities|opmeta=1|combat_v2=1|shield_getter=0"
+            "|mounted_getter=0|action_getter=0",
+            "ZDB1|heartbeat|count=1|role=server|team0=4|team1=20|wave=1"
+            "|kills_team0=1|kills_team1=5|kills_measured_team0=1"
+            "|kills_measured_team1=1|kills_unknown_team0=0|kills_unknown_team1=0"
+            "|troops_team1=895:8,897:6,903:4,873:2,981:1"
+            "|troops_team0=981:2,982:1,983:1"
+            "|defender_weapons=7:3,9:1|defender_modes=ranged:3,melee:1"
+            "|ranged_team0=3|melee_team0=1|defender_deaths=2"
+            "|defender_alive_team0=3|defender_kills_team0=1|defender_ids=1,2,3"
+            "|horse_ids_team1=40,41|horses_team1=2|mounted_team1=-1"
+            "|shield_team0=-1|shield_team1=-1|action=-1",
+            "ZDB1|ai_sample|role=server|tick=1|team=0|id=1|group=26|troop=981"
+            "|defender=1|weapon=7|ammo=10|alive=1|weapon_mode=ranged"
+            "|x=166.0|y=181.0|kills=1|wave=1",
+            "ZDB1|ai_sample|role=server|tick=1|team=0|id=2|group=28|troop=982"
+            "|defender=1|weapon=9|ammo=0|alive=1|weapon_mode=melee"
+            "|x=167.0|y=182.0|kills=0|wave=1",
+        ]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        defenders = summary["defenders"]
+        self.assertEqual(defenders["weapons"], {7: 1, 9: 1})
+        self.assertEqual(defenders["weapon_modes"], {"ranged": 1, "melee": 1})
+        self.assertTrue(defenders["weapon_mode_observed"])
+        self.assertEqual(defenders["ranged_agents_team0"], 3)
+        self.assertEqual(defenders["melee_fallback_team0"], 1)
+        self.assertEqual(defenders["deaths"], 2)
+        self.assertEqual(defenders["alive_samples"], 2)
+        self.assertEqual(defenders["ammo"], {"zero": 1, "positive": 1})
+        self.assertEqual(summary["engagement"]["defender_kills"], 1)
+        self.assertEqual(summary["engagement"]["defender_deaths"], 2)
+        self.assertEqual(summary["teams"]["horse_ids_team1"], [40, 41])
+        self.assertIsNone(summary["teams"]["mounted_team1"])
+        self.assertIn("mounted_telemetry_unavailable", summary["evidence_gaps"])
+        self.assertIn("shield_telemetry_unavailable", summary["evidence_gaps"])
+        self.assertIn("action_telemetry_unavailable", summary["evidence_gaps"])
+        wave1 = summary["waves"]["wave1"]
+        self.assertTrue(wave1["observed"])
+        self.assertEqual(wave1["team1_classes"]["native_zombie"], 8)
+        self.assertEqual(wave1["team1_classes"]["generic"], 2)
+        self.assertEqual(wave1["team1_classes"]["defender"], 1)
+        self.assertIn("waves:", format_summary(summary))
+
+    def test_mounted_count_when_probe_reports_it(self):
+        lines = ["ZDB1|heartbeat|count=1|role=server|team0=1|team1=5"
+                 "|horse_ids_team1=40|horses_team1=1|mounted_team1=0"
+                 "|shield_team0=0|shield_team1=0|action=0"]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        self.assertEqual(summary["teams"]["mounted_team1"], 0)
+        self.assertEqual(summary["teams"]["horse_ids_team1"], [40])
+        self.assertNotIn("mounted_telemetry_unavailable", summary["evidence_gaps"])
+        self.assertNotIn("shield_telemetry_unavailable", summary["evidence_gaps"])
+        self.assertNotIn("action_telemetry_unavailable", summary["evidence_gaps"])
+
 if __name__ == "__main__":
     unittest.main()
