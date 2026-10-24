@@ -195,6 +195,38 @@ def _troop_contributions(ingest: dict[str, Any]) -> dict[str, Any]:
             "lower_bound": True}
 
 
+def _positioning(ingest: dict[str, Any]) -> dict[str, Any]:
+    """Bounded per-team position spread from sampled ai_sample x/y (if present)."""
+    import math
+    points: dict[int, list[tuple[float, float]]] = {0: [], 1: []}
+    for event in ingest.get("events") or []:
+        if event.get("event") != "ai_sample":
+            continue
+        fields = event.get("fields") or {}
+        team = _int(fields.get("team"))
+        try:
+            x, y = float(fields.get("x")), float(fields.get("y"))
+        except (TypeError, ValueError):
+            continue
+        if team in points:
+            points[team].append((x, y))
+    out = {}
+    for team, coords in points.items():
+        if not coords:
+            out[f"team{team}"] = None
+            continue
+        cx = sum(x for x, _y in coords) / len(coords)
+        cy = sum(y for _x, y in coords) / len(coords)
+        spread = math.sqrt(sum((x - cx) ** 2 + (y - cy) ** 2 for x, y in coords) / len(coords))
+        out[f"team{team}"] = {
+            "samples": len(coords), "centroid": [round(cx, 2), round(cy, 2)],
+            "spread_rms": round(spread, 3),
+            "bbox": [round(min(x for x, _ in coords), 2), round(min(y for _, y in coords), 2),
+                     round(max(x for x, _ in coords), 2), round(max(y for _, y in coords), 2)],
+        }
+    return out
+
+
 def _run_metrics(ingest: dict[str, Any]) -> dict[str, Any]:
     perf = analyze_performance(ingest)
     samples = _round_samples(ingest)
@@ -218,6 +250,7 @@ def _run_metrics(ingest: dict[str, Any]) -> dict[str, Any]:
         "max_wave": max((row.get("max_wave") or 0) for row in rounds) if rounds else None,
         "performance": perf,
         "troop_contributions": _troop_contributions(ingest),
+        "positioning": _positioning(ingest),
     }
 
 
@@ -300,7 +333,11 @@ def analyze_balance(runs: list[dict[str, Any]], params: dict[str, dict[str, Any]
     gaps.extend(sensitivity.get("gaps") or [])
     gaps.extend(["round_end_event_missing", "hit_attribution_unavailable",
                  "per_troop_death_unavailable",
+                 "spawn_entry_fairness_unavailable",
                  "kill_causality_not_established"])
+    if all((run["metrics"].get("positioning") or {}).get(f"team{t}") is None
+           for run in analysed for t in (0, 1)):
+        gaps.append("positioning_spread_unavailable")
     recommendations = []
     for rank, row in enumerate(sensitivity.get("matrix", [])[:3], 1):
         values = row["values"]
@@ -329,6 +366,8 @@ def analyze_balance(runs: list[dict[str, Any]], params: dict[str, dict[str, Any]
         {"suggestion": "carry the build/parameter receipt (fire_mode, defender_target, speed, ammo) into every sealed bundle",
          "why": "parameter_metadata_missing"},
         {"suggestion": "record per-troop deaths/alive counts", "why": "per_troop_death_unavailable"},
+        {"suggestion": "trace spawn/entry timestamps and team entry fairness", "why": "spawn_entry_fairness_unavailable"},
+        {"suggestion": "record enough position samples to compare formation spread per round", "why": "positioning_spread_unavailable"},
     ]
     return {
         "schema": BALANCE_SCHEMA,

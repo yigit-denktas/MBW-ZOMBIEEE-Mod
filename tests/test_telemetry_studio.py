@@ -192,8 +192,8 @@ class BalanceTests(unittest.TestCase):
             ]
             a = self._run(Path(td) / "a", common + [
                 "ZDB1|heartbeat|count=2|round=1|team0=4|team1=0|alive_team0=4|alive_team1=0|wave=1",
-                "ZDB1|ai_sample|tick=1|team=0|id=1|troop=981|kills=2",
-                "ZDB1|ai_sample|tick=1|team=0|id=2|troop=981|kills=1",
+                "ZDB1|ai_sample|tick=1|team=0|id=1|troop=981|kills=2|x=10.0|y=10.0",
+                "ZDB1|ai_sample|tick=1|team=0|id=2|troop=981|kills=1|x=12.0|y=10.0",
                 "ZDB1|ai_sample|tick=1|team=0|id=3|troop=983|kills=0",
                 "ZDB1|ai_sample|tick=1|team=1|id=4|troop=894|kills=0",
             ])
@@ -216,6 +216,8 @@ class BalanceTests(unittest.TestCase):
             self.assertFalse(result["sensitivity"]["matrix"][0]["causal"])
             self.assertTrue(result["recommendations"])
             self.assertIn("hit_attribution_unavailable", result["gaps"])
+            self.assertIn("spawn_entry_fairness_unavailable", result["gaps"])
+            self.assertIsNotNone(result["runs"][0]["metrics"]["positioning"]["team0"])
             self.assertTrue(result["gaps_as_tasks"])
             text = render_balance_report(result)
             self.assertIn("not causal", text)
