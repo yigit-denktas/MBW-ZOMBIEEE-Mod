@@ -272,6 +272,25 @@ and `defenders_sampled` (whether any `combat_sample` was sealed). Absent
 defender divisions raise `defender_divisions_unobserved`; unreadable groups
 raise `division_reads_unreliable`.
 
+**Division-getter safety (DISC-28 update):** the earlier convention probe
+passed a lhs placeholder `0` and the engine bound it as an agent id, spamming
+`SCRIPT ERROR: Invalid Agent ID: 0` (6,575 times) and corrupting sealed stdout.
+The reader now follows strict rules: it **never calls an agent opcode with a
+fake/zero agent**, it is **deferred until a full round is running** (heartbeat
+with `round_start>0` and `ready_for_spawn>0`, never the pre-round/entry
+trigger), it uses only the **direct single-argument** call, it **caches the
+convention one-shot**, and it treats a returned value equal to the agent id as
+an echo (wrong convention) instead of a division. If detection is impossible it
+emits one `probe_capability|group_convention=unknown` and one bounded
+`probe_anomaly|kind=group_convention_unknown`; the summary then reports
+`divisions.convention=unknown` plus the `group_convention_unknown` gap and the
+honest fallback (`defender_division_unreadable`, defenders still observable via
+troop ids 981-984). A write-based set/read **round-trip** is intentionally not
+performed by this read-only probe (it would mutate AI divisions inside the
+evidence run); that verification belongs to the launcher/native lane, and until
+it confirms the convention the division values remain observation-only and
+`hold_behavior_observed` stays false.
+
 **Division-getter convention (DISC-28):** `agent_get_group` (1765) is a
 condition-style lhs op in some WSE2 builds: it returns
 `(boolDidNotFail, intResult, intError)` instead of `(intResult, intError)`.

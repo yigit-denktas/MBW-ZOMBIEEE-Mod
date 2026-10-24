@@ -134,6 +134,55 @@ end)
 checks[#checks + 1] = tostring(conv == "direct" and value == 7)
 conv, value = detect(function() error("unreadable") end)
 checks[#checks + 1] = tostring(conv == "unreadable" and value == -1)
+
+-- Group reader safety contract: never call with a fake agent, detect once,
+-- guard an agent-id echo, and stay unknown rather than guessing.
+local group_convention, capability_lines, calls = nil, 0, 0
+local function decode_group(agent, ok, first, second)
+    if not ok then return -1 end
+    local value
+    if type(first) == "boolean" then value = second
+    elseif type(first) == "number" then value = first
+    else value = second end
+    if type(value) ~= "number" or value < 0 or value > 255 then return -1 end
+    value = math.floor(value)
+    if value == agent then return -1 end
+    return value
+end
+local function read_group(agent, fn)
+    if type(fn) ~= "function" then return -1 end
+    if type(agent) ~= "number" or agent <= 0 then return -1 end
+    if group_convention == nil then
+        calls = calls + 1
+        local ok, first, second = pcall(function() return fn(agent) end)
+        local candidate = decode_group(agent, ok, first, second)
+        group_convention = candidate >= 0 and "direct" or "unknown"
+        capability_lines = capability_lines + 1
+    end
+    if group_convention ~= "direct" then return -1 end
+    calls = calls + 1
+    local ok, first, second = pcall(function() return fn(agent) end)
+    return decode_group(agent, ok, first, second)
+end
+local function echo_fn(agent) return agent, 0 end
+local function group_fn(agent) return 6, 0 end
+checks[#checks + 1] = tostring(read_group(0, group_fn) == -1)          -- no fake agent
+checks[#checks + 1] = tostring(read_group(-1, group_fn) == -1)
+local ok_group, group_value = pcall(function()
+    return read_group(12, echo_fn)  -- first agent, direct call echoes its id
+end)
+checks[#checks + 1] = tostring(ok_group and group_value == -1)
+checks[#checks + 1] = tostring(group_convention == "unknown")
+checks[#checks + 1] = tostring(capability_lines == 1)
+local one_shot_before = calls
+checks[#checks + 1] = tostring(read_group(12, echo_fn) == -1)
+checks[#checks + 1] = tostring(group_convention == "unknown")
+
+-- A fresh reader verifies the direct convention once, then reuses it.
+group_convention, capability_lines, calls = nil, 0, 0
+checks[#checks + 1] = tostring(read_group(7, group_fn) == 6)
+checks[#checks + 1] = tostring(group_convention == "direct")
+checks[#checks + 1] = tostring(capability_lines == 1)
 return table.concat(checks, ",")
 """
 
@@ -176,7 +225,7 @@ class RealLuaSemanticsTests(unittest.TestCase):
 
     def test_team_tables_arithmetic_and_precedence(self):
         checks = self.run_lua(SEMANTICS_SCRIPT).split(",")
-        self.assertEqual(len(checks), 20)
+        self.assertEqual(len(checks), 30)
         for index, value in enumerate(checks, 1):
             self.assertEqual(value, "true", f"Lua semantics check {index} failed")
 

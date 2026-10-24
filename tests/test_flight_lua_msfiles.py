@@ -389,6 +389,18 @@ class LuaOperationMetadataTests(unittest.TestCase):
         self.assertIn("MAX_PLAUSIBLE_KILLS", self.main)
 
 
+    def test_group_reader_never_uses_a_fake_agent(self):
+        # A lhs placeholder passed as 0 was bound as an agent id by the engine
+        # and spammed "Invalid Agent ID: 0"; the group reader must use the real
+        # agent only, defer until a full-round heartbeat, cache one-shot.
+        self.assertIn("|group_reader=direct_single_arg", self.main)
+        self.assertIn("local group_read_enabled = false", self.main)
+        self.assertIn("if type(agent) ~= \"number\" or agent <= 0 then return -1 end",
+                      self.main)
+        self.assertIn("if value == agent then return -1 end", self.main)
+        self.assertIn("if group_capability_emitted then return end", self.main)
+        self.assertIn("return fn(agent) end)", self.main)
+
     def test_group_reader_handles_both_lhs_return_shapes(self):
         # agent_get_group (1765) is condition-style in some builds: accept both
         # (intResult, intError) and (boolDidNotFail, intResult, intError), probe
@@ -397,7 +409,8 @@ class LuaOperationMetadataTests(unittest.TestCase):
         self.assertIn("local function read_group(agent)", self.main)
         self.assertIn("group_convention", self.main)
         self.assertIn("|group_convention=", self.main)
-        self.assertIn("kind=group_unreadable", self.main)
+        self.assertIn("|group_reader=direct_single_arg", self.main)
+        self.assertIn("kind=group_convention_unknown", self.main)
         self.assertIn("MAX_DIVISION = 255", self.main)
         self.assertIn("local group = read_group(agent)", self.main)
 
