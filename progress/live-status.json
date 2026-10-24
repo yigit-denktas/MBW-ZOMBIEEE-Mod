@@ -1,8 +1,8 @@
-﻿{
-  "updated": "2026-10-24T18:03:00+02:00",
-  "phase": "Ranged-fix play build",
-  "build": "Ranged-fix build installed: mission 18E821DE, probe 4CA92366, backup …180226.",
-  "now": "D running 10-min survivor POV with 10-attempt join retry, screenshots and cadence metrics. Join flakiness is harness-side, not build.",
-  "next": "Review real gameplay frames/time-to-first-shot/charge events; fix visible blockers only. No acceptance.",
+{
+  "updated": "2026-10-24T18:12:00+02:00",
+  "phase": "Clean no-shield play test",
+  "build": "Installed no-shield ranged play build: mission 7A48C83D, probe ce9d98e, backup …180955.",
+  "now": "D is running the clean 10-min survivor POV with 10-attempt join retry and dense frames; zombie_block=null (no wooden shields), firearm_class=crossbow_type_ranged.",
+  "next": "Review frames, join success, time-to-first-shot/charge metrics; fix visible blockers only. No acceptance.",
   "acceptance": false
 }
