@@ -4903,6 +4903,33 @@
       "originReason": "Owner: granular tracking; small fixes must be visible.",
       "discoveredDuring": "2026-10-24 consolidation",
       "graphImpact": "Progress visibility"
+    },
+    {
+      "id": "ZOM-DISC-100",
+      "title": "Tracker P0: complete graph, publish freshness, derived readiness",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "active",
+      "sourceState": "tracked",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "evidence": [],
+      "completionBasis": "Implementation pending browser/Pages verification",
+      "kind": "work-item",
+      "owner": "Lead/F",
+      "priority": "P0",
+      "criterion": "All eligible items shown; ready/waiting/active counts derived; publish SHA visible; cycle check; browser verified.",
+      "note": "Site graph now derives all eligible ledger items (no hardcoded 28-59), computes readiness from dependsOn + external blocked, shows bottlenecks/cycles, and fetches publish metadata with source SHA/timestamp. Pending browser + Pages verification.",
+      "deferReason": "Supplemental tracker/release work; not a required City outcome.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "task",
+      "supportsOutcomeId": "ZOM-WAVE-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner audit 2026-10-24: graph completeness/freshness/readiness.",
+      "discoveredDuring": "2026-10-24 tracker audit",
+      "graphImpact": "Makes dependency tracking operational"
     }
   ],
   "warnings": [
