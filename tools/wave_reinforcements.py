@@ -10,6 +10,11 @@ ROUND_STAMP = "zdr_last_reinforced_round_start"
 ORIGINAL_GLOBALS = 1220
 # Verified in original mst_multiplayer_iv ti_before_mission_start (-19).
 INVASION_GAME_TYPE = 7
+FACTION_BASE = 432345564227567616
+TROOP_BASE = 360287970189639680
+INVADER_FACTION = FACTION_BASE + 16
+SLOW_ZOMBIE = 894
+WAVE_TABLE_SLOTS = tuple(range(200, 245))
 # Warband native neq = neg|eq = 0x80000000|31.
 # A round restart resets wave_number to zero while the sentinel survives.
 WAVE_CHANGED = 2147483679
@@ -44,7 +49,7 @@ def initialize_wave_state(sentinel, round_stamp):
 
 
 def reinforce_on_wave(g, troop_ids, cap=4, troop_classes=SURVIVOR_CLASSES, first_wave=2,
-                      city_scene=None):
+                      city_scene=None, slow_visitors=True):
     if not 1 <= first_wave <= 10:
         raise PatchError("Reinforcement first_wave must be 1..10")
     if not 1 <= cap <= 8:
@@ -71,7 +76,14 @@ def reinforce_on_wave(g, troop_ids, cap=4, troop_classes=SURVIVOR_CLASSES, first
             op(2211, LOCAL_BASE + 8),  # store_current_scene for City-only build
             op(31, LOCAL_BASE + 8, SCENE_BASE + city_scene),
         ])
-    body = [
+    body = []
+    if slow_visitors:
+        # Redundant visitor-table normalization: the 4 s wave trigger also
+        # rewrites every wave slot to the slow Zombie 894, so a leaked Fast/
+        # strong slot cannot survive even if the 5 s City trigger is skipped.
+        for slot in WAVE_TABLE_SLOTS:
+            body.append(op(502, INVADER_FACTION, slot, TROOP_BASE + SLOW_ZOMBIE))
+    body += [
         op(2133, g[ROUND_STAMP], g["g_round_start_time"]),
         op(2133, g[SENTINEL], g["wave_number"]),
         op(2133, loc[0], 0),
@@ -110,7 +122,7 @@ def reinforce_on_wave(g, troop_ids, cap=4, troop_classes=SURVIVOR_CLASSES, first
 
 
 def patch_text(mission, variables, troop_ids, cap=4, troop_classes=SURVIVOR_CLASSES, first_wave=2,
-               city_scene=None):
+               city_scene=None, slow_visitors=True):
     g = globals_from_original(variables)
     lines = mission.splitlines(keepends=True)
     count_row, count, insert_at = mission_bounds(lines)
@@ -120,7 +132,8 @@ def patch_text(mission, variables, troop_ids, cap=4, troop_classes=SURVIVOR_CLAS
     lines[count_row] = "29" + nl
     lines[insert_at:insert_at] = [
         initialize_wave_state(g[SENTINEL], g[ROUND_STAMP]) + nl,
-        reinforce_on_wave(g, troop_ids, cap, troop_classes, first_wave, city_scene) + nl,
+        reinforce_on_wave(g, troop_ids, cap, troop_classes, first_wave, city_scene,
+                           slow_visitors) + nl,
     ]
     changed = "".join(lines)
     if mission_bounds(changed.splitlines(keepends=True))[1] != 29:
@@ -131,7 +144,7 @@ def patch_text(mission, variables, troop_ids, cap=4, troop_classes=SURVIVOR_CLAS
 
 
 def apply_module(module: Path, cap=4, balanced_ai=False, first_wave=2,
-                 city_only=False):
+                 city_only=False, slow_visitors=True):
     module = Path(module)
     mission_path, variable_path = module / "mission_templates.txt", module / "variables.txt"
     original_m, original_v = mission_path.read_bytes(), variable_path.read_bytes()
@@ -146,7 +159,7 @@ def apply_module(module: Path, cap=4, balanced_ai=False, first_wave=2,
         city_scene = scene_index(module / "scenes.txt")
     changed_m, changed_v = patch_text(original_m.decode("utf-8"),
         original_v.decode("utf-8"), index_troops(module / "troops.txt"),
-        cap, classes, first_wave, city_scene)
+        cap, classes, first_wave, city_scene, slow_visitors)
     mission_path.write_bytes(changed_m.encode("utf-8"))
     try:
         variable_path.write_bytes(changed_v.encode("utf-8"))

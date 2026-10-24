@@ -263,7 +263,8 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
             wave_report = apply_wave_support(source, cap=experimental_defenders,
                                              balanced_ai=balanced,
                                              first_wave=support.first_reinforcement_wave,
-                                             city_only=not all_map_defenses)
+                                             city_only=not all_map_defenses,
+                                             slow_visitors=True)
             updated = report_for_module(source)
             if not updated["ok"] or updated["mission"]["triggers"] != 29:
                 raise RuntimeError("Wave reinforcement failed static post-apply validation")
