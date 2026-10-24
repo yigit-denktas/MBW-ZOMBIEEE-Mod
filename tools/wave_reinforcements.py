@@ -92,8 +92,8 @@ def reinforce_on_wave(g, troop_ids, cap=4, troop_classes=SURVIVOR_CLASSES, first
         op(1707, loc[1]),  # AI, not player
         op(1770, loc[2], loc[1]),  # team
         op(31, loc[2], 0),  # survivor team
-        op(1765, loc[3], loc[1]),  # group
-        op(33, loc[3], 5, 8),  # only OUR groups, not normal allies
+        # Count every team-0 non-player bot: native bots report groups 26-31,
+        # so a 5..8 group filter would count zero and over-spawn.
         op(2105, loc[0], 1),
         op(3),
         op(2121, loc[4], cap, loc[0]),  # missing = cap - living

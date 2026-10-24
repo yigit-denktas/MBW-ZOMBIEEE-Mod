@@ -23,9 +23,10 @@ SLOW_ZOMBIE = 894
 WAVE_TABLE_SLOTS = tuple(range(200, 245))
 DEFAULT_DEFENDER_TARGET = 8
 DEFENDER_TARGET_CAP = 12
-WINS_SLOT = 250          # invader faction slot: rounds survived (bounded)
-ROUND_SLOT = 252         # invader faction slot: previous g_round_ended
-ZOMBIE_SPEED_BASE = 60             # percent, wave 0/1 (task-45 pressure tuning)
+WINS_SLOT = 248          # invader faction slot: completed rounds (bounded)
+ROUND_SLOT = 249         # invader faction slot: previous g_round_ended
+MISSION_SLOT = 250       # invader faction slot: previous round-start clock
+ZOMBIE_SPEED_BASE = 55             # wave 0 55%; wave 1 = 60% (+5/wave)
 ZOMBIE_SPEED_PER_WAVE = 5          # +5% per wave, capped at 100
 HOLD_FIRE_ORDERS = (0, 13, 16)  # hold, fire_at_will, use_ranged_weapons (never suppress fire)
 defender_reinforce_supported = True
@@ -51,7 +52,8 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None,
                    zombie_speed: bool = True,
                    defender_orders: bool = True,
                    game_type_operand: int | None = None,
-                   round_ended_operand: int | None = None) -> str:
+                   round_ended_operand: int | None = None,
+                   round_start_operand: int | None = None) -> str:
     """City hold-order trigger body.
 
     With ``wave_global`` provided, each wave rotates the three sector posts by
@@ -119,15 +121,18 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None,
         ops.append(["1783", "2", l1, l3])                  # agent_set_division
         ops.append(["1766", "2", l1, l3])                  # agent_set_group
         if defender_orders:
-            l4 = str(LOCAL0 + 4)
-            ops.append(["1765", "2", l4, l1])              # agent_get_group (native)
+            # team_give_order/team_set_order_position only accept grc sub-classes
+            # 0..9; native bot groups (26/28/29/31) are not valid sub-classes.
+            # Use the computed division 5..7, which is inside the class space.
             ops.append(["1780", "2", str(pos), "0"])       # rear entry position
-            ops.append(["1791", "3", "0", l4, str(pos)])   # team_set_order_position
+            ops.append(["1791", "3", "0", l3, str(pos)])   # team_set_order_position
             for order in HOLD_FIRE_ORDERS:
-                ops.append(["1790", "3", "0", l4, str(order)])
-            # Ranged standoff: keep the firearm while ammo remains; only allow
-            # the native melee weapon switch when the magazine is empty
-            # (knife/melee is a last resort). WSE2 hold behavior keeps the
+                ops.append(["1790", "3", "0", l3, str(order)])
+            # Ranged standoff: keep the firearm while any usable ammo remains;
+            # only allow the native melee weapon switch when all spare ammo is
+            # exhausted (knife/melee is a last resort). agent_get_ammo(...,0)
+            # means all carried ammo, not just the current magazine. WSE2 hold
+            # behavior keeps the
             # formation from chasing, without any scripted destination.
             l5 = str(LOCAL0 + 5)
             ops.append(["1727", "3", l5, l1, "0"])         # agent_get_ammo
@@ -142,6 +147,7 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None,
         ops.append(["3", "0"])                             # try_end
         if defender_target:
             l6, l7, l12, l13 = (str(LOCAL0 + n) for n in (6, 7, 12, 13))
+            l14 = str(LOCAL0 + 14)
             l8, l9, l10, l11 = (str(LOCAL0 + n) for n in (8, 9, 10, 11))
             # Rounds survived accumulate a bounded survivor target: 8 base,
             # +1 per completed round, cap 12. State lives in invader faction slots
@@ -149,19 +155,36 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None,
             if round_ended_operand is not None:
                 ops.append(["522", "3", l6, str(INVADER_FACTION), str(WINS_SLOT)])
                 ops.append(["522", "3", l7, str(INVADER_FACTION), str(ROUND_SLOT)])
+                ops.append(["522", "3", l14, str(INVADER_FACTION), str(MISSION_SLOT)])
                 ops.append(["2133", "2", l12, str(round_ended_operand)])
+                if round_start_operand is not None:
+                    ops.append(["2133", "2", l13, str(round_start_operand)])
+                    # A clock going backwards means a new mission/rotation: reset.
+                    ops.append(["4", "0"])                # try_begin
+                    ops.append(["32", "2", l14, l13])     # old start > new start
+                    ops.append(["2133", "2", l6, "0"])    # wins = 0
+                    ops.append(["3", "0"])                # try_end
                 ops.append(["4", "0"])                    # try_begin
                 ops.append(["31", "2", l7, "1"])           # previous round ended
                 ops.append(["31", "2", l12, "0"])          # new round started
-                ops.append(["2120", "3", l6, l6, "1"])     # wins += 1
+                ops.append(["2120", "3", l6, l6, "1"])     # completed rounds += 1
                 ops.append(["3", "0"])                    # try_end
-                ops.append(["4", "0"])                    # cap wins
+                if round_start_operand is not None:
+                    ops.append(["502", "3", str(INVADER_FACTION),
+                                str(MISSION_SLOT), l13])   # stamp this mission clock
+                ops.append(["4", "0"])                    # cap rounds
                 ops.append(["32", "2", l6, "4"])
                 ops.append(["2133", "2", l6, "4"])
                 ops.append(["3", "0"])
                 ops.append(["502", "3", str(INVADER_FACTION), str(WINS_SLOT), l6])
                 ops.append(["502", "3", str(INVADER_FACTION), str(ROUND_SLOT), l12])
-                ops.append(["2120", "3", l13, "8", l6])    # target = 8 + wins
+                # --defender-target is the base; each completed round adds one,
+                # capped at DEFENDER_TARGET_CAP (never hard-coded 8).
+                ops.append(["2120", "3", l13, str(defender_target), l6])
+                ops.append(["4", "0"])
+                ops.append(["32", "2", l13, str(DEFENDER_TARGET_CAP)])
+                ops.append(["2133", "2", l13, str(DEFENDER_TARGET_CAP)])
+                ops.append(["3", "0"])
             else:
                 ops.append(["2133", "2", l13, str(defender_target)])
             ops.append(["2121", "3", l9, l13, l0])          # missing = target - count
@@ -237,7 +260,8 @@ def patch_orders(original: str, scene_idx: int,
                  zombie_speed: bool = True,
                  defender_orders: bool = True,
                  game_type_operand: int | None = None,
-                 round_ended_operand: int | None = None) -> str:
+                 round_ended_operand: int | None = None,
+                 round_start_operand: int | None = None) -> str:
     lines = original.splitlines(keepends=True)
     count_line, count, insert_at = mission_bounds(lines)
     if count != 26:
@@ -275,7 +299,8 @@ def patch_orders(original: str, scene_idx: int,
                                             wave_visitors, defender_target,
                                             zombie_speed, defender_orders,
                                             game_type_operand,
-                                            round_ended_operand) + newline)
+                                            round_ended_operand,
+                                            round_start_operand) + newline)
     updated = "".join(lines)
     if mission_bounds(updated.splitlines(keepends=True))[1] != 27:
         raise PatchError("Invalid tactical trigger count")
@@ -297,6 +322,7 @@ def apply_module(module: Path, hold_entries: tuple[int, ...] = REAR_HOLD_ENTRIES
     wave_global = None
     game_type_operand = None
     round_ended_operand = None
+    round_start_operand = None
     variables_path = module / "variables.txt"
     if variables_path.is_file():
         variables = variables_path.read_text(encoding="utf-8").splitlines()
@@ -309,11 +335,15 @@ def apply_module(module: Path, hold_entries: tuple[int, ...] = REAR_HOLD_ENTRIES
         if "g_round_ended" in variables:
             round_ended_operand = (144115188075855872
                                    + variables.index("g_round_ended"))
+        if "g_round_start_time" in variables:
+            round_start_operand = (144115188075855872
+                                   + variables.index("g_round_start_time"))
     changed_scene = apply_city_overlay(original_scene, plan)
     changed_mission = patch_orders(original_mission, idx, wave_global, hold_entries,
                                     wave_visitors, defender_target,
                                     zombie_speed, defender_orders,
-                                    game_type_operand, round_ended_operand)
+                                    game_type_operand, round_ended_operand,
+                                    round_start_operand)
     if len(decode_scene(changed_scene)["objects"]) != len(decode_scene(original_scene)["objects"]) + 3:
         raise PatchError("Scene overlay failed binary roundtrip")
     # All validations happen before writes. On a mission-write failure, restore the SCO.

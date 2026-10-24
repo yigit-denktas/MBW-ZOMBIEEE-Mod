@@ -264,13 +264,13 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
                                              balanced_ai=balanced,
                                              first_wave=support.first_reinforcement_wave,
                                              city_only=not all_map_defenses,
-                                             slow_visitors=True)
+                                             slow_visitors=wave_visitors == "slow")
             updated = report_for_module(source)
             if not updated["ok"] or updated["mission"]["triggers"] != 29:
                 raise RuntimeError("Wave reinforcement failed static post-apply validation")
         recovery_report = None
         if tactical_recovery:
-            defender_cap = experimental_defenders if city_roster_profile else 0
+            defender_cap = 0  # spawn_agent refill owns survivor growth; old group-based respawn over-spawned
             defender_troops = ()
             if defender_cap:
                 from bot_loadouts import CLONES
