@@ -4175,13 +4175,20 @@
       "dependsOn": [
         "ZOM-DISC-70"
       ],
-      "evidence": [],
+      "evidence": [
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-idle-20261024-172342-task76-heatmap-hit/84209c6a3c501c29aac1940ff6c66938",
+          "observedOn": "2026-10-24",
+          "acceptance": "sealed-8-file-verified"
+        }
+      ],
       "completionBasis": "Pending tool/report",
       "kind": "work-item",
       "owner": "Agent E — environment/analysis; C tooling; D runs; A interpretation",
       "priority": "P1",
       "criterion": "Reusable 2D occupancy/flow/health/morale analysis per round/wave with defensive posts/blockers and explicit gaps.",
-      "note": "Owner request: see how AI behaves spatially as round develops; over/under movement, health, morale; reusable for future maps. | C heatmap input branch 721b655 (heatmap-export); E owns spatial_analysis.py; D heatmap-bearing run pending. | E deliverable branch 3568a3d/PR #58 (spatial_analysis.py + sample report); held for metadata batch. D heatmap build installed mission DF21AE88; sealed run pending.",
+      "note": "Owner request: see how AI behaves spatially as round develops; over/under movement, health, morale; reusable for future maps. | C heatmap input branch 721b655 (heatmap-export); E owns spatial_analysis.py; D heatmap-bearing run pending. | E deliverable branch 3568a3d/PR #58 (spatial_analysis.py + sample report); held for metadata batch. D heatmap build installed mission DF21AE88; sealed run pending. | D fixed-probe run: 229 heatmap points/14 heartbeats, class/division/hp present; hit params invalid; screenshots faction-only. | E PR #58 head 54f3b24 requires probe-health before analysis; zero-heartbeat partial = fail.",
       "deferReason": "Supplemental spatial analysis; not denominator.",
       "implementationLane": "E",
       "workOrigin": "discovered",
@@ -4297,7 +4304,7 @@
       "owner": "Agent C probe; D measured runs; E heatmap; A interpretation",
       "priority": "P0",
       "criterion": "1s active/5s idle/event sampling with bounded caps; measured log/CPU tradeoff and usable heatmap data.",
-      "note": "15s too sparse; sample all alive bounded; configurable interval; no unbounded output.",
+      "note": "15s too sparse; sample all alive bounded; configurable interval; no unbounded output. | C adaptive fix bf39a37 installed; run shows 2430 adaptive points/14 heartbeats; A/B pending.",
       "deferReason": "Supplemental telemetry density; not denominator.",
       "implementationLane": "C",
       "workOrigin": "discovered",
@@ -4326,7 +4333,7 @@
       "owner": "Agent D capture; A param; C data; E/F site",
       "priority": "P1",
       "criterion": "Reviewable round/fight GIFs on Pages incl. baseline vs one-parameter variant with metadata and non-acceptance labels.",
-      "note": "site/replays/task71-survivor-sample.gif live; adaptive 1s and A/B placeholders.",
+      "note": "site/replays/task71-survivor-sample.gif live; adaptive 1s and A/B placeholders. | Raw captures removed (404); derived heatmap GIF 200; A/B protocol c9b69c9; valid defender_target 8 vs 4 pair pending.",
       "deferReason": "Supplemental review/presentation; not denominator.",
       "implementationLane": "D",
       "workOrigin": "discovered",
@@ -4355,7 +4362,7 @@
       "owner": "Agent C tool; D/E run before analysis",
       "priority": "P0",
       "criterion": "Every sealed bundle gets probe-health JSON; 0 heartbeats/missing hit/adaptive counters/error spam are caught before analysis.",
-      "note": "C branch c7d58a0; command probe-health; strict gaps.",
+      "note": "C branch c7d58a0; command probe-health; strict gaps. | Gate gap: attempts=14/events=15/invalid=14 but hit_sample=0 yet probe-health ok; C must fail the gate.",
       "deferReason": "Supplemental tooling; not denominator.",
       "implementationLane": "C",
       "workOrigin": "discovered",
