@@ -6,7 +6,7 @@
   "acceptance": "none",
   "runtime_verified": false,
   "observed_on": "2026-10-24",
-  "source_revision": "8759eedf58bcd09fe69e41995d5c23e09cc138de",
+  "source_revision": "b06f4275ace818a8a9a3e3b23fc6367d96e3cbd9",
   "version_sources": {
     "version": "VERSION",
     "changelog": "CHANGELOG.md#030-beta1-2026-10-24",
@@ -523,7 +523,7 @@
     "published": false
   },
   "source_revision_exception": {
-    "reason": "E residual hit-mapping marker + capability fields; metadata-only head revision",
+    "reason": "task-74 heatmap input branch metadata-only head revision; Lead syncs final release metadata",
     "changed_paths": [
       "docs/release-traceability.json",
       "CHANGELOG.md",

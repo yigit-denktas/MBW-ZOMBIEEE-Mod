@@ -118,3 +118,6 @@ Source revision for the telemetry claim-wording metadata-only receipt: `79d7b84`
 
 
 Source revision for the hit-mapping metadata-only receipt: `8759eed`.
+
+
+Source revision for the task-74 heatmap metadata-only receipt: `b06f427`.

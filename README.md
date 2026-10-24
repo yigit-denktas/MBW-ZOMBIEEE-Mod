@@ -199,3 +199,6 @@ This project deliberately separates **source-verified**, **observed**, **unknown
 
 
 <!-- hit mapping metadata-only source revision: 8759eed -->
+
+
+<!-- task-74 heatmap metadata-only source revision: b06f427 -->
