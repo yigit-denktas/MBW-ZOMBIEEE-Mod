@@ -1,8 +1,8 @@
-{
-  "updated": "2026-10-24T18:32:00+02:00",
-  "phase": "Nextplay validation",
-  "build": "Installed C62F0BCD (hold-ground + zombie targets, no shields).",
-  "now": "D 10-minute survivor POV running since 18:28; join retry/screenshots; result pending. Probe console spam still overlaps frames.",
-  "next": "Compare charge/first-shot/KD/waves vs previous; install only if behavioral delta is real. No acceptance.",
+﻿{
+  "updated": "2026-10-24T18:31:00+02:00",
+  "phase": "Visual-gated nextplay reseal",
+  "build": "Installed nextplay b3cfe69 + probe c77363e: mission C62F0BCD, backup …183033; accuracy 100 honest.",
+  "now": "Adaptive console is server-only; D running clean 10-min survivor POV with screenshots and adaptive firearm fields.",
+  "next": "Review join, charge/first-shot/shots ratio, KD, screenshots. If clean, this becomes the play checkpoint. No acceptance.",
   "acceptance": false
 }
