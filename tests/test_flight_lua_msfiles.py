@@ -183,7 +183,8 @@ class LuaOperationMetadataTests(unittest.TestCase):
     def test_team_counts_fail_closed_to_unknown(self):
         # agent_get_team failures must not be counted as team 0 (the live
         # attempt-4 team0=1 can coincide with the failed call's zero result).
-        self.assertIn("game.agent_get_team(0, agent)", self.main)
+        self.assertIn('read_agent_number("agent_get_team", agent)', self.main)
+        self.assertNotIn("game.agent_get_team(0, agent)", self.main)
         self.assertIn("op_error", self.main)
         self.assertIn("if not result.measured then", self.main)
         self.assertIn("result.team0, result.team1 = -1, -1", self.main)
