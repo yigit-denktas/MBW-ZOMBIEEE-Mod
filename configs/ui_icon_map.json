@@ -1153,7 +1153,8 @@
     "Attribution register not generated yet.",
     "Independent licence review by Agent E completed 2026-10-24 (reference/CROSS_REVIEW_LEGAL_RELEASE_2026-10-24.md §A, PR #31 review comment); findings folded; no legal clearance or acceptance claimed.",
     "No acceptance claim for any ledger leaf, legal gate or City outcome.",
-    "task-64 cosmetic/prop/reticle candidates: visual validation requires in-game screenshots (docs/ICON_MAPPING.md §10); none taken; no native reticle resize claimed."
+    "task-64 cosmetic/prop/reticle candidates: visual validation requires in-game screenshots (docs/ICON_MAPPING.md §10); none taken; no native reticle resize claimed.",
+    "task-64 follow-up register §3.9: OGA/Kenney/MakeHuman candidates licence-checked but not downloaded; SHA-256, OGA KillGorack embedded-texture check, and D screenshots pending; no binaries."
   ],
   "review": {
     "reviewer": "Agent E",
@@ -1185,5 +1186,51 @@
     "A (classic cross)",
     "B (tick/chevron)",
     "C (ring+dot)"
-  ]
+  ],
+  "reticleVariantSpecs": {
+    "master_px": 64,
+    "stroke_px": 2,
+    "display_sizes_px": [
+      64,
+      48,
+      32
+    ],
+    "variants": {
+      "A": {
+        "name": "classic cross",
+        "arms_px": {
+          "left": "16..26 x 31..33",
+          "right": "38..48 x 31..33",
+          "top": "31..33 x 16..26",
+          "bottom": "31..33 x 38..48"
+        },
+        "gap_radius_px": 6,
+        "center_dot": "31..33 x 31..33"
+      },
+      "B": {
+        "name": "tick/chevron",
+        "arms_px": {
+          "left": "16..24 x 31..33",
+          "right": "40..48 x 31..33",
+          "top": "31..33 x 16..24",
+          "bottom": "31..33 x 40..48"
+        },
+        "gap_radius_px": 8,
+        "center_dot": "31..33 x 31..33"
+      },
+      "C": {
+        "name": "ring+dot",
+        "ring_band_radius_px": "10..12 around (32,32)",
+        "gap_radius_px": null,
+        "center_dot": "31..33 x 31..33"
+      }
+    }
+  },
+  "task64Followups": {
+    "register": "reference/FREE_ASSET_SOURCES.md §3.9",
+    "status": "licence-checked-candidates-not-downloaded",
+    "screenshots": false,
+    "assetPrGate": "owner approval + E licence clearance + THIRD_PARTY_NOTICES row + D screenshots",
+    "acceptance": false
+  }
 }

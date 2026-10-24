@@ -52,6 +52,21 @@ tools (Inkscape/Blender) do not add asset obligations to the exported art.
 | Atlas slot | `ui_zdr_reticle` plus optional variants `ui_zdr_reticle_a/b/c`; optional separate spread ring `ui_zdr_reticle_spread` |
 | Source form | authored vector (SVG/Blender) kept outside the repo until a licence-cleared asset PR |
 
+### 2.4 Variant geometry table (numeric authoring spec at 64 px)
+
+Coordinates are pixel boxes on the 64×64 master; strokes are 2 px. This is a **numeric specification,
+not a committed SVG/PNG**; authoring happens only after licence/owner clearance.
+
+| Variant | Arms / ring | Pixel boxes (x1..x2 × y1..y2) | Gap / radius | Centre dot |
+| --- | --- | --- | --- | --- |
+| A | 4 straight arms | left `16..26 × 31..33`; right `38..48 × 31..33`; top `31..33 × 16..26`; bottom `31..33 × 38..48` | gap radius 6 px from (32,32); arm length 10 px | `31..33 × 31..33` |
+| B | 4 short ticks (lower clutter) | left `16..24 × 31..33`; right `40..48 × 31..33`; top `31..33 × 16..24`; bottom `31..33 × 40..48` | gap radius 8 px; tick length 8 px | `31..33 × 31..33` |
+| C | 2 px ring + dot | ring band radius `10..12` px around `(32,32)` (outer bbox `20..44 × 20..44`) | outer radius 12 px | `31..33 × 31..33` |
+| Spread ring (optional) | separate sprite | ring stroke 1.5–2 px; display diameters 32/48/64 px | gameplay-supplied scale | none |
+
+Display mapping: author at 64 px; deliver 64/48/32; 16 px only after legibility check. Do not downscale
+below the 2 px stroke without redrawing.
+
 ### 2.2 Optional spread ring (presentation only)
 
 - A separate ring sprite scaled by a **gameplay-supplied** factor; the concept does not define that
@@ -82,6 +97,19 @@ All three candidate pages were checked **HTTP 200** on 2026-10-24. No candidate 
 committed here. Any chosen candidate needs a `THIRD_PARTY_NOTICES.md` row (primary; `docs/CREDITS.md`
 alternative) and E clearance.
 
+### 3.1 Candidate evidence status
+
+| Candidate | Licence verified | Downloaded | SHA-256 | Screenshot | Status |
+| --- | --- | --- | --- | --- | --- |
+| authored A/B/C (numeric spec §2.4) | n/a (our work) | no source file created | pending | D capture pending | concept only; source SVG/Blender to be authored after approval |
+| game-icons `reticule` (Lorc) | 2026-10-24 | no | pending | pending | candidate |
+| game-icons `crosshair` (Delapouite) | 2026-10-24 | no | pending | pending | candidate |
+| Font Awesome `crosshairs` | 2026-10-24 | no | pending | pending | candidate |
+
+No binary exists for any row; a chosen CC BY candidate needs a `THIRD_PARTY_NOTICES.md` row before an
+asset PR.
+
+
 ---
 
 ## 4. Screenshot comparison plan (reticle-specific)
@@ -98,6 +126,20 @@ This refines `docs/ICON_MAPPING.md` §10; **D captures**, E/owner review, no vis
 | 5. Blind review | owner + E label A/B/C vs baseline without knowing which is which; pass/fail per variant |
 | 6. Evidence | screenshots + hashes under `local/`/`evidence/` (gitignored, never committed); receipt records build SHA + chosen variant + measurement table |
 | 7. Claim gate | only after 4–6: may say "additive overlay drawn and compared"; **never** "native reticle resized/changed" unless engine evidence exists |
+
+
+### 4.1 Variant test matrix
+
+| Run | Overlay | Resolutions | Aim distances | Purpose |
+| --- | --- | --- | --- | --- |
+| R0 | none (native only) | 1920×1080, 1280×720 | 5/10/25 m | baseline + double-reticle reference |
+| R1 | A | same | same | classic cross legibility/clutter |
+| R2 | B | same | same | low-clutter ticks |
+| R3 | C | same | same | ring/dot legibility |
+| R4 | C + spread ring | same | same | optional spread presentation (static scale) |
+
+Each run: 3 frames × (dark, bright, blood-red) = 9 images; record build SHA, atlas slot, tint, alpha;
+store privately; no visual claim until blind review.
 
 **Failure conditions (stop, do not claim):** double reticle unacceptable; overlay obscures target or
 feed; DXT5 alpha fringing; overlay not visible at 720p; any measurement contradicts the concept.

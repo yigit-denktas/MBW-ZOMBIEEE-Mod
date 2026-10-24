@@ -280,10 +280,13 @@ screenshots** (owner/Lead); none were taken in this docs-only pass.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | EP-01 | [Poly Haven models](https://polyhaven.com/models) — CC0 prop candidates from the site API (521 models): `concrete_road_barrier`, `concrete_road_barrier_02`, `modular_chainlink_fence`, `old_military_crate`, `Barrel_01`, `Barrel_02`, `barrel_03`, `plastic_crate_01..03`, `wine_barrel_01` | **CC0** (licence page verified: redistribution allowed) | Yes | Yes | Not required | Use the asset files, not preview renders/logos (ToS §4); convert FBX/OBJ→BRF, add collision mesh, check scale and navmesh fit; style/poly suitability is per-asset | **ADOPT** — first environment candidates |
 | EP-02 | [Kenney — Survival Kit](https://kenney.nl/assets/survival-kit) (80 models, CC0) | **CC0** (asset page verified) | Yes | Yes | Not required | Contents not itemised in this pass — check the pack's own license file and pick crates/barrels/sandbag-like pieces; low-poly style | **ADAPT** — style-dependent |
-| EP-03 | [ambientCG 3D assets](https://ambientcg.com/) (models/terrain, CC0) | **CC0** | Yes | Yes | Not required | General CC0 source; per-asset suitability for cover/barricade geometry must be checked | **ADAPT** — fallback |
+| EP-03 | [ambientCG](https://ambientcg.com/) (textures/materials, CC0) | **CC0** | Yes | Yes | Not required | 2026-10-24 API check returned 500 assets but **no barrier/crate/barrel 3D prop ids**; treat ambientCG as a texture/material source, not a prop source (prop suitability not verified) | **ADAPT** — textures only |
 | EP-04 | KayKit prop/kit packs (CC0 free tiers) | **CC0** | Yes | Yes | Not required | Fantasy style; placeholders/dev only for modern City props | **ADAPT** — placeholders |
 | EP-05 | **Project-authored sandbag/barricade/crate meshes** | Our own work (owner) | Yes | Yes | Project credit | Best route for a public/clean-room build: no third-party licence, full control of collision/navmesh and scale; cost is art time | **ADOPT (preferred for public)** |
 | EP-06 | Existing City props (`spr_zombie_sandbag_wall`, barrels, `band_a`, plants, poles) | Native/original-ZOMBIEEE/third-party: **no recorded redistribution right** | No (private build reference only) | **No** (public bundle) | — | Private/local build only; public/clean-room release needs replacement or omission (`reference/LEGAL_RIGHTS_AND_CREDITS.md` R-03/R-05). The task-63 map design records the same boundary | **AVOID (bundle)** |
+| EP-07 | [OGA — Crates Chests Coins and Barrels Collection](https://opengameart.org/content/crates-chests-coins-and-barrels-collection) (mabaci, 2025-01-26) | **CC0** (page verified) | Yes | Yes | Not required | Low-poly medieval wooden crates/barrels/chests; 902 KB zip; ideal crate/barrel fallback for cover; per-asset scale/texture check | **ADAPT** — crate/barrel fallback |
+| EP-08 | [OGA — Containers Pack](https://opengameart.org/content/containers-pack) (loafbrr_1, 2023-02-13) | **CC0** (page verified) | Yes | Yes | Not required | 34 modern industrial container props (propane/oxygen tanks, gas cans, water drums); FBX/glTF/blend + 1k textures; page reports 52,826 tris total — budget-check before use | **ADAPT** — modern props |
+| EP-09 | [OGA — Crate and barrel](https://opengameart.org/content/crate-and-barrel-no-pun-intended) (KillGorack, 2026-03-30) | **CC0** (page states CC0) | Yes | Yes | Not required | Blender crate/barrel; **embedded wood textures + HDRI link to the author's asset pages — verify those licences separately** before use; otherwise check-first | **ADAPT (verify embedded)** |
 
 **Collision/navmesh warning:** a barricade that changes walkable space needs a scene/navmesh update and
 D runtime validation; decorative cover that does not block pathing is the lower-risk first step.
@@ -295,16 +298,36 @@ separate from the 3D meshes; both must stay licence-clean and be screenshot-vali
 
 | ID | Source | Licence | Modify | Redistribute | Attribution | Constraints / notes | Decision |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| C-01 | **MakeHuman** + community assets ([Wayback 2026-08-27 capture](https://web.archive.org/web/20260827233101/http://www.makehumancommunity.org/content/license.html)) | **AGPL3 source/data; CC0 export only** under the two exact conditions: official **and unmodified** MakeHuman export **and/or** a 2D PNG/BMP/JPG | Yes | Only CC0-qualified exports | Not required for CC0 exports | Process gate per export (build/version, unmodified); bodies, face morphs, hair proxies, clothing bases; retopo/rig to Warband skeleton; AGPL §13 note if ever service-hosted | **ADAPT** — primary base library with the export-process rule |
+| C-01 | **MakeHuman** + community assets ([licence Wayback 2026-08-27](https://web.archive.org/web/20260827233101/http://www.makehumancommunity.org/content/license.html); [asset categories Wayback 2024-12-29](https://web.archive.org/web/20241229124101/http://www.makehumancommunity.org/content/user_contributed_assets.html)) | **AGPL3 source/data; CC0 export only** under the two exact conditions: official **and unmodified** MakeHuman export **and/or** a 2D PNG/BMP/JPG. **Community-contributed assets keep their own per-author licences** — check each asset page | Yes | Only CC0-qualified exports | Not required for CC0 exports | Process gate per export (build/version, unmodified); categories: clothes, body extensions (hair/beard), skins, models, proxies, targets/expressions; retopo/rig to Warband skeleton; AGPL §13 note if service-hosted | **ADAPT** — primary base library with export + per-asset licence gate |
 | C-02 | [Blender Studio — Human Base Meshes v1.4.1](https://www.blender.org/download/demo-files/) | **CC0** (bundle-scoped) | Yes | Yes | Not required | Head/body base only (no clothes/hair); CC0 applies to this bundle, not all Blender demos | **ADOPT** — head/body base |
 | C-03 | KayKit Adventurers accessories (free-tier CC0) | **CC0** | Yes | Yes | Not required | Fantasy armour/accessories; dev placeholders only for a modern survivor look | **ADAPT** — placeholders |
 | C-04 | **Project-authored modular clothing/armour/hair/faces** | Our own work (owner) | Yes | Yes | Project credit | Best for public/clean-room; matches modern setting and Warband rig; needs art time and screenshot review | **ADOPT (preferred for public)** |
 | C-05 | game-icons.net equipment/upgrade icons: `kevlar-vest` (Skoll), `trench-body-armor` (Skoll), `breastplate` (Lorc), `leather-armor` (Delapouite), `armor-upgrade` (Delapouite), `gloves` (Delapouite), `greaves` (Delapouite), `light-helm` (Delapouite), `hoodie` (Delapouite), `hair-strands` (Delapouite), `person` (Delapouite), `barricade` (Delapouite), `wooden-crate` (Delapouite) | **CC BY 3.0** | Yes | Yes | **Required** per icon: "Icons made by {author}. Available on https://game-icons.net" + licence link + changes | 2D upgrade/UI icons only (not 3D models); attribution register required; `docs/ICON_MAPPING.md` §4.6 maps the slots | **ADOPT** — upgrade UI icons |
 | C-06 | Reticle overlay candidates: **project-authored** (best) / game-icons `reticule` (Lorc) or `crosshair` (Delapouite) / Font Awesome `crosshairs` (CC BY 4.0) | CC0 (authored) / **CC BY 3.0** (game-icons) / **CC BY 4.0** (FA) | Yes | Yes | Required for CC BY (per-icon/project credit) | **Additive overlay only**; do **not** claim native reticle resize. Screenshot comparison plan in `docs/ICON_MAPPING.md` §10; concept geometry/variants in [`reference/RETICLE_OVERLAY_CONCEPT.md`](RETICLE_OVERLAY_CONCEPT.md); no binary until cleared; owner+E approval | **ADAPT** — candidate only |
 | C-07 | Modern tactical clothing/armour CC0 source | **not verified in this pass** | — | — | — | No single CC0 modern-survivor set found; per-asset Sketchfab CC0 is a last resort (store/editorial excluded); Mixamo/Adobe asset redistribution is not cleared for a mod bundle | **OPEN** — use authored/C-01 bases meanwhile |
+| C-08 | [Kenney — Animated Characters Survivors](https://kenney.nl/assets/animated-characters-survivors) (8 files, CC0, 2019) | **CC0** (asset page verified) | Yes | Yes | Not required | Blocky survivor/zombie character placeholders for dev/screenshot matrices; style not final; check pack's own license file | **ADAPT** — placeholders |
 
 Icon page pattern: `https://game-icons.net/1x1/<author>/<icon>.html`; all candidate C-05/C-06 icon pages
 were checked on 2026-10-24 (HTTP 200).
+
+### 3.9 Task-64 follow-up licence-evidence register (candidates only)
+
+Evidence state for the follow-up candidates. **Nothing here is downloaded or committed**; an entry is
+not a licence clearance for a public bundle. Owner approval + E review + screenshots are still required.
+
+| Candidate | Source | Licence (observed) | Licence evidence | Download / SHA-256 | Screenshot | Gate |
+| --- | --- | --- | --- | --- | --- | --- |
+| EP-01 Poly Haven barrier/crate/barrel/fence ids | `polyhaven.com/models` (API list) | CC0 | licence page 2026-10-24; API lists 11 ids | not downloaded; SHA pending | D capture pending | owner approval → E review → asset PR |
+| EP-02 Kenney Survival Kit (80 models) | `kenney.nl/assets/survival-kit` | CC0 | asset page 2026-10-24 | not downloaded; contents unverified | pending | per-asset contents check |
+| EP-07 OGA crates/barrels (mabaci) | `opengameart.org/content/crates-chests-coins-and-barrels-collection` | CC0 | page 2026-10-24 | not downloaded; SHA pending | pending | low-poly crate/barrel fallback |
+| EP-08 OGA Containers Pack (loafbrr_1) | `opengameart.org/content/containers-pack` | CC0 | page 2026-10-24 | not downloaded; SHA pending | pending | modern industrial props; poly budget check |
+| EP-09 OGA crate/barrel (KillGorack) | `opengameart.org/content/crate-and-barrel-no-pun-intended` | CC0 (page) | page 2026-10-24 | not downloaded | pending | **embedded textures/HDRI need separate licence check** |
+| C-01 MakeHuman categories | assets page Wayback 2024-12-29 | core licence + per-asset community terms | licence page verified; per-asset check required | not exported | pending | document official/unmodified export; verify each contributed asset |
+| C-03/C-08 KayKit + Kenney survivors | KayKit itch page; `kenney.nl/assets/animated-characters-survivors` | CC0 (free tiers) | pages 2026-10-24 | not downloaded | pending | placeholder only |
+| C-05/C-06 icons + reticle candidates | game-icons.net / Font Awesome | CC BY 3.0 / CC BY 4.0 | pages 2026-10-24 (HTTP 200) | not downloaded | D capture pending | attribution register row before binaries |
+
+Rules: no binary in the repo until owner approval + licence clearance + `THIRD_PARTY_NOTICES.md` row +
+D screenshots; unknown stays unknown; no acceptance.
 
 ---
 
@@ -346,6 +369,7 @@ commits yet.
 | 10 | **EP-01 Poly Haven CC0 props** (`concrete_road_barrier`, crates, barrels, chainlink fence) | First licence-clean environment/cover candidates; CC0 | Pick 1–2 props, export OBJ→OpenBRF, add collision, record source/date; screenshot plan before visual claim |
 | 11 | **C-01/C-02/C-04 survivor body/cosmetic base** (MakeHuman CC0 exports + Blender base + authored) | Licence-clean bodies/faces/hair/clothing route; no modern-CC0 off-the-shelf set | Document MakeHuman export process; prototype one male/female cosmetic variant; screenshots for review |
 | 12 | **C-05/C-06 upgrade icons + reticle candidates** | Between-wave upgrade UI + additive reticle option with clear attribution | Generate attribution rows from the JSON; screenshot comparison (`docs/ICON_MAPPING.md` §10) before any visual claim |
+| 13 | **EP-07/EP-08 OGA CC0 crates/barrels/containers** | Concrete licence-cleared prop candidates for cover/barricades | Record page/date + source SHA once owner approves; convert OBJ/FBX→BRF; collision/navmesh check |
 
 **Deliberately not in the first integration:** any 3D modern clothing/armour (gap), third-party OSP
 assets (terms unknown), native assets (no redistribution right recorded; treat as non-redistributable),
@@ -456,6 +480,10 @@ All URLs fetched 2026-10-24 unless noted.
 | game-icons equipment/upgrade icons | `/tags/armor.html`, `/tags/clothing.html` + HEAD checks of candidate pages (HTTP 200) | ids/authors for armour/clothing/helmet/hair/face/crate/barricade recorded |
 | Reticle candidates | `game-icons.net/1x1/lorc/reticule.html`, `.../delapouite/crosshair.html`, Font Awesome `svgs/solid/crosshairs.svg` (HTTP 200) | Licence-cleared candidates; additive overlay only, no native-resize claim |
 | Screenshot validation | Not performed (docs-only, no game launch) | Required before any visual/asset acceptance; plan in `docs/ICON_MAPPING.md` §10 |
+| OGA crate/barrel props | `opengameart.org/content/crates-chests-coins-and-barrels-collection`, `.../containers-pack`, `.../crate-and-barrel-no-pun-intended` (HTTP 200) | CC0 on each page; KillGorack embedded textures/HDRI need separate check |
+| Kenney Animated Characters Survivors | `kenney.nl/assets/animated-characters-survivors` (HTTP 200) | CC0, 8 files, survivor/zombie tags |
+| MakeHuman user-contributed assets | Wayback capture 2024-12-29 of `user_contributed_assets.html` (HTTP 200) | categories clothes/body extensions/skins/models/proxies; **community assets are per-author — check each** |
+| ambientCG 3D-prop API check | `https://ambientcg.com/api/v2/full_json?type=3DModel&limit=500` (HTTP 200) | 500 assets returned but no barrier/crate/barrel 3D prop ids matched → texture/material source, not a prop source |
 | Native assets not in repo | `git ls-tree`/`git grep` on branch (`reference/`, `docs/`, `configs/`) | No `.brf/.dds/.wav/.ogg/.ttf/.png` assets added by this task |
 
 ---
@@ -488,3 +516,6 @@ All URLs fetched 2026-10-24 unless noted.
    for any visual/asset validation; none were captured in this docs-only task. The comparison plan is
    `docs/ICON_MAPPING.md` §10. Reticle work stays additive (no native reticle resize claim); any new
    prop/icon needs E review + `THIRD_PARTY_NOTICES` evidence before binaries.
+9. **Follow-up register §3.9 is evidence-only:** new OGA/Kenney/MakeHuman candidates are licence-checked
+   but not downloaded; source SHA-256, OGA KillGorack embedded-texture/HDRI provenance, and D-captured
+   screenshots are pending. No binary may be committed until those fields are filled and E clears.

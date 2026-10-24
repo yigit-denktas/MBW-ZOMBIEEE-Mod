@@ -177,6 +177,9 @@ models) and require the same attribution/atlas rules as §3–§4.
 reticle; any visual acceptance requires the in-game screenshot comparison in §10. Icon page pattern
 `https://game-icons.net/1x1/<author>/<icon>.html`; candidate pages checked 2026-10-24.
 
+3D character/cosmetic candidate sources (Kenney Animated Characters Survivors, MakeHuman community
+categories) are tracked in `reference/FREE_ASSET_SOURCES.md` §3.8/§3.9; they are not icon slots.
+
 ---
 
 ## 5. Native atlas risk and free replacements
