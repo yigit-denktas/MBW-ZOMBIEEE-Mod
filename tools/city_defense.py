@@ -53,7 +53,8 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None,
                    defender_orders: bool = True,
                    game_type_operand: int | None = None,
                    round_ended_operand: int | None = None,
-                   round_start_operand: int | None = None) -> str:
+                   round_start_operand: int | None = None,
+                   adaptive: bool = False) -> str:
     """City hold-order trigger body.
 
     With ``wave_global`` provided, each wave rotates the three sector posts by
@@ -105,6 +106,92 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None,
             ops.append(["1780", "2", str(pos), str(entry)])
             ops.append(["1791", "3", "0", str(group), str(pos)])
             ops.append(["1790", "3", "0", str(group), "0"])
+    elif adaptive:
+        # Adaptive formation/cohesion (task-53/62): no scripted destinations.
+        # Hold the three forward guard posts (E map: 2 centre, 3 east, 4 west)
+        # while the squad is not outnumbered; otherwise pull the whole team back
+        # to the north base entry (0) and issue a fall-back order. Roles are
+        # divisions: commando/sniper 5, scout 6, lumberjack 7. Target priority
+        # remains engine/native (no public setter) and is receipt metadata only.
+        l0, l1, l2, l3 = (str(LOCAL0 + n) for n in (0, 1, 2, 3))
+        l4, l5, l6, l7 = (str(LOCAL0 + n) for n in (4, 5, 6, 7))
+        l8, l9, l10, l11 = (str(LOCAL0 + n) for n in (8, 9, 10, 11))
+        # Count/adopt team-0 bots by class.
+        ops.append(["2133", "2", l0, "0"])
+        ops.append(["12", "1", l1])
+        ops.append(["1702", "1", l1])
+        ops.append(["1707", "1", l1])
+        ops.append(["1770", "2", l2, l1])
+        ops.append(["31", "2", l2, "0"])
+        ops.append(["1718", "2", l4, l1])
+        ops.append(["4", "0"])
+        ops.append(["31", "2", l4, "984"])
+        ops.append(["2133", "2", l3, "7"])
+        ops.append(["5", "0"])
+        ops.append(["31", "2", l4, "983"])
+        ops.append(["2133", "2", l3, "6"])
+        ops.append(["5", "0"])
+        ops.append(["2133", "2", l3, "5"])
+        ops.append(["3", "0"])
+        ops.append(["1783", "2", l1, l3])
+        ops.append(["1766", "2", l1, l3])
+        if defender_orders:
+            l5 = str(LOCAL0 + 5)
+            ops.append(["1727", "3", l5, l1, "0"])
+            ops.append(["4", "0"])
+            ops.append(["31", "2", l5, "0"])
+            ops.append(["3343", "2", l1, "1"])
+            ops.append(["5", "0"])
+            ops.append(["3343", "2", l1, "0"])
+            ops.append(["3", "0"])
+            ops.append(["3314", "3", l1, "0", "6"])
+        ops.append(["2120", "3", l0, l0, "1"])
+        ops.append(["3", "0"])
+        # Count team-1 agents (pressure, not distance yet).
+        ops.append(["2133", "2", l6, "0"])
+        ops.append(["12", "1", l7])
+        ops.append(["1702", "1", l7])
+        ops.append(["1707", "1", l7])
+        ops.append(["1770", "2", l8, l7])
+        ops.append(["31", "2", l8, "1"])
+        ops.append(["2120", "3", l6, l6, "1"])
+        ops.append(["3", "0"])
+        # Defensive mode: round ended, or team1 > 2*team0, or <=1 survivor.
+        ops.append(["2133", "2", l9, "0"])
+        if round_ended_operand is not None:
+            ops.append(["2133", "2", l10, str(round_ended_operand)])
+            ops.append(["4", "0"])
+            ops.append(["31", "2", l10, "1"])
+            ops.append(["2133", "2", l9, "1"])
+            ops.append(["3", "0"])
+        ops.append(["2120", "3", l10, l0, "2"])
+        ops.append(["4", "0"])
+        ops.append(["32", "2", l6, l10])
+        ops.append(["2133", "2", l9, "1"])
+        ops.append(["3", "0"])
+        ops.append(["4", "0"])
+        ops.append(["30", "2", l0, "1"])
+        ops.append(["2133", "2", l9, "1"])
+        ops.append(["3", "0"])
+        if defender_orders:
+            for index, group in enumerate(DIVISIONS):
+                normal_entry = GUARD_ENTRIES[index]
+                ops.append(["4", "0"])
+                ops.append(["31", "2", l9, "1"])
+                ops.append(["2133", "2", l11, "0"])       # defensive base
+                ops.append(["5", "0"])
+                ops.append(["2133", "2", l11, str(normal_entry)])
+                ops.append(["3", "0"])
+                ops.append(["1780", "2", str(pos), l11])
+                ops.append(["1791", "3", "0", str(group), str(pos)])
+                ops.append(["4", "0"])
+                ops.append(["31", "2", l9, "1"])
+                ops.append(["1790", "3", "0", str(group), "6"])  # fall back to base
+                ops.append(["5", "0"])
+                ops.append(["1790", "3", "0", str(group), "0"])  # hold forward
+                ops.append(["3", "0"])
+                ops.append(["1790", "3", "0", str(group), "13"])  # fire at will
+                ops.append(["1790", "3", "0", str(group), "16"])  # use ranged
     elif tuple(hold_entries) == REAR_HOLD_ENTRIES:
         # Defensive line: adopt native team-0 bots into divisions 5-7, then hold
         # the rear/spawn entry positions every 5 s. No scripted destination and
@@ -261,7 +348,8 @@ def patch_orders(original: str, scene_idx: int,
                  defender_orders: bool = True,
                  game_type_operand: int | None = None,
                  round_ended_operand: int | None = None,
-                 round_start_operand: int | None = None) -> str:
+                 round_start_operand: int | None = None,
+                 adaptive: bool = False) -> str:
     lines = original.splitlines(keepends=True)
     count_line, count, insert_at = mission_bounds(lines)
     if count != 26:
@@ -300,7 +388,8 @@ def patch_orders(original: str, scene_idx: int,
                                             zombie_speed, defender_orders,
                                             game_type_operand,
                                             round_ended_operand,
-                                            round_start_operand) + newline)
+                                            round_start_operand,
+                                            adaptive) + newline)
     updated = "".join(lines)
     if mission_bounds(updated.splitlines(keepends=True))[1] != 27:
         raise PatchError("Invalid tactical trigger count")
@@ -311,7 +400,8 @@ def apply_module(module: Path, hold_entries: tuple[int, ...] = REAR_HOLD_ENTRIES
                  wave_visitors: str = "slow",
                  defender_target: int = DEFAULT_DEFENDER_TARGET,
                  zombie_speed: bool = True,
-                 defender_orders: bool = True) -> dict:
+                 defender_orders: bool = True,
+                 adaptive: bool = False) -> dict:
     module = Path(module)
     scene_path = module / "SceneObj" / "scn_tbfc_invasion_4.sco"
     mission_path = module / "mission_templates.txt"
@@ -343,7 +433,7 @@ def apply_module(module: Path, hold_entries: tuple[int, ...] = REAR_HOLD_ENTRIES
                                     wave_visitors, defender_target,
                                     zombie_speed, defender_orders,
                                     game_type_operand, round_ended_operand,
-                                    round_start_operand)
+                                    round_start_operand, adaptive)
     if len(decode_scene(changed_scene)["objects"]) != len(decode_scene(original_scene)["objects"]) + 3:
         raise PatchError("Scene overlay failed binary roundtrip")
     # All validations happen before writes. On a mission-write failure, restore the SCO.
@@ -372,6 +462,14 @@ def apply_module(module: Path, hold_entries: tuple[int, ...] = REAR_HOLD_ENTRIES
             "defender_reinforce": defender_target > 0,
             "hold_entries": list(hold_entries),
             "defensive_line": tuple(hold_entries) == REAR_HOLD_ENTRIES,
+            "formation_mode": ("adaptive" if adaptive else
+                               ("rear" if tuple(hold_entries) == REAR_HOLD_ENTRIES
+                                else "forward")),
+            "formation_anchor": "entry0_north_base",
+            "formation_sectors": {"5": 2, "6": 3, "7": 4},
+            "formation_policy": ("adaptive_hold_or_fallback" if adaptive else "static"),
+            "role_divisions": {"981": 5, "982": 5, "983": 6, "984": 7},
+            "target_priority": "native_nearest; no public target setter",
             "warning": "Navmesh-derived posts; movement, fire and runtime LOS unverified.\n"
                        "Sectors rotate once per original wave_number parity; D validates positions."}
 

@@ -119,7 +119,7 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         raise ValueError("Unknown --zombie-bot-roster profile")
     if zombie_block not in ("default", "stock"):
         raise ValueError("Unknown --zombie-block profile")
-    if defensive_line not in ("rear", "forward"):
+    if defensive_line not in ("rear", "forward", "adaptive"):
         raise ValueError("Unknown --defensive-line profile")
     if wave_visitors not in ("slow", "original"):
         raise ValueError("Unknown --wave-visitors profile")
@@ -259,11 +259,12 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         city_report = None
         if city_guardposts:
             city_report = apply_city_defense(
-                source, REAR_HOLD_ENTRIES if defensive_line == "rear" else GUARD_ENTRIES,
+                source, REAR_HOLD_ENTRIES if defensive_line != "forward" else GUARD_ENTRIES,
                 wave_visitors=wave_visitors,
                 defender_target=defender_target if defender_reinforce == "default" else 0,
                 zombie_speed=zombie_speed == "slow",
-                defender_orders=defender_orders == "hold-fire")
+                defender_orders=defender_orders == "hold-fire",
+                adaptive=defensive_line == "adaptive")
             updated = report_for_module(source)
             if not updated["ok"] or updated["mission"]["triggers"] != 27:
                 raise RuntimeError("City defence failed static post-apply validation")
@@ -440,7 +441,7 @@ def main():
     parser.add_argument("--firearm-accuracy", choices=("default", "stock"), default="default", help="Default build profile buffs automatic firearm accuracy (+5..10 pts); stock keeps original stats")
     parser.add_argument("--zombie-bot-roster", choices=("weak", "full"), default="weak", help="City generic invader bots: weak original Zombie 894 only or full native 894..911 roster")
     parser.add_argument("--zombie-block", choices=("default", "stock"), default="default", help="Give City invader troops a shield for block capability; stock keeps original equipment")
-    parser.add_argument("--defensive-line", choices=("rear", "forward"), default="rear", help="City defender hold line: rear/spawn line (default) or the old forward guard sectors")
+    parser.add_argument("--defensive-line", choices=("rear", "forward", "adaptive"), default="rear", help="City defender hold line: rear (default), forward guard sectors, or adaptive formation (task-53/62)")
     parser.add_argument("--wave-visitors", choices=("slow", "original"), default="slow", help="City wave visitors: slow Zombie 894 only (default) or original 0.4 wave table")
     parser.add_argument("--defender-reinforce", choices=("default", "stock"), default="default", help="City defender spawn_agent refill to --defender-target; stock disables")
     parser.add_argument("--defender-target", type=int, default=8, metavar="N", help="City team-0 defender target (1..8) for reinforcement")
