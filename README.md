@@ -184,3 +184,6 @@ This project deliberately separates **source-verified**, **observed**, **unknown
 
 
 <!-- P0 probe fix metadata-only source revision: 39aa3a7 -->
+
+
+<!-- P0 probe team-order fix metadata-only source revision: 4848ee2 -->

@@ -217,3 +217,6 @@ work-item → PR → commit → version links are in
 
 
 <!-- P0 probe fix metadata-only source revision: 39aa3a7 -->
+
+
+<!-- P0 probe team-order fix metadata-only source revision: 4848ee2 -->
