@@ -1,7 +1,7 @@
 # Release traceability — ZOMBIEEE Remaster
 
 Observed candidate: **`0.3.0-beta.1`** (pre-release), source revision
-`9a177113391f3e51d6f22cc6ef2212bf06ee770d`, 2026-10-24.
+`f15e8a0f1a1012b09905bda31e111c03649a2cc7`, 2026-10-24.
 Machine-readable source: [`release-traceability.json`](release-traceability.json).
 
 This file links each work item to the pull requests/commits that implement it
@@ -29,13 +29,14 @@ claimed by this revision. Historical `0.2.0` and earlier entries are unchanged.
 | ZOM-DISC-25 troop histogram/events | C | done | #12 | `a29fabf` | 0.3.0-beta.1 |
 | ZOM-DISC-26 summary CLI | C | done | #12 | `a29fabf`, `d1011e2` | 0.3.0-beta.1 |
 | ZOM-AI-01 native allied spawn | A | done | — | `3950f44`, `a6b5fe9` | 0.3.0-beta.1 |
-| ZOM-AI-02 ranged combat | A | active | — | `f0c3e68`, `fdb642f` | 0.3.0-beta.1 |
-| ZOM-AI-03 guarded positions | A | active | — | `941ed5b`, `0884b64` | 0.3.0-beta.1 |
-| ZOM-WAVE-01 wave balance | A | active | — | `0884b64`, `332560a`, `63ba0ee` | 0.3.0-beta.1 |
+| ZOM-AI-02 ranged combat | A | active | — | `f0c3e68`, `fdb642f`, `14896fb` | 0.3.0-beta.1 |
+| ZOM-AI-03 guarded positions | A | active | — | `941ed5b`, `0884b64`, `14896fb` | 0.3.0-beta.1 |
+| ZOM-WAVE-01 wave balance | A | active | — | `0884b64`, `332560a`, `63ba0ee`, `2535c56` | 0.3.0-beta.1 |
 | ZOM-DISC-28 native defender hold contract | A | active | — | `3950f44`, `941ed5b`, `8676eaa` | 0.3.0-beta.1 |
 | ZOM-LEGAL-01 rights/credits | E | backlog | #18, #27 | `8d542f5` | 0.3.0-beta.1 |
 | ZOM-REL-01 release candidate | B | backlog | #28 | `579b446` | 0.3.0-beta.1 |
 | ZOM-REC-03 tracker/Pages views | A | backlog | #7 | `52171ec` | 0.3.0-beta.1 |
+| ZOM-DISC-59 faction-slot/scene readback | C | active | — | `1f00079`, `6489e4c` | 0.3.0-beta.1 |
 | ZOM-QA-02 sustained solo test | D | blocked | — | — (runtime evidence missing) | 0.3.0-beta.1 |
 
 Tooling PRs that support the candidate without owning a ledger leaf are listed as

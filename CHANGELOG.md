@@ -7,7 +7,7 @@ Uses [Semantic Versioning](https://semver.org/) for the remaster, not the histor
 **Pre-release candidate — not released, not accepted.** This consolidates the
 UI/launcher/telemetry/AI work merged since 0.2.0 into the SemVer pre-release
 candidate **`0.3.0-beta.1`** (a beta, not an RC: 0.3.0 milestone acceptance is
-still active) at source revision `9a17711`. The `0.3.0` milestone remains reserved
+still active) at source revision `f15e8a0`. The `0.3.0` milestone remains reserved
 for verified allied survivor/class/loadout acceptance ([docs/ROADMAP.md](docs/ROADMAP.md));
 work-item → PR → commit → version links are in
 [docs/RELEASE_TRACEABILITY.md](docs/RELEASE_TRACEABILITY.md) and
@@ -55,6 +55,12 @@ work-item → PR → commit → version links are in
 - `VERSION` is now a SemVer **pre-release** candidate; `release-check` accepts
   pre-release SemVer and requires traceability links.
 
+- C cross-review fixes for survivor formation/cohesion and wave staging
+  (task-45/46) are included from `14896fb`/merge `2535c56`; implementation-only,
+  runtime acceptance still pending.
+- P0 faction-slot/scene telemetry readback for appended-trigger runtime
+  diagnostics (task-55, `1f00079`/merge `6489e4c`) is included;
+  implementation-only, runtime isolation acceptance pending.
 ### Still not accepted
 - City required outcomes **0/23**, milestones **0/5**, `runtime_verified=false`.
 - Native defender **spawn** is proven, but division 5–7 adoption / stable hold /

@@ -519,7 +519,7 @@ attach, join/mission markers, stop after client exit, artifact-before-stop,
 manifest/summary results, and fail-closed cleanup for bind timeout, recorder
 readiness failure, attachment rejection, recorder death and Ctrl+C. No game,
 recorder subprocess or network probe is started by tests. Latest Windows result:
-`python -B -m unittest discover -s tests -q` → **588 tests, OK, 113
+`python -B -m unittest discover -s tests -q` → **591 tests, OK, 113
 skipped**; the B launcher/C-recorder interop cases run because C's recorder
 is present in the merged tree. Launcher-only suites are green:
 `python -B -m unittest discover -s tests -p "test_windows_*.py" -q` →
