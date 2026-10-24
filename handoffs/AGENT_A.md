@@ -109,3 +109,14 @@ While actual B boot results remained unposted, A fixed a **false-positive diagno
 - Compatible with Motomataru-style `formation destination + mordr_hold` contract without copying code/assets (module lacks the custom formation script); Brainy Bots page 403 (not inspected); mbmodwiki confirms faction `_multiplayer_ai` troop mechanism already used by the roster patch.
 - Zombies intentionally remain simple native aggressive seekers; no kiting/flanking code. Behavior contract: `reference/CITY_SURVIVOR_AI_BEHAVIOR_CONTRACT_2026-10-24.md`. Offline tests + chain verification pass; D validates positions via telemetry.
 
+## Task-22 firearm accuracy profile (branch `agent/a-firearm-accuracy`)
+
+- Default build profile buffs only the automatic-weapon flag group (derived from
+  `itm_m16a2`+`itm_mp5` shared mask: M249/FAMAS/AK47/FN SCAR-L/MP5/MP5K/MP7/P90/
+  Mk12 SPR/M16A2) by `clamp(round(acc*0.10),5,10)`; single-shot guns and all other
+  items unchanged; `--firearm-accuracy stock` disables. Accuracy token index
+  validated as `value+6` against Native bow/crossbow stats.
+- Build receipt + chain verification updated (`item_kinds1.txt` is a deliberate
+  original change). Offline: 412 tests OK/4 skips on branch; built module shows
+  changed_count=10/untouched=674. No gameplay acceptance; D/Lead validate.
+

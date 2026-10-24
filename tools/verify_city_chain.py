@@ -24,6 +24,7 @@ from tactical_recovery import apply_module as apply_recovery
 from private_commands import apply_module as apply_private
 from solo_assist import apply_module as apply_solo
 from bot_loadouts import apply_module as apply_loadouts, CLONES
+from firearm_balance import apply_module as apply_firearm_balance
 from trace_calls import read_mission_calls
 from preflight import report_for_module
 
@@ -117,6 +118,7 @@ def verify(original: Path, archive: Path | None = None) -> dict:
                 stage_source(original, stage)
             if variant == "balanced-ai":
                 apply_loadouts(stage)
+            firearm = apply_firearm_balance(stage, "default")
             chain = [mission_check(stage, original, 25)]
             patch_file(stage, 4, city_only=True, balanced_ai=variant == "balanced-ai")
             chain.append(mission_check(stage, original, 26))
@@ -154,6 +156,9 @@ def verify(original: Path, archive: Path | None = None) -> dict:
                 "native_roster_patch": {key: roster[key] for key in
                                         ("applied", "invader_candidates",
                                          "sha256_before", "sha256_after")},
+                "firearm_accuracy": {key: firearm[key] for key in
+                                     ("applied", "changed_count", "automatic_items",
+                                      "sha256_before", "sha256_after")},
                 "final_native_sha256": final["final_native_sha256"],
                 "global_count": len((stage / "variables.txt").read_text().splitlines()),
                 "runtime_verified": False,
@@ -162,7 +167,8 @@ def verify(original: Path, archive: Path | None = None) -> dict:
                 raise RuntimeError("Unexpected 35-trigger global count")
             if variant == "standard":
                 allowed = {"mission_templates.txt", "variables.txt",
-                           "scripts.txt", "SceneObj/scn_tbfc_invasion_4.sco"}
+                           "scripts.txt", "item_kinds1.txt",
+                           "SceneObj/scn_tbfc_invasion_4.sco"}
                 changed = {name for name, digest in complete_original_inventory.items()
                            if not (stage / name).is_file() or sha(stage / name) != digest}
                 unexpected = changed - allowed
@@ -177,6 +183,7 @@ def verify(original: Path, archive: Path | None = None) -> dict:
                 }
         solo = root / "solo-assist"
         stage_source(original, solo)
+        apply_firearm_balance(solo, "default")
         patch_file(solo, 4, city_only=True)
         apply_city(solo)
         apply_wave(solo, cap=4, city_only=True)
