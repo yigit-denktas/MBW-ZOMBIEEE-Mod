@@ -235,3 +235,6 @@ work-item → PR → commit → version links are in
 
 
 <!-- task-74 heatmap metadata-only source revision: b06f427 -->
+
+
+<!-- task-71 hit-trigger metadata-only source revision: 1845906 -->
