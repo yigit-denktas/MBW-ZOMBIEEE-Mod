@@ -18,7 +18,9 @@ Sources for the numbers/enums (observation date 2026-10-24):
 The plan is intentionally **team-order first**: per-agent
 ``agent_set_scripted_destination`` is rejected because the community experiment
 log documents destination queueing, arrival freeze and formation-breaking
-movement (see the reference document).
+movement (see the reference document). ``agent_set_ai`` and
+``agent_set_weapon_mode`` are not real operations (absent from the wiki DB and
+the WSE2 addon), so plans never emit them.
 """
 
 from __future__ import annotations

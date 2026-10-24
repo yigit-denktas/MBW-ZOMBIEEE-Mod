@@ -13,6 +13,9 @@
 | [`tldmod/tldmod`](https://github.com/tldmod/tldmod) (`ModuleSystem/module_scripts_form.py`) | Community formation AI implementation | Hold-fire/charge order sequencing in real module code |
 | [`Ruslan-700/WSE2-Releases`](https://github.com/Ruslan-700/WSE2-Releases) (`Warband/WSE2 SDK/header_operations_addon.py`) + local `local/wse2-1.1.5.4/WSE2 SDK/header_operations_addon.py` | WSE2 1.1.5.4 SDK | WSE2-only ops: simple behavior, time speed multiplier, AI weapon-switch/fight/aim toggles, item-slot ammo, no-attack scripted destination, `shift_entry_point` |
 | [`Veehats/WarbandCoop`](https://github.com/Veehats/WarbandCoop) (`header_operations.py`) | Public header mirror already used by the project | Cross-check of native numbers (`agent_get_group=1765`, `agent_get_team=1770`, `add_visitors_to_current_scene=1265`) |
+| [Motomataru, "Formations and AI with Campaign AI - Compiled for Native"](https://www.nexusmods.com/mountandblade/mods/2475) | Canonical FormAI compilation, WB 1.153 (2012), v1.168 (2017) | Lineage/attribution and licence boundary only (no code or assets reused); primary page observed via Wayback because the live Nexus page returns 403 |
+| [Mount&Blade Modding Wiki operations database](https://mbcommands.fandom.com/wiki/Operations) (public-domain archive, DB generated 2011) | Community opcode wiki | Independent confirmation of used opcode ids; records that `agent_set_ai`/`agent_set_weapon_mode` do **not** exist |
+| [`reference/WARBAND_AI_COMMUNITY_SOURCES.md`](WARBAND_AI_COMMUNITY_SOURCES.md) (Agent E source pack, draft PR #24, branch `agent/e-warband-ai-sources` @ `0b99e98`, rebased on main `c0b9a36`) | Cited, dated source pack assembled for this task | Lineage naming, permissions, community pitfalls, WSE2 1.1.5.4 blocking semantics; link-only, no code/assets copied |
 | [TaleWorlds forum "Better MS Scripting Reference: header_operations expanded"](https://forums.taleworlds.com/index.php?threads/better-ms-scripting-reference-header_operations-expanded.213060/) | Community reference thread | **Inaccessible from this machine: HTTP 403 on 2026-10-24.** Recorded, not used as evidence. |
 | Project docs [`CITY_SURVIVOR_AI_BEHAVIOR_CONTRACT_2026-10-24.md`](CITY_SURVIVOR_AI_BEHAVIOR_CONTRACT_2026-10-24.md), [`CITY_AI_WAVE_AUDIT_2026-10-23.md`](CITY_AI_WAVE_AUDIT_2026-10-23.md), [`CITY_ROUND_AWARE_REINFORCEMENT_2026-10-24.md`](CITY_ROUND_AWARE_REINFORCEMENT_2026-10-24.md) | Project source-grounded audits | Existing City hold/sector, wave-gating and reinforcement constraints |
 
@@ -52,6 +55,14 @@ Native ops that matter here (numbers from the community header; comments are the
 Enums (from `header_mission_templates.py`): `grc_infantry=0, grc_archers=1, grc_cavalry=2, grc_heroes=3, grc_everyone=9`; `mordr_hold=0, mordr_follow=1, mordr_charge=2, mordr_advance=5, mordr_fall_back=6, mordr_stand_closer=7, mordr_spread_out=8, mordr_stand_ground=11, mordr_hold_fire=12, mordr_fire_at_will=13, mordr_use_ranged_weapons=16, mordr_form_1..5_row=22..26`; `rordr_*`; `wordr_use_*`; `aordr_hold_your_fire=1`; and the WSE2 simple behaviors `aisb_hold=0, aisb_go_to_pos=1, aisb_melee=4, aisb_ranged=5, aisb_ranged_horseback=6, aisb_charge_horseback=7, aisb_patrol=11, aisb_no_enemies=12`.
 
 WSE2-only ops used by this research (`header_operations_addon.py`): `agent_set_scripted_destination_no_attack=1748` (same as 1730, no attacks; `no_rethink` saves resources), `agent_ai_set_simple_behavior=3314` (`<agent>, <aisb>, [guarantee_seconds]`; persists until `agent_force_rethink`), `agent_set_item_slot_ammo=3305`, `agent_get_wielded_item_slot_no=3308`, `agent_set_time_speed_multiplier=3335` (fixed point), `agent_get_time_speed_multiplier=3336`, `agent_set_action_speed_modifier=3340`, `agent_ai_set_can_weapon_switch=3343`, `agent_ai_set_can_fight=3344`, `agent_ai_set_can_aim=3352`, `shift_entry_point=3623`.
+
+## 1a. Community lineage, attribution and licence boundary
+
+"FormAI", "Battle AI" and "Native AI" are **one lineage**, not three independent GitHub projects: Motomataru's Nexus compilation *"Formations and AI with Campaign AI - Compiled for Native"* (mods/2475; Warband 1.153, 2012; v1.168, 2017) contains three minimods (formations; a replacement for Native Battlefield AI; Native Campaign AI tweaks) and gives Native AI the same formations. The public code artifact is [`cvlc/tgsmod`](https://github.com/cvlc/tgsmod): `formations_presentations.py` ("Formations AI for Warband by **Motomataru**, rel. 05/03/10; edit by **Caba'drin** 11/19/10") and `formAI_constants.py` (rel. 12/26/10); battle tactics OSP credit **Mirathei** for the original concept/code, and the wiki/TGS contributors for the rest. Sources assembled and dated by E's pack [`WARBAND_AI_COMMUNITY_SOURCES.md`](WARBAND_AI_COMMUNITY_SOURCES.md).
+
+**Licence boundary: do not import.** The compiled release says no reupload, modification needs permission, no conversion, and asset use needs permission; the TGS licence covers TGS assets only, not FormAI rights. This research therefore **copies no code, constants or assets**. The tunables below are cited as *evidence that the community tunes hold/charge distances*, and the City design is re-expressed independently from documented native/WSE2 operations.
+
+Community tunables observed in `formAI_constants.py` (attribution: Motomataru; **not copied into this build**): `AI_long_range = 13000` (comment: don't exceed ~130 m if archers must fire), `AI_firing_distance`, `AI_charge_distance = 2000`, `Hold_Point = 100` (archer hold if outnumbered), `BP_Setup`/`BP_Jockey` phases, `AI_Max_Reinforcements = 2`. Read them as design evidence (archers need a bounded fire distance; charge distance is separate from hold distance), then choose City values and prove them with telemetry.
 
 ## 2. Hold-and-fire instead of melee charge
 
@@ -99,6 +110,8 @@ Community-documented pitfalls of forcing weapons ([thread 2111625](https://bbs.m
 - `agent_set_attack_action` (1745) can be used to force/cancel an attack, but a held windup persists and suppresses native attacks until cancelled with `(agent_set_attack_action, agent, -2, 0|1)`; `agent_set_defend_action` (1746) can cancel an ongoing windup (duration in 1/1000 s).
 - windup completion time is **not queryable**; it can only be estimated from known proficiency/weapon-speed conditions (same source).
 
+**Ops that do not exist:** `agent_set_ai` and `agent_set_weapon_mode` are absent from the Mount&Blade Modding Wiki operations database and from the WSE2 addon list, so no code should be written against those names. Use team orders (`team_give_order` 1790 with `mordr_*`) and WSE2 `agent_ai_set_simple_behavior`/`agent_ai_set_can_weapon_switch` (3314/3343) instead.
+
 Firearm behavior is therefore: keep the ranged weapon + hold-order/fire order + ammo control, and detect failures with C telemetry (`ai_sample.weapon/ammo/weapon_mode`, `defender_modes`, `ranged_team0`/`melee_team0`) rather than forcing the weapon every tick.
 
 ## 4. Slowing/steering zombies without ugly gear
@@ -135,6 +148,10 @@ C's task-31 telemetry maps each claim to a measured field:
 | Shield/action/mounted claims | **Unavailable** until a verified getter exists; summary raises `shield_telemetry_unavailable`/`action_telemetry_unavailable`/`mounted_telemetry_unavailable` |
 
 Keep `runtime_verified=false` and `hold_behavior_observed=false` until D's sealed run shows the fields above; a green build or op-plan is not gameplay evidence.
+
+**Block/parry caveat (WSE2 1.1.5.4, released 2026-10-14):** this pinned runtime adds `bDegradeBrokenShields`, `iRangedBumpStun` (ranged-agent blocking bump) and `bRainAffectsFirearms`, and **removes `bParry`** (the parry state is no longer entered) — E's pack, verified against the SDK addon. Any shield/block/parry claim must be bounded accordingly; C's probe has no verified shield getter (`shield_getter=0`) and the summary raises `shield_telemetry_unavailable`, so none of this may be asserted from telemetry.
+
+Community pitfalls to design against (from E's dated pack, primary threads via Wayback): formation AI hesitates to charge and retreats to reform when reinforcements arrive; behavior degrades at battle size >150 on small maps (Formations AI discussion, 2012); formation-vs-native tradeoffs (2014) and competitive combat-AI work (Oliveran 2017); Battlefield Tactics OSP kit by Mirathei (2008). These are behavior reports, not engine proof.
 
 ## 7. Five highest-value deltas (for A task-34 / D validation)
 
