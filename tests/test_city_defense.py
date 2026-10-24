@@ -110,6 +110,20 @@ class CityDefenseTests(unittest.TestCase):
         self.assertEqual(orders.count("1791"), 3)
         self.assertEqual(orders.count("1790"), 3)
 
+    def test_orders_rotate_sectors_per_wave(self):
+        wave_global = 144115188075855872 + 1209  # original wave_number index
+        orders = orders_trigger(0, wave_global).split()
+        self.assertEqual(orders.count("1780"), 3)
+        self.assertEqual(orders.count("1791"), 3)
+        self.assertEqual(orders.count("1790"), 3)
+        self.assertIn("2119", orders)  # wave parity / sector modulo
+        self.assertIn("2121", orders)  # division - 5
+        self.assertIn("2120", orders)  # entry math
+        self.assertIn(str(wave_global), orders)
+        # periodicity and City-only conditions stay intact
+        self.assertEqual(orders[:3], ["5.000000", "0.000000", "0.000000"])
+        self.assertEqual(orders[3], "3")
+
     def test_original_triggers_still_untouched(self):
         before = (self.module / "mission_templates.txt").read_bytes().decode("utf-8")
         changed = patch_orders(before, scene_index(self.module / "scenes.txt"))

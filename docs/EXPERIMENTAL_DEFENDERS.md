@@ -51,3 +51,11 @@ py -3 tools\patch_defenders.py --module "C:\path\to\original\ZOMBIEEE" --count 4
 5. Try `--experimental-defenders 1` then 4 to localize failures. Do not enable public server cheats or port forwarding.
 
 This is not `v0.2.0`. Successful gameplay evidence, not static parsing, determines that milestone.
+
+## Overnight behavior update (task-14/17, branch `agent/a-survivor-hold`)
+
+- **Respawn:** the one-shot `-20` squad spawn is complemented by a 3 s top-up of missing private survivors (cap = `--experimental-defenders`) on the active round, so dedicated round resets cannot leave team 0 empty.
+- **Hold positions:** the City order trigger re-issues hold positions every 5 s and rotates each division's guard sector by one step per original `wave_number` parity. Fixed guard entries remain 2/3/4; no original triggers or scene entry points change.
+- **Zombie horde:** City-only builds patch the compiled bot-troop selection so invader bots use native Zombie troops 894..911 instead of Crazed Civilian placeholders; no team-1 tactical AI is added (simple aggressive seek stays).
+- Full behavior contract: `reference/CITY_SURVIVOR_AI_BEHAVIOR_CONTRACT_2026-10-24.md`. Runtime validation is D's sealed no-client run; no acceptance is claimed here.
+
