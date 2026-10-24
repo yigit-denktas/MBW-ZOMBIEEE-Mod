@@ -2,6 +2,13 @@
 
 Uses [Semantic Versioning](https://semver.org/) for the remaster, not the historical original.
 
+## [0.3.0-beta.1] — consolidated source save point (2026-10-24)
+
+- Unified reviewed C/G/H work and gate/privacy fix into `main`; tag `save/0.3.0-beta.1-consolidated-2026-10-24`.
+- 634 tests OK; release gate 0; `runtime_verified=false`, acceptance none.
+- Added ledger cards for gate/privacy, adaptive parser caveat, task-72 heatmap consumer, parallel-lane work, save point.
+- Held: A auditable packages, F parallel-lane lifecycle, forwarded fire-volume fix.
+
 ## [0.3.0-beta.1] - 2026-10-24
 
 **Pre-release candidate — not released, not accepted.** This consolidates the
