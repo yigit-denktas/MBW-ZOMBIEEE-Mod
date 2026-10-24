@@ -268,15 +268,43 @@ Open questions for A:
 
 ## 8. Asset/licence handoff for Agent G
 
-- Baseline uses **existing scene props only**; no new asset, no binary, no licence change.
-- If owner approves optional barricades, use only licence-cleared assets (CC0 preferred;
-  CC BY with attribution) from G's catalogue, with source URL, author, licence/version,
-  observation date, SHA-256 of the source download, modifications, and a
-  `THIRD_PARTY_NOTICES.md`/credits entry. No native Warband/ZOMBIEEE props, no ripped or
-  unattributed assets, no AI-generated asset claim without documented terms.
-- Barricade assets must fit Warband/OpenBRF + collision/navmesh workflow; G supplies
-  candidates and licence evidence, **not** committed binaries in this design task.
-- Any added prop changes the City SCO byte identity; owner approval + D validation required.
+- **Baseline (no new props): no licence action for a private/local build.** Existing City
+  props (`spr_zombie_sandbag_wall`, barrels, `band_a` rows, plants, poles) are
+  native/original-ZOMBIEEE/third-party assets with **no recorded redistribution right**.
+  A **public/clean-room release cannot bundle those existing props**; it needs
+  licence-cleared replacements or omission. That is a publication-model decision
+  (`ZOM-LEGAL-01` remains open), not a defect in this design; the baseline stays valid for
+  private play and is **not** a redistribution clearance.
+- **Optional flank barricades (W1 ~152.0,177.5 / E1 ~188.0,177.5): G's policy** allows
+  them only if all of these hold:
+  1. Source is **CC0** (preferred) or **CC BY 3.0/4.0** (attribution required), with
+     author + source URL + licence/version + acquisition date + SHA-256 of the source
+     download + modifications; or **project-authored** (best, zero third-party risk).
+  2. Candidate order: **authored mesh** -> **Poly Haven / ambientCG CC0 props** ->
+     **Kenney CC0 kits** (road/city kits may contain barriers; per-asset check) ->
+     **OpenGameArt CC0 per-asset** -> Sketchfab CC0 per-model only as last choice
+     (store/editorial and weapons-promotion licences excluded). Sandbag/barrier
+     availability in those libraries is **not verified**; G confirms each asset page.
+  3. **Blocking:** native Warband/ZOMBIEEE props; OSP/community credits without written
+     per-asset terms; Quaternius QAL, Sonniss, Sketchfab store/editorial; CC BY-SA/ND/NC,
+     GPL/AGPL, legacy Sampling+; unknown/custom "free" licences; ripped or unattributed
+     assets.
+  4. Evidence lands as a `THIRD_PARTY_NOTICES.md` row (primary; `docs/CREDITS.md`
+     alternative) generated from the asset handoff; **no binaries in this docs PR** - an
+     asset PR only after owner approval and licence clearance. CC BY notices must ship in
+     release/installer credits too.
+- **Integration constraints:** OBJ->OpenBRF conversion; DDS DXT1/DXT3/DXT5 with
+  dimensions multiple of four; collision mesh; module-system scene-prop wiring; and a
+  **navmesh/AI check** - a barricade that blocks AI paths likely needs a scene/navmesh
+  update (not docs-only, needs D runtime validation). Keep positions out of the SP1
+  radius-12 spawn disc and >=8 from zombie entries; any scene edit creates a **new SCO
+  hash/static gate**.
+- If owner approves additions, G can deliver 2-4 candidates with per-asset licence
+  evidence, proposed `THIRD_PARTY_NOTICES` rows and a short catalogue addendum
+  (sandbag/barrier section), docs/definitions only. Until then no action from G.
+- Any added prop changes the City SCO byte identity; owner approval + D validation
+  required. No acceptance or legal-clearance claim from this handoff.
+
 
 ## 9. Validation plan for Agent D (sealed, no-client)
 
