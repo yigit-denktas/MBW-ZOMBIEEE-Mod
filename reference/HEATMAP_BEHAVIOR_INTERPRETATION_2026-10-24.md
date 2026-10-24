@@ -9,8 +9,8 @@
 
 | Run | Team-0 samples | Team-1 samples | Waves | Build/probe SHA | Formation mode | Class/division/HP |
 | --- | --- | --- | --- | --- | --- | --- |
-| `d7bfc372` task45-wave2 | 526 pts / 47 agents | same bundle | 0–4 | **unknown** | **unknown** | missing |
-| `257b29b1` task55-p0 | 572 pts / 45 agents | same bundle | 0–1 | **unknown** | **unknown** | missing |
+| `d7bfc372` task45-wave2 | 526 pts / 47 team-incarnation tracks (30 unique IDs) | same bundle | 0–4 | **unknown** | **unknown** | missing |
+| `257b29b1` task55-p0 | 572 pts / 45 team-incarnation tracks (28 unique IDs) | same bundle | 0–1 | **unknown** | **unknown** | missing |
 
 Because build SHA and formation mode are absent, **none of these panels can be tied to
 the task-53/62 formation branch `abc6e51` or to a rear/forward/adaptive build**. They are
@@ -43,8 +43,10 @@ baseline observations only.
 5. **Team-1 stays on the southern approaches.** Task45 team-1 centroids (137.6,139.6) →
    (161.9,155.5); no north-side entry appears. This supports the E map claim of SW/S/SSE
    clusters and **not** a 360° encirclement, but remains a sample-shape observation.
-6. **Movement-class proxies are confounded.** 64 mixed / 24 over-moving / 4 under-moving;
-   team-1 has 17 over-moving vs team-0 7, and all 4 under-moving are team-0. This is
+6. **Movement-class proxies are confounded and track-level.** 64 mixed / 24 over-moving /
+   4 under-moving are **team-incarnation track** counts (58 unique IDs across the two raw
+   runs; C export task45 = 31 unique / 53 tracks, raw task45 30/47, raw task55 28/45).
+   Team-1 has 17 over-moving vs team-0 7, and all 4 under-moving are team-0. This is
    expected from role, alive/dead sampling and target availability; it does **not** rank
    “charging” or “too static” behavior and does not validate task-53.
 7. **Chokepoint candidate (167.5,187.5)** at the north base/apron is more likely
