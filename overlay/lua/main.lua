@@ -308,11 +308,10 @@ local function sample_world()
             n = n + 1
             local side = nil
             if supports_team then
-                local ok_team, value, op_error = pcall(function()
-                    return game.agent_get_team(0, agent)
-                end)
-                if ok_team and (op_error == nil or op_error == 0)
-                    and (value == 0 or value == 1) then
+                -- agent_get_team is a returned-value lhs op; do not use the
+                -- old placeholder form or one bad read zeroes every team count.
+                local value = read_agent_number("agent_get_team", agent)
+                if value == 0 or value == 1 then
                     side = value
                 else
                     result.measured = false
