@@ -47,6 +47,8 @@ from .recorder import PassiveRecorder, atomic_write_json, is_redirected
 from .rotation import (DEFAULT_ENEMY_PROFILE, DEFAULT_TEAM1_BOTS,
                       DEFENDER_SQUAD_BOTS, ENEMY_PROFILE_BOTS, ENEMY_PROFILES,
                       build_rotation, rotation_sha256, validate_rotation)
+from .profile_matrix import (build_profile_matrix, extract_installed_profile,
+                             format_profile_matrix)
 from .runtime import (ENDPOINT, JOIN_MARKERS, MISSION_MARKERS, Waiter,
                       contains_marker, host_bound_loopback, is_loopback_endpoint)
 from .solo import Session
@@ -1122,6 +1124,24 @@ def command_doctor(args):
     return 0 if plan.get('ok') else 2
 
 
+def command_matrix(args):
+    plan = _build_plan_from_args(args, allow_install=False)
+    game_root = (plan.get('engine') or {}).get('warband_root')
+    installed = (extract_installed_profile(game_root)
+                 if isinstance(game_root, str) else None)
+    matrix = build_profile_matrix(
+        plan, installed=installed,
+        expected_zombie_block=args.expected_zombie_block,
+        expected_hold=args.expected_hold,
+        expected_wave_visitors=args.expected_wave_visitors,
+        expected_defender_reinforce=args.expected_defender_reinforce)
+    if args.json:
+        print(json.dumps(matrix, indent=2, sort_keys=True))
+    else:
+        print(format_profile_matrix(matrix))
+    return 0 if matrix.get('ok') else 2
+
+
 def command_rollback(args):
     try:
         receipt = _read_bounded_json(args.receipt)
@@ -1155,7 +1175,7 @@ def build_parser():
     common.add_argument('--team0-bots', '--team1-bots', dest='team0_bots',
                         type=int, default=None, metavar='N',
                         help='allied team-0 bots (1-based rotation team 1; '
-                             'City default 4, stock 0)')
+                             'City default 8, stock 0)')
     common.add_argument('--stock-rotation', action='store_true',
                         help='emit the stock rotation with zero allied defenders')
     common.add_argument('--enemy-profile', choices=ENEMY_PROFILES,
@@ -1192,6 +1212,23 @@ def build_parser():
     doctor = sub.add_parser('doctor', parents=[common, timeouts],
                             help='read-only readiness report')
     doctor.set_defaults(func=command_doctor)
+    matrix = sub.add_parser('matrix', parents=[common, timeouts],
+                            help='read-only AI/profile matrix for D '
+                                 '(no launch, no host)')
+    matrix.add_argument('--expected-zombie-block',
+                        choices=('stock', 'default'), default='stock',
+                        help='expected installed block profile '
+                             '(task-34 target: stock)')
+    matrix.add_argument('--expected-hold', choices=('rear', 'forward'),
+                        default='rear',
+                        help='expected installed hold line')
+    matrix.add_argument('--expected-wave-visitors',
+                        choices=('slow', 'original'), default='slow',
+                        help='expected wave-visitor gating (task-34: slow)')
+    matrix.add_argument('--expected-defender-reinforce',
+                        choices=('default', 'stock'), default='default',
+                        help='expected spawn_agent defender refill')
+    matrix.set_defaults(func=command_matrix)
     rollback = sub.add_parser('rollback', help='restore a retained install backup')
     rollback.add_argument('--receipt', required=True,
                           help='install receipt JSON recorded by a previous run')
@@ -1200,7 +1237,7 @@ def build_parser():
     return parser
 
 
-COMMANDS = ('play', 'plan', 'install', 'doctor', 'rollback')
+COMMANDS = ('play', 'plan', 'install', 'doctor', 'matrix', 'rollback')
 
 
 def main(argv=None):
