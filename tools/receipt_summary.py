@@ -224,7 +224,57 @@ def _lifecycle(events) -> dict:
     return grouped
 
 
-def summarize_receipt(target: Path) -> dict:
+LAUNCHER_RECEIPT_SCHEMA = "zombieee.city-launch-receipt.v1"
+
+
+def _load_launcher_session(root: Path, explicit: Path | None = None) -> dict:
+    """Read the external launcher sidecar (requested config, not signed evidence).
+
+    Auto-discovery: <evidence-root>/flights/<session>/ -> <evidence-root>/
+    launches/<session>/launch-receipt.json. Absence is not a gap; the sidecar is
+    never treated as sealed evidence or merged with observed firearm fields.
+    """
+    session = {
+        "fire_mode": None, "fire_mode_scope": None,
+        "fire_mode_source": "requested_build_or_launcher",
+        "fire_mode_applied": None,
+        "fire_mode_manual_switch_supported": False,
+        "fire_mode_semantics": "accuracy_reload_tuning_only; no engine fire-mode setter/getter",
+        "fire_mode_receipt_found": False, "fire_mode_receipt_schema": None,
+        "fire_mode_mismatch": None,
+    }
+    path = explicit
+    if path is None:
+        path = root.parent.parent / "launches" / root.name / "launch-receipt.json"
+    try:
+        if not path.is_file() or path.stat().st_size > 256 * 1024:
+            return session
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, TypeError):
+        session["fire_mode_receipt_found"] = True
+        session["fire_mode_receipt_schema"] = "unreadable"
+        return session
+    if not isinstance(data, dict):
+        return session
+    session["fire_mode_receipt_found"] = True
+    session["fire_mode_receipt_schema"] = data.get("schema")
+    if data.get("schema") != LAUNCHER_RECEIPT_SCHEMA:
+        return session
+    mode = data.get("fire_mode")
+    if mode in ("ai", "single", "burst", "auto"):
+        session["fire_mode"] = mode
+    scope = data.get("fire_mode_scope")
+    if scope == "pre-game/session-only":
+        session["fire_mode_scope"] = "pre-game-session-only"
+    elif scope == "pre-game-session-only":
+        session["fire_mode_scope"] = scope
+    applied = data.get("fire_mode_applied")
+    if isinstance(applied, bool):
+        session["fire_mode_applied"] = applied
+    return session
+
+
+def summarize_receipt(target: Path, launcher_receipt: Path | None = None) -> dict:
     root = resolve_receipt_root(Path(target))
     verified = verify_manifest(root)
     receipt = verified["receipt"]
@@ -1245,6 +1295,18 @@ def summarize_receipt(target: Path) -> dict:
     duration = (round(float(duration), 3)
                 if isinstance(duration, (int, float)) and not isinstance(duration, bool)
                 and 0 <= float(duration) <= 10 ** 7 else None)
+    session = _load_launcher_session(root, launcher_receipt)
+    observed_modes = ((firearms.get("team0") or {}).get("fire_modes_observed") or {})
+    expected_modes = ((firearms.get("team0") or {}).get("fire_mode_expected") or {})
+    requested = session["fire_mode"]
+    if requested and observed_modes:
+        if requested == "ai":
+            mismatch = bool(set(observed_modes) - set(expected_modes)) if expected_modes else None
+        else:
+            mismatch = requested not in observed_modes
+        session["fire_mode_mismatch"] = mismatch
+        if mismatch:
+            gaps.append("fire_mode_requested_observed_mismatch")
     summary = {
         "schema": SUMMARY_SCHEMA,
         "verified": verified["verified"],
@@ -1266,6 +1328,7 @@ def summarize_receipt(target: Path) -> dict:
         "divisions": divisions,
         "defenders": defenders,
         "firearms": firearms,
+        "session": session,
         "waves": {"observed": waves, "max": waves[-1] if waves else None,
                   "multiple_observed": len([w for w in waves if w >= 1]) >= 2,
                   "wave1": {"observed": wave1_observed,
@@ -1405,6 +1468,12 @@ def format_summary(summary: dict) -> str:
                  f"faction_slots={summary['waves']['faction_slots']} "
                  f"slots_slow={summary['waves']['slots_slow']} "
                  f"current_scene={summary['waves']['current_scene']}")
+    sess = summary.get("session") or {}
+    lines.append(f"session fire_mode: requested={sess.get('fire_mode')} "
+                 f"applied={sess.get('fire_mode_applied')} "
+                 f"scope={sess.get('fire_mode_scope')} "
+                 f"observed={((summary.get('firearms') or {}).get('team0') or {}).get('fire_modes_observed')} "
+                 f"mismatch={sess.get('fire_mode_mismatch')}")
     lines.append(f"rounds:          {summary['rounds']['count']} distinct "
                  f"round_start values")
     done = ", ".join(f"{kind}={len(items)}" for kind, items in summary["lifecycle"].items())
@@ -1429,9 +1498,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Summarize a sealed flight receipt")
     parser.add_argument("receipt", type=Path)
     parser.add_argument("--json", action="store_true", help="Emit JSON instead of text")
+    parser.add_argument("--launcher-receipt", type=Path, default=None,
+                        help="external city launcher receipt sidecar (requested config only)")
     args = parser.parse_args()
     try:
-        summary = summarize_receipt(args.receipt)
+        summary = summarize_receipt(args.receipt, args.launcher_receipt)
     except ReceiptError as exc:
         print("Receipt verification failed: " + str(exc), file=sys.stderr)
         raise SystemExit(2)
