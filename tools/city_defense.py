@@ -2,7 +2,8 @@
 """Optional tactical City overlay after the experimental survivor-spawn patch.
 
 Adds 3 SCO entry points on reachable AI-mesh faces, splits allies into private
-groups 5/6/7 and issues a one-time native hold order *only on City*.
+groups 5/6/7 and re-issues native hold positions every 5 s *only on City* so the
+orders survive dedicated round resets and squad respawns.
 No changes to the original 25 invasion triggers or to zombie spawn entries.
 """
 from __future__ import annotations
@@ -37,8 +38,9 @@ def orders_trigger(scene_idx: int) -> str:
         operations += ["1780", "2", str(pos), str(entry)]  # entry_point_get_position
         operations += ["1791", "3", "0", str(group), str(pos)]  # team_set_order_position
         operations += ["1790", "3", "0", str(group), "0"]  # team_give_order: mordr_hold
-    # Periodic trigger runs once at +5 s, then rearm is effectively infinite.
-    return " ".join(["5.000000", "0.000000", "100000000.000000",
+    # Periodic 5 s upkeep: re-issues hold positions after dedicated round
+    # resets / squad respawns (the initial one-shot order did not survive them).
+    return " ".join(["5.000000", "0.000000", "0.000000",
                      "3", *conditions, "9", *operations])
 
 

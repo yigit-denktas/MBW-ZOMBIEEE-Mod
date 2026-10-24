@@ -41,16 +41,22 @@ class RoundLifecycleSourceTests(unittest.TestCase):
         self.assertIn("whether original hold positions survive in-place round transitions",
                       report["unknown_runtime_observations"])
         self.assertTrue(report["checks"]["original_round_wave_reset"])
-        self.assertTrue(report["checks"]["initial_orders_one_shot"])
+        self.assertTrue(report["checks"]["hold_orders_reissued_periodically"])
 
-    def test_changed_initial_hold_interval_fails_source_pattern(self):
+    def test_changed_hold_order_interval_fails_source_pattern(self):
         path = self.module / "mission_templates.txt"
-        original = path.read_bytes()
-        path.write_bytes(original.replace(b"5.000000 0.000000 100000000.000000",
-                                          b"5.000000 0.000000 1.000000", 1))
+        lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
+        at, _, _ = mission_bounds(lines)
+        index = at + 1 + 26
+        parts = lines[index].split()
+        self.assertEqual(parts[:3], ["5.000000", "0.000000", "0.000000"])
+        parts[2] = "100000000.000000"
+        newline = "\r\n" if "\r\n" in lines[index] else "\n"
+        lines[index] = " ".join(parts) + newline
+        path.write_text("".join(lines), encoding="utf-8")
         report = audit_round_lifecycle(ORIGINAL, self.module)
         self.assertFalse(report["source_pattern_verified"])
-        self.assertFalse(report["checks"]["initial_orders_one_shot"])
+        self.assertFalse(report["checks"]["hold_orders_reissued_periodically"])
         self.assertFalse(report["runtime_verified"])
 
     def test_removed_round_timestamp_fails_source_pattern(self):

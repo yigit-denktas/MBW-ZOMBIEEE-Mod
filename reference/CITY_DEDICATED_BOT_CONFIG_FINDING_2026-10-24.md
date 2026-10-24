@@ -60,3 +60,13 @@ New `launcher_*` checks fail closed if the rotation lacks `start`, a positive `m
 - Issue #1 closed as superseded by #13.
 - Required City release outcomes remain **0/23**, milestones **0/5**; wave 2+, original zombie roster, allied survivor divisions 5-7, round transition and teardown remain unverified.
 
+## Native Zombie roster fix (branch gent/a-native-roster-fix)
+
+**Mechanism (proven statically):** the compiled Native script multiplayer_find_bot_troop_and_group_for_spawn scans a hard-coded multiplayer-AI troop range 855..874, keeps troops whose faction equals the team faction, and picks one at random. ZOMBIEEE Beta 0.4 appended its Zombie troops (	rp_invader1..8_multiplayer_ai = 894..911) after 	rp_multiplayer_end, so ac_kingdom_invaders bots could only ever resolve to the two placeholder Crazed-Civilian troops 873/874. 	ools/native_roster_patch.py inserts a faction-conditional range in the compiled script (City-only build): faction 16 (invaders) scans 894..911; every other team faction keeps 855..874. No troops, equipment, factions or mission triggers are modified. Expected team-1 bot ids after rebuild: **894..911** (Zombie), never 873/874.
+
+**Private defender timely respawn:** the one-shot 	i_after_mission_start=-20 squad spawn can be cleared by the dedicated round reset. The 3 s tactical-recovery trigger now also tops up missing private survivors (cap = --experimental-defenders) on the active round, using the same balanced-AI/survivor class troops and reserved divisions 5-7. The City hold-position trigger now re-issues orders every 5 s instead of once, so orders survive round resets and respawns. Both are recorded in the build receipt (
+ative_roster_patch, experimental_tactical_recovery.defender_respawn_*).
+
+**Rebuild required:** the installed module must be rebuilt from this branch; the engine has no runtime toggle for these data/trigger fixes. Offline: branch suite green; erify_city_chain passes (11 preserved inputs, chain 25->26->27->29->31); a City build produced 31 triggers, accepted static/final gates, 
+ative_roster_patch.invader_candidates = 894..911. **Engine proof still pending** (sealed AI-vs-AI run).
+

@@ -15,18 +15,20 @@ from pathlib import Path
 from archive_audit import inspect_original_archive
 from city_acceptance import audit_city
 from final_city_gate import audit_final_city_controls
-from patch_defenders import mission_bounds, patch_file
+from patch_defenders import (mission_bounds, patch_file, index_troops,
+                             TROOP_BASE, SURVIVOR_CLASSES)
+from native_roster_patch import apply_module as apply_roster
 from city_defense import apply_module as apply_city
 from wave_reinforcements import apply_module as apply_wave
 from tactical_recovery import apply_module as apply_recovery
 from private_commands import apply_module as apply_private
 from solo_assist import apply_module as apply_solo
-from bot_loadouts import apply_module as apply_loadouts
+from bot_loadouts import apply_module as apply_loadouts, CLONES
 from trace_calls import read_mission_calls
 from preflight import report_for_module
 
 SCENE_NAMES = [f"scn_tbfc_invasion_{n}.sco" for n in range(1, 6)]
-CORE_INPUTS = ["mission_templates.txt", "variables.txt", "scenes.txt", "troops.txt", "item_kinds1.txt"]
+CORE_INPUTS = ["mission_templates.txt", "variables.txt", "scenes.txt", "troops.txt", "scripts.txt", "item_kinds1.txt"]
 
 
 def sha(path: Path) -> str:
@@ -123,7 +125,12 @@ def verify(original: Path, archive: Path | None = None) -> dict:
             apply_wave(stage, cap=4, city_only=True,
                        balanced_ai=variant == "balanced-ai")
             chain.append(mission_check(stage, original, 29))
-            apply_recovery(stage, city_only=True)
+            roster = apply_roster(stage)
+            classes = CLONES if variant == "balanced-ai" else SURVIVOR_CLASSES
+            troop_ids = index_troops(stage / "troops.txt")
+            respawn_troops = tuple(TROOP_BASE + troop_ids[name] for name in classes)
+            apply_recovery(stage, city_only=True, defender_cap=4,
+                           defender_troops=respawn_troops)
             chain.append(mission_check(stage, original, 31))
             core = audit_city(stage, original)
             if not core["city_accepted"]:
@@ -144,6 +151,9 @@ def verify(original: Path, archive: Path | None = None) -> dict:
                 "city_static_accepted": core["city_accepted"],
                 "canonical_city_scene_sha256": core["city_overlay_expected_sha256"],
                 "hotkey_final_accepted": final["passed"],
+                "native_roster_patch": {key: roster[key] for key in
+                                        ("applied", "invader_candidates",
+                                         "sha256_before", "sha256_after")},
                 "final_native_sha256": final["final_native_sha256"],
                 "global_count": len((stage / "variables.txt").read_text().splitlines()),
                 "runtime_verified": False,
@@ -152,7 +162,7 @@ def verify(original: Path, archive: Path | None = None) -> dict:
                 raise RuntimeError("Unexpected 35-trigger global count")
             if variant == "standard":
                 allowed = {"mission_templates.txt", "variables.txt",
-                           "SceneObj/scn_tbfc_invasion_4.sco"}
+                           "scripts.txt", "SceneObj/scn_tbfc_invasion_4.sco"}
                 changed = {name for name, digest in complete_original_inventory.items()
                            if not (stage / name).is_file() or sha(stage / name) != digest}
                 unexpected = changed - allowed
@@ -170,7 +180,11 @@ def verify(original: Path, archive: Path | None = None) -> dict:
         patch_file(solo, 4, city_only=True)
         apply_city(solo)
         apply_wave(solo, cap=4, city_only=True)
-        apply_recovery(solo, city_only=True)
+        apply_roster(solo)
+        solo_troops = index_troops(solo / "troops.txt")
+        apply_recovery(solo, city_only=True, defender_cap=4,
+                       defender_troops=tuple(TROOP_BASE + solo_troops[name]
+                                             for name in SURVIVOR_CLASSES))
         prior = audit_city(solo, original)
         if not prior["city_accepted"]:
             raise RuntimeError("Solo profile prerequisite failed")

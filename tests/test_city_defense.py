@@ -103,7 +103,7 @@ class CityDefenseTests(unittest.TestCase):
     def test_orders_city_only_and_private_groups(self):
         idx = scene_index(self.module / "scenes.txt")
         orders = orders_trigger(idx).split()
-        self.assertEqual(orders[:4], ["5.000000", "0.000000", "100000000.000000", "3"])
+        self.assertEqual(orders[:4], ["5.000000", "0.000000", "0.000000", "3"])
         self.assertEqual(orders[4:6], ["417", "0"])
         self.assertIn(str(72057594037927936 + idx), orders)
         self.assertEqual(orders.count("1780"), 3)
