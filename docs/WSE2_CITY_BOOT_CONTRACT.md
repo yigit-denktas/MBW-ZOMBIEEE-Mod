@@ -106,3 +106,12 @@ All of these commands must be emitted **before `start`**. Offline enforcement: `
 - [Official client launch example](https://github.com/Ruslan-700/WSE2-Releases/blob/master/Warband/Native_WSE2.bat)
 - [Official server settings](https://github.com/Ruslan-700/WSE2-Releases/blob/master/Warband/server_config.ini)
 - [Project's WSE2 pin](../reference/WSE2_1.1.5.4.json)
+
+### City build roster/defender changes (branch gent/a-native-roster-fix)
+
+- The **City-only build** now patches the compiled bot-troop script so team-2 faction ac_kingdom_invaders bots select native Zombie troops **894..911** instead of the placeholder Crazed Civilians 873/874. Expected probe/summary assertion: 	eam1 troop ids in 894..911, no 873/874.
+- Private defenders are re-topped every 3 s while the round is active (cap = --experimental-defenders), and City hold positions are re-issued every 5 s, so the one-shot -20 spawn cannot leave team 0 permanently empty after a dedicated round reset.
+- **A module rebuild is mandatory** for both fixes; no runtime flag exists. Rotation stays max_num_bots 200; set_bot_count 1 0; set_bot_count 2 32; set_respawn_period 5; set_round_max_seconds 1800; set_defender_spawn_count 0; set_player_respawn_as_bot 0; start. For a quick wave-2+ validation, a smaller set_bot_count 2 8 is acceptable (fewer Zombie bots to clear).
+- Build receipt records 
+ative_roster_patch (candidates, script SHA-256 before/after) and experimental_tactical_recovery.defender_respawn_cap/troops.
+

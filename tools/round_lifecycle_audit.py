@@ -51,8 +51,8 @@ def audit_round_lifecycle(original: Path, city_module: Path) -> dict:
         "new_squad_spawn_after_mission_start_only": (
             after[25].split()[0] == "-20.000000"
             and any(code == 1265 for code, _ in effects[25])),
-        "initial_orders_one_shot": (
-            after[26].split()[:3] == ["5.000000", "0.000000", "100000000.000000"]
+        "hold_orders_reissued_periodically": (
+            after[26].split()[:3] == ["5.000000", "0.000000", "0.000000"]
             and sum(code == 1791 for code, _ in effects[26]) == 3
             and sum(code == 1790 for code, _ in effects[26]) == 3),
         "reinforcement_periodic": (
@@ -82,7 +82,7 @@ def audit_round_lifecycle(original: Path, city_module: Path) -> dict:
             "original wave counter resets on round transition",
             "original round-start clock written on new round",
             "added defenders are initially spawned after mission start",
-            "initial guard hold orders are effectively once per mission",
+            "private hold orders are re-issued every 5 seconds to survive round resets",
             "reinforcement and tactical recovery are periodic",
             "tactical mode initializer runs after mission start, not at every round reset",
             "round-aware reinforcement stores original round-start timestamp",

@@ -8,6 +8,9 @@ server-only trigger counts living non-player allied agents in divisions 5..7.
 Living allies <= low_water: fallback to survivor entry 0.
 Living allies >= high_water: regroup at current map's guarded positions.
 State changes once per transition to avoid thrashing and order spam.
+With ``defender_cap`` the same periodic trigger also restores missing private
+survivor divisions (bounded top-up) so the one-shot mission-start spawn cannot
+leave the squad permanently absent after a dedicated round reset.
 """
 from pathlib import Path
 from patch_defenders import PatchError, mission_bounds
@@ -43,15 +46,19 @@ def initial_mode(mode: int) -> str:
 
 
 def recovery_trigger(globals_: dict[str, int], scenes: dict[int, int],
-                     low_water: int = 1, high_water: int = 3) -> str:
+                     low_water: int = 1, high_water: int = 3,
+                     defender_cap: int = 0,
+                     defender_troops: tuple[int, ...] = ()) -> str:
     if not (0 <= low_water < high_water <= 8):
         raise PatchError("Require 0 <= low_water < high_water <= 8")
+    if defender_cap and (not 1 <= defender_cap <= 8 or len(defender_troops) != 4):
+        raise PatchError("Defender respawn needs cap 1..8 and four troop operands")
     supported = set(scenes)
     if supported not in ({4}, set(range(1, 6))):
         raise PatchError("Recovery requires original City only or all five map indices")
     if len(set(scenes.values())) != len(scenes):
         raise PatchError("Duplicate scene indices")
-    local = [LOCAL_BASE + i for i in range(6)]
+    local = [LOCAL_BASE + i for i in range(11)]
     conditions = [
         encode(417),  # server only
         encode(31, globals_["g_multiplayer_game_type"], INVASION_GAME_TYPE),  # original Invasion
@@ -74,12 +81,44 @@ def recovery_trigger(globals_: dict[str, int], scenes: dict[int, int],
         encode(33, local[3], 5, 8),  # reserved divisions only
         encode(2105, local[0], 1),
         encode(3),                  # end for
+    ]
+    if defender_cap:
+        # Periodic round-aware respawn of the private survivor squad. The
+        # original one-shot -20 spawn fires before the dedicated mission's
+        # round reset and can be cleared; this top-up runs every 3 s while the
+        # round is active, restoring missing private survivor divisions.
+        body.extend([
+            encode(4),                              # try_begin
+            encode(2121, local[5], defender_cap, local[0]),  # missing = cap - living
+            encode(32, local[5], 0),                # gt missing 0
+            encode(6, local[6], 0, local[5]),       # for replacement index
+            encode(2120, local[7], local[0], local[6]),  # slot = living + i
+            encode(2119, local[8], local[7], 4),    # class = slot % 4
+            encode(2119, local[9], local[7], 2),    # entry = slot % 2
+            encode(2119, local[10], local[7], 3),   # group offset = slot % 3
+            encode(2120, local[10], local[10], 5),  # reserved division 5..7
+            encode(4),                              # class try_begin
+            encode(31, local[8], 0),
+            encode(1265, local[9], defender_troops[0], 1, 0, local[10]),
+            encode(5),
+            encode(31, local[8], 1),
+            encode(1265, local[9], defender_troops[1], 1, 0, local[10]),
+            encode(5),
+            encode(31, local[8], 2),
+            encode(1265, local[9], defender_troops[2], 1, 0, local[10]),
+            encode(5),
+            encode(1265, local[9], defender_troops[3], 1, 0, local[10]),
+            encode(3),                              # class end
+            encode(3),                              # for end
+            encode(3),                              # respawn end
+        ])
+    body.extend([
         encode(4),                  # try_begin
         encode(33, local[0], 0, low_water + 1),  # low-water
         encode(31, globals_[TACTICAL_GLOBAL], 0),  # not already retreating
         encode(2133, globals_[TACTICAL_GLOBAL], 1),
         encode(1780, POS_BASE + 120, 0),  # survivor fallback entry
-    ]
+    ])
     for division in DIVISIONS:
         body.extend([
             encode(1791, 0, division, POS_BASE + 120),
@@ -113,7 +152,9 @@ def recovery_trigger(globals_: dict[str, int], scenes: dict[int, int],
 
 
 def patch_text(mission: str, variables: str, scenes: dict[int, int],
-               low_water: int = 1, high_water: int = 3) -> tuple[str, str]:
+               low_water: int = 1, high_water: int = 3,
+               defender_cap: int = 0,
+               defender_troops: tuple[int, ...] = ()) -> tuple[str, str]:
     globals_ = mapping(variables)
     lines = mission.splitlines(keepends=True)
     count_line, count, end = mission_bounds(lines)
@@ -122,7 +163,8 @@ def patch_text(mission: str, variables: str, scenes: dict[int, int],
     newline = "\r\n" if "\r\n" in mission else "\n"
     additions = [
         initial_mode(globals_[TACTICAL_GLOBAL]),
-        recovery_trigger(globals_, scenes, low_water, high_water),
+        recovery_trigger(globals_, scenes, low_water, high_water,
+                         defender_cap, defender_troops),
     ]
     lines[count_line] = "31" + newline
     lines[end:end] = [row + newline for row in additions]
@@ -134,7 +176,8 @@ def patch_text(mission: str, variables: str, scenes: dict[int, int],
 
 
 def apply_module(module: Path, low_water: int = 1, high_water: int = 3,
-                 city_only: bool = False) -> dict:
+                 city_only: bool = False, defender_cap: int = 0,
+                 defender_troops: tuple[int, ...] = ()) -> dict:
     module = Path(module)
     mission_path, variables_path = module / "mission_templates.txt", module / "variables.txt"
     chosen = (4,) if city_only else range(1, 6)
@@ -144,7 +187,7 @@ def apply_module(module: Path, low_water: int = 1, high_water: int = 3,
     original_v = variables_path.read_bytes()
     changed_m, changed_v = patch_text(
         original_m.decode("utf-8"), original_v.decode("utf-8"),
-        scenes, low_water, high_water)
+        scenes, low_water, high_water, defender_cap, defender_troops)
     mission_path.write_bytes(changed_m.encode("utf-8"))
     try:
         variables_path.write_bytes(changed_v.encode("utf-8"))
@@ -161,6 +204,8 @@ def apply_module(module: Path, low_water: int = 1, high_water: int = 3,
         "guard_groups": list(DIVISIONS),
         "fallback_entry": 0,
         "reevaluation_seconds": 3,
+        "defender_respawn_cap": defender_cap,
+        "defender_respawn_troops": list(defender_troops),
         "final_trigger_count": 31,
         "runtime_verified": False,
         "warning": "Experimental native orders; LOS and WSE2 group behaviour await final test.",

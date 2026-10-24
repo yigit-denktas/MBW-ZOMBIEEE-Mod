@@ -97,3 +97,9 @@ While actual B boot results remained unposted, A fixed a **false-positive diagno
 - Issue **#1 closed → superseded by #13**; new evidence-hardening issues **#15** (recorder atomic-replace, `ZOM-DISC-22`) and **#16** (seal host ZDB1 stdout). Docs updated: boot contract §2.1, acceptance ledger, dedicated-bot finding note.
 - Still no gameplay acceptance: wave 2+, native zombie roster, allied survivor divisions 5-7, round transition, teardown and sealed receipt open. City release **0/23**, milestones **0/5**.
 
+## Night-shift fixes: native Zombie roster + defender respawn (branch gent/a-native-roster-fix)
+
+- 	ools/native_roster_patch.py patches the compiled multiplayer_find_bot_troop_and_group_for_spawn script in City-only builds: invader faction scans Zombie troops 894..911 (native block position, via a conditional range), all other factions keep 855..874. Expected team-1 ids after rebuild: 894..911, no 873/874.
+- 	actical_recovery now tops up missing private survivors every 3 s on the active round (cap = experimental defenders) and City hold orders are re-issued every 5 s, fixing the one-shot -20 spawn being cleared before/at dedicated round reset.
+- Offline: branch suite 389 tests OK/4 skips; erify_city_chain passes; real City build yields 31 triggers, static/final gates accepted, roster candidates 894..911. Engine validation pending a sealed AI-vs-AI run.
+

@@ -15,7 +15,8 @@ from pathlib import Path
 
 from doctor import inspect_module
 from preflight import report_for_module
-from patch_defenders import patch_file
+from patch_defenders import patch_file, index_troops, TROOP_BASE, SURVIVOR_CLASSES
+from native_roster_patch import apply_module as apply_native_roster
 from city_defense import apply_module as apply_city_defense
 from all_map_defense import apply_module as apply_all_maps
 from wave_reinforcements import apply_module as apply_wave_support
@@ -157,6 +158,17 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         apply_overlay(source)
         balanced = defender_loadouts == "balanced-ai"
         loadout_report = apply_balanced_ai_loadouts(source) if balanced else None
+        # City-only native roster fix: the compiled Native bot-troop script can
+        # only see the 2012 multiplayer-AI troop block, so the invader faction's
+        # appended Zombie troops are otherwise unreachable and team 2 spawns
+        # Crazed Civilian placeholders. Apply before the mission overlays; this
+        # changes compiled scripts only and is recorded in the receipt.
+        city_roster_profile = city_guardposts and not all_map_defenses
+        roster_report = None
+        if city_roster_profile:
+            roster_report = apply_native_roster(source)
+            if not roster_report.get("applied") or not roster_report.get("invader_candidates"):
+                raise RuntimeError("Native Zombie roster patch failed static validation")
         defender_report = None
         if experimental_defenders:
             defender_report = patch_file(source, experimental_defenders,
@@ -188,10 +200,19 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
                 raise RuntimeError("Wave reinforcement failed static post-apply validation")
         recovery_report = None
         if tactical_recovery:
+            defender_cap = experimental_defenders if city_roster_profile else 0
+            defender_troops = ()
+            if defender_cap:
+                from bot_loadouts import CLONES
+                classes = CLONES if balanced else SURVIVOR_CLASSES
+                troop_ids = index_troops(source / "troops.txt")
+                defender_troops = tuple(TROOP_BASE + troop_ids[name] for name in classes)
             recovery_report = apply_tactical_recovery(source,
                 low_water=support.fallback_at_or_below,
                 high_water=support.regroup_at_or_above,
-                city_only=not all_map_defenses)
+                city_only=not all_map_defenses,
+                defender_cap=defender_cap,
+                defender_troops=defender_troops)
             updated = report_for_module(source)
             if not updated["ok"] or updated["mission"]["triggers"] != 31:
                 raise RuntimeError("Tactical recovery failed static post-apply validation")
@@ -265,6 +286,7 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
             "original_mission_trigger_count": preflight["mission"]["triggers"],
             "final_trigger_count": (31 if tactical_recovery else 29 if wave_reinforcements else 27 if city_guardposts else 26 if experimental_defenders else 25) + int(solo_assist) + (4 if private_commands else 0),
             "preflight": preflight,
+            "native_roster_patch": roster_report,
             "experimental_defender_patch": defender_report,
             "defender_loadout_profile": defender_loadouts,
             "ai_only_loadout_clones": loadout_report,
