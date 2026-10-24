@@ -1,8 +1,8 @@
 ﻿{
-  "updated": "2026-10-24T16:52:00+02:00",
-  "phase": "Work board refreshed",
-  "build": "Known-good f57c800 installed.",
-  "now": "19 active / 16 backlog / 60 done. Current cards: crash triage, spectator visual validation, hit-bearing seal, integration batch, class/formation work.",
-  "next": "A: formation/defense; C: hardening; D: spectator + bot matrix; E/F/G/H: reviews/assets/gate. No acceptance.",
+  "updated": "2026-10-24T17:00:00+02:00",
+  "phase": "Spectator recon running",
+  "build": "Hardening probe 45fd819 on known-good f57c800 mission.",
+  "now": "D is running spectator-recon with screenshots at 30s/60s. Earlier hardening attempt collided with shared log and failed safely.",
+  "next": "D reviews shots + hit/ts/round evidence; then E/F/G batch decisions. No acceptance.",
   "acceptance": false
 }
