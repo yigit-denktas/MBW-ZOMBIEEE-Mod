@@ -411,13 +411,12 @@ class LuaOperationMetadataTests(unittest.TestCase):
         # A lhs placeholder passed as 0 was bound as an agent id by the engine
         # and spammed "Invalid Agent ID: 0"; the group reader must use the real
         # agent only, defer until a full-round heartbeat, cache one-shot.
-        self.assertIn("|group_reader=direct_single_arg", self.main)
+        self.assertIn("|group_reader=destination_agent", self.main)
         self.assertIn("local group_read_enabled = false", self.main)
-        self.assertIn("if type(agent) ~= \"number\" or agent <= 0 then return -1 end",
-                      self.main)
+        self.assertIn("if not agent_live(agent) then return -1 end", self.main)
         self.assertIn("if value == agent then return -1 end", self.main)
         self.assertIn("if group_capability_emitted then return end", self.main)
-        self.assertIn("return fn(agent) end)", self.main)
+        self.assertIn("return fn(0, agent) end)", self.main)
 
     def test_group_reader_handles_both_lhs_return_shapes(self):
         # agent_get_group (1765) is condition-style in some builds: accept both
@@ -427,7 +426,7 @@ class LuaOperationMetadataTests(unittest.TestCase):
         self.assertIn("local function read_group(agent)", self.main)
         self.assertIn("group_convention", self.main)
         self.assertIn("|group_convention=", self.main)
-        self.assertIn("|group_reader=direct_single_arg", self.main)
+        self.assertIn("|group_reader=destination_agent", self.main)
         self.assertIn("kind=group_convention_unknown", self.main)
         self.assertIn("MAX_DIVISION = 255", self.main)
         self.assertIn("local group = read_group(agent)", self.main)
@@ -512,6 +511,17 @@ class LuaOperationMetadataTests(unittest.TestCase):
         self.assertGreaterEqual(self.main.count("agent <= 0 then return false"), 2)
         self.assertIn("type(agent) ~= \"number\" or agent <= 0 then return nil", self.main)
         self.assertIn("type(agent) ~= \"number\" or agent <= 0 then return -1", self.main)
+
+
+    def test_group_reader_two_arg_convention_and_skip_counters(self):
+        self.assertIn("return fn(0, agent) end)", self.main)
+        self.assertIn("|group_call_convention=two_arg", self.main)
+        self.assertIn("|group_live_guard=1", self.main)
+        self.assertIn("skipped_invalid_agent = 0, skipped_dead_agent = 0", self.main)
+        self.assertIn("result.skipped_invalid_agent = result.skipped_invalid_agent + 1", self.main)
+        self.assertIn("result.skipped_dead_agent = result.skipped_dead_agent + 1", self.main)
+        self.assertIn("|skipped_invalid_agent=", self.main)
+        self.assertIn("|skipped_dead_agent=", self.main)
 
 if __name__ == "__main__":
     unittest.main()

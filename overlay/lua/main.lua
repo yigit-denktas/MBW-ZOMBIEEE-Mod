@@ -98,7 +98,7 @@ emit("recorder_capabilities",
     .. "|human_getter=" .. binding_flag("agent_is_human")
     .. "|composition=1|engagement=1|position_summary=1|pre_round=1"
     .. "|group_getter=" .. binding_flag("agent_get_group")
-    .. "|group_reader=direct_single_arg|group_probe=1|combat_v2=1"
+    .. "|group_reader=destination_agent|group_call_convention=two_arg|group_live_guard=1|group_probe=1|combat_v2=1"
     -- No verified read-only WSE2 operation exists for shield/block, mounted
     -- identity or current action in this mod: report 0 capability, never guess.
     .. "|shield_getter=0|mounted_getter=0|action_getter=0"
@@ -252,12 +252,17 @@ local function decode_group_returns(agent, ok, first, second)
     if value == agent then return -1 end  -- agent-id echo, not a division
     return value
 end
+local function agent_live(agent)
+    if type(agent) ~= "number" or agent <= 0 then return false end
+    local ok, value = pcall(function() return game.agent_is_alive(agent) end)
+    return ok and (value == true or value == 1)
+end
 local function read_group(agent)
     local fn = game.agent_get_group
     if type(fn) ~= "function" then return -1 end
-    if type(agent) ~= "number" or agent <= 0 then return -1 end
+    if not agent_live(agent) then return -1 end
     if group_convention == nil then
-        local ok, first, second = pcall(function() return fn(agent) end)
+        local ok, first, second = pcall(function() return fn(0, agent) end)
         local candidate = decode_group_returns(agent, ok, first, second)
         group_convention = candidate >= 0 and "direct" or "unknown"
         emit_group_capability(group_convention)
@@ -266,7 +271,7 @@ local function read_group(agent)
         end
     end
     if group_convention ~= "direct" then return -1 end
-    local ok, first, second = pcall(function() return fn(agent) end)
+    local ok, first, second = pcall(function() return fn(0, agent) end)
     return decode_group_returns(agent, ok, first, second)
 end
 local function is_npc(agent)
@@ -290,7 +295,7 @@ end
 -- position-object access is inside guarded_call: a WSE2 pos userdata can throw
 -- on field access and must not abort the entire world sample.
 local function agent_position(agent)
-    if type(agent) ~= "number" or agent <= 0 then return nil end
+    if not agent_live(agent) then return nil end
     return guarded_call(function()
         game.agent_get_position(90, agent)
         local position = game.preg[90]
@@ -374,6 +379,7 @@ local function sample_world()
                          troop_read_unknown = 0,
                          groups0 = {}, groups1 = {},
                          group_read_unknown = 0,
+                         skipped_invalid_agent = 0, skipped_dead_agent = 0,
                          defender_count = 0,
                          defender_alive = 0,
                          defender_kills = 0,
@@ -406,6 +412,11 @@ local function sample_world()
                          hist0 = {}, hist1 = {}, players = {}, player_count = 0 }
         local n = 0
         for agent in game.agentsIt() do
+            if type(agent) ~= "number" or agent <= 0 then
+                result.skipped_invalid_agent = result.skipped_invalid_agent + 1
+            elseif not agent_live(agent) then
+                result.skipped_dead_agent = result.skipped_dead_agent + 1
+            end
             n = n + 1
             local side = nil
             if supports_team then
@@ -928,6 +939,12 @@ local function lifecycle_fields(role, wave, world)
         .. "|game_type=" .. global_int("g_multiplayer_game_type")
         .. "|ready_for_spawn=" .. global_int("g_multiplayer_ready_for_spawning_agent")
         .. "|bots_team1=" .. global_int("g_multiplayer_num_bots_team_1")
+        .. "|skipped_invalid_agent=" .. ((world and world.ok) and (world.skipped_invalid_agent or 0) or -1)
+        .. "|skipped_dead_agent=" .. ((world and world.ok) and (world.skipped_dead_agent or 0) or -1)
+end
+local function skip_fields(world)
+    return "|skipped_invalid_agent=" .. ((world and world.ok) and (world.skipped_invalid_agent or 0) or -1)
+        .. "|skipped_dead_agent=" .. ((world and world.ok) and (world.skipped_dead_agent or 0) or -1)
 end
 -- Explicit lifecycle events are emitted only from observed transitions:
 -- a previously alive team-0 non-player agent now dead/removed (player_died or
@@ -1090,7 +1107,7 @@ local function pre_round_snapshot(world, role, wave)
         .. "|agents=" .. (world and world.ok and world.total or -1)
         .. "|team0=" .. (world and world.ok and world.team0 or -1)
         .. "|team1=" .. (world and world.ok and world.team1 or -1)
-        .. "|template=" .. current_mission() .. state_fields(world))
+        .. "|template=" .. current_mission() .. state_fields(world) .. skip_fields(world))
     emit_ai_samples(world, role, wave, pre_round_samples)
 end
 local function first_entry()
@@ -1107,7 +1124,7 @@ local function first_entry()
          "|template=" .. current_mission() ..
          "|agents=" .. (world.ok and world.total or -1) ..
          "|team0=" .. (world.ok and world.team0 or -1) ..
-         "|team1=" .. (world.ok and world.team1 or -1) .. state_fields(world))
+         "|team1=" .. (world.ok and world.team1 or -1) .. state_fields(world) .. skip_fields(world))
     previous_round_start = round_start
     previous_round_ended = global_int("g_round_ended")
     previous_defender_ids = {}
@@ -1173,7 +1190,7 @@ local function heartbeat()
             .. "|agents=" .. (world.ok and world.total or -1)
             .. "|team0=" .. (world.ok and world.team0 or -1)
             .. "|team1=" .. (world.ok and world.team1 or -1)
-            .. "|template=" .. current_mission() .. state_fields(world))
+            .. "|template=" .. current_mission() .. state_fields(world) .. skip_fields(world))
         local round_start = global_int("g_round_start_time")
         if role == "server" then
             if wave >= 0 and wave ~= previous_wave then

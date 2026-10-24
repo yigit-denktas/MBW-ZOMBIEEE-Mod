@@ -154,18 +154,18 @@ local function read_group(agent, fn)
     if type(agent) ~= "number" or agent <= 0 then return -1 end
     if group_convention == nil then
         calls = calls + 1
-        local ok, first, second = pcall(function() return fn(agent) end)
+        local ok, first, second = pcall(function() return fn(0, agent) end)
         local candidate = decode_group(agent, ok, first, second)
         group_convention = candidate >= 0 and "direct" or "unknown"
         capability_lines = capability_lines + 1
     end
     if group_convention ~= "direct" then return -1 end
     calls = calls + 1
-    local ok, first, second = pcall(function() return fn(agent) end)
+    local ok, first, second = pcall(function() return fn(0, agent) end)
     return decode_group(agent, ok, first, second)
 end
-local function echo_fn(agent) return agent, 0 end
-local function group_fn(agent) return 6, 0 end
+local function echo_fn(_destination, agent) return agent, 0 end
+local function group_fn(_destination, _agent) return 6, 0 end
 checks[#checks + 1] = tostring(read_group(0, group_fn) == -1)          -- no fake agent
 checks[#checks + 1] = tostring(read_group(-1, group_fn) == -1)
 local ok_group, group_value = pcall(function()
@@ -183,6 +183,16 @@ group_convention, capability_lines, calls = nil, 0, 0
 checks[#checks + 1] = tostring(read_group(7, group_fn) == 6)
 checks[#checks + 1] = tostring(group_convention == "direct")
 checks[#checks + 1] = tostring(capability_lines == 1)
+
+-- Two-argument convention: destination=0, agent=real id.
+group_convention, capability_lines, calls = nil, 0, 0
+local seen_destination, seen_agent
+local function capture_fn(destination, agent)
+    seen_destination, seen_agent = destination, agent
+    return 11, 0
+end
+checks[#checks + 1] = tostring(read_group(7, capture_fn) == 11)
+checks[#checks + 1] = tostring(seen_destination == 0 and seen_agent == 7)
 
 -- Faction-slot guard: never call a faction op with an encoded/negative operand,
 -- and never call it for an invalid slot.
@@ -253,7 +263,7 @@ class RealLuaSemanticsTests(unittest.TestCase):
 
     def test_team_tables_arithmetic_and_precedence(self):
         checks = self.run_lua(SEMANTICS_SCRIPT).split(",")
-        self.assertEqual(len(checks), 40)
+        self.assertEqual(len(checks), 42)
         for index, value in enumerate(checks, 1):
             self.assertEqual(value, "true", f"Lua semantics check {index} failed")
 

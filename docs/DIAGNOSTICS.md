@@ -375,6 +375,24 @@ D's task-42 sealed runs exposed three readback gaps, now closed:
   `ammo > 0 -> 0` transitions plus `weapon_mode=melee`. This is an inference,
   not a direct AI-mode getter; the note records that explicitly.
 
+### Invalid Agent ID: 0 crash triage (P0, trigger 32 conditions)
+
+Crash log `rgl_log_24.10.2026_15.56.05_crash.txt`: `Invalid Agent ID: 0`
+at `Lua (line 0, opcode 1765)` from `Trigger [32] Conditions (Lua)`, then
+28 s later `EXCEPTION_ACCESS_VIOLATION` in `mbAgent::updateWalkingEffects`
+(no Lua frame). Root cause of the logged error: the probe's `read_group`
+called `agent_get_group` as `fn(agent)` (single argument), but native 1765 is
+`(destination, agent_id)`, so the destination slot received the Lua agent and
+**agent_id defaulted to 0**. Fixed contract: `read_group` calls
+`fn(0, agent)`; group/position reads require a live agent (`agent_live` uses
+`agent_is_alive` under pcall); loops count `skipped_invalid_agent` and
+`skipped_dead_agent` and expose them in heartbeat/pre-round/mission-enter
+lines; capability is `group_reader=destination_agent`,
+`group_call_convention=two_arg`, `group_live_guard=1`, plus
+`invalid_agent_guard=1`. The AV has no Lua stack frame, so causal linkage to
+the probe is not established; A's trigger-15 speed loop must be isolated
+disabled/enabled before any P0 claim.
+
 ### Invalid Agent ID: 0 guard (P0, trigger 32 conditions)
 
 Client/pre-round heartbeat condition callbacks could yield agent id 0 from
