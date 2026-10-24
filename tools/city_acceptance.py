@@ -82,13 +82,15 @@ def audit_city(module: Path, original: Path) -> dict:
             wave_global = None
             if "wave_number" in variables:
                 wave_global = 144115188075855872 + variables.index("wave_number")
-            expected_text, _ = native_wave_patch_text(
-                (original / "mission_templates.txt").read_text(encoding="utf-8"),
-                wave_global)
-            elines = expected_text.splitlines(keepends=True)
-            ep, ec, ee = mission_bounds(elines)
-            expected = [line.rstrip("\r\n") for line in elines[ep + 1:ee]]
-            prefix_ok = actual[:25] == expected[:25]
+            original_text = (original / "mission_templates.txt").read_text(encoding="utf-8")
+            expected = []
+            for speed_loop in (False, True):
+                expected_text, _ = native_wave_patch_text(
+                    original_text, wave_global, speed_loop=speed_loop)
+                elines = expected_text.splitlines(keepends=True)
+                ep, ec, ee = mission_bounds(elines)
+                expected.append([line.rstrip("\r\n") for line in elines[ep + 1:ee]])
+            prefix_ok = any(actual[:25] == candidate[:25] for candidate in expected)
         require("original_trigger_prefix", prefix_ok,
                 "Original invasion trigger contents were modified")
         if actual[:25] != baseline[:25]:

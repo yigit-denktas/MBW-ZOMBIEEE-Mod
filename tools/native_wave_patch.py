@@ -76,11 +76,13 @@ def _speed_ops(wave_global: int | None) -> list[tuple[int, tuple[int, ...]]]:
                 (2120, (speed, speed, wave)),
                 (4, ()), (32, (speed, SPEED_CAP)), (2133, (speed, SPEED_CAP)), (3, ())]
     ops += [(12, (agent,)), (1702, (agent,)), (1707, (agent,)),
-            (1770, (team, agent)), (31, (team, 1)), (2093, (agent, speed)), (3, ())]
+            (1770, (team, agent)), (31, (team, 1)), (32, (agent, 0)),
+            (2093, (agent, speed)), (3, ())]
     return ops
 
 
-def patch_mission_text(text: str, wave_global: int | None = None) -> tuple[str, dict]:
+def patch_mission_text(text: str, wave_global: int | None = None,
+                       speed_loop: bool = False) -> tuple[str, dict]:
     lines = text.splitlines(keepends=True)
     p, count, end = mission_bounds(lines)
     if count < 16:
@@ -115,8 +117,9 @@ def patch_mission_text(text: str, wave_global: int | None = None) -> tuple[str, 
     # Trigger 15: append the per-tick team-1 speed loop to the original wave
     # controller's consequence block. Its own conditions are unchanged.
     prefix15, conditions15, ops15, tail15 = _decode(rows[TRIGGER15].strip())
-    ops15 = [*ops15, *_speed_ops(wave_global)]
-    rows[TRIGGER15] = _encode(prefix15, conditions15, ops15, tail15) + newline
+    if speed_loop:
+        ops15 = [*ops15, *_speed_ops(wave_global)]
+        rows[TRIGGER15] = _encode(prefix15, conditions15, ops15, tail15) + newline
 
     output = "".join(lines[:p + 1] + rows + lines[end:])
     report = {
@@ -124,7 +127,8 @@ def patch_mission_text(text: str, wave_global: int | None = None) -> tuple[str, 
         "trigger14_wave_table_patched": True,
         "trigger14_slot_writes_changed": changed,
         "invalid_faction_writes_guarded": invalid,
-        "trigger15_speed_loop_appended": True,
+        "trigger15_speed_loop_appended": bool(speed_loop),
+        "speed_loop_disabled_for_bisect": not speed_loop,
         "slow_troop": SLOW_ZOMBIE,
         "speed_base": SPEED_BASE,
         "speed_per_wave": SPEED_PER_WAVE,
@@ -134,9 +138,11 @@ def patch_mission_text(text: str, wave_global: int | None = None) -> tuple[str, 
     return output, report
 
 
-def apply_module(module: Path, wave_global: int | None = None) -> dict:
+def apply_module(module: Path, wave_global: int | None = None,
+                 speed_loop: bool = False) -> dict:
     path = Path(module) / "mission_templates.txt"
     updated, report = patch_mission_text(path.read_text(encoding="utf-8"),
-                                         wave_global=wave_global)
+                                         wave_global=wave_global,
+                                         speed_loop=speed_loop)
     path.write_text(updated, encoding="utf-8", newline="")
     return report

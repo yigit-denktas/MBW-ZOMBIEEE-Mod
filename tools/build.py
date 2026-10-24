@@ -100,7 +100,8 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
           defender_reinforce: str = "default",
           defender_target: int = 8,
           zombie_speed: str = "slow",
-          defender_orders: str = "hold-fire") -> dict:
+          defender_orders: str = "hold-fire",
+          native_speed_loop: str = "off") -> dict:
     support = profile(difficulty)
     if difficulty != "standard" and not wave_reinforcements:
         raise ValueError("Nonstandard difficulty needs --wave-reinforcements")
@@ -128,6 +129,8 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         raise ValueError("--defender-target must be between 1 and 8")
     if zombie_speed not in ("slow", "stock"):
         raise ValueError("Unknown --zombie-speed profile")
+    if native_speed_loop not in ("off", "on"):
+        raise ValueError("Unknown --native-speed-loop profile")
     if defender_orders not in ("hold-fire", "stock"):
         raise ValueError("Unknown --defender-orders profile")
     if defender_loadouts != "original" and not experimental_defenders:
@@ -195,7 +198,8 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
             if "wave_number" not in variables:
                 raise RuntimeError("Missing wave_number for native wave patch")
             wave_global = GLOBAL_BASE + variables.index("wave_number")
-            native_wave_report = apply_native_wave_patch(source, wave_global)
+            native_wave_report = apply_native_wave_patch(
+                source, wave_global, speed_loop=native_speed_loop == "on")
         balanced = defender_loadouts == "balanced-ai"
         loadout_report = apply_balanced_ai_loadouts(source) if balanced else None
         # Default build profile: automatic firearms get a modest accuracy buff;
@@ -441,6 +445,7 @@ def main():
     parser.add_argument("--defender-reinforce", choices=("default", "stock"), default="default", help="City defender spawn_agent refill to --defender-target; stock disables")
     parser.add_argument("--defender-target", type=int, default=8, metavar="N", help="City team-0 defender target (1..8) for reinforcement")
     parser.add_argument("--zombie-speed", choices=("slow", "stock"), default="slow", help="City zombie pace: native per-agent speed modifier ~70%% with wave scaling, stock unchanged")
+    parser.add_argument("--native-speed-loop", choices=("off", "on"), default="off", help="Bisect switch: append the trigger-15 native team-1 speed loop (default off)")
     parser.add_argument("--defender-orders", choices=("hold-fire", "stock"), default="hold-fire", help="City team hold/fire orders (hold, hold_fire, fire_at_will, use_ranged) on native groups")
     args = parser.parse_args()
     try:
@@ -450,7 +455,7 @@ def main():
                          args.private_commands, args.difficulty, args.firearm_accuracy,
                          args.zombie_bot_roster, args.zombie_block, args.defensive_line,
                          args.wave_visitors, args.defender_reinforce, args.defender_target,
-                         args.zombie_speed, args.defender_orders), indent=2))
+                         args.zombie_speed, args.defender_orders, args.native_speed_loop), indent=2))
     except (RuntimeError, FileNotFoundError, FileExistsError, ValueError, subprocess.CalledProcessError) as exc:
         print(f"Build refused: {exc}", file=sys.stderr)
         raise SystemExit(2)
