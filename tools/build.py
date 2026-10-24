@@ -17,6 +17,7 @@ from doctor import inspect_module
 from preflight import report_for_module
 from patch_defenders import patch_file, index_troops, TROOP_BASE, SURVIVOR_CLASSES
 from native_roster_patch import GLOBAL_BASE, apply_module as apply_native_roster
+from faction_log_guard import apply_module as apply_faction_log_guard
 from city_defense import (GUARD_ENTRIES, REAR_HOLD_ENTRIES,
                           apply_module as apply_city_defense)
 from all_map_defense import apply_module as apply_all_maps
@@ -185,6 +186,12 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
                 shutil.copy2(source / "SceneObj" / scene_name,
                              original_evidence / "SceneObj" / scene_name)
         apply_overlay(source)
+        faction_log_guard_report = None
+        if city_guardposts and not all_map_defenses:
+            # Logs-only City exception: original trigger 14's four trailing
+            # faction_set_slot(-1, 200, ...) writes become valid faction 16 /
+            # unused slot 245; wave composition is unchanged.
+            faction_log_guard_report = apply_faction_log_guard(source)
         balanced = defender_loadouts == "balanced-ai"
         loadout_report = apply_balanced_ai_loadouts(source) if balanced else None
         # Default build profile: automatic firearms get a modest accuracy buff;
@@ -373,6 +380,7 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
                                        else "city-only" if city_guardposts
                                        else "original-baseline"),
             "experimental_city_guardposts": city_report,
+            "faction_log_guard": faction_log_guard_report,
             "experimental_all_map_defenses": all_maps_report,
             "experimental_wave_reinforcements": wave_report,
             "experimental_tactical_recovery": recovery_report,
