@@ -6,7 +6,7 @@
   "acceptance": "none",
   "runtime_verified": false,
   "observed_on": "2026-10-24",
-  "source_revision": "d0f7edf0e5f9f5c61b3324cf4f58cd76d19667f6",
+  "source_revision": "79d7b84a59cec253c52e746e8fbc3550e94b7c3d",
   "version_sources": {
     "version": "VERSION",
     "changelog": "CHANGELOG.md#030-beta1-2026-10-24",
@@ -523,7 +523,7 @@
     "published": false
   },
   "source_revision_exception": {
-    "reason": "owner-authorized telemetry hardening branch metadata-only head revision; Lead syncs final release metadata",
+    "reason": "E claim-wording fixes on owner-authorized telemetry hardening; metadata-only head revision",
     "changed_paths": [
       "docs/release-traceability.json",
       "CHANGELOG.md",

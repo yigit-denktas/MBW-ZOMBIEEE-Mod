@@ -193,3 +193,6 @@ This project deliberately separates **source-verified**, **observed**, **unknown
 
 
 <!-- telemetry hardening metadata-only source revision: d0f7edf -->
+
+
+<!-- telemetry claim-wording metadata-only source revision: 79d7b84 -->
