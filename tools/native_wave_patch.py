@@ -69,10 +69,10 @@ def _local(n: int) -> int:
 
 
 def _speed_ops(wave_global: int | None) -> list[tuple[int, tuple[int, ...]]]:
-    speed, agent, team, wave = (_local(n) for n in (40, 41, 42, 43))
+    speed, agent, team, wave = (_local(n) for n in (44, 45, 46, 47))
     ops = [(2133, (speed, SPEED_BASE))]
     if wave_global is not None:
-        ops += [(2123, (wave, wave_global, SPEED_PER_WAVE)),
+        ops += [(2122, (wave, wave_global, SPEED_PER_WAVE)),
                 (2120, (speed, speed, wave)),
                 (4, ()), (32, (speed, SPEED_CAP)), (2133, (speed, SPEED_CAP)), (3, ())]
     ops += [(12, (agent,)), (1702, (agent,)), (1707, (agent,)),
