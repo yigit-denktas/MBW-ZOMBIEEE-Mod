@@ -916,6 +916,26 @@ class ProfileMatrixTests(unittest.TestCase):
             self.assertIn('rotation_sha256', expected['receipt_fields'])
             self.assertIn('team0_bots', expected['receipt_fields'])
             self.assertTrue(any('894' in item for item in expected['summary_checks']))
+            self.assertEqual(expected['summary_schema'],
+                             'zombieee.receipt-summary.v1')
+            self.assertEqual(expected['summary_paths']['team0_bots_latest'],
+                             'composition.team0.bots')
+            self.assertEqual(expected['summary_paths']['team0_bots_max'],
+                             'teams.bots_team0')
+            self.assertEqual(expected['summary_paths']['defender_troops'],
+                             'defenders.troops')
+            self.assertEqual(expected['summary_paths']['wave1_team1_classes'],
+                             'waves.wave1.team1_classes')
+            self.assertEqual(expected['summary_paths']['evidence_gaps'],
+                             'evidence_gaps')
+            checks = ' '.join(expected['summary_checks'])
+            self.assertIn('composition.team0.bots', checks)
+            self.assertIn('defenders.troops', checks)
+            self.assertIn('generic_ids', checks)
+            self.assertIn('positions.team0.centroid', checks)
+            self.assertIn('guard_entries_reached', checks)
+            self.assertIn('defenders.shield is always null', checks)
+            self.assertIn('evidence_gaps', checks)
             self.assertEqual(matrix['mismatches'], [])
             text = format_profile_matrix(matrix)
             self.assertIn('Play City profile matrix: OK', text)
