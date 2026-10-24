@@ -139,3 +139,6 @@ Source revision for the hit-param diagnostic metadata-only receipt: `d988597`.
 
 
 Source revision for the adaptive visual/fields metadata-only receipt: `d8a57f4`.
+
+
+Source revision for the ported summary caveat metadata-only receipt: `bd2d4d0`.

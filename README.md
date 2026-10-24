@@ -220,3 +220,6 @@ This project deliberately separates **source-verified**, **observed**, **unknown
 
 
 <!-- adaptive visual/fields metadata-only source revision: d8a57f4 -->
+
+
+<!-- ported summary caveat metadata-only source revision: bd2d4d0 -->
