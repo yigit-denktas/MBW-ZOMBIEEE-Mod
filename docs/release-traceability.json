@@ -6,7 +6,7 @@
   "acceptance": "none",
   "runtime_verified": false,
   "observed_on": "2026-10-24",
-  "source_revision": "79d7b84a59cec253c52e746e8fbc3550e94b7c3d",
+  "source_revision": "8759eedf58bcd09fe69e41995d5c23e09cc138de",
   "version_sources": {
     "version": "VERSION",
     "changelog": "CHANGELOG.md#030-beta1-2026-10-24",
@@ -523,7 +523,7 @@
     "published": false
   },
   "source_revision_exception": {
-    "reason": "E claim-wording fixes on owner-authorized telemetry hardening; metadata-only head revision",
+    "reason": "E residual hit-mapping marker + capability fields; metadata-only head revision",
     "changed_paths": [
       "docs/release-traceability.json",
       "CHANGELOG.md",

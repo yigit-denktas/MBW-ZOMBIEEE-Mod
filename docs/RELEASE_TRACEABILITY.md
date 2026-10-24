@@ -115,3 +115,6 @@ Source revision for the telemetry hardening metadata-only receipt: `d0f7edf`.
 
 
 Source revision for the telemetry claim-wording metadata-only receipt: `79d7b84`.
+
+
+Source revision for the hit-mapping metadata-only receipt: `8759eed`.
