@@ -51,3 +51,12 @@ New `launcher_*` checks fail closed if the rotation lacks `start`, a positive `m
 - Sealed recorder receipt and wave/AI screenshots are pending from Lead.
 - Trigger-14 `Invalid Faction ID: -1` remains original Beta 0.4 content, non-fatal and not proven causal; no gameplay patch.
 - Required City release outcomes remain **0/23** and accepted milestones **0/5**.
+
+## Follow-up — roster and respawn defects (still no acceptance)
+
+- **Roster:** the 32 generic bots from `set_bot_count 2 32` are the faction default troop — observed as `trp_invader_multiplayer_ai` = **Crazed Civilian**, not the native Zombie troops (`trp_invader1_multiplayer_ai` etc.). Only the original wave visitors spawn the native invader troop list. The launcher/rotation must verify the invader roster; tracked as issue #14 (and #13 for wave roster/completion/allies). `tools/city_runtime_triage.py --rotation` reports a static `roster_caveat` — it cannot verify the runtime troop identity.
+- **Respawn:** after player death, no respawn/new round was observed (`team0=0`, `wave=0`). Required before `start`: `set_respawn_period 5`, `set_round_max_seconds 1800`, `set_defender_spawn_count 0`, `set_player_respawn_as_bot 0`. The rotation contract now fails closed if any of these are missing/wrong.
+- **Evidence hardening:** issue #15 (recorder atomic-replace race, `ZOM-DISC-22`) and issue #16 (seal dedicated-host ZDB1 stdout inside flight evidence).
+- Issue #1 closed as superseded by #13.
+- Required City release outcomes remain **0/23**, milestones **0/5**; wave 2+, original zombie roster, allied survivor divisions 5-7, round transition and teardown remain unverified.
+

@@ -138,3 +138,13 @@ This confirms C's corrected probe (role=server, separate game type, ready/bots r
 
 Gate effect (no acceptance change): G05/G07 style probe and loopback observations hold for this candidate; G08 gains server-role/game-type/join evidence but still needs the explicit sealed receipt; G09 remains open (original allied survivor divisions 5-7 not observed — the 32 allied bots were native team-0 bots); **G10 records the first observed enemy wave but stays open** until at least two distinct waves with sealed evidence; G11/G12/G13 remain open. Required City release outcomes remain **0/23**, accepted milestones **0/5**.
 
+### Wave-1 roster/respawn refinements and issue mapping — 2026-10-24
+
+Follow-up live observation on the same merged-main candidate (Lead-reported, sealed receipt pending):
+
+- The wave-1 generic bots are `trp_invader_multiplayer_ai` = **Crazed Civilian**, because generic `set_bot_count` fills the faction default troop; the native Zombie troops are not that population. This is a launcher/rotation roster defect, not proof the native zombie wave is correct — issues **#13** (wave roster/completion/allies) and **#14** (launcher/rotation team-2 count and roster).
+- After player death no respawn/new round was observed (`team0=0`, `wave=0`). Rotation must set `set_respawn_period 5`, `set_round_max_seconds 1800`, `set_defender_spawn_count 0`, `set_player_respawn_as_bot 0` before `start` — issues **#13/#14**.
+- Evidence-hardening follow-ups: **#15** recorder atomic-replace read race (supporting leaf `ZOM-DISC-22`) and **#16** seal dedicated-host ZDB1 stdout inside the flight evidence bundle.
+- Issue **#1** is closed as superseded by **#13**.
+- Gate effect: G10 still open (one wave only; roster mix includes generic bots); G09 open (allied defender divisions 5-7 not observed); G11/G12/G13 open. Required City release outcomes remain **0/23**, milestones **0/5**.
+

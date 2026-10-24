@@ -89,3 +89,11 @@ While actual B boot results remained unposted, A fixed a **false-positive diagno
 - A lane: documented in `docs/WSE2_CITY_BOOT_CONTRACT.md` (§2.1), `docs/INTEGRATED_CITY_ACCEPTANCE_2026-10-24.md`, `reference/CITY_DEDICATED_BOT_CONFIG_FINDING_2026-10-24.md`; `tools/city_runtime_triage.py` gained a `--rotation` static contract (+6 tests).
 - No gameplay acceptance: wave 2+, ally survivor divisions 5-7, combat, round transition, teardown and sealed recorder receipt remain open; City release 0/23, milestones 0/5. This supersedes the earlier "no-spawn causality unproven" framing only for the bot-config component.
 
+## Wave-1 roster/respawn follow-up — 2026-10-24
+
+- Generic `set_bot_count 2 32` bots are faction-default `trp_invader_multiplayer_ai` = **Crazed Civilian**, not native Zombie troops; only the original visitors use the invader troop slots. Roster defect tracked in issues **#13/#14**; launcher/rotation must establish the correct roster.
+- After player death no respawn/new round (`team0=0 wave=0`); rotation must set `set_respawn_period 5`, `set_round_max_seconds 1800`, `set_defender_spawn_count 0`, `set_player_respawn_as_bot 0` before `start`.
+- `tools/city_runtime_triage.py --rotation` now also enforces respawn/round commands and reports the generic-roster caveat (+5 tests; triage module total 20).
+- Issue **#1 closed → superseded by #13**; new evidence-hardening issues **#15** (recorder atomic-replace, `ZOM-DISC-22`) and **#16** (seal host ZDB1 stdout). Docs updated: boot contract §2.1, acceptance ledger, dedicated-bot finding note.
+- Still no gameplay acceptance: wave 2+, native zombie roster, allied survivor divisions 5-7, round transition, teardown and sealed receipt open. City release **0/23**, milestones **0/5**.
+

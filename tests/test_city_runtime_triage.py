@@ -69,6 +69,10 @@ class CityRuntimeTriageTests(unittest.TestCase):
         "max_num_bots 200\n"
         "set_bot_count 1 0\n"
         "set_bot_count 2 32\n"
+        "set_respawn_period 5\n"
+        "set_round_max_seconds 1800\n"
+        "set_defender_spawn_count 0\n"
+        "set_player_respawn_as_bot 0\n"
         "start\n"
     )
 
@@ -184,6 +188,35 @@ class CityRuntimeTriageTests(unittest.TestCase):
             "start\n", "start\nset_bot_count 2 32\n")
         report = self.analyse(rotation_text=rotation)
         self.assertFalse(report["checks"]["launcher_bot_counts_before_start"])
+
+    def test_rotation_respawn_contract_is_enforced(self):
+        report = self.analyse(rotation_text=self.SAMPLE_ROTATION)
+        self.assertTrue(report["checks"]["launcher_respawn_period_positive"])
+        self.assertTrue(report["checks"]["launcher_round_max_seconds_positive"])
+        self.assertTrue(report["checks"]["launcher_defender_spawn_count_zero"])
+        self.assertTrue(report["checks"]["launcher_player_respawn_as_bot_zero"])
+
+    def test_rotation_missing_respawn_period_is_rejected(self):
+        rotation = self.SAMPLE_ROTATION.replace("set_respawn_period 5\n", "")
+        report = self.analyse(rotation_text=rotation)
+        self.assertFalse(report["checks"]["launcher_respawn_period_positive"])
+
+    def test_rotation_defender_bots_are_rejected(self):
+        rotation = self.SAMPLE_ROTATION.replace("set_defender_spawn_count 0",
+                                                "set_defender_spawn_count 32")
+        report = self.analyse(rotation_text=rotation)
+        self.assertFalse(report["checks"]["launcher_defender_spawn_count_zero"])
+
+    def test_rotation_player_respawn_as_bot_is_rejected(self):
+        rotation = self.SAMPLE_ROTATION.replace("set_player_respawn_as_bot 0",
+                                                "set_player_respawn_as_bot 1")
+        report = self.analyse(rotation_text=rotation)
+        self.assertFalse(report["checks"]["launcher_player_respawn_as_bot_zero"])
+
+    def test_rotation_reports_generic_bot_roster_caveat(self):
+        report = self.analyse(rotation_text=self.SAMPLE_ROTATION)
+        caveat = report["defects"]["launcher_rotation"]["roster_caveat"]
+        self.assertIn("faction default troop", caveat)
 
     def test_missing_rotation_is_unverified_not_silent_pass(self):
         report = self.analyse()

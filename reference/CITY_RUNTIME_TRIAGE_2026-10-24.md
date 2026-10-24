@@ -107,3 +107,7 @@ One short, instrumented, loopback-only attempt after the C probe fix, recording 
 
 This validates the probe fix (C `675188a`) and closes the earlier probe-blindness confounder for future runs. It does **not** change the trigger-14 conclusion (original, non-fatal, not proven causal) and does not establish wave 2+, original allied survivor groups, combat, round transition or any gameplay acceptance. The launcher/installer must emit the bot counts before `start`; `tools/city_runtime_triage.py --rotation <file>` now enforces that statically. Sealed recorder receipt and screenshots remain pending.
 
+### Roster/respawn follow-up (still no acceptance)
+
+The first observed wave population includes 32 generic faction-default bots (`trp_invader_multiplayer_ai` = Crazed Civilian) plus the 9 native-trigger visitors, so the native Zombie roster is **not** yet demonstrated (issues #13/#14). After player death no respawn/new round occurred (`team0=0`, `wave=0`); rotation must set `set_respawn_period`, `set_round_max_seconds`, `set_defender_spawn_count 0` and `set_player_respawn_as_bot 0`. The `--rotation` contract now enforces those commands and reports the roster caveat. Evidence hardening is tracked in #15/#16. Required City outcomes stay **0/23**, milestones **0/5**.
+

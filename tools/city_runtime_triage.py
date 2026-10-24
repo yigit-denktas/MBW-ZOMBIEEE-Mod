@@ -86,6 +86,7 @@ def analyse_rotation(text: str) -> dict:
                      if name == "start"), None)
     max_bots = None
     bot_counts = []
+    round_commands = {}
     for index, (name, args) in enumerate(commands):
         if name == "max_num_bots":
             values = _ints(args, 1)
@@ -97,6 +98,11 @@ def analyse_rotation(text: str) -> dict:
                 bot_counts.append({"index": index,
                                    "team_1based": values[0],
                                    "count": values[1]})
+        elif name in ("set_respawn_period", "set_round_max_seconds",
+                      "set_defender_spawn_count", "set_player_respawn_as_bot"):
+            values = _ints(args, 1)
+            if values:
+                round_commands[name] = values[0]
     second_team = [row for row in bot_counts
                    if row["team_1based"] == ROTATION_SECOND_TEAM_ONE_BASED
                    and row["count"] > 0]
@@ -113,6 +119,14 @@ def analyse_rotation(text: str) -> dict:
                         "(set_bot_count 2 <n>)")
     if bot_counts and not before_start:
         problems.append("bot counts are declared after start")
+    if round_commands.get("set_respawn_period", 0) <= 0:
+        problems.append("rotation declares no positive set_respawn_period")
+    if round_commands.get("set_round_max_seconds", 0) <= 0:
+        problems.append("rotation declares no positive set_round_max_seconds")
+    if round_commands.get("set_defender_spawn_count") != 0:
+        problems.append("rotation does not set set_defender_spawn_count 0")
+    if round_commands.get("set_player_respawn_as_bot") != 0:
+        problems.append("rotation does not set set_player_respawn_as_bot 0")
     return {
         "analysed": True,
         "commands": len(commands),
@@ -122,6 +136,14 @@ def analyse_rotation(text: str) -> dict:
         "first_team_declared": first_team,
         "second_team_bots_configured": bool(second_team),
         "bot_counts_before_start": before_start,
+        "round_commands": round_commands,
+        "respawn_period_positive": round_commands.get("set_respawn_period", 0) > 0,
+        "round_max_seconds_positive": round_commands.get("set_round_max_seconds", 0) > 0,
+        "defender_spawn_count_zero": round_commands.get("set_defender_spawn_count") == 0,
+        "player_respawn_as_bot_zero": round_commands.get("set_player_respawn_as_bot") == 0,
+        "roster_caveat": "Generic set_bot_count bots use the faction default troop, not the "
+                         "native invasion zombie roster; verify the invader roster before "
+                         "calling the wave correct (issue #14).",
         "problems": problems,
         "interpretation": "Static rotation contract only; engine round start and wave "
                           "spawn remain unverified.",
@@ -321,6 +343,18 @@ def analyse_defects(original_rows: list[str], module_rows: list[str],
                 bool(launcher_rotation["set_bot_count"]) and
                 launcher_rotation["bot_counts_before_start"],
                 "Dedicated rotation declares bot counts after start")
+        require("launcher_respawn_period_positive",
+                launcher_rotation["respawn_period_positive"],
+                "Dedicated rotation declares no positive set_respawn_period")
+        require("launcher_round_max_seconds_positive",
+                launcher_rotation["round_max_seconds_positive"],
+                "Dedicated rotation declares no positive set_round_max_seconds")
+        require("launcher_defender_spawn_count_zero",
+                launcher_rotation["defender_spawn_count_zero"],
+                "Dedicated rotation does not set set_defender_spawn_count 0")
+        require("launcher_player_respawn_as_bot_zero",
+                launcher_rotation["player_respawn_as_bot_zero"],
+                "Dedicated rotation does not set set_player_respawn_as_bot 0")
     else:
         warnings.append("Rotation file not supplied; launcher bot-count contract unverified")
 
@@ -398,8 +432,18 @@ def analyse_defects(original_rows: list[str], module_rows: list[str],
                           "wave=1 with team1=41 agents.",
             "validated_probe_fields": ["role=server", "game_type=7", "ready_for_spawn=1",
                                       "bots_team1", "wave", "wave_change"],
-            "launcher_requirement": "max_num_bots and set_bot_count 2 <n> must be emitted before "
-                                    "start (set_bot_count is 1-based; 2 = enemy team).",
+            "launcher_requirement": "max_num_bots, set_bot_count 2 <n>, set_respawn_period > 0, "
+                                    "set_round_max_seconds > 0, set_defender_spawn_count 0 and "
+                                    "set_player_respawn_as_bot 0 must be emitted before start "
+                                    "(set_bot_count is 1-based; 2 = enemy team).",
+            "roster_defect": "Wave-1 generic bots were trp_invader_multiplayer_ai (Crazed "
+                             "Civilian); the native zombie troops were not the population "
+                             "created by set_bot_count (issue #14).",
+            "respawn_defect": "After player death no respawn/new round was observed "
+                              "(team0=0, wave=0); rotation respawn commands were missing "
+                              "(issued #13/#14).",
+            "issues": {"wave_roster_allies": 13, "launcher_rotation": 14,
+                       "recorder_atomic_replace": 15, "seal_zdb1_stdout": 16},
             "gameplay_acceptance": "none",
             "runtime_verified": False,
         },
@@ -464,7 +508,8 @@ def main() -> int:
         rotation = defects.get("launcher_rotation", {})
         if rotation.get("analysed"):
             print("Launcher rotation: second-team bots:", rotation["second_team_bots_configured"],
-                  "/ before start:", rotation["bot_counts_before_start"])
+                  "/ before start:", rotation["bot_counts_before_start"],
+                  "/ respawn:", rotation["respawn_period_positive"])
         for problem in report.get("problems", []):
             print("Problem:", problem)
         for warning in report.get("warnings", []):

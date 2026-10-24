@@ -61,10 +61,20 @@ Engine semantics that caused the trap:
 max_num_bots 200
 set_bot_count 1 0
 set_bot_count 2 32
+set_respawn_period 5
+set_round_max_seconds 1800
+set_defender_spawn_count 0
+set_player_respawn_as_bot 0
 start
 ```
 
-`set_round_max_seconds` may additionally bound the round. Offline enforcement: `tools/city_runtime_triage.py --rotation <generated rotation>` exposes `launcher_*` checks (start present, positive `max_num_bots`, positive second-team bot count, bot counts before `start`). This is a static contract, not gameplay proof.
+All of these commands must be emitted **before `start`**. Offline enforcement: `tools/city_runtime_triage.py --rotation <generated rotation>` exposes `launcher_*` checks (start present, positive `max_num_bots`, positive second-team bot count, bot counts before `start`). This is a static contract, not gameplay proof.
+
+### Wave-1 roster and respawn defects (issues #13/#14)
+
+- The wave-1 enemy population created by generic `set_bot_count` is the **faction default troop**: observed as `trp_invader_multiplayer_ai` = **Crazed Civilian** (suited humans), not the native Zombie troops (`trp_invader1_multiplayer_ai` etc.). The nine original wave visitors are the native-trigger spawns; the other configured bots are generic. The launcher/rotation must establish the correct invader roster before calling a wave correct — tracked as issue #14 and supporting ledger work.
+- After player death, no respawn/new round was observed (`team0=0`, `wave=0`). The rotation must set `set_respawn_period`, `set_round_max_seconds`, `set_defender_spawn_count 0` and `set_player_respawn_as_bot 0`; tracked as issues #13/#14.
+- Related evidence hardening: issue #15 (recorder atomic-replace read race, supporting leaf `ZOM-DISC-22`) and issue #16 (seal dedicated-host ZDB1 stdout inside the flight evidence bundle).
 
 **Boundaries:** one enemy wave observed; wave 2+, original allied survivor divisions 5-7, fallback/regroup, combat, round transition and controlled teardown remain unverified. No gameplay or release acceptance is claimed.
 
