@@ -55,6 +55,17 @@ class ZombieBlockTests(unittest.TestCase):
             tokens = line.split()
             pairs = list(zip(tokens[0::2], tokens[1::2]))
             self.assertIn(str(self.shield), [p[0] for p in pairs])
+        # Skill word 3, shield nibble (skill 26): every invader must be >=5.
+        troop = -1
+        for index, line in enumerate(after):
+            if line.strip().startswith("trp_"):
+                troop += 1
+                if not INVADER_RANGE[0] <= troop < INVADER_RANGE[1]:
+                    continue
+                words = [int(w) for w in after[index + 4].split()]
+                self.assertEqual(len(words), 6)
+                shield_skill = (words[3] >> 8) & 0xF
+                self.assertGreaterEqual(shield_skill, 5)
         self.assertNotEqual(report["sha256_before"], report["sha256_after"])
 
     def test_second_apply_is_idempotent(self):

@@ -21,6 +21,11 @@ from pathlib import Path
 INVADER_RANGE = (894, 912)  # native Zombie troop block
 SHIELD_ITEM = "itm_wooden_shield"
 UNUSED_PAIR = "-1"
+SHIELD_SKILL = 5
+# Compiled troop skills: six 32-bit words, four bits per skill; skill 26 = shield.
+SKILL_WORD = 26 // 8          # 3
+SHIELD_SHIFT = (26 % 8) * 4    # 8
+SKILL_MASK = 0xF << SHIELD_SHIFT
 
 
 class ZombieBlockError(ValueError):
@@ -58,6 +63,7 @@ def patch_text(text: str, module: Path) -> tuple[str, dict]:
     lines = text.splitlines(keepends=True)
     troop = -1
     changed = []
+    skill_changes = []
     for index, raw in enumerate(lines):
         stripped = raw.strip()
         if not stripped.startswith("trp_"):
@@ -83,6 +89,28 @@ def patch_text(text: str, module: Path) -> tuple[str, dict]:
             raise ZombieBlockError("No unused equipment pair for an invader troop")
         flat = [token for pair in pairs for token in pair]
         lines[equip_index] = prefix + " ".join(flat) + newline
+        # Shield proficiency: every invader record carries shield skill 0 in the
+        # original data (E's decode: six 32-bit skill words, 4 bits per skill,
+        # skill index 26 = shield). Raise the nibble to Tough-Zombie level (5).
+        # header, equipment, attributes, proficiencies, then the skill words
+        skills_index = equip_index + 3
+        if skills_index >= len(lines):
+            raise ZombieBlockError("Missing skill line for an invader troop")
+        skill_line = lines[skills_index]
+        skill_prefix = skill_line[:len(skill_line) - len(skill_line.lstrip())]
+        skill_newline = ("\r\n" if skill_line.endswith("\r\n")
+                         else ("\n" if skill_line.endswith("\n") else ""))
+        words = skill_line.split()
+        if len(words) != 6:
+            raise ZombieBlockError("Unexpected compiled skill-word line")
+        words = [int(word) for word in words]
+        current = (words[SKILL_WORD] & SKILL_MASK) >> SHIELD_SHIFT
+        if current < SHIELD_SKILL:
+            words[SKILL_WORD] = ((words[SKILL_WORD] & ~SKILL_MASK)
+                                 | (SHIELD_SKILL << SHIELD_SHIFT))
+            lines[skills_index] = (skill_prefix
+                                   + " ".join(map(str, words)) + skill_newline)
+            skill_changes.append(stripped.split()[0])
         changed.append(stripped.split()[0])
     if len(changed) != INVADER_RANGE[1] - INVADER_RANGE[0]:
         raise ZombieBlockError("Not every invader troop received the shield")
@@ -93,6 +121,8 @@ def patch_text(text: str, module: Path) -> tuple[str, dict]:
         "troop_range": list(INVADER_RANGE),
         "troops": changed,
         "changed_count": len(changed),
+        "shield_skill": SHIELD_SKILL,
+        "shield_skill_troops": skill_changes,
         "runtime_verified": False,
         "warning": "Static equipment addition only; the sealed WSE2 run must confirm "
                    "the engine equips the shield and block behaviour.",
