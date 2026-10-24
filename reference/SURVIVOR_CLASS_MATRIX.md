@@ -70,7 +70,9 @@ Values are **design targets**, not observed values. Range bands are engagement d
 | **Upgrade path** | T1 auto rifle (AK47/FN SCAR-L), T2 M249 | T1 Mk12 SPR, T2 M82 | T1 MP5K/MP7, T2 P90 | T1 armour/shells, T2 armour + shotgun retained |
 | **Feasibility** | loadout/role F-now; per-class division B-unproven; target priority B-engine | same; precise range discipline B-engine as dynamic, F-now as placement | speed F-now; flank leash B-unproven | close melee gate F-now experiment; sustain B-engine |
 
-**Reading the table:** the columns are *intent*. Only the rows tagged F-now/F-build in §8 are implementable today; target responsibility, dynamic range keeping and per-agent fire-mode selection remain design goals that the engine cannot enforce.
+**Reading the table:** the columns are *intent*. Only the rows tagged F-now/F-build in §9 are implementable today; target responsibility, dynamic range keeping and per-agent fire-mode selection remain design goals that the engine cannot enforce.
+
+**D runtime caveat (2026-10-24):** team-0 defenders are a **mixed** spawn of 981–984 from one native spawner/refill — there is no per-class composition knob. Class *presence* is observable from `troops_team0`/`defenders.troops`; per-class hold/fire **outcomes cannot be attributed** while all four classes are mixed. Single-class build variants or A-exposed per-class state are required for attribution.
 
 ---
 
@@ -151,7 +153,7 @@ The bands overlap deliberately (real fights compress distances). The point is **
 | P1 | 896 Fast, 911/912 ranged Horde | flanks and chip damage; reaches the line first | Scout (screen/evade) | Commando |
 | P2 | 894 Zombie, 899/901 Mutated, 902–906 weak Invaders | mass; attrites ammo | Commando | Lumberjack |
 
-**Profile dependency:** the current default restricts generic fill to weak 894 and uses native visitors 894–901; strong/mounted/shielded 902–912 exist only with the `full`/generic profiles. The matrix must not claim P0 enemies are present in the default weak profile; A/C/D must record the active profile with every observation.
+**Profile dependency and D correction (2026-10-24):** the weak profile only normalizes **generic fill** to 894; native wave visitors still spawn original troops. D observed faction slots `221:898, 231:895, 241:896` and wave-2 `troops_team1=896:7,894:6` before A's P0 fix; with A's P0 build the slots read 894 but that build crashed and is frozen. Therefore **weak-wave-1 currently is NOT a clean negative control**: it contains stronger enemies through native visitors. Do not use it to claim "P0 absent"; record the active profile and wave-faction slots with every observation.
 
 ### 6.2 Feasible proxies for priority
 
@@ -171,9 +173,9 @@ The mode machine is the same for all classes (task-53), with class-conditioned t
 | HOLD-FIRE | default; ammo > 0 | hold at anchor/element; fire-at-will; keep ranged weapon | F-now |
 | FALLBACK | Scout first (local ratio >1.5 or HP <50%); Sniper on screen collapse/enemy <15; Commando ammo 0 + high threat or HP <30%; Lumberjack last | `mordr_fall_back` to E0/entry 0, then re-issue hold. **No target/strength getter** — thresholds can only use counts, positions, ammo and HP; no per-target threat evaluation | **F-build** threshold computation; **B-unproven** order reach |
 | REGROUP | after fallback, ≥3 survivors, local pressure below threshold | move to E0 apron, re-issue class slots after settle delay | F-build |
-| DESPERATE-MELEE | ammo 0 and enemy <10 (Lumberjack always; others only then) | allow melee switch / bowie | F-now experiment (per-agent gate); **no charge** |
+| DESPERATE-MELEE | ammo 0 and enemy <10 (Lumberjack always; others only then) | allow melee switch / bowie | **F-now experiment (per-agent gate); unreachable in current builds** — D measured `ammo={positive:196,zero:0}`, `agents_empty=0`, `melee_after_empty_observed=false` even with stock reinforcement because wave-reinforcement spawns fresh full-ammo defenders. Needs a build with refill **and** wave-reinforcement disabled (`_zom-city-build-strict` exists but install is Lead-owned). **No charge.** |
 | RESUPPLY | between waves/round transition | refill ammo (`agent_refill_ammo` 1728), relative heal (`agent_set_hit_points` 1721), regroup | F-now (ops exist; runtime unverified) |
-| DISENGAGE | never for zombies; survivors only to E0 | fallback, not rout; `agent_is_routed` must stay 0 | F-build + D evidence; engine caveat |
+| DISENGAGE | never for zombies; survivors only to E0 | fallback, not rout | F-build + D evidence; **rout status is currently unreadable** — D reports no verified `agent_is_routed` getter, so report **unknown**, never 0 |
 
 **Desperation must not become a charge.** A melee switch is allowed only when the enemy is already at contact distance or ammo is exhausted; otherwise the class falls back. This is the same "no retreat for zombies / fallback for survivors, never rout" separation from task-61.
 
@@ -185,7 +187,7 @@ The mode machine is the same for all classes (task-53), with class-conditioned t
 
 | Option | What it gives | Feasibility | Blockers |
 | --- | --- | --- | --- |
-| **A. Regroup + rearm at E0** | between-wave consolidation: heal, refill ammo, re-form classes, announce arrivals | **F-now** (ops exist) / D unverified | order reach; no purchase UI |
+| **A. Regroup + rearm at E0** | between-wave consolidation: heal, refill ammo, re-form classes, announce arrivals | **F-now** (ops exist) / D unverified | order reach; no purchase UI; **no tier concept or telemetry in current builds**, and between-wave state is not sealable until A exposes it |
 | **B. Build-time class tiers** | T1/T2 clone troops with better original-0.4 armour/weapons; refill trigger selects tier by wave/round | **F-build** | new troop records, owner approval, loadout/item validation, receipts/tests, spawn trigger change |
 | **C. Mid-mission armour/weapon purchase** | survivors buy/upgrade between waves | **B-engine** | no per-agent equipment/armour op; no bot inventory/currency UI; `item_set_head/body_armor` (WSE2 3804/3805) edits item templates globally, not a survivor upgrade |
 | **D. Weapon switching only** | swap among carried weapons | **F-now** | `agent_set_wielded_item` 1747; does not add new gear |
@@ -224,17 +226,18 @@ The engine only lets a spawn choose a troop record; it does not let a script add
 1. **Class map:** troop id → class (981–984) is **feasible now** from heartbeat `troops_team0`/`troop_names_team0` and `ai_sample.troop`; per-class aggregates (agents, weapons/ammo, kills lower bound, positions) are telemetry-side. No A global is needed **if** the build pins those IDs — record the build receipt/pin as the source and treat unknown IDs as unknown.
 2. **Range/engagement evidence:** **only a sample-tick proxy is feasible now** — nearest sampled enemy/anchor distance at the 15 s heartbeat sample; exact shot/first-damage/kill points are not available, and ammo decreases are observed only between samples. Label the measurement point explicitly; never claim shot-time distance.
 3. **Kill attribution:** `kills_team0_by_class` is feasible now; **class × victim-troop attribution is NOT feasible now** — ZDB1 has per-agent kills only and no victim-troop/hit event. List `kills_team0_by_class × victim_troop` as a **proposed field** requiring an engine/native event or A hook, not current telemetry. P0/P1 prioritisation cannot be tested with current data alone.
-4. **Fire/weapon evidence:** weapon, ammo and `agent_get_attack_action` (1763) are **feasible now** (attack_action in C's task-60 branch). `agent_get_simple_behavior` (1738) and `agent_is_routed` (1699) are native readbacks but are **currently not read** — each needs an msfiles lhs/can_fail declaration plus a capability flag before claiming availability. `agent_ai_set_can_weapon_switch` state is readback-limited; do not assume it is observable.
+4. **Fire/weapon evidence:** weapon, ammo and `agent_get_attack_action` (1763) are **feasible now** (attack_action in C's task-60 branch). **D reports `agent_is_routed` is not readable** — no verified getter; action/behaviour fields are unavailable with explicit gaps. `agent_get_simple_behavior` (1738) is likewise not currently read and needs an msfiles lhs/can_fail declaration plus a capability flag. Rout/behaviour status must be reported **unknown**, never 0. `agent_ai_set_can_weapon_switch` state is readback-limited; do not assume it is observable.
 5. **Fallback/regroup events:** no direct telemetry today — only order/state proxies and mode dwell are available; `hold_behavior_observed` stays false until positions/behaviour show it.
 6. **Upgrade evidence:** tier spawned per class needs A globals/build receipt; refill series and heal/ammo events are available as current telemetry; record `tier_source_unknown` when A has not exposed the tier source.
 
-### D — sealed validation
+### D — sealed validation (bounded by D's runtime evidence, 2026-10-24)
 
-1. **Class-hold/fire run:** each class holds its slot, fires, retains weapon; per-class positions/ranges; no charge.
-2. **Priority-responsibility run:** with the profile that actually contains P0/P1 enemies, measure kills/deaths by class × victim troop; report whether P0 die early relative to their share.
-3. **Fallback/desperation run:** ammo-limited variant to force melee gate; scout falls back first, lumberjack last; `agent_is_routed` stays 0.
-4. **Between-wave run:** regroup/rearm at E0; tier selection (if implemented) shows T1/T2 spawn by wave; no purchase claim.
-5. **Negative controls:** weak-wave-1 profile must not be described as validating P0 priority; no acceptance claim.
+1. **Class presence/hold/fire run:** D cannot isolate classes — team-0 is a mix of 981–984 from one spawner/refill. Sealed output can assert **class presence** (troops histogram), per-run weapon/ammo/mode aggregates, positions via troop-fallback sampling, and kill/death aggregates. It **cannot** claim "class X held/fired while others were absent" without single-class build variants or A-exposed per-class state.
+2. **Priority-responsibility run:** class × victim-troop attribution is **not available** (no victim/hit event); use `kills_team0_by_class`, `troops_team1` histograms and the recorded wave-faction slots to characterise what was faced. Do not claim per-class target prioritisation from current telemetry.
+3. **Fallback/desperation run: currently unreachable.** D measured full ammo on fresh defenders despite stock reinforcement; `melee_after_empty_observed=false`. It needs a build with **refill and wave-reinforcement both disabled** (`_zom-city-build-strict` exists; Lead owns install). Do not plan a sealed claim until that build is installed and sealed.
+4. **Between-wave run:** no tier concept or tier telemetry exists in current builds — **out of scope until A implements tiers**; do not plan a sealed claim.
+5. **Negative controls:** **weak-wave-1 is not a P0-negative control today** — generic fill is normalized to 894 but native visitors still spawn stronger troops (D observed 895/896/898 slots and wave-2 896). A's P0 fix that normalized slots read 894 but crashed (frozen). Do not use weak-wave-1 as a "P0 absent" control until a crash-free P0 native-wave fix is sealed.
+6. **Evidence boundary:** allowed claims per run = class presence (981–984), positions/troop-fallback, weapon/ammo/mode, kill/death aggregates, explicit unknown classes; **not** per-class hold/fire attribution, not per-class targeting, not rout (getter unavailable). No acceptance claim.
 
 ---
 
@@ -242,7 +245,7 @@ The engine only lets a spawn choose a troop record; it does not let a script add
 
 | Item | Status |
 | --- | --- |
-| Class→loadout identity (981–984) | **F-now** (data exists) |
+| Class→loadout identity (981–984) | **F-now** (data exists); **presence** observable, per-class outcomes not attributable in the mixed spawn (D) |
 | Class→division/slot mapping | **F-build**; effect **B-unproven** until adoption/readback proves |
 | Class-specific speed via 2093 (team 0) | **F-now** (op exists; class mapping F-build; D-observable only after re-seal; no conflict with team-1 wave-speed loop) |
 | Fire-at-will/hold/keep-rifle orders | **F-now** (already in build) |
@@ -252,12 +255,12 @@ The engine only lets a spawn choose a troop record; it does not let a script add
 | Target responsibility/priority enforcement | **B-engine** (no target setter) |
 | Kill attribution | per-class kills **feasible now**; class × victim troop **B-engine/proposed** (no victim/hit event) |
 | Melee last-resort gate | **F-now** (per-agent gate exists; class-conditioned variant F-build) |
-| Fallback/regroup thresholds (counts/positions/ammo/HP only — no target/strength getter) | **F-build**; order reach **B-unproven** |
+| Fallback/regroup thresholds (counts/positions/ammo/HP only — no target/strength getter) | **F-build**; order reach **B-unproven**; ammo-limited desperation branch **unreachable in current builds** (D) |
 | Regroup/rearm/heal between waves | **F-now** ops; runtime unverified |
-| Tier clones + wave-based selection | **F-build** (owner approval, troop records, tests, receipt) |
+| Tier clones + wave-based selection | **F-build** (owner approval, troop records, tests, receipt); **no tier concept/telemetry yet** — out of scope for sealing until A implements |
 | Mid-mission armour/weapon purchase | **B-engine** |
 | WSE2 multihit/piercing/crush-through | **F-now experiment** per-agent mutation; not baseline |
-| Zombie non-retreat / survivor non-rout | **F-build observation + D**; engine-rout caveat (task-61); `agent_is_routed` needs msfiles declaration + capability flag before use |
+| Zombie non-retreat / survivor non-rout | **F-build observation + D**; engine-rout caveat (task-61); **rout getter unverified (D) → report unknown, never 0** |
 
 ---
 
@@ -267,12 +270,14 @@ The engine only lets a spawn choose a troop record; it does not let a script add
 2. **Group/order namespace confusion** (26/28/29/31, 8..15) remains unresolved; never pass group values as `team_give_order` sub-classes or as `add_visitors` group arguments.
 3. **Target priority cannot be enforced.** Any observed "sniper prioritises tanks" is emergent or positional; report it as such.
 4. **Range bands are placement targets.** Engine AI can close distance; no per-agent kiting claim.
-5. **Current profile gating:** weak-wave-1 default restricts generic enemies to 894; P0/P1 validation requires the profile that actually spawns them, recorded in the receipt.
+5. **Weak-wave-1 is not a clean negative control (D):** it normalizes only generic fill to 894; native visitors still spawn stronger troops (observed 895/896/898 slots and wave-2 896). A P0 slot fix read 894 but crashed and is frozen. Record the active profile + wave-faction slots; do not claim P0 absence from weak-wave-1.
 6. **Fire modes** are not per-agent today; task-68's launcher fire-mode is global/pre-game, not per class. Do not claim class-specific burst/auto.
 7. **Mid-mission upgrades are blocked** by the engine's equipment API; only respawn-tier + rearm/heal are honest.
 8. **WSE2 binding availability** for 3314/3343/3352/3353/3355/3359 must be capability-probed; a header entry is not proof on the pinned build.
-9. **Morale/rout:** static absence of courage scripts in the City chain does not prove the engine cannot route; use `agent_is_routed` observation.
+9. **Morale/rout:** static absence of courage scripts in the City chain does not prove the engine cannot route. D reports **no verified `agent_is_routed` getter**; report rout status as **unknown**, never 0, until a readback is verified.
 10. **Class skills/armour** changes are build-time data only; do not assume runtime stat edits.
+11. **Per-class isolation is unavailable (D):** all four classes come from one spawner/refill; no per-class composition knob. Only single-class build variants or A-exposed per-class state can support per-class behaviour attribution.
+12. **Ammo-limited/desperation and tier paths are unreachable in current builds (D):** strict no-refill/no-wave-reinforcement build exists but is not installed (Lead-owned); no tier concept/telemetry. Do not plan sealed claims on them.
 
 ---
 
@@ -281,6 +286,7 @@ The engine only lets a spawn choose a troop record; it does not let a script add
 - This document is design input only; it changes no build, loadout, trigger, scene or asset. No acceptance is claimed.
 - A implements §9-A in the City-only layer; C implements §9-C fields with capability flags; D runs §9-D sealed. Owner approval is required for new tier troop records or any scene/defence-line change.
 - **A, 2026-10-24 (against `f1ba5c5`): consistent with build, corrections applied:** reserve slot 8 marked **B-unproven/blocked** (baseline is division 5 rear element); class speed on team 0 confirmed feasible/F-now and non-conflicting with the team-1-only native wave-speed loop, observable after re-seal; `agent_set_accuracy_modifier` (2092) explicitly stated to stack/override the global automatic-accuracy profile; fallback thresholds limited to counts/positions/ammo/HP (**no target/strength getter**) with order reach B-unproven; refill/heal ops 1728/1721 confirmed native; tier clones explicitly owner-approved separately; multihit/piercing separate builds only.
+- **D, 2026-10-24 (against `abac9df`): bounded feasibility flags applied:** per-class isolation unavailable (mixed 981–984 spawn; only class presence observable); weak-wave-1 contains stronger native visitors (895/896/898; A P0 fix crashed) so it is **not** a P0-negative control; ammo-limited desperation run unreachable (fresh defenders full ammo, `melee_after_empty_observed=false`) until a strict build is installed; `agent_is_routed` has no verified getter → report unknown, not 0; between-wave regroup/rearm and tier selection are out of scope until A implements/exposes them. Allowed per-run claims are bounded in §9-D item 6. No acceptance.
 - **C, 2026-10-24 (against `f1ba5c5`/`30b9697`): feasible as listed, with corrections applied here:** (a) class map/per-class aggregates and weapon/attack_action are feasible now without A globals if the build pins 981–984; (b) range/engagement is only a 15 s sample-tick proxy, not shot-time or kill-time distance; (c) `kills_team0_by_class` is feasible but class × victim-troop attribution is **not** feasible now and is listed as a proposed field; (d) `agent_get_simple_behavior`/`agent_is_routed` are native but **not currently read** and need msfiles lhs/can_fail declarations + capability flags; fallback/regroup events and tier sourcing are proxies/A-dependent; (e) no acceptance claim. No unresolved C blocker.
 - D was sent the validation asks; any later findings should be appended here.
 
