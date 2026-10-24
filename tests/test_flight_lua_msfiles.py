@@ -318,5 +318,18 @@ class LuaOperationMetadataTests(unittest.TestCase):
         self.assertIn("if not supports_kills then result.kills[0], result.kills[1] = -1, -1 end",
                       self.main)
 
+
+    def test_pre_round_sampling_is_bounded_on_the_proven_entry_trigger(self):
+        # No-client servers never start a round; the 1 s entry trigger is the
+        # only probe trigger observed to run, so it carries bounded pre-round
+        # samples (<=6) instead of relying on the unreached 15 s heartbeat.
+        self.assertIn("MAX_PRE_ROUND_SAMPLES = 6", self.main)
+        self.assertIn("|pre_round=1", self.main)
+        self.assertIn('emit("pre_round_sample"', self.main)
+        self.assertIn("local function pre_round_snapshot", self.main)
+        self.assertLess(self.main.index("local function pre_round_snapshot"),
+                        self.main.index("local function first_entry"))
+        self.assertIn("pre_round_snapshot(sample_world(), resolve_role()", self.main)
+
 if __name__ == "__main__":
     unittest.main()

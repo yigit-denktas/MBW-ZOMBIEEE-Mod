@@ -233,8 +233,9 @@ def summarize_receipt(target: Path) -> dict:
 
     heartbeats = [e for e in events if e["event"] == "heartbeat"]
     entries = [e for e in events if e["event"] == "mission_enter"]
+    pre_round = [e for e in events if e["event"] == "pre_round_sample"]
     capability = next((e for e in events if e["event"] == "recorder_capabilities"), None)
-    samples = entries + heartbeats
+    samples = entries + heartbeats + pre_round
 
     def latest_field(key):
         for event in reversed(samples):
@@ -251,6 +252,8 @@ def summarize_receipt(target: Path) -> dict:
         "game_type": _bounded_int(latest_field("game_type"), minimum=0),
         "ready_for_spawn": _bounded_int(latest_field("ready_for_spawn"), minimum=0),
         "template": latest_field("template"),
+        "pre_round_samples": len(pre_round),
+        "pre_round_only": bool(pre_round) and not heartbeats,
         "sampling_interval_s": _bounded_int(
             capability["fields"].get("sampling_interval_s")) if capability else None,
         "troop_map": _bounded_int(
@@ -494,7 +497,8 @@ def summarize_receipt(target: Path) -> dict:
         event_counts[kind] = event_counts.get(kind, 0) + 1
     bounded_counts = dict(sorted(event_counts.items(), key=lambda kv: (-kv[1], kv[0]))[:24])
     event_section = {"zdbi_lines": len(events), "zdbi_sealed": bool(events),
-                     "counts": bounded_counts}
+                     "counts": bounded_counts,
+                     "pre_round_only": bool(pre_round) and not heartbeats}
 
     if no_player is None:
         gaps_hint = ["player_presence_unknown"]
@@ -615,6 +619,10 @@ def format_summary(summary: dict) -> str:
                  f"kills_team1={engage['kills_team1']}")
     lines.append(f"events:          {summary['events']['zdbi_lines']} ZDB1 lines "
                  f"{summary['events']['counts']}")
+    if summary["events"].get("pre_round_only"):
+        lines.append("pre-round:       no 15 s heartbeat reached mission time; "
+                     "composition/positions come from bounded pre-round samples "
+                     "(server waiting for players; wave evidence still needs a round)")
     troops = summary["troops"]
     if troops["team1"] or troops["team0"]:
         names = troops["names"] or {}

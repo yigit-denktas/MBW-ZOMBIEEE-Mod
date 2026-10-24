@@ -254,6 +254,20 @@ orders — which C's existing `combat_sample` path already samples for
 non-player team-0 agents. The build receipt gains `native_roster_patch`
 (ignored by C's allowlisted collector). No ZDB1 or recorder-wire change is
 required.
+**Pre-round scheduling limitation (no-client runs):** with no connected player
+the dedicated server never starts a round (`g_round_start_time=0`), and mission
+time appears paused in the waiting-for-players state. Only the 1 s entry
+trigger is observed to run, while the 15 s heartbeat trigger never becomes
+due, so a pure no-client run would otherwise carry no periodic samples. The
+probe therefore emits `mission_enter` plus at most 6 bounded
+`pre_round_sample` events (same state fields, composition, engagement and
+positions) from that proven trigger, and the summary reports
+`events.pre_round_only=true` with a `pre-round:` note. This is a
+**scheduling fact, not a probe bug**: no read-only probe change can make the
+15 s mission trigger due before a round starts, and the probe does not force
+round state. Heartbeats, wave changes and per-round evidence still require a
+round (for example an idle client joining); `no_probe_heartbeats` is reported
+honestly alongside the pre-round composition samples.
 
 A module rebuild is required for a live run to emit the new fields: copy
 `overlay/lua/main.lua`, `overlay/lua/msfiles/header_operations.py` and
