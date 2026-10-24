@@ -18,6 +18,9 @@ from tools.telemetry_studio import (
     validate_event,
     schema_catalog,
 )
+from tools.telemetry_studio.balance import analyze_balance, render_balance_report
+from tools.telemetry_studio.loop import run_iteration
+from tools.telemetry_studio.heatmap_input import extract_heatmap, HEATMAP_SCHEMA
 from tools.telemetry_studio.ingest import IngestError
 from tools.telemetry_studio.__main__ import main
 from tools.telemetry_studio.tail import tail_events
@@ -178,6 +181,137 @@ class ReportAndCliTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn("zombieee.flight.v1", buffer.getvalue())
 
+
+
+class BalanceTests(unittest.TestCase):
+    def _run(self, root: Path, lines: list[str]):
+        return ingest_bundle(_bundle(root, lines, sealed=False), allow_unsealed=True)
+
+    def test_rounds_wipe_troops_and_sensitivity(self):
+        with tempfile.TemporaryDirectory() as td:
+            common = [
+                "ZDB1|heartbeat|count=1|round=1|team0=4|team1=4|alive_team0=4|alive_team1=4|wave=1",
+            ]
+            a = self._run(Path(td) / "a", common + [
+                "ZDB1|heartbeat|count=2|round=1|team0=4|team1=0|alive_team0=4|alive_team1=0|wave=1",
+                "ZDB1|ai_sample|tick=1|team=0|id=1|troop=981|kills=2|x=10.0|y=10.0",
+                "ZDB1|ai_sample|tick=1|team=0|id=2|troop=981|kills=1|x=12.0|y=10.0",
+                "ZDB1|ai_sample|tick=1|team=0|id=3|troop=983|kills=0",
+                "ZDB1|ai_sample|tick=1|team=1|id=4|troop=894|kills=0",
+            ])
+            b = self._run(Path(td) / "b", common + [
+                "ZDB1|heartbeat|count=2|round=1|team0=0|team1=3|alive_team0=0|alive_team1=3|wave=1",
+                "ZDB1|ai_sample|tick=1|team=0|id=1|troop=981|kills=1",
+                "ZDB1|ai_sample|tick=1|team=1|id=4|troop=894|kills=2",
+            ])
+            params = {str(a["root"]): {"defender_target": 8},
+                      str(b["root"]): {"defender_target": 12}}
+            result = analyze_balance([a, b], params)
+            self.assertEqual(result["schema"], "zombieee.balance-analysis.v1")
+            self.assertFalse(result["runtime_verified"])
+            self.assertEqual(result["runs"][0]["metrics"]["outcomes"].get("team0_win"), 1)
+            self.assertEqual(result["runs"][1]["metrics"]["outcomes"].get("team1_win"), 1)
+            team0 = result["runs"][0]["metrics"]["troop_contributions"]["team0"]
+            self.assertEqual(team0["kills_total_lower_bound"], 3)
+            self.assertEqual(team0["troops"][0]["troop"], 981)
+            self.assertEqual(result["sensitivity"]["matrix"][0]["parameter"], "defender_target")
+            self.assertFalse(result["sensitivity"]["matrix"][0]["causal"])
+            self.assertTrue(result["recommendations"])
+            self.assertIn("hit_attribution_unavailable", result["gaps"])
+            self.assertIn("spawn_entry_fairness_unavailable", result["gaps"])
+            self.assertIsNotNone(result["runs"][0]["metrics"]["positioning"]["team0"])
+            self.assertTrue(result["gaps_as_tasks"])
+            text = render_balance_report(result)
+            self.assertIn("not causal", text)
+            self.assertIn("acceptance: **none**", text)
+
+    def test_no_parameters_and_no_end_event_are_explicit(self):
+        with tempfile.TemporaryDirectory() as td:
+            run = self._run(Path(td) / "a", [
+                "ZDB1|heartbeat|count=1|round=1|team0=4|team1=4|alive_team0=4|alive_team1=4|wave=1",
+                "ZDB1|heartbeat|count=2|round=1|team0=4|team1=4|alive_team0=4|alive_team1=4|wave=1",
+            ])
+            result = analyze_balance([run])
+            self.assertIn("parameter_metadata_missing", result["gaps"])
+            self.assertIn("insufficient_runs_for_ranked_recommendations", result["gaps"])
+            self.assertEqual(result["runs"][0]["metrics"]["rounds"][0]["outcome"],
+                             "round_reset_no_wipe")
+
+
+    def test_wall_clock_cadence_when_probe_ts_ms_is_present(self):
+        lines = [
+            "ZDB1|heartbeat|count=1|role=server|ts_ms=1000|agents=4|team0=2|team1=2",
+            "ZDB1|heartbeat|count=2|role=server|ts_ms=16000|agents=4|team0=2|team1=2",
+            "ZDB1|heartbeat|count=3|role=server|ts_ms=46000|agents=4|team0=2|team1=2",
+        ]
+        with tempfile.TemporaryDirectory() as td:
+            root = _bundle(Path(td), lines, sealed=False)
+            ingest = ingest_bundle(root, allow_unsealed=True)
+            perf = analyze_performance(ingest)
+            self.assertAlmostEqual(perf["tick_cadence_seconds"], 22.5, places=3)
+            self.assertEqual(perf["wall_clock_missing_intervals"], 1)
+            self.assertNotIn("tick_cadence_seconds", perf["unknown"])
+
+
+class LoopTests(unittest.TestCase):
+    def test_loop_iteration_receipt_state_and_decision(self):
+        with tempfile.TemporaryDirectory() as td:
+            base = _bundle(Path(td) / "base", HEARTBEATS, sealed=False)
+            cand = _bundle(Path(td) / "cand", HEARTBEATS, sealed=False)
+            result = run_iteration(
+                base, cand, hypothesis="test", next_hypothesis="next",
+                decision="keep", out_dir=Path(td) / "out",
+                allow_unsealed=True)
+            self.assertEqual(result["entry"]["iteration"], 1)
+            self.assertEqual(result["entry"]["decision"], "keep")
+            self.assertTrue(Path(result["receipt"]).is_file())
+            self.assertTrue(Path(result["state"]).is_file())
+            state = json.loads(Path(result["state"]).read_text(encoding="utf-8"))
+            self.assertEqual(len(state["iterations"]), 1)
+            self.assertIs(state["iterations"][0]["not_acceptance"], True)
+
+
+class HeatmapInputTests(unittest.TestCase):
+    def test_extract_points_anchors_deltas_and_gaps(self):
+        lines = [
+            "ZDB1|heartbeat|count=1|role=server|team0=2|team1=1|wave=1",
+            "ZDB1|ai_sample|tick=1|ts_ms=1000|team=0|id=1|troop=981|class=1"
+            "|division=5|hp=90|alive=1|x=10.0|y=10.0|kills=0|wave=1",
+            "ZDB1|ai_sample|tick=1|ts_ms=1000|team=0|id=2|troop=982|class=2"
+            "|division=5|hp=80|alive=1|x=14.0|y=10.0|kills=0|wave=1",
+            "ZDB1|ai_sample|tick=2|ts_ms=16000|team=0|id=1|troop=981|class=1"
+            "|division=5|hp=70|alive=1|x=12.0|y=12.0|kills=0|wave=1",
+            "ZDB1|ai_sample|tick=2|ts_ms=16000|team=0|id=2|troop=982|class=2"
+            "|division=5|hp=60|alive=0|x=16.0|y=10.0|kills=0|wave=1",
+        ]
+        with tempfile.TemporaryDirectory() as td:
+            root = _bundle(Path(td), lines, sealed=False)
+            data = extract_heatmap(ingest_bundle(root, allow_unsealed=True))
+            self.assertEqual(data["schema"], HEATMAP_SCHEMA)
+            self.assertEqual(len(data["points"]), 4)
+            self.assertEqual(len(data["agents"]), 2)
+            self.assertEqual(data["points"][0]["team"], 0)
+            self.assertEqual(data["points"][0]["class_id"], 1)
+            self.assertEqual(data["points"][0]["division"], 5)
+            self.assertEqual(data["points"][0]["hp"], 90)
+            self.assertAlmostEqual(data["points"][0]["dist_to_anchor"], 2.0)
+            agent1 = data["agents"]["1"]
+            self.assertEqual(agent1["samples"], 2)
+            self.assertGreater(agent1["movement_total"], 0)
+            self.assertEqual(data["sampling_density"]["unique_ticks"], 2)
+            self.assertEqual(len(data["heartbeats"]), 1)
+            self.assertEqual(data["run"]["sample_interval_s"], 15)
+            self.assertNotIn("no_position_points", data["gaps"])
+            self.assertTrue(data["not_visual_validation"])
+
+    def test_empty_bundle_reports_heatmap_gaps(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = _bundle(Path(td), ["ZDB1|heartbeat|count=1|role=server"],
+                           sealed=False)
+            data = extract_heatmap(ingest_bundle(root, allow_unsealed=True))
+            self.assertEqual(data["points"], [])
+            self.assertIn("heatmap_has_no_points", data["gaps"])
+            self.assertIn("no_position_points", data["gaps"])
 
 if __name__ == "__main__":
     unittest.main()

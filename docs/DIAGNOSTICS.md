@@ -375,6 +375,110 @@ D's task-42 sealed runs exposed three readback gaps, now closed:
   `ammo > 0 -> 0` transitions plus `weapon_mode=melee`. This is an inference,
   not a direct AI-mode getter; the note records that explicitly.
 
+### Native hit attribution (ti_on_agent_hit)
+
+WSE2 Lua can add a mission-template trigger for native `ti_on_agent_hit`
+(trigger id `-28`) and read `store_trigger_param_1/2/3/5`. The mapping
+`1=victim, 2=dealer, 3=damage, 5=missile flag` comes from the Native-derived
+module source (`module_mission_templates.py` uses params 1/2/3; the same
+source reads param 5 as the missile flag) and is **cited but not yet verified
+in our build**. Citations: [Native-derived `module_mission_templates.py` L1449-L1459](https://github.com/LilyModzStuff/warband_mod_source/blob/master/source/module_mission_templates.py#L1449-L1459)
+and [TLD `module_mission_templates_TLD_wb.py` L1588-L1596](https://github.com/tldmod/tldmod/blob/master/ModuleSystem/module_mission_templates_TLD_wb.py#L1588-L1596).
+The probe emits a bounded `hit_sample` event per hit (server
+role only, max 2000 per run) with `victim`, `dealer`, `damage`, `missile`,
+`kind`; capability `hit_trigger=-28|hit_attribution=1`. **Status: static/test-only
+until D seals a hit-bearing `3196ef5` run** — no inspected local run contains
+`hit_sample` yet. The summary adds `hits`: total/damage, missile-vs-melee,
+dealer/victim team and troop breakdowns where sampled agent metadata exists,
+friendly-fire count and unattributed hits. **Friendly-fire is a metadata-limited
+undercount**, not a total; hits without both dealer and victim metadata are
+`unattributed`. No hit causality beyond the engine trigger params is claimed.
+Event-trigger params are read in the **consequence** callback (conditions only
+return true); heartbeat exposes `hit_attempts`, `hit_events`,
+`hit_param_invalid` to distinguish “never fired” from “fired with invalid
+params”.
+
+### Heatmap-ready ZDB1 input (task-74)
+
+`tools/telemetry_studio/heatmap_input.py` exports `zombieee.heatmap-input.v1`
+from a sealed bundle without rendering or validating a heatmap. Probe additions:
+per sampled bot `class` (`agent_get_class` 1772), `division`
+(`agent_get_division` 1773) and absolute `hp` (`store_agent_hit_points` 1720),
+with capability flags `class_getter`/`division_getter`/`hp_getter`.
+
+Schema (E's preferred shape): top-level `run{run_id,build_sha,probe_sha,
+formation_mode,map,entry_ids,seed,sample_interval_s,spectator_or_overview}`,
+flat `points[]` (`agent_id,team,troop,class_id,division,tick,ts_ms,x,y,hp,
+alive,wave,round,mode,source`), required `heartbeats[]`
+(`tick,ts_ms,wave,round,mode,team0/1,alive0/1`), explicit `gaps[]`; optional
+`agents{}`/`anchors[]`/`sampling_density` extras. `tick` is primary; `ts_ms` is
+probe-relative only; hp/class_id/division/alive may be null with gaps. Missing
+run metadata is `run_metadata_partial`, never invented. CLI:
+`python -m tools.telemetry_studio heatmap-export <bundle> --out points.json`.
+Coordinate with E's `telemetry/spatial_analysis.py`; this is input data, not
+visual validation.
+
+### Probe-relative `ts_ms` and explicit round-ended event
+
+Every ZDB1 line now carries `ts_ms` from WSE2 `getTime()` when available
+(guarded; `-1` when unavailable). **Semantics are unverified:** inspected runs
+show values starting near 946/957 ms and reaching 15924 at the first heartbeat,
+i.e. this is a **probe-relative elapsed clock**, not UTC/absolute wall-clock
+and not cross-run aligned. The studio can use it for **within-run cadence**
+(`tick_cadence_seconds`, `wall_clock_missing_intervals`) only; older bundles
+without `ts_ms` remain `unknown`, not zero. It must not be used to compare
+absolute times between runs until a primary WSE2 API citation establishes the
+clock semantics. The heartbeat also emits an explicit `round_ended` lifecycle
+event on an observed `g_round_ended` 0→1 transition at **heartbeat
+resolution** (no inferred win/wipe; short 0→1→0 transitions can be missed).
+Both are read-only additions to the existing ZDB1 wire format.
+
+### Invalid Group ID: 0 guard (team-order getters, client/entry path)
+
+D's speed-off run had no AV but repeated
+`SCRIPT ERROR: Invalid Group ID: 0` at Lua opcodes 1785/1786/1787 from
+`Trigger [31] Conditions (Lua)` (client/entry). Those are the
+`team_get_movement_order`/`team_get_riding_order`/`team_get_weapon_usage_order`
+reads. Fixes: `read_team_order` rejects `team` outside 0..1 and **group
+outside 1..9 before calling the op**; the readback block is gated by
+`team_order_read_enabled` (set only on a server heartbeat), so the
+client/entry path never queries team orders; group 0 is never queried and is
+counted as `skipped_invalid_group` in heartbeat/pre-round/mission-enter lines.
+Capability: `team_order_guard=1|team_order_group_range=1..9|team_order_server_only=1`.
+Tests cover the two-argument/group guards and client/entry gating.
+
+### Invalid Agent ID: 0 crash triage (P0, trigger 32 conditions)
+
+Crash log `rgl_log_24.10.2026_15.56.05_crash.txt`: `Invalid Agent ID: 0`
+at `Lua (line 0, opcode 1765)` from `Trigger [32] Conditions (Lua)`, then
+28 s later `EXCEPTION_ACCESS_VIOLATION` in `mbAgent::updateWalkingEffects`
+(no Lua frame). Root cause of the logged error: the probe's `read_group`
+called `agent_get_group` as `fn(agent)` (single argument), but native 1765 is
+`(destination, agent_id)`, so the destination slot received the Lua agent and
+**agent_id defaulted to 0**. Fixed contract: `read_group` calls
+`fn(0, agent)`; group/position reads require a live agent (`agent_live` uses
+`agent_is_alive` under pcall); loops count `skipped_invalid_agent` and
+`skipped_dead_agent` and expose them in heartbeat/pre-round/mission-enter
+lines; capability is `group_reader=destination_agent`,
+`group_call_convention=two_arg`, `group_live_guard=1`, plus
+`invalid_agent_guard=1`. The AV has no Lua stack frame, so causal linkage to
+the probe is not established; A's trigger-15 speed loop must be isolated
+disabled/enabled before any P0 claim.
+
+### Invalid Agent ID: 0 guard (P0, trigger 32 conditions)
+
+Client/pre-round heartbeat condition callbacks could yield agent id 0 from
+`game.agentsIt()`; direct agent ops then logged
+`SCRIPT ERROR: Invalid Agent ID: 0` at `Trigger [32] Conditions (Lua)`.
+Every agent read helper now rejects non-number/<=0 ids **before** calling an
+engine op: `read_agent_number` (already), `is_alive` -> false, `is_npc` -> false,
+`is_human` -> nil, `agent_position` -> nil, `read_group` (already). The
+recorder capability line reports `invalid_agent_guard=1` so D can confirm the
+fixed probe. Regression tests: static guard/capability surface plus real-Lua
+valid-id checks (0/negative/non-number are rejected; valid >0 accepted).
+This is separate from the trigger-14 `-1` faction guard and the faction-id 16
+raw-operand fix.
+
 ### Firearm telemetry (task-60)
 
 **Accuracy/reload modifiers and fire-mode labels (task-59/60):** the probe

@@ -218,3 +218,33 @@ work-item → PR → commit → version links are in
 
 ### Not shipped
 - No tested runtime build, allied bot positions, admin cheats or measured performance improvements.
+
+
+<!-- task-65 branch metadata-only source revision: 1374abd -->
+
+
+<!-- P0 probe fix metadata-only source revision: 39aa3a7 -->
+
+
+<!-- P0 probe team-order fix metadata-only source revision: 4848ee2 -->
+
+
+<!-- telemetry hardening metadata-only source revision: 08a9546 -->
+
+
+<!-- telemetry hardening metadata-only source revision: d0f7edf -->
+
+
+<!-- telemetry claim-wording metadata-only source revision: 79d7b84 -->
+
+
+<!-- hit mapping metadata-only source revision: 8759eed -->
+
+
+<!-- task-74 heatmap metadata-only source revision: b06f427 -->
+
+
+<!-- task-71 hit-trigger metadata-only source revision: 1845906 -->
+
+
+<!-- heatmap heartbeat nil-fix metadata-only source revision: 9a23857 -->

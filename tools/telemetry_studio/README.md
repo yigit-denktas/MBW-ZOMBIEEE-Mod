@@ -31,6 +31,12 @@ python -m tools.telemetry_studio tail <log> [--follow] [--from-start] [--json]
 python -m tools.telemetry_studio inspect <installed-module-dir> [--json]
 python -m tools.telemetry_studio report <baseline> [candidate] --out receipt.md \
     --hypothesis "..." --next "..." [--module <installed-module-dir>]
+python -m tools.telemetry_studio balance <run1> [run2 ...] \
+    [--params params.json] [--out balance.md] [--json]
+python -m tools.telemetry_studio heatmap-export <bundle> [--out points.json]
+python -m tools.telemetry_studio loop <baseline> [candidate] \
+    --hypothesis "..." --next "..." [--decision pending|keep|discard] \
+    [--out-dir telemetry/iterations] [--state state.json] [--module DIR]
 ```
 
 `ingest`/`perf`/`anomalies` require a verified sealed bundle by default. Use
@@ -47,8 +53,9 @@ say `unsealed_bundle`.
 - **Performance proxies:** heartbeat count/tick cadence (missing intervals,
   non-monotonic ticks), agent samples per heartbeat, combat samples, event rates,
   log sizes, recorder `event_drops`/truncation, CPU seconds and peak memory only
-  when the recorder receipt actually reports them. Wall-clock tick cadence is
-  `unknown` because ZDB1 lines carry no timestamps.
+  when the recorder receipt actually reports them. `ts_ms` (when present) is a
+  **probe-relative** WSE2 `getTime()` value for within-run cadence only; it is
+  not UTC/cross-run alignment, and older bundles without it stay `unknown`.
 - **WSE2 stats options:** reads the local WSE2 `rgl_config.ini` if present
   (`bShowSimulationStats`, `bShowRenderStats`, `i*StatsLogInterval`,
   `bLogSpeedModifiers`) and reports `available: false` otherwise; it never turns
@@ -61,6 +68,36 @@ say `unsealed_bundle`.
   ops (2093/502/1790/1791/3314/3343/522/5113), slow-894 slot writes, invalid
   faction literals, speed-op triggers, module receipt fields and the msfiles
   header opcode declarations.
+
+## Bot-vs-bot balance analyzer
+
+`balance` ingests one or more sealed bot-only bundles and reports:
+
+- per-round observed outcomes: `team0_win` / `team1_win` only when one team's
+  observed alive count is 0; `mutual_wipe`; `round_reset_no_wipe` when a round
+  resets with both teams alive (no explicit round-end event exists); `unknown`;
+- `wall_clock_seconds` is always `None` because ZDB1 has no timestamps (gap);
+- troop/class contributions as a **lower bound** from max observed kills per
+  sampled agent aggregated by troop (not per-hit/per-death attribution);
+- a parameter-sensitivity matrix from an optional JSON mapping
+  `run-root-or-name -> {parameter: value}`; correlation only, never causality,
+  and `confidence=low` unless the variants are controlled;
+- ranked small-change recommendations with explicit confidence/unknowns, and
+  `gaps_as_tasks` for unmeasured facts (round-end event, hit attribution,
+  wall-clock survival, parameter receipt, per-troop deaths).
+
+No parameter metadata or fewer than two variants produces explicit
+`parameter_metadata_missing` / `insufficient_runs_for_ranked_recommendations`
+rather than a guessed recommendation.
+
+## Fresh-loop runner
+
+`loop` records one iteration receipt from a baseline/candidate pair, appends a
+bounded entry to a JSON state file, and requires an explicit decision
+(`pending`/`keep`/`discard`). It never launches/seals a game and never invents a
+candidate: missing or unsealed bundles produce explicit gaps and stay pending.
+`ts_ms` (when the probe provides it) makes `tick_cadence_seconds` and
+`wall_clock_missing_intervals` measurable; older bundles remain `unknown`.
 
 ## Tests
 

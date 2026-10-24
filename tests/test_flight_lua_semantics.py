@@ -154,18 +154,18 @@ local function read_group(agent, fn)
     if type(agent) ~= "number" or agent <= 0 then return -1 end
     if group_convention == nil then
         calls = calls + 1
-        local ok, first, second = pcall(function() return fn(agent) end)
+        local ok, first, second = pcall(function() return fn(0, agent) end)
         local candidate = decode_group(agent, ok, first, second)
         group_convention = candidate >= 0 and "direct" or "unknown"
         capability_lines = capability_lines + 1
     end
     if group_convention ~= "direct" then return -1 end
     calls = calls + 1
-    local ok, first, second = pcall(function() return fn(agent) end)
+    local ok, first, second = pcall(function() return fn(0, agent) end)
     return decode_group(agent, ok, first, second)
 end
-local function echo_fn(agent) return agent, 0 end
-local function group_fn(agent) return 6, 0 end
+local function echo_fn(_destination, agent) return agent, 0 end
+local function group_fn(_destination, _agent) return 6, 0 end
 checks[#checks + 1] = tostring(read_group(0, group_fn) == -1)          -- no fake agent
 checks[#checks + 1] = tostring(read_group(-1, group_fn) == -1)
 local ok_group, group_value = pcall(function()
@@ -183,6 +183,16 @@ group_convention, capability_lines, calls = nil, 0, 0
 checks[#checks + 1] = tostring(read_group(7, group_fn) == 6)
 checks[#checks + 1] = tostring(group_convention == "direct")
 checks[#checks + 1] = tostring(capability_lines == 1)
+
+-- Two-argument convention: destination=0, agent=real id.
+group_convention, capability_lines, calls = nil, 0, 0
+local seen_destination, seen_agent
+local function capture_fn(destination, agent)
+    seen_destination, seen_agent = destination, agent
+    return 11, 0
+end
+checks[#checks + 1] = tostring(read_group(7, capture_fn) == 11)
+checks[#checks + 1] = tostring(seen_destination == 0 and seen_agent == 7)
 
 -- Faction-slot guard: never call a faction op with an encoded/negative operand,
 -- and never call it for an invalid slot.
@@ -202,6 +212,43 @@ checks[#checks + 1] = tostring(read_faction_slot(16, 999, faction_mock) == -1)
 checks[#checks + 1] = tostring(faction_calls == 0)
 checks[#checks + 1] = tostring(read_faction_slot(16, 200, faction_mock) == 360287970189640574)
 checks[#checks + 1] = tostring(faction_calls == 1)
+
+-- Invalid-agent guard: never pass 0/negative/non-number to an agent op.
+local function valid_agent_id(agent)
+    return type(agent) == "number" and agent > 0 and math.floor(agent) == agent
+end
+checks[#checks + 1] = tostring(valid_agent_id(0) == false)
+checks[#checks + 1] = tostring(valid_agent_id(-1) == false)
+checks[#checks + 1] = tostring(valid_agent_id("3") == false)
+checks[#checks + 1] = tostring(valid_agent_id(3) == true)
+
+-- Team-order guard: group 0 must never reach the op; groups 1..9 only.
+local team_calls = 0
+local function read_team_order(team, subclass, fn)
+    if type(team) ~= "number" or team < 0 or team > 1 then return -1 end
+    if type(subclass) ~= "number" or subclass < 1 or subclass > 9 then return -1 end
+    team_calls = team_calls + 1
+    return fn(0, team, subclass)
+end
+checks[#checks + 1] = tostring(read_team_order(0, 0, function() team_calls = team_calls + 1; return 0, 0 end) == -1)
+checks[#checks + 1] = tostring(team_calls == 0)
+local seen_team, seen_subclass
+local team_value = read_team_order(0, 5, function(destination, team, subclass)
+    seen_team, seen_subclass = team, subclass
+    return 2, 0
+end)
+checks[#checks + 1] = tostring(team_value == 2 and seen_team == 0 and seen_subclass == 5)
+
+-- Heartbeat builder must survive nil/unknown counters.
+local function heartbeat_counters(attempts, events, invalid)
+    return "|hit_attempts=" .. (attempts or 0)
+        .. "|hit_events=" .. (events or 0)
+        .. "|hit_param_invalid=" .. (invalid or 0)
+end
+local ok_hb, hb_nil = pcall(heartbeat_counters, nil, nil, nil)
+checks[#checks + 1] = tostring(ok_hb and hb_nil:find("hit_param_invalid=0", 1, true) ~= nil)
+local ok_hb2, hb_unknown = pcall(heartbeat_counters, unknown_a, unknown_b, unknown_c)
+checks[#checks + 1] = tostring(ok_hb2 and hb_unknown:find("hit_attempts=0", 1, true) ~= nil)
 return table.concat(checks, ",")
 """
 
@@ -244,7 +291,7 @@ class RealLuaSemanticsTests(unittest.TestCase):
 
     def test_team_tables_arithmetic_and_precedence(self):
         checks = self.run_lua(SEMANTICS_SCRIPT).split(",")
-        self.assertEqual(len(checks), 36)
+        self.assertEqual(len(checks), 47)
         for index, value in enumerate(checks, 1):
             self.assertEqual(value, "true", f"Lua semantics check {index} failed")
 

@@ -6,7 +6,7 @@
   "acceptance": "none",
   "runtime_verified": false,
   "observed_on": "2026-10-24",
-  "source_revision": "1e907eaf758fc27bb19913664c86451831005e45",
+  "source_revision": "9a2385732aa5051830b4629a5b753ce3fa515ff3",
   "version_sources": {
     "version": "VERSION",
     "changelog": "CHANGELOG.md#030-beta1-2026-10-24",
@@ -523,7 +523,12 @@
     "published": false
   },
   "source_revision_exception": {
-    "kind": "metadata-and-release-gate-branch",
-    "reason": "source_revision is the main revision the candidate is built from; HEAD on the metadata PR adds only release-metadata, release-gate and its focused tests. The gate verifies every changed path is in the documented metadata-only allowlist. A second self-referential revision (set to the PR head) is impossible because that commit hash cannot contain itself."
+    "reason": "heatmap-branch heartbeat nil fix; metadata-only head revision",
+    "changed_paths": [
+      "docs/release-traceability.json",
+      "CHANGELOG.md",
+      "README.md",
+      "docs/RELEASE_TRACEABILITY.md"
+    ]
   }
 }

@@ -13,6 +13,7 @@ from .anomaly import detect_anomalies
 from .compare import compare_ingests
 from .static_inspect import inspect_module
 from .report import render_iteration_report
+from .balance import analyze_balance, render_balance_report
 
 __all__ = [
     "EVENT_SPECS",
@@ -27,4 +28,8 @@ __all__ = [
     "compare_ingests",
     "inspect_module",
     "render_iteration_report",
+    "analyze_balance",
+    "extract_heatmap",
+    "HEATMAP_SCHEMA",
+    "render_balance_report",
 ]

@@ -28,8 +28,15 @@ local WAVE_SLOT_PROBES = {200, 221, 231, 241, 245}
 -- fallback when native bots are not in divisions 5-7.
 local DEFENDER_TROOP_MIN = 981
 local DEFENDER_TROOP_MAX = 984
+local function now_ms()
+    if type(getTime) ~= "function" then return -1 end
+    local ok, value = pcall(getTime)
+    if ok and type(value) == "number" then return math.floor(value) end
+    return -1
+end
 local function emit(event, details)
-    print("ZDB1|" .. event .. "|version=" .. VERSION .. (details or ""))
+    print("ZDB1|" .. event .. "|version=" .. VERSION
+        .. "|ts_ms=" .. now_ms() .. (details or ""))
 end
 local function guarded_call(fn, default)
     if type(fn) ~= "function" then return default end
@@ -98,7 +105,7 @@ emit("recorder_capabilities",
     .. "|human_getter=" .. binding_flag("agent_is_human")
     .. "|composition=1|engagement=1|position_summary=1|pre_round=1"
     .. "|group_getter=" .. binding_flag("agent_get_group")
-    .. "|group_reader=direct_single_arg|group_probe=1|combat_v2=1"
+    .. "|group_reader=destination_agent|group_call_convention=two_arg|group_live_guard=1|group_probe=1|combat_v2=1"
     -- No verified read-only WSE2 operation exists for shield/block, mounted
     -- identity or current action in this mod: report 0 capability, never guess.
     .. "|shield_getter=0|mounted_getter=0|action_getter=0"
@@ -106,10 +113,16 @@ emit("recorder_capabilities",
     .. "|accuracy_getter=" .. binding_flag("agent_get_accuracy_modifier")
     .. "|reload_getter=" .. binding_flag("agent_get_reload_speed_modifier")
     .. "|reticle_getter=0|aim_error_getter=0|fire_mode_getter=0"
+    .. "|invalid_agent_guard=1"
+    .. "|hit_trigger=-28|hit_attribution=1|hit_events_cap=2000"
+    .. "|class_getter=" .. binding_flag("agent_get_class")
+    .. "|division_getter=" .. binding_flag("agent_get_division")
+    .. "|hp_getter=" .. binding_flag("store_agent_hit_points")
     .. "|speed_modifier_getter=" .. binding_flag("agent_get_speed_modifier")
     .. "|time_multiplier_getter=" .. binding_flag("agent_get_time_speed_multiplier")
     .. "|action_speed_getter=" .. binding_flag("agent_get_action_speed_modifier")
     .. "|team_order_getter=" .. binding_flag("team_get_hold_fire_order")
+    .. "|team_order_guard=1|team_order_group_range=1..9|team_order_server_only=1"
     .. "|faction_slot_getter=" .. binding_flag("faction_get_slot")
     .. "|scene_getter=" .. binding_flag("store_current_scene")
     .. "|behavior_getter=0"
@@ -180,6 +193,10 @@ end
 local function read_team_order(name, team, subclass)
     local fn = game[name]
     if type(fn) ~= "function" then return -1 end
+    -- Team getters expect a valid group/division argument; group 0 logs
+    -- "Invalid Group ID: 0" on the client/entry path, so never call it.
+    if type(team) ~= "number" or team < 0 or team > 1 then return -1 end
+    if type(subclass) ~= "number" or subclass < 1 or subclass > 9 then return -1 end
     local ok, first, second, third = pcall(function()
         return fn(0, team, subclass)
     end)
@@ -227,6 +244,9 @@ local group_convention = nil  -- nil until detectable; then "direct" or "unknown
 -- Group reads are attempted only once a full round is running (safe, valid
 -- agent ids, periodic cadence), never from the pre-round/entry trigger.
 local group_read_enabled = false
+-- Team-order getters are server-only and group 1..9 only: on client/entry
+-- there is no valid group context, and group 0 logs Invalid Group ID: 0.
+local team_order_read_enabled = false
 -- Faction-slot/scene readback is server+City only and heartbeat-only: it calls
 -- engine ops from a Lua callback, so never probe it pre-round or on a client.
 local wave_slot_read_enabled = false
@@ -251,12 +271,17 @@ local function decode_group_returns(agent, ok, first, second)
     if value == agent then return -1 end  -- agent-id echo, not a division
     return value
 end
+local function agent_live(agent)
+    if type(agent) ~= "number" or agent <= 0 then return false end
+    local ok, value = pcall(function() return game.agent_is_alive(agent) end)
+    return ok and (value == true or value == 1)
+end
 local function read_group(agent)
     local fn = game.agent_get_group
     if type(fn) ~= "function" then return -1 end
-    if type(agent) ~= "number" or agent <= 0 then return -1 end
+    if not agent_live(agent) then return -1 end
     if group_convention == nil then
-        local ok, first, second = pcall(function() return fn(agent) end)
+        local ok, first, second = pcall(function() return fn(0, agent) end)
         local candidate = decode_group_returns(agent, ok, first, second)
         group_convention = candidate >= 0 and "direct" or "unknown"
         emit_group_capability(group_convention)
@@ -265,16 +290,18 @@ local function read_group(agent)
         end
     end
     if group_convention ~= "direct" then return -1 end
-    local ok, first, second = pcall(function() return fn(agent) end)
+    local ok, first, second = pcall(function() return fn(0, agent) end)
     return decode_group_returns(agent, ok, first, second)
 end
 local function is_npc(agent)
+    if type(agent) ~= "number" or agent <= 0 then return false end
     local value = guarded_call(function()
         return game.agent_is_non_player(agent)
     end, false)
     return value == true or value == 1
 end
 local function is_human(agent)
+    if type(agent) ~= "number" or agent <= 0 then return nil end
     local value = guarded_call(function()
         return game.agent_is_human(agent)
     end, nil)
@@ -287,6 +314,7 @@ end
 -- position-object access is inside guarded_call: a WSE2 pos userdata can throw
 -- on field access and must not abort the entire world sample.
 local function agent_position(agent)
+    if not agent_live(agent) then return nil end
     return guarded_call(function()
         game.agent_get_position(90, agent)
         local position = game.preg[90]
@@ -299,6 +327,7 @@ local function agent_position(agent)
     end, nil)
 end
 local function is_alive(agent)
+    if type(agent) ~= "number" or agent <= 0 then return false end
     local value = guarded_call(function()
         return game.agent_is_alive(agent)
     end, nil)
@@ -369,6 +398,8 @@ local function sample_world()
                          troop_read_unknown = 0,
                          groups0 = {}, groups1 = {},
                          group_read_unknown = 0,
+                         skipped_invalid_agent = 0, skipped_dead_agent = 0,
+                         skipped_invalid_group = 0,
                          defender_count = 0,
                          defender_alive = 0,
                          defender_kills = 0,
@@ -401,6 +432,11 @@ local function sample_world()
                          hist0 = {}, hist1 = {}, players = {}, player_count = 0 }
         local n = 0
         for agent in game.agentsIt() do
+            if type(agent) ~= "number" or agent <= 0 then
+                result.skipped_invalid_agent = result.skipped_invalid_agent + 1
+            elseif not agent_live(agent) then
+                result.skipped_dead_agent = result.skipped_dead_agent + 1
+            end
             n = n + 1
             local side = nil
             if supports_team then
@@ -654,6 +690,12 @@ local function sample_world()
                                 "agent_get_accuracy_modifier", agent)
                             local reload_modifier = read_agent_number(
                                 "agent_get_reload_speed_modifier", agent)
+                            local agent_class = read_agent_number(
+                                "agent_get_class", agent)
+                            local division = read_agent_number(
+                                "agent_get_division", agent)
+                            local hp = read_agent_number(
+                                "store_agent_hit_points", agent, 1)
                             result.ai_samples[#result.ai_samples + 1] =
                                 { team = side, id = agent, x = x, y = y,
                                   kills = kills, group = group, troop = troop,
@@ -663,7 +705,9 @@ local function sample_world()
                                   time_multiplier = fixed, action_speed = action,
                                   attack_action = attack_action,
                                   accuracy_modifier = accuracy_modifier,
-                                  reload_modifier = reload_modifier }
+                                  reload_modifier = reload_modifier,
+                                  class = agent_class, division = division,
+                                  hp = hp }
                         end
                     end
                 end
@@ -728,20 +772,23 @@ local function sample_world()
         -- Defender team-order readback for subclasses 5-7 and everyone (9):
         -- hold_fire:movement:weapon_usage:riding, or "none" when unreadable.
         local order_parts = {}
-        -- All team-order sub-classes 0..9: native bots in groups 26/28/29/31
-        -- are outside the class range, and team_give_order only accepts
-        -- sub-class ids, so native-group orders are explicitly unavailable.
-        for subclass = 0, 9 do
-            local hold_fire = read_team_order("team_get_hold_fire_order", 0, subclass)
-            local movement = read_team_order("team_get_movement_order", 0, subclass)
-            local weapon = read_team_order("team_get_weapon_usage_order", 0, subclass)
-            local riding = read_team_order("team_get_riding_order", 0, subclass)
-            if hold_fire >= 0 or movement >= 0 or weapon >= 0 or riding >= 0 then
-                order_parts[#order_parts + 1] = subclass .. ":" .. hold_fire
-                    .. ":" .. movement .. ":" .. weapon .. ":" .. riding
-            else
-                result.defender_orders_read_unknown =
-                    result.defender_orders_read_unknown + 1
+        -- Team-order getters are server-only and groups 1..9 only. Group 0 is
+        -- not queried (engine logs Invalid Group ID: 0 on client/entry); on the
+        -- entry/client path team_order_read_enabled stays false.
+        if team_order_read_enabled then
+            result.skipped_invalid_group = 1  -- group 0 skipped by contract
+            for subclass = 1, 9 do
+                local hold_fire = read_team_order("team_get_hold_fire_order", 0, subclass)
+                local movement = read_team_order("team_get_movement_order", 0, subclass)
+                local weapon = read_team_order("team_get_weapon_usage_order", 0, subclass)
+                local riding = read_team_order("team_get_riding_order", 0, subclass)
+                if hold_fire >= 0 or movement >= 0 or weapon >= 0 or riding >= 0 then
+                    order_parts[#order_parts + 1] = subclass .. ":" .. hold_fire
+                        .. ":" .. movement .. ":" .. weapon .. ":" .. riding
+                else
+                    result.defender_orders_read_unknown =
+                        result.defender_orders_read_unknown + 1
+                end
             end
         end
         result.defender_orders_text = (#order_parts > 0)
@@ -923,6 +970,13 @@ local function lifecycle_fields(role, wave, world)
         .. "|game_type=" .. global_int("g_multiplayer_game_type")
         .. "|ready_for_spawn=" .. global_int("g_multiplayer_ready_for_spawning_agent")
         .. "|bots_team1=" .. global_int("g_multiplayer_num_bots_team_1")
+        .. "|skipped_invalid_agent=" .. ((world and world.ok) and (world.skipped_invalid_agent or 0) or -1)
+        .. "|skipped_dead_agent=" .. ((world and world.ok) and (world.skipped_dead_agent or 0) or -1)
+end
+local function skip_fields(world)
+    return "|skipped_invalid_agent=" .. ((world and world.ok) and (world.skipped_invalid_agent or 0) or -1)
+        .. "|skipped_dead_agent=" .. ((world and world.ok) and (world.skipped_dead_agent or 0) or -1)
+        .. "|skipped_invalid_group=" .. ((world and world.ok) and (world.skipped_invalid_group or 0) or -1)
 end
 -- Explicit lifecycle events are emitted only from observed transitions:
 -- a previously alive team-0 non-player agent now dead/removed (player_died or
@@ -997,6 +1051,12 @@ local function sample_defenders(tick, mode, wave)
                     "agent_get_accuracy_modifier", agent)
                 local reload_modifier = read_agent_number(
                     "agent_get_reload_speed_modifier", agent)
+                local agent_class = read_agent_number(
+                    "agent_get_class", agent)
+                local division = read_agent_number(
+                    "agent_get_division", agent)
+                local hp = read_agent_number(
+                    "store_agent_hit_points", agent, 1)
                 local alive_flag = is_alive(agent) == true and 1 or 0
                 if kills >= 0 or ammo >= 0 or weapon >= 0 then
                     emit("combat_sample", "|tick=" .. tick .. "|id=" .. agent
@@ -1009,6 +1069,8 @@ local function sample_defenders(tick, mode, wave)
                         .. "|attack_action=" .. attack_action
                         .. "|accuracy_modifier=" .. accuracy_modifier
                         .. "|reload_speed_modifier=" .. reload_modifier
+                        .. "|class=" .. agent_class .. "|division=" .. division
+                        .. "|hp=" .. hp
                         .. "|shield=-1|action=-1")
                 end
                 if type(game.agent_get_position) == "function" then
@@ -1062,6 +1124,9 @@ local function emit_ai_samples(world, role, wave, tick)
             .. "|attack_action=" .. (sample.attack_action or -1)
             .. "|accuracy_modifier=" .. (sample.accuracy_modifier or -1)
             .. "|reload_speed_modifier=" .. (sample.reload_modifier or -1)
+            .. "|class=" .. (sample.class or -1)
+            .. "|division=" .. (sample.division or -1)
+            .. "|hp=" .. (sample.hp or -1)
             .. "|shield=-1|action=-1"
             .. "|x=" .. sample.x .. "|y=" .. sample.y
             .. "|kills=" .. (sample.kills or -1) .. "|wave=" .. wave)
@@ -1085,7 +1150,7 @@ local function pre_round_snapshot(world, role, wave)
         .. "|agents=" .. (world and world.ok and world.total or -1)
         .. "|team0=" .. (world and world.ok and world.team0 or -1)
         .. "|team1=" .. (world and world.ok and world.team1 or -1)
-        .. "|template=" .. current_mission() .. state_fields(world))
+        .. "|template=" .. current_mission() .. state_fields(world) .. skip_fields(world))
     emit_ai_samples(world, role, wave, pre_round_samples)
 end
 local function first_entry()
@@ -1102,7 +1167,7 @@ local function first_entry()
          "|template=" .. current_mission() ..
          "|agents=" .. (world.ok and world.total or -1) ..
          "|team0=" .. (world.ok and world.team0 or -1) ..
-         "|team1=" .. (world.ok and world.team1 or -1) .. state_fields(world))
+         "|team1=" .. (world.ok and world.team1 or -1) .. state_fields(world) .. skip_fields(world))
     previous_round_start = round_start
     previous_round_ended = global_int("g_round_ended")
     previous_defender_ids = {}
@@ -1130,6 +1195,11 @@ if ok_entry then
 else
     emit("probe_failed", "|kind=entry")
 end
+-- Heartbeat counters must be locals declared before the function; otherwise
+-- the heartbeat references nil globals (Lua error every 15 s).
+local hit_events = 0
+local hit_attempts = 0
+local hit_param_invalid = 0
 local function heartbeat()
     heartbeat_count = heartbeat_count + 1
     -- At most 480 periodic records (~2 h at 15 s each).
@@ -1140,6 +1210,9 @@ local function heartbeat()
             group_read_enabled = true
         end
         local role = resolve_role()
+        if not team_order_read_enabled and role == "server" then
+            team_order_read_enabled = true
+        end
         if not wave_slot_read_enabled and role == "server"
             and current_mission() == "mst_multiplayer_iv" then
             wave_slot_read_enabled = true
@@ -1168,7 +1241,10 @@ local function heartbeat()
             .. "|agents=" .. (world.ok and world.total or -1)
             .. "|team0=" .. (world.ok and world.team0 or -1)
             .. "|team1=" .. (world.ok and world.team1 or -1)
-            .. "|template=" .. current_mission() .. state_fields(world))
+            .. "|template=" .. current_mission() .. state_fields(world) .. skip_fields(world)
+            .. "|hit_attempts=" .. (hit_attempts or 0)
+            .. "|hit_events=" .. (hit_events or 0)
+            .. "|hit_param_invalid=" .. (hit_param_invalid or 0))
         local round_start = global_int("g_round_start_time")
         if role == "server" then
             if wave >= 0 and wave ~= previous_wave then
@@ -1216,6 +1292,10 @@ local function heartbeat()
                 round_increase_count = 0
                 round_first_start = nil
             end
+            if previous_round_ended == 0 and round_ended == 1 then
+                emit("round_ended", "|observed=round_end_transition"
+                    .. lifecycle_fields("server", wave, world))
+            end
             previous_round_ended = round_ended
             if mode >= 0 and mode ~= previous_mode then
                 emit("tactical_change", "|wave=" .. wave .. "|mode=" .. mode
@@ -1230,6 +1310,57 @@ local function heartbeat()
         previous_round_start = round_start
     end
     return false
+end
+local hit_handler_anomaly_emitted = false
+local hit_cap_emitted = false
+local MAX_HIT_EVENTS = 2000
+local function hit_param(index)
+    local fn = game["store_trigger_param_" .. index]
+    if type(fn) ~= "function" then return -1 end
+    local ok, value = pcall(fn, 0)
+    if ok and type(value) == "number" then return math.floor(value) end
+    return -1
+end
+-- Event-trigger params are populated for the CONSEQUENCE callback, not the
+-- condition callback; emitting from conditions produced hit_sample=0 despite
+-- a registered trigger. Conditions always pass; consequences read/emit.
+local function on_agent_hit_conditions()
+    return true
+end
+local function on_agent_hit_consequence()
+    hit_attempts = hit_attempts + 1
+    local role = resolve_role()
+    if role ~= "server" then return end
+    if hit_events >= MAX_HIT_EVENTS then
+        if not hit_cap_emitted then
+            hit_cap_emitted = true
+            emit("probe_anomaly", "|kind=hit_event_cap|cap=" .. MAX_HIT_EVENTS)
+        end
+        return
+    end
+    local victim = hit_param(1)
+    local dealer = hit_param(2)
+    local damage = hit_param(3)
+    local missile = hit_param(5)
+    if victim <= 0 and dealer <= 0 then
+        hit_param_invalid = hit_param_invalid + 1
+        if not hit_handler_anomaly_emitted then
+            hit_handler_anomaly_emitted = true
+            emit("probe_anomaly", "|kind=hit_params_invalid|attempt=" .. hit_attempts)
+        end
+        return
+    end
+    emit("hit_sample", "|victim=" .. victim .. "|dealer=" .. dealer
+        .. "|damage=" .. damage .. "|missile=" .. missile
+        .. "|kind=" .. (missile > 0 and "missile" or "melee"))
+    hit_events = hit_events + 1
+end
+local ok_hit, hit_idx = pcall(game.addTrigger, MISSION, -28, 0, 0,
+    on_agent_hit_conditions, on_agent_hit_consequence)
+if ok_hit then
+    emit("probe_registered", "|kind=hit|index=" .. tostring(hit_idx))
+else
+    emit("probe_failed", "|kind=hit")
 end
 local ok_heart, heart_idx = pcall(game.addTrigger, MISSION, 15.0, 0, 0, heartbeat)
 if ok_heart then

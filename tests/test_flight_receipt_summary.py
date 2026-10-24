@@ -864,6 +864,10 @@ class ReceiptSummaryTests(unittest.TestCase):
             self.assertIn(gap, summary["evidence_gaps"])
         self.assertNotIn("attack_action_unavailable", summary["evidence_gaps"])
         self.assertIn("firearms:", format_summary(summary))
+        self.assertIn("wave_mod3_policy_assumption",
+                      summary["firearms"]["fire_mode_expected_source"])
+        self.assertIn("fire_mode_policy_not_in_bundle",
+                      summary["evidence_gaps"])
 
     def test_firearm_reload_resets_interval_baseline(self):
         lines = [
@@ -883,6 +887,36 @@ class ReceiptSummaryTests(unittest.TestCase):
         self.assertEqual(fire["shots_observed"], 2)
         self.assertEqual(fire["reloads_observed"], 1)
         self.assertIsNone(fire["shot_intervals_ticks"])  # baseline reset after reload
+
+
+    def test_hit_attribution_from_native_hit_trigger(self):
+        lines = [
+            "ZDB1|heartbeat|count=1|role=server|team0=2|team1=2|wave=1",
+            "ZDB1|ai_sample|role=server|tick=1|team=0|id=1|group=5|troop=981"
+            "|weapon=7|ammo=10|alive=1|weapon_mode=ranged|x=1|y=1|kills=0|wave=1",
+            "ZDB1|ai_sample|role=server|tick=1|team=1|id=2|group=0|troop=894"
+            "|weapon=598|ammo=0|alive=1|weapon_mode=melee|x=2|y=2|kills=0|wave=1",
+            "ZDB1|ai_sample|role=server|tick=1|team=1|id=3|group=0|troop=895"
+            "|weapon=598|ammo=0|alive=1|weapon_mode=melee|x=3|y=3|kills=0|wave=1",
+            "ZDB1|hit_sample|victim=2|dealer=1|damage=42|missile=1|kind=missile",
+            "ZDB1|hit_sample|victim=3|dealer=2|damage=9|missile=0|kind=melee",
+        ]
+        with tempfile.TemporaryDirectory() as td:
+            session = seal(Path(td), {"host_stdout.log": "\n".join(lines)})
+            summary = summarize_receipt(session)
+            hits = summary["hits"]
+            self.assertEqual(hits["events"], 2)
+            self.assertEqual(hits["damage_total"], 51)
+            self.assertEqual(hits["by_kind"]["missile"], 1)
+            self.assertEqual(hits["by_kind"]["melee"], 1)
+            self.assertEqual(hits["by_dealer_team"], {"0": 1, "1": 1})
+            self.assertEqual(hits["by_victim_team"], {"1": 2})
+            self.assertEqual(hits["by_victim_troop"], {"894": 1, "895": 1})
+            self.assertEqual(hits["friendly_fire"], 1)
+            self.assertNotIn("hit_telemetry_unavailable", summary["evidence_gaps"])
+            self.assertIs(hits["mapping_unverified"], True)
+            self.assertIn("mapping and in-build behavior unverified", hits["source"])
+            self.assertIn("hits:", format_summary(summary))
 
 if __name__ == "__main__":
     unittest.main()

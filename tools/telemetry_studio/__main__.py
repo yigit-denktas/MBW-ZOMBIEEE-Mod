@@ -8,6 +8,9 @@ import sys
 from pathlib import Path
 
 from .anomaly import detect_anomalies
+from .balance import analyze_balance, render_balance_report
+from .loop import run_iteration
+from .heatmap_input import extract_heatmap
 from .compare import compare_ingests
 from .ingest import IngestError, ingest_bundle
 from .perf import analyze_performance
@@ -67,6 +70,33 @@ def main(argv: list[str] | None = None) -> int:
     p_schema = sub.add_parser("schema", help="event schema/granularity catalog")
     p_schema.add_argument("--json", action="store_true")
 
+    p_balance = sub.add_parser("balance", help="bot-vs-bot balance analysis")
+    p_balance.add_argument("bundles", type=Path, nargs="+")
+    p_balance.add_argument("--params", type=Path, default=None,
+                           help="JSON mapping run root/name -> numeric parameters")
+    p_balance.add_argument("--out", type=Path, default=None)
+    p_balance.add_argument("--allow-unsealed", action="store_true")
+    p_balance.add_argument("--json", action="store_true")
+
+    p_loop = sub.add_parser("loop", help="record a fresh-loop iteration receipt")
+    p_loop.add_argument("baseline", type=Path)
+    p_loop.add_argument("candidate", type=Path, nargs="?")
+    p_loop.add_argument("--hypothesis", required=True)
+    p_loop.add_argument("--next", required=True)
+    p_loop.add_argument("--decision", choices=("pending", "keep", "discard"),
+                        default="pending")
+    p_loop.add_argument("--out-dir", type=Path, default=Path("telemetry/iterations"))
+    p_loop.add_argument("--state", type=Path, default=None)
+    p_loop.add_argument("--module", type=Path, default=None)
+    p_loop.add_argument("--allow-unsealed", action="store_true")
+    p_loop.add_argument("--json", action="store_true")
+
+    p_heat = sub.add_parser("heatmap-export", help="export heatmap-ready JSON from a bundle")
+    p_heat.add_argument("bundle", type=Path)
+    p_heat.add_argument("--out", type=Path, default=None)
+    p_heat.add_argument("--allow-unsealed", action="store_true")
+    p_heat.add_argument("--json", action="store_true")
+
     p_report = sub.add_parser("report", help="render an iteration receipt")
     p_report.add_argument("baseline", type=Path)
     p_report.add_argument("candidate", type=Path, nargs="?")
@@ -106,6 +136,44 @@ def main(argv: list[str] | None = None) -> int:
             base, _ = _ingest(args.baseline, args.allow_unsealed)
             cand, _ = _ingest(args.candidate, args.allow_unsealed)
             return _print(compare_ingests(base, cand), args.json)
+        if args.command == "loop":
+            result = run_iteration(
+                args.baseline, args.candidate, hypothesis=args.hypothesis,
+                next_hypothesis=args.next, decision=args.decision,
+                out_dir=args.out_dir, state_path=args.state,
+                allow_unsealed=args.allow_unsealed, module=args.module)
+            return _print(result, args.json)
+        if args.command == "balance":
+            import json as _json
+            params = _json.loads(args.params.read_text(encoding="utf-8")) if args.params else None
+            runs = []
+            for path in args.bundles:
+                run = ingest_bundle(path, allow_unsealed=args.allow_unsealed)
+                run["name"] = path.name
+                runs.append(run)
+            result = analyze_balance(runs, params)
+            text = render_balance_report(result)
+            if args.out:
+                args.out.parent.mkdir(parents=True, exist_ok=True)
+                args.out.write_text(text, encoding="utf-8")
+                print(f"wrote {args.out}")
+            else:
+                print(_json.dumps(result, indent=2, sort_keys=True) if args.json else text)
+            return 0
+        if args.command == "heatmap-export":
+            ingest = ingest_bundle(args.bundle, allow_unsealed=args.allow_unsealed)
+            data = extract_heatmap(ingest)
+            text = json.dumps(data, indent=2, sort_keys=True)
+            if args.out:
+                args.out.parent.mkdir(parents=True, exist_ok=True)
+                args.out.write_text(text + "\n", encoding="utf-8")
+                print(f"wrote {args.out}")
+            else:
+                print(text if args.json else json.dumps(
+                    {"schema": data["schema"], "points": len(data["points"]),
+                     "agents": len(data["agents"]), "gaps": data["gaps"]},
+                    indent=2, sort_keys=True))
+            return 0
         if args.command == "report":
             base, base_perf = _ingest(args.baseline, args.allow_unsealed)
             cand = cand_perf = comparison = None

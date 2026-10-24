@@ -179,3 +179,32 @@ The original **ZOMBIEEE (Invasion) Beta 0.4** was publicly released in 2012 for 
 ## Notes on honest reporting
 
 This project deliberately separates **source-verified**, **observed**, **unknown** and **failed** evidence, and forbids promoting one class to another. A static build receipt, a self-reported test count or a log line is not playability. If a run is incomplete, missing telemetry is reported as `unknown`, never as zero, pass or success.
+
+<!-- task-65 branch metadata-only source revision: 1374abd (rebased on e80bbf4) -->
+
+
+<!-- P0 probe fix metadata-only source revision: 39aa3a7 -->
+
+
+<!-- P0 probe team-order fix metadata-only source revision: 4848ee2 -->
+
+
+<!-- telemetry hardening metadata-only source revision: 08a9546 -->
+
+
+<!-- telemetry hardening metadata-only source revision: d0f7edf -->
+
+
+<!-- telemetry claim-wording metadata-only source revision: 79d7b84 -->
+
+
+<!-- hit mapping metadata-only source revision: 8759eed -->
+
+
+<!-- task-74 heatmap metadata-only source revision: b06f427 -->
+
+
+<!-- task-71 hit-trigger metadata-only source revision: 1845906 -->
+
+
+<!-- heatmap heartbeat nil-fix metadata-only source revision: 9a23857 -->

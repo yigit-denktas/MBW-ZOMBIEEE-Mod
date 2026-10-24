@@ -53,6 +53,9 @@ OPS = {
     "agent_get_kill_count": (1723, "lhs"),
     "agent_get_attack_action": (1763, "lhs"),
     "agent_get_accuracy_modifier": (2066, "lhs"),
+    "agent_get_class": (1772, "lhs"),
+    "agent_get_division": (1773, "lhs"),
+    "store_agent_hit_points": (1720, "lhs"),
     "agent_get_reload_speed_modifier": (2068, "lhs"),
     "agent_get_wielded_item": (1726, "lhs"),
     "agent_get_ammo": (1727, "lhs"),
@@ -411,13 +414,12 @@ class LuaOperationMetadataTests(unittest.TestCase):
         # A lhs placeholder passed as 0 was bound as an agent id by the engine
         # and spammed "Invalid Agent ID: 0"; the group reader must use the real
         # agent only, defer until a full-round heartbeat, cache one-shot.
-        self.assertIn("|group_reader=direct_single_arg", self.main)
+        self.assertIn("|group_reader=destination_agent", self.main)
         self.assertIn("local group_read_enabled = false", self.main)
-        self.assertIn("if type(agent) ~= \"number\" or agent <= 0 then return -1 end",
-                      self.main)
+        self.assertIn("if not agent_live(agent) then return -1 end", self.main)
         self.assertIn("if value == agent then return -1 end", self.main)
         self.assertIn("if group_capability_emitted then return end", self.main)
-        self.assertIn("return fn(agent) end)", self.main)
+        self.assertIn("return fn(0, agent) end)", self.main)
 
     def test_group_reader_handles_both_lhs_return_shapes(self):
         # agent_get_group (1765) is condition-style in some builds: accept both
@@ -427,7 +429,7 @@ class LuaOperationMetadataTests(unittest.TestCase):
         self.assertIn("local function read_group(agent)", self.main)
         self.assertIn("group_convention", self.main)
         self.assertIn("|group_convention=", self.main)
-        self.assertIn("|group_reader=direct_single_arg", self.main)
+        self.assertIn("|group_reader=destination_agent", self.main)
         self.assertIn("kind=group_convention_unknown", self.main)
         self.assertIn("MAX_DIVISION = 255", self.main)
         self.assertIn("local group = read_group(agent)", self.main)
@@ -465,7 +467,7 @@ class LuaOperationMetadataTests(unittest.TestCase):
                       "|speed_modifiers_team1=", "|time_multipliers_team1=",
                       "|action_speeds_team1=",
                       "|defender_orders_scope=team0_subclasses_0_9_native_groups_no_op",
-                      "for subclass = 0, 9 do",
+                      "for subclass = 1, 9 do",
                       "speed_hist_team[side]"):
             self.assertIn(token, self.main)
 
@@ -504,6 +506,68 @@ class LuaOperationMetadataTests(unittest.TestCase):
                       "|reticle_getter=0", "|aim_error_getter=0",
                       "|fire_mode_getter=0"):
             self.assertIn(token, self.main)
+
+
+    def test_invalid_agent_id_guard_surface(self):
+        # Trigger 32 condition callbacks must never call an agent op with id 0.
+        self.assertIn("|invalid_agent_guard=1", self.main)
+        self.assertGreaterEqual(self.main.count("agent <= 0 then return false"), 2)
+        self.assertIn("type(agent) ~= \"number\" or agent <= 0 then return nil", self.main)
+        self.assertIn("type(agent) ~= \"number\" or agent <= 0 then return -1", self.main)
+
+
+    def test_group_reader_two_arg_convention_and_skip_counters(self):
+        self.assertIn("return fn(0, agent) end)", self.main)
+        self.assertIn("|group_call_convention=two_arg", self.main)
+        self.assertIn("|group_live_guard=1", self.main)
+        self.assertIn("skipped_invalid_agent = 0, skipped_dead_agent = 0", self.main)
+        self.assertIn("result.skipped_invalid_agent = result.skipped_invalid_agent + 1", self.main)
+        self.assertIn("result.skipped_dead_agent = result.skipped_dead_agent + 1", self.main)
+        self.assertIn("|skipped_invalid_agent=", self.main)
+        self.assertIn("|skipped_dead_agent=", self.main)
+
+
+    def test_team_order_group0_client_entry_guard(self):
+        self.assertIn("|team_order_guard=1", self.main)
+        self.assertIn("|team_order_group_range=1..9", self.main)
+        self.assertIn("|team_order_server_only=1", self.main)
+        self.assertIn("local team_order_read_enabled = false", self.main)
+        self.assertIn("if team_order_read_enabled then", self.main)
+        self.assertIn("for subclass = 1, 9 do", self.main)
+        self.assertIn("subclass < 1 or subclass > 9", self.main)
+        self.assertIn("skipped_invalid_group", self.main)
+
+
+    def test_wall_clock_timestamp_and_round_ended_surface(self):
+        for token in ("|ts_ms=", "getTime", "round_ended",
+                      "observed=round_end_transition", "previous_round_ended == 0"):
+            self.assertIn(token, self.main)
+
+
+    def test_native_hit_trigger_surface(self):
+        for token in ("|hit_trigger=-28", "|hit_attribution=1",
+                      "store_trigger_param_", "on_agent_hit_conditions",
+                      "on_agent_hit_consequence", "hit_sample",
+                      "hit_events_cap", "hit_attempts", "hit_param_invalid"):
+            self.assertIn(token, self.main)
+
+
+    def test_heatmap_probe_surface(self):
+        for token in ("agent_get_class = 1772", "agent_get_division = 1773",
+                      "store_agent_hit_points = 1720",
+                      "|class_getter=", "|division_getter=", "|hp_getter=",
+                      "|class=", "|division=", "|hp="):
+            source = header_text() if token.endswith(("1772", "1773", "1720")) else self.main
+            self.assertIn(token, source)
+
+
+    def test_heartbeat_counters_nil_safe_and_declared_first(self):
+        hb = self.main.index("local function heartbeat()")
+        for token in ("local hit_events = 0", "local hit_attempts = 0",
+                      "local hit_param_invalid = 0"):
+            self.assertLess(self.main.index(token), hb, token)
+        self.assertIn("(hit_param_invalid or 0)", self.main)
+        self.assertIn("(hit_attempts or 0)", self.main)
 
 if __name__ == "__main__":
     unittest.main()

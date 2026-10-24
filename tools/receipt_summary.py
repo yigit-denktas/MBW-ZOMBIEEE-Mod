@@ -40,7 +40,8 @@ ROSTER_SURVIVOR = frozenset({875, 876, 877, 878, 32, 33})
 DEFENDER_TROOPS = frozenset(range(981, 985))
 TEXT_NAME_HINTS = ("stdout", "stderr")
 LIFECYCLE_KINDS = ("player_joined", "player_died", "player_respawned",
-                   "player_left", "round_started", "wave_started")
+                   "player_left", "round_started", "wave_started",
+                   "round_ended")
 ERROR_CLASSES = (
     (re.compile(r"Invalid Faction ID: -1"), "invalid_faction_id_minus_one"),
     (re.compile(r"Illegal lvalue in statement"), "illegal_lvalue"),
@@ -255,6 +256,12 @@ def summarize_receipt(target: Path) -> dict:
         "game_type": _bounded_int(latest_field("game_type"), minimum=0),
         "ready_for_spawn": _bounded_int(latest_field("ready_for_spawn"), minimum=0),
         "template": latest_field("template"),
+        "hit_trigger": (_bounded_int(capability["fields"].get("hit_trigger"))
+                        if capability else None),
+        "hit_attribution": (_bounded_int(capability["fields"].get("hit_attribution"))
+                            if capability else None),
+        "hit_events_cap": (_bounded_int(capability["fields"].get("hit_events_cap"))
+                           if capability else None),
         "pre_round_samples": len(pre_round),
         "pre_round_only": bool(pre_round) and not heartbeats,
         "sampling_interval_s": _bounded_int(
@@ -1137,6 +1144,12 @@ def summarize_receipt(target: Path) -> dict:
         "team1": firearms_team1,
         "source": "ammo_decrease_between_bounded_ai_and_combat_samples",
         "tick_units": "recorder heartbeat/sample tick (wall-clock unknown)",
+        "fire_mode_expected_source": (
+            "wave_mod3_policy_assumption; a fixed --fire-mode build has a "
+            "constant expected mode and needs its build receipt"),
+        "fire_mode_match_validity": (
+            "match/mismatch only meaningful for the default ai wave%3 build; "
+            "fixed single/burst/auto builds are not represented in the bundle"),
         "unavailable": {
             "hit_counter": True, "aim_error": True, "reticle_width": True,
             "target_icon_width": True, "player_accuracy_state": True,
@@ -1153,17 +1166,109 @@ def summarize_receipt(target: Path) -> dict:
     }
     if firearms_team0["samples"] or firearms_team1["samples"]:
         gaps_hint = list(gaps_hint) + ["shot_telemetry_ammo_delta_only"]
-    for gap in ("hit_telemetry_unavailable", "aim_error_unavailable",
+    for gap in ("aim_error_unavailable",
                 "reticle_telemetry_unavailable",
                 "weapon_fire_mode_unavailable",
                 "player_accuracy_state_unavailable",
                 "manual_fire_mode_unavailable",
-                "item_accuracy_patch_receipt_only"):
+                "item_accuracy_patch_receipt_only",
+                "fire_mode_policy_not_in_bundle"):
         if gap not in gaps_hint:
             gaps_hint.append(gap)
     if not (firearms_team0["attack_actions"] or firearms_team1["attack_actions"]):
         gaps_hint.append("attack_action_unavailable")
 
+    agent_meta = {}
+    for event in events:
+        if event["event"] in ("ai_sample", "combat_sample"):
+            fields = event["fields"]
+            agent_id = _bounded_int(fields.get("id"), minimum=0)
+            if agent_id is None:
+                continue
+            team = _bounded_int(fields.get("team"), minimum=0, maximum=1)
+            if team is None and event["event"] == "combat_sample":
+                team = 0
+            troop = _bounded_int(fields.get("troop"), minimum=0)
+            if agent_id not in agent_meta or team is not None:
+                agent_meta[agent_id] = {"team": team, "troop": troop}
+    hit_events = [event for event in events if event["event"] == "hit_sample"]
+    hit_counts = {"missile": 0, "melee": 0}
+    damage_total = 0
+    friendly_fire = 0
+    by_dealer_team, by_victim_team = {}, {}
+    by_dealer_troop, by_victim_troop = {}, {}
+    unattributed = 0
+    for event in hit_events:
+        fields = event["fields"]
+        dealer = _bounded_int(fields.get("dealer"), minimum=0)
+        victim = _bounded_int(fields.get("victim"), minimum=0)
+        damage = _bounded_int(fields.get("damage"), minimum=0)
+        kind = fields.get("kind")
+        hit_counts[kind if kind in hit_counts else "melee"] += 1
+        damage_total += damage or 0
+        dmeta = agent_meta.get(dealer) if dealer is not None else None
+        vmeta = agent_meta.get(victim) if victim is not None else None
+        if dmeta and dmeta.get("team") is not None:
+            key = str(dmeta["team"])
+            by_dealer_team[key] = by_dealer_team.get(key, 0) + 1
+        if vmeta and vmeta.get("team") is not None:
+            key = str(vmeta["team"])
+            by_victim_team[key] = by_victim_team.get(key, 0) + 1
+        if dmeta and dmeta.get("troop") is not None:
+            key = str(dmeta["troop"])
+            by_dealer_troop[key] = by_dealer_troop.get(key, 0) + 1
+        if vmeta and vmeta.get("troop") is not None:
+            key = str(vmeta["troop"])
+            by_victim_troop[key] = by_victim_troop.get(key, 0) + 1
+        if dmeta is None or vmeta is None:
+            unattributed += 1
+        elif dmeta.get("team") is not None and dmeta.get("team") == vmeta.get("team"):
+            friendly_fire += 1
+    last_hb_fields = {}
+    for event in reversed(events):
+        if event["event"] == "heartbeat":
+            last_hb_fields = event["fields"]
+            break
+    hits = {
+        "source": (
+            "candidate ti_on_agent_hit param mapping (victim=1,dealer=2,"
+            "damage=3,missile=5); mapping and in-build behavior unverified"),
+        "mapping_unverified": True,
+        "capability": {
+            "hit_trigger": probe.get("hit_trigger"),
+            "hit_attribution": probe.get("hit_attribution"),
+            "hit_events_cap": probe.get("hit_events_cap"),
+        },
+        "events": len(hit_events),
+        "damage_total": damage_total,
+        "by_kind": hit_counts,
+        "friendly_fire": friendly_fire,
+        "by_dealer_team": by_dealer_team or None,
+        "by_victim_team": by_victim_team or None,
+        "by_dealer_troop": (dict(sorted(by_dealer_troop.items(),
+                                        key=lambda kv: (-kv[1], kv[0]))[:12])
+                            or None),
+        "by_victim_troop": (dict(sorted(by_victim_troop.items(),
+                                        key=lambda kv: (-kv[1], kv[0]))[:12])
+                            or None),
+        "unattributed": unattributed,
+        "agent_metadata_available": len(agent_meta) if agent_meta else None,
+        "friendly_fire_note": (
+            "metadata-limited undercount: only hits with both dealer and victim "
+            "metadata sampled are classified"),
+        "validation": "static/test-only pending sealed hit-bearing run",
+        "param_mapping_source": (
+            "Native-derived module_mission_templates.py: 1=victim,2=dealer,"
+            "3=damage,5=missile; cited, not yet verified in our build"),
+        "heartbeat_last": {
+            "hit_attempts": _bounded_int(last_hb_fields.get("hit_attempts")),
+            "hit_events": _bounded_int(last_hb_fields.get("hit_events")),
+            "hit_param_invalid": _bounded_int(last_hb_fields.get("hit_param_invalid")),
+        },
+    }
+
+    if not hit_events and "hit_telemetry_unavailable" not in gaps_hint:
+        gaps_hint.append("hit_telemetry_unavailable")
     gaps = list(gaps_hint)
     if defender_samples and not defenders["weapon_mode_observed"]:
         gaps.append("weapon_mode_unobserved")
@@ -1259,6 +1364,7 @@ def summarize_receipt(target: Path) -> dict:
         "divisions": divisions,
         "defenders": defenders,
         "firearms": firearms,
+        "hits": hits,
         "waves": {"observed": waves, "max": waves[-1] if waves else None,
                   "multiple_observed": len([w for w in waves if w >= 1]) >= 2,
                   "wave1": {"observed": wave1_observed,
@@ -1383,6 +1489,11 @@ def format_summary(summary: dict) -> str:
                  f"melee_team0={defend['melee_fallback_team0']} "
                  f"deaths={defend['deaths']}")
     fire = summary["firearms"]
+    hits = summary.get("hits") or {}
+    lines.append(f"hits:            total={hits.get('events')} damage={hits.get('damage_total')} "
+                 f"friendly_fire={hits.get('friendly_fire')} "
+                 f"dealer_teams={hits.get('by_dealer_team')} "
+                 f"victim_troops={hits.get('by_victim_troop')}")
     lines.append(f"firearms:        team0 shots={fire['team0']['shots_observed']} "
                  f"burn={fire['team0']['ammo_burn']} reloads={fire['team0']['reloads_observed']} "
                  f"kills_delta={fire['team0']['kills_delta_observed']} "
