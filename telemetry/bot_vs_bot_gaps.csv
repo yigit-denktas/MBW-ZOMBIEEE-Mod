@@ -1,0 +1,8 @@
+why,suggestion
+round_end_event_missing,add an explicit round-end/wipe event or a documented round boundary
+hit_attribution_unavailable,trace per-hit/per-death attribution or a kill-event stream
+wall_clock_round_survival_unknown,record wall-clock round survival time
+parameter_metadata_missing,"carry the build/parameter receipt (fire_mode, defender_target, speed, ammo) into every sealed bundle"
+per_troop_death_unavailable,record per-troop deaths/alive counts
+spawn_entry_fairness_unavailable,trace spawn/entry timestamps and team entry fairness
+positioning_spread_unavailable,record enough position samples to compare formation spread per round
