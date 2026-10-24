@@ -102,6 +102,10 @@ emit("recorder_capabilities",
     -- No verified read-only WSE2 operation exists for shield/block, mounted
     -- identity or current action in this mod: report 0 capability, never guess.
     .. "|shield_getter=0|mounted_getter=0|action_getter=0"
+    .. "|attack_action_getter=" .. binding_flag("agent_get_attack_action")
+    .. "|accuracy_getter=" .. binding_flag("agent_get_accuracy_modifier")
+    .. "|reload_getter=" .. binding_flag("agent_get_reload_speed_modifier")
+    .. "|reticle_getter=0|aim_error_getter=0|fire_mode_getter=0"
     .. "|speed_modifier_getter=" .. binding_flag("agent_get_speed_modifier")
     .. "|time_multiplier_getter=" .. binding_flag("agent_get_time_speed_multiplier")
     .. "|action_speed_getter=" .. binding_flag("agent_get_action_speed_modifier")
@@ -644,13 +648,22 @@ local function sample_world()
                                 "agent_get_time_speed_multiplier", agent)
                             local action = read_agent_number(
                                 "agent_get_action_speed_modifier", agent)
+                            local attack_action = read_agent_number(
+                                "agent_get_attack_action", agent)
+                            local accuracy_modifier = read_agent_number(
+                                "agent_get_accuracy_modifier", agent)
+                            local reload_modifier = read_agent_number(
+                                "agent_get_reload_speed_modifier", agent)
                             result.ai_samples[#result.ai_samples + 1] =
                                 { team = side, id = agent, x = x, y = y,
                                   kills = kills, group = group, troop = troop,
                                   defender = defender, weapon = weapon, ammo = ammo,
                                   alive = (is_alive(agent) == true) and 1 or 0,
                                   mode = weapon_mode, speed = speed,
-                                  time_multiplier = fixed, action_speed = action }
+                                  time_multiplier = fixed, action_speed = action,
+                                  attack_action = attack_action,
+                                  accuracy_modifier = accuracy_modifier,
+                                  reload_modifier = reload_modifier }
                         end
                     end
                 end
@@ -978,6 +991,12 @@ local function sample_defenders(tick, mode, wave)
                 elseif ammo == 0 and weapon >= 0 then
                     weapon_mode = "melee"
                 end
+                local attack_action = read_agent_number(
+                    "agent_get_attack_action", agent)
+                local accuracy_modifier = read_agent_number(
+                    "agent_get_accuracy_modifier", agent)
+                local reload_modifier = read_agent_number(
+                    "agent_get_reload_speed_modifier", agent)
                 local alive_flag = is_alive(agent) == true and 1 or 0
                 if kills >= 0 or ammo >= 0 or weapon >= 0 then
                     emit("combat_sample", "|tick=" .. tick .. "|id=" .. agent
@@ -987,6 +1006,9 @@ local function sample_defenders(tick, mode, wave)
                         .. "|wave=" .. wave .. "|mode=" .. mode
                         .. "|kills=" .. kills .. "|ammo=" .. ammo .. "|weapon=" .. weapon
                         .. "|alive=" .. alive_flag .. "|weapon_mode=" .. weapon_mode
+                        .. "|attack_action=" .. attack_action
+                        .. "|accuracy_modifier=" .. accuracy_modifier
+                        .. "|reload_speed_modifier=" .. reload_modifier
                         .. "|shield=-1|action=-1")
                 end
                 if type(game.agent_get_position) == "function" then
@@ -1037,6 +1059,9 @@ local function emit_ai_samples(world, role, wave, tick)
             .. "|speed=" .. (sample.speed or -1)
             .. "|time_multiplier=" .. (sample.time_multiplier or -1)
             .. "|action_speed=" .. (sample.action_speed or -1)
+            .. "|attack_action=" .. (sample.attack_action or -1)
+            .. "|accuracy_modifier=" .. (sample.accuracy_modifier or -1)
+            .. "|reload_speed_modifier=" .. (sample.reload_modifier or -1)
             .. "|shield=-1|action=-1"
             .. "|x=" .. sample.x .. "|y=" .. sample.y
             .. "|kills=" .. (sample.kills or -1) .. "|wave=" .. wave)

@@ -993,6 +993,177 @@ def summarize_receipt(target: Path) -> dict:
         except ValueError:
             pass
 
+    # Firearm shot/ammo inference (C task-60). Shots are inferred from observed
+    # ammo decreases between samples; there is no engine shot/hit event and no
+    # readable reticle/fire-mode/aim-error state in this build, so those remain
+    # explicit unknown/gap fields. Intervals are in sample tick units, not
+    # wall-clock seconds.
+    # A's task-59 policy labels (accuracy%, reload%): tuning labels for the
+    # AI accuracy/reload modifiers, NOT an engine single/burst/auto mode.
+    FIRE_MODE_PROFILES = {(150, 120): "single", (135, 145): "burst",
+                          (115, 165): "auto"}
+    FIRE_MODE_ORDER = ("single", "burst", "auto")
+
+    def _firearm_team(team):
+        series = {}
+        for event in events:
+            if event["event"] not in ("ai_sample", "combat_sample"):
+                continue
+            fields = event["fields"]
+            if _bounded_int(fields.get("team")) != team:
+                continue
+            ammo = _bounded_int(fields.get("ammo"))
+            tick = _bounded_int(fields.get("tick"), minimum=0)
+            agent = _bounded_int(fields.get("id"), minimum=0)
+            if ammo is None or tick is None or agent is None:
+                continue
+            series.setdefault(agent, []).append((
+                tick, ammo, _bounded_int(fields.get("weapon")),
+                _bounded_int(fields.get("kills")),
+                _bounded_int(fields.get("attack_action")),
+                _bounded_int(fields.get("accuracy_modifier")),
+                _bounded_int(fields.get("reload_speed_modifier")),
+                _bounded_int(fields.get("wave"))))
+        shots = burn = reloads = samples = 0
+        agents_with_shots = 0
+        intervals = []
+        kills_delta = 0
+        attack_actions = {}
+        weapon_ids = {}
+        accuracy_modifiers = {}
+        reload_modifiers = {}
+        fire_modes_observed = {}
+        fire_mode_expected = {}
+        mode_match = mode_mismatch = 0
+        attack_transitions = release_actions = reload_actions = 0
+        for points in series.values():
+            points.sort(key=lambda item: item[0])
+            previous_tick = None
+            agent_shots = 0
+            previous_action = None
+            for (tick, ammo, weapon, kills, action, accuracy,
+                 reload_value, wave_number) in points:
+                samples += 1
+                if weapon is not None:
+                    weapon_ids[weapon] = weapon_ids.get(weapon, 0) + 1
+                if action is not None:
+                    key = str(action)
+                    attack_actions[key] = attack_actions.get(key, 0) + 1
+                    if previous_action is not None and action != previous_action:
+                        attack_transitions += 1
+                    if action in (2, 3):
+                        release_actions += 1
+                    if action == 5:
+                        reload_actions += 1
+                    previous_action = action
+                if accuracy is not None:
+                    accuracy_modifiers[accuracy] = accuracy_modifiers.get(accuracy, 0) + 1
+                if reload_value is not None:
+                    reload_modifiers[reload_value] = reload_modifiers.get(reload_value, 0) + 1
+                observed = FIRE_MODE_PROFILES.get((accuracy, reload_value))
+                if observed is not None:
+                    fire_modes_observed[observed] = fire_modes_observed.get(observed, 0) + 1
+                if wave_number is not None and wave_number >= 0:
+                    expected = FIRE_MODE_ORDER[wave_number % 3]
+                    fire_mode_expected[expected] = fire_mode_expected.get(expected, 0) + 1
+                    if observed is not None:
+                        if observed == expected:
+                            mode_match += 1
+                        else:
+                            mode_mismatch += 1
+            for first, second in zip(points, points[1:]):
+                if first[3] is not None and second[3] is not None \
+                        and second[3] >= first[3]:
+                    kills_delta += second[3] - first[3]
+                if second[1] < first[1]:
+                    fired = first[1] - second[1]
+                    agent_shots += fired
+                    shots += fired
+                    burn += fired
+                    if previous_tick is not None:
+                        intervals.append(second[0] - previous_tick)
+                    previous_tick = second[0]
+                elif second[1] > first[1]:
+                    reloads += 1
+                    previous_tick = None
+            if agent_shots:
+                agents_with_shots += 1
+        return {
+            "samples": samples,
+            "agents": len(series),
+            "agents_with_shots": agents_with_shots,
+            "shots_observed": shots,
+            "ammo_burn": burn,
+            "reloads_observed": reloads,
+            "shot_intervals_ticks": (
+                {"count": len(intervals), "min": min(intervals),
+                 "avg": round(sum(intervals) / len(intervals), 3),
+                 "max": max(intervals)} if intervals else None),
+            "kills_delta_observed": kills_delta,
+            "shot_to_kill_ratio": (round(shots / kills_delta, 3)
+                                   if kills_delta > 0 else None),
+            "attack_actions": dict(sorted(attack_actions.items(),
+                                          key=lambda kv: (-kv[1], kv[0]))[:12]) or None,
+            "weapon_ids": dict(sorted(weapon_ids.items(),
+                                      key=lambda kv: (-kv[1], kv[0]))[:12]) or None,
+            "accuracy_modifiers": (dict(sorted(accuracy_modifiers.items(),
+                                               key=lambda kv: (-kv[1], kv[0]))[:12])
+                                   or None),
+            "reload_speed_modifiers": (dict(sorted(reload_modifiers.items(),
+                                                   key=lambda kv: (-kv[1], kv[0]))[:12])
+                                       or None),
+            "fire_modes_observed": (dict(sorted(fire_modes_observed.items(),
+                                                key=lambda kv: (-kv[1], kv[0])))
+                                    or None),
+            "fire_mode_expected": fire_mode_expected or None,
+            "fire_mode_match_samples": mode_match,
+            "fire_mode_mismatch_samples": mode_mismatch,
+            "attack_action_transitions": attack_transitions,
+            "release_actions": release_actions,
+            "reload_actions": reload_actions,
+            "weapon_fire_modes": None,
+            "item_accuracy_patch": None,
+            "manual_fire_mode": None,
+            "aim_error_proxy": None,
+            "reticle_width": None,
+            "target_icon_width": None,
+            "player_accuracy_state": None,
+        }
+
+    firearms_team0 = _firearm_team(0)
+    firearms_team1 = _firearm_team(1)
+    firearms = {
+        "team0": firearms_team0,
+        "team1": firearms_team1,
+        "source": "ammo_decrease_between_bounded_ai_and_combat_samples",
+        "tick_units": "recorder heartbeat/sample tick (wall-clock unknown)",
+        "unavailable": {
+            "hit_counter": True, "aim_error": True, "reticle_width": True,
+            "target_icon_width": True, "player_accuracy_state": True,
+            "weapon_fire_mode": True,
+            "manual_fire_mode": True,
+            "item_accuracy_patch": True,
+        },
+        "note": ("shots are inferred from ammo decreases, never a shot event; "
+                 "reload resets the interval baseline; fire_modes_observed are "
+                 "labels inferred from the accuracy/reload modifier pair and "
+                 "compared with wave%3 expected labels, not an engine mode "
+                 "readback; no hit/reticle/manual-mode/item-accuracy getter "
+                 "exists here, so those stay unknown."),
+    }
+    if firearms_team0["samples"] or firearms_team1["samples"]:
+        gaps_hint = list(gaps_hint) + ["shot_telemetry_ammo_delta_only"]
+    for gap in ("hit_telemetry_unavailable", "aim_error_unavailable",
+                "reticle_telemetry_unavailable",
+                "weapon_fire_mode_unavailable",
+                "player_accuracy_state_unavailable",
+                "manual_fire_mode_unavailable",
+                "item_accuracy_patch_receipt_only"):
+        if gap not in gaps_hint:
+            gaps_hint.append(gap)
+    if not (firearms_team0["attack_actions"] or firearms_team1["attack_actions"]):
+        gaps_hint.append("attack_action_unavailable")
+
     gaps = list(gaps_hint)
     if defender_samples and not defenders["weapon_mode_observed"]:
         gaps.append("weapon_mode_unobserved")
@@ -1087,6 +1258,7 @@ def summarize_receipt(target: Path) -> dict:
         "troops": troops,
         "divisions": divisions,
         "defenders": defenders,
+        "firearms": firearms,
         "waves": {"observed": waves, "max": waves[-1] if waves else None,
                   "multiple_observed": len([w for w in waves if w >= 1]) >= 2,
                   "wave1": {"observed": wave1_observed,
@@ -1210,6 +1382,16 @@ def format_summary(summary: dict) -> str:
                  f"ranged_team0={defend['ranged_agents_team0']} "
                  f"melee_team0={defend['melee_fallback_team0']} "
                  f"deaths={defend['deaths']}")
+    fire = summary["firearms"]
+    lines.append(f"firearms:        team0 shots={fire['team0']['shots_observed']} "
+                 f"burn={fire['team0']['ammo_burn']} reloads={fire['team0']['reloads_observed']} "
+                 f"kills_delta={fire['team0']['kills_delta_observed']} "
+                 f"actions={fire['team0']['attack_actions']} "
+                 f"accuracy={fire['team0']['accuracy_modifiers']} "
+                 f"reload={fire['team0']['reload_speed_modifiers']} "
+                 f"modes={fire['team0']['fire_modes_observed']} "
+                 f"match={fire['team0']['fire_mode_match_samples']} "
+                 f"| interface available={not fire['unavailable']['hit_counter']}")
     lines.append(f"waves:           observed={summary['waves']['observed']} "
                  f"max={summary['waves']['max']} "
                  f"wave1={summary['waves']['wave1']} "

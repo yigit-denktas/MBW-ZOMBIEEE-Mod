@@ -73,6 +73,7 @@ SCAN_EXEMPT_FILES = {
     'telemetry/privacy.py': 'privacy redaction implementation',
     'tests/test_diagnostics.py': 'privacy fixture paths',
     'tests/test_flight_recorder.py': 'privacy fixture paths',
+    'tests/test_faction_log_guard.py': 'privacy fixture paths',
     'tools/diagnostics.py': 'privacy redaction implementation',
     'launcher/release_gate.py': 'privacy scanner source (regex literals)',
     'reference/MODDER_DIAGNOSTICS_RESEARCH.md':

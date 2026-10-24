@@ -35,6 +35,9 @@ agent_is_non_player = 1707
 agent_get_position = 1710
 agent_get_troop_id = 1718
 agent_get_kill_count = 1723
+agent_get_attack_action = 1763
+agent_get_accuracy_modifier = 2066
+agent_get_reload_speed_modifier = 2068
 agent_get_wielded_item = 1726
 agent_get_ammo = 1727
 agent_get_group = 1765
@@ -53,6 +56,9 @@ lhs_operations = [
     agent_get_position,
     agent_get_troop_id,
     agent_get_kill_count,
+    agent_get_attack_action,
+    agent_get_accuracy_modifier,
+    agent_get_reload_speed_modifier,
     agent_get_wielded_item,
     agent_get_ammo,
     agent_get_group,
