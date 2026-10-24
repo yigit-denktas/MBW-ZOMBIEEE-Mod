@@ -19,8 +19,9 @@ from unittest import mock
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 from launcher.city_launch import (  # noqa: E402
-    CityLauncher, LaunchError, LaunchPaths, build_launch_plan, main,
-    server_config_text, session_commands)
+    CityLauncher, LaunchError, LaunchPaths, build_launch_plan,
+    build_parser, main, server_config_text, session_commands)
+from launcher.install import install_paths  # noqa: E402
 from launcher.engines import CLIENT_NAMES, DEDICATED_NAMES  # noqa: E402
 from launcher.profile_matrix import (  # noqa: E402
     build_profile_matrix, extract_installed_profile,
@@ -350,6 +351,94 @@ class LaunchEnemyProfileTests(unittest.TestCase):
                 self._plan(tmp, team2_bots=600)
 
 
+class LaunchParallelLaneTests(unittest.TestCase):
+    """Two lane pre-plans: distinct module copy, loopback port and argv."""
+
+    def _plan(self, tmp, **kwargs):
+        fixture = GameFixture(tmp)
+        return build_launch_plan(discovery_report=fixture.report,
+                                 evidence_root=fixture.evidence,
+                                 installed_status=INSTALLED_OK, **kwargs)
+
+    def test_lane_one_is_the_unchanged_default(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            plan = self._plan(tmp)
+            self.assertTrue(plan['ok'], plan['blockers'])
+            self.assertEqual(plan['lane_id'], 1)
+            self.assertEqual(plan['module_name'], 'ZOMBIEEE_Remaster')
+            self.assertEqual(plan['endpoint'], '127.0.0.1:7240')
+            self.assertEqual(plan['client_join_address'], '127.0.0.1:7240')
+            self.assertIs(plan['parallel_lane_supported'], True)
+            self.assertIs(plan['parallel_lane_runtime_verified'], False)
+            self.assertIn('--module', plan['client_argv_suffix'])
+            self.assertEqual(plan['client_argv_suffix'][1],
+                             'ZOMBIEEE_Remaster')
+
+    def test_lane_two_has_distinct_module_copy_and_loopback_port(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            plan = self._plan(tmp, lane_id=2)
+            self.assertTrue(plan['ok'], plan['blockers'])
+            self.assertEqual(plan['lane_id'], 2)
+            self.assertEqual(plan['module_name'], 'ZOMBIEEE_Remaster_lane2')
+            self.assertEqual(plan['endpoint'], '127.0.0.1:7241')
+            self.assertEqual(plan['client_join_address'], '127.0.0.1:7241')
+            self.assertEqual(plan['client_argv_suffix'][1],
+                             'ZOMBIEEE_Remaster_lane2')
+            self.assertEqual(plan['client_argv_suffix'][3], '127.0.0.1:7241')
+            self.assertEqual(plan['host_argv_suffix'][-1],
+                             'ZOMBIEEE_Remaster_lane2')
+            self.assertIs(plan['parallel_lane_runtime_verified'], False)
+
+    def test_lane_validation_refuses_unknown_lane_port_or_module(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaises(LaunchError):
+                self._plan(tmp, lane_id=3)
+            with self.assertRaises(LaunchError):
+                self._plan(tmp, lane_id=2, port=7250)
+            with self.assertRaises(LaunchError):
+                self._plan(tmp, module_name='../escape')
+            with self.assertRaises(LaunchError):
+                self._plan(tmp, module_name='ZOMBIEEE Remaster')
+
+    def test_install_paths_are_disjoint_per_lane(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            game = Path(tmp) / 'Warband'
+            one = install_paths(game, 'tx-one', module_name='ZOMBIEEE_Remaster')
+            two = install_paths(game, 'tx-two',
+                                module_name='ZOMBIEEE_Remaster_lane2')
+            self.assertNotEqual(one['target'], two['target'])
+            self.assertNotEqual(one['stage_module'], two['stage_module'])
+            self.assertNotEqual(one['backup'], two['backup'])
+            self.assertIn('ZOMBIEEE_Remaster', one['target'])
+            self.assertIn('ZOMBIEEE_Remaster_lane2', two['target'])
+
+    def test_config_and_argv_use_the_selected_lane(self):
+        config = server_config_text(host_log_name='lane.log', port=7241)
+        self.assertIn('iServerPort=7241', config)
+        with self.assertRaises(ValueError):
+            server_config_text(host_log_name='lane.log', port=7240 + 99)
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            host, client = session_commands(
+                dedicated_executable=root / 'dedicated.exe',
+                client_executable=root / 'client.exe',
+                config_path=root / 'server-config.ini',
+                rotation_path=root / 'rotation.txt',
+                module_name='ZOMBIEEE_Remaster_lane2',
+                endpoint='127.0.0.1:7241')
+            self.assertEqual(host[-1], 'ZOMBIEEE_Remaster_lane2')
+            self.assertIn('127.0.0.1:7241', client)
+            self.assertEqual(client[client.index('--module') + 1],
+                             'ZOMBIEEE_Remaster_lane2')
+
+    def test_cli_accepts_lane_choice(self):
+        parser = build_parser()
+        self.assertEqual(parser.parse_args(['plan', '--lane', '2']).lane, 2)
+        with contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit):
+                parser.parse_args(['plan', '--lane', '3'])
+
+
 class LaunchPathTests(unittest.TestCase):
     def test_rotation_config_and_argv_are_private_and_loopback(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -387,7 +476,7 @@ class LaunchPathTests(unittest.TestCase):
                       server_config_text(host_log_name='session.log'))
         for kwargs in ({'host_log_name': 'a/b.log'}, {'host_log_name': 'a\\b.log'},
                        {'host_log_name': ''}, {'host_log_name': 'x', 'port': 0},
-                       {'host_log_name': 'x', 'port': 7241}):
+                       {'host_log_name': 'x', 'port': 7242}):
             with self.subTest(kwargs=kwargs), self.assertRaises(ValueError):
                 server_config_text(**kwargs)
 

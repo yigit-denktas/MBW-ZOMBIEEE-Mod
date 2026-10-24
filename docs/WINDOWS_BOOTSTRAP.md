@@ -339,6 +339,14 @@ Bare invocation defaults to `play`; `play --rebuild` forces a fresh build.
    and the sealed stop are unchanged. Plan and launch receipt record
    `enemy_profile` and `team2_bots`; e.g.
    `python -m launcher.play_city --enemy-profile native-only --max-minutes 3 --json`.
+4. Parallel lanes are partially prepared but **not runtime-verified**:
+   `--lane 1` uses module copy `ZOMBIEEE_Remaster` and loopback port 7240;
+   `--lane 2` uses `ZOMBIEEE_Remaster_lane2` and port 7241. Each lane needs
+   its own install (distinct target/stage/backup), server config and rotation;
+   the launcher plan/argv/install paths are lane-aware and offline-tested, but
+   concurrent WSE2 dedicated instances on one machine are **not yet runtime
+   verified** by D. If WSE2 cannot run two dedicated instances concurrently,
+   that is an explicit blocker, not a claimed feature. No acceptance claim.
 4. Recorder first: C's passive recorder is armed and must publish a canonical
    ready marker for this exact session/attempt/PID before any game child starts.
    The host is then started with a generated loopback-only WSE2 config

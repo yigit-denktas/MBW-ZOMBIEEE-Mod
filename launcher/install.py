@@ -34,6 +34,7 @@ MODULE_NAME = 'ZOMBIEEE_Remaster'
 JOURNAL_SCHEMA = 'zombieee.install-journal.v1'
 RECEIPT_SCHEMA = 'zombieee.install-receipt.v1'
 TRANSACTION_RE = re.compile(r'[A-Za-z0-9][A-Za-z0-9_-]{0,63}\Z')
+MODULE_NAME_RE = re.compile(r'[A-Za-z][A-Za-z0-9_]{0,63}\Z')
 MAX_MANIFEST_BYTES = 8 * 1024 * 1024
 MAX_MODULE_FILES = 5000
 MAX_OUTPUT_BYTES = 2000
@@ -234,20 +235,29 @@ def _redirected_components(paths):
     return issues
 
 
-def install_paths(game_root, transaction_id, *, evidence_dir=None):
+def validate_module_name(module_name):
+    """Return a safe Warband module directory name or raise ValueError."""
+    if not isinstance(module_name, str) or not MODULE_NAME_RE.fullmatch(module_name):
+        raise ValueError('module_name must be 1..64 safe module characters')
+    return module_name
+
+
+def install_paths(game_root, transaction_id, *, evidence_dir=None,
+                  module_name=MODULE_NAME):
     """Return the exact transaction paths used by the plan and journal."""
     if not TRANSACTION_RE.fullmatch(str(transaction_id)):
         raise ValueError('transaction_id must be 1..64 safe ASCII characters')
+    module_name = validate_module_name(module_name)
     modules = Path(game_root).expanduser().absolute() / 'Modules'
-    target = modules / MODULE_NAME
+    target = modules / module_name
     stage_root = modules / ('.zombieee-stage-' + transaction_id)
     return {
         'game_root': str(Path(game_root).expanduser().absolute()),
         'modules': str(modules),
         'target': str(target),
         'stage_root': str(stage_root),
-        'stage_module': str(stage_root / MODULE_NAME),
-        'backup': str(modules / (MODULE_NAME + '.backup-' + transaction_id)),
+        'stage_module': str(stage_root / module_name),
+        'backup': str(modules / (module_name + '.backup-' + transaction_id)),
         'journal': str(Path(evidence_dir).expanduser().absolute()
                        / ('install-journal-' + transaction_id + '.json'))
         if evidence_dir is not None else None,
@@ -288,7 +298,8 @@ def running_game_processes(*, runner=None, timeout=30):
 def plan_install(*, game_root, transaction_id, archive=None, archive_identity=None,
                  evidence_dir=None, expected_source_sha256=None,
                  python_executable=None, repo_root=None, city_flags=CITY_BUILD_FLAGS,
-                 build_timeout=1800, running_processes=None):
+                 build_timeout=1800, running_processes=None,
+                 module_name=MODULE_NAME):
     """Build a dry install plan; never writes, builds or launches anything.
 
     ``archive_identity`` must be Agent A's read-only audit report (the
@@ -300,7 +311,8 @@ def plan_install(*, game_root, transaction_id, archive=None, archive_identity=No
 
     game_root = Path(game_root).expanduser().absolute()
     transaction_id = str(transaction_id)
-    paths = install_paths(game_root, transaction_id, evidence_dir=evidence_dir)
+    paths = install_paths(game_root, transaction_id, evidence_dir=evidence_dir,
+                           module_name=module_name)
     target = Path(paths['target'])
     stage_root = Path(paths['stage_root'])
     stage_module = Path(paths['stage_module'])
@@ -395,6 +407,7 @@ def plan_install(*, game_root, transaction_id, archive=None, archive_identity=No
         'execution_enabled': not unique_blockers,
         'consent_required': True,
         'transaction_id': transaction_id,
+        'module_name': module_name,
         'operation': 'update' if target.exists() else 'install',
         'game_root': str(game_root),
         'modules': paths['modules'],
