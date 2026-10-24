@@ -138,7 +138,22 @@ Source revision for the hit-param two-arg metadata-only receipt: `0d9415c`.
 Source revision for the hit-param diagnostic metadata-only receipt: `d988597`.
 
 
-Source revision for the adaptive visual/fields metadata-only receipt: `d8a57f4`.
+Source revision for the task-82 ranged telemetry metadata-only receipt: `41062a3`.
 
 
-Source revision for the ported summary caveat metadata-only receipt: `bd2d4d0`.
+Source revision for the ranged adaptive coverage metadata-only receipt: `1d714c7`.
+
+
+Source revision for the shot proxy metadata-only receipt: `9e4342c`.
+
+
+Source revision for the refill-off context metadata-only receipt: `c170ebf`.
+
+
+Source revision for the adaptive parser/brief metadata-only receipt: `b54124c`.
+
+
+Source revision for the task-72 spatial metadata-only receipt: `6a1f653`.
+
+
+Source revision for the task-72 review fixes metadata-only receipt: `0325ea6`.

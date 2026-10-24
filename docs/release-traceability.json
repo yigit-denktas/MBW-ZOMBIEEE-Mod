@@ -6,7 +6,7 @@
   "acceptance": "none",
   "runtime_verified": false,
   "observed_on": "2026-10-24",
-  "source_revision": "bd2d4d06634c4761922d945e11df2e323bfad5e3",
+  "source_revision": "0325ea6c2538cab2520e7208ab9a046c3261420a",
   "version_sources": {
     "version": "VERSION",
     "changelog": "CHANGELOG.md#030-beta1-2026-10-24",
@@ -523,7 +523,7 @@
     "published": false
   },
   "source_revision_exception": {
-    "reason": "ported summary caveat/parser to probe branch; metadata-only head revision",
+    "reason": "task-72 review fixes; metadata-only head revision",
     "changed_paths": [
       "docs/release-traceability.json",
       "CHANGELOG.md",

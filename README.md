@@ -219,7 +219,22 @@ This project deliberately separates **source-verified**, **observed**, **unknown
 <!-- hit-param diagnostic metadata-only source revision: d988597 -->
 
 
-<!-- adaptive visual/fields metadata-only source revision: d8a57f4 -->
+<!-- task-82 ranged telemetry metadata-only source revision: 41062a3 -->
 
 
-<!-- ported summary caveat metadata-only source revision: bd2d4d0 -->
+<!-- ranged adaptive coverage metadata-only source revision: 1d714c7 -->
+
+
+<!-- shot proxy metadata-only source revision: 9e4342c -->
+
+
+<!-- refill-off context metadata-only source revision: c170ebf -->
+
+
+<!-- adaptive parser/brief metadata-only source revision: b54124c -->
+
+
+<!-- task-72 spatial metadata-only source revision: 6a1f653 -->
+
+
+<!-- task-72 review fixes metadata-only source revision: 0325ea6 -->
