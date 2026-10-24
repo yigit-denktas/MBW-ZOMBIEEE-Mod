@@ -130,3 +130,6 @@ Source revision for the task-76 adaptive sampling metadata-only receipt: `67dd28
 
 
 Source revision for the heartbeat nil-fix metadata-only receipt: `8d07f2f`.
+
+
+Source revision for the hit-param two-arg metadata-only receipt: `0d9415c`.
