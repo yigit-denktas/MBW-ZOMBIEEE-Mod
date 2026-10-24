@@ -74,6 +74,23 @@ Values are **design targets**, not observed values. Range bands are engagement d
 
 **D runtime caveat (2026-10-24):** team-0 defenders are a **mixed** spawn of 981–984 from one native spawner/refill — there is no per-class composition knob. Class *presence* is observable from `troops_team0`/`defenders.troops`; per-class hold/fire **outcomes cannot be attributed** while all four classes are mixed. Single-class build variants or A-exposed per-class state are required for attribution.
 
+### 2.6 Related work — how other mods implement division orders and class roles
+
+Lead requested community/GitHub evidence for this matrix. The pattern is consistent across both ecosystems: class roles are implemented as **data plus class-scoped orders or formation behaviours**, never as per-agent target lists. Sources observed **2026-10-24**; no code or assets were copied.
+
+| Source | What it does | What we take | Limits |
+| --- | --- | --- | --- |
+| **Native Warband battle tactics** — class percentages and class-scoped orders ([module_scripts.py](https://github.com/LilyModzStuff/warband_mod_source/blob/c9737d7793ccdb185d8d3caedda0da915104e405/source/module_scripts.py), commit `c9737d7`, 2019-04-05; `team_get_class_percentages` around lines 31296/32316) | Computes infantry/archer/cavalry percentages and issues `team_give_order` to `grc_infantry`/`grc_archers`/`grc_cavalry`; class buckets are the role system | Roles = class buckets; percentages feed tactic choice. Native precedent for our class→division mapping | No per-agent roles; no target policy |
+| **FormAI / Motomataru** ([formAI_scripts.py at commit `4e2fb81`](https://github.com/cvlc/tgsmod/blob/4e2fb81b814e2dc420430a679f8deeafcd63b40b/formAI_scripts.py), 2015-12-13; lineage [Nexus 2475](https://www.nexusmods.com/mbwarband/mods/2475)) | Per-class formations, positions, spacing and hold/charge/fire sequences through `grc_infantry`/`grc_archers`/`grc_cavalry`; tracks target divisions; notes that `team_give_order` treats mounted heroes as infantry and asks whether to change their division | Class-scoped orders are the canonical Warband pattern; class/order mismatch is a known trap (same family as our group/division confusion) | Link-only; community licence; no code imported |
+| **The Last Days** ([commit `2485b4c`](https://github.com/tldmod/tldmod/commit/2485b4c8efd8125de19cefdf60e95b6fae1fb0ce), 2017-10-19) | "Add code to change horsearcher division to archer during siege (WB only)" | Situational **class/division reassignment** is an established Warband pattern; supports our role/tier remap design | Warband-only script change; not a general AI API |
+| **Chinese module tutorial 2109811** ([thread](https://bbs.mountblade.com.cn/forum.php?mod=viewthread&action=printable&tid=2109811), 2025-02-09) | Extends the class table within 0–8 slots (`troop_set_class`, `class_set_name`), class-specific formation rows, class percentages feeding Native tactics | Our four classes fit inside the 0–9 order/class space; class table is module data, not engine magic | Community tutorial quoting Native scripts; not an official spec |
+| **Chinese Q&A 2104439** ([thread](https://bbs.mountblade.com.cn/thread-2104439-1-1.html), observed 2026-10-24) | Class follows troop/equipment data; modders change it with `troop_set_class`/class checks; divisions are tracked separately | Class is data, not AI behaviour; our troop-id→class map is the same idea | Thread, no formal spec; date not extracted |
+| **Bannerlord official data + assignment logic** ([NPCCharacter XML](https://docs.bannerlordmodding.com/_xmldocs/npccharacters/NPCCharacter); [`GeneralsAndCaptainsAssignmentLogic`](https://apidoc.bannerlord.com/v/1.4.7/class_tale_worlds_1_1_mount_and_blade_1_1_generals_and_captains_assignment_logic.html), v1.4.7, observed 2026-10-24) | `default_group` (Infantry/Ranged/Cavalry/HorseArcher/General) and `formation_position_preference` are troop data; captains are assigned to formations by mission logic | Class = data; formations have assigned leaders. Our troop-id map + division roles are the Warband analogue | Assignment logic is engine-side; no equivalent order API in Warband |
+| **Realistic Battle Mod (RBM)** ([AI manual](https://fellow93.github.io/RealisticBattleProject/features/ai/), observed 2026-10-24; source repo [Fellow93/RealisticBattleProject](https://github.com/Fellow93/RealisticBattleProject), commit `7f9069b`, 2026-10-06) | Culture-specific tactics; infantry line, archers skirmish/pull back behind infantry, cavalry charge/reform, javelin screen; out-of-ammo soldiers re-sorted by carried equipment; class engagement ranges; "Charge" goes at the nearest sizeable enemy formation and "Advance" stops at shooting distance; AI behaviour log | Bannerlord enforces class roles through formation AI and order post-processing. Warband cannot, so our rows must stay **placement + orders + measurement**; RBM's range/role behaviour is a reference, not a transferable mechanism | Mod manual/source; no code copied; behaviour is engine/mod-specific |
+| **Bannerlord formation-AI mods** — [ProperShieldWalls](https://github.com/w1r3dh4ck3r/ProperShieldWalls) (pushed 2026-08-18) and [TacticalWarfareAI](https://github.com/davrodwconnections/TacticalWarfareAI) (pushed 2026-08-13) | Community formation overhauls: improved shield-wall formation AI/tactics; Harmony combat-AI overhaul with smarter formations and tactical behaviours | Confirms formation/class behaviour is a real community niche; demonstrates the layer Warband lacks | Repository descriptions/metadata only; no code review |
+
+**Takeaway for this matrix:** both ecosystems put class roles in **data** and **class-scoped orders/formation behaviours**; neither exposes per-agent target lists. Bannerlord's richer class outcomes come from its formation/behaviour layer, which Warband does not expose — reinforcing the F-now/B-engine split below. Nothing above is imported: citations only.
+
 ---
 
 ## 3. Range-band model (placement, not targeting)
@@ -97,6 +114,7 @@ The bands overlap deliberately (real fights compress distances). The point is **
 - **F-now:** anchor offsets and hold positions (rear entries 0/1, forward posts 2/3/4 only under the approved staged line) produce the intended distances as long as survivors hold. Class-specific anchor offsets can be encoded as position math in the same 5 s trigger.
 - **B-engine:** dynamic per-agent range keeping (kiting/retreat-to-band) does not exist. Any claim that a sniper "keeps 40 m" is false unless it is stationary/holding; the engine will close if it decides to.
 - **B-unproven:** whether per-division hold orders actually keep each class on its offset (division adoption + addressability, task-61).
+- **Community calibration:** RBM's class-specific engagement ranges are enforced by its formation AI (manual: infantry engage ≈70–95 m, cavalry ≈70/35 m, sidearm ≈2.5 m); those values are a reference point only — Warband cannot enforce per-class range, so our bands remain **placement targets** (§2.6).
 
 ---
 
@@ -115,6 +133,8 @@ The bands overlap deliberately (real fights compress distances). The point is **
 
 **Accuracy interaction (A, 2026-10-24):** native `agent_set_accuracy_modifier` (2092) **stacks with or overrides** the build-level automatic-firearm accuracy profile (task-22 `+8..10` points). Treat per-class accuracy as an interaction that must be measured, not as an independent second profile; D/C must record both the item-table accuracy and the runtime modifier.
 
+**Community analogy:** RBM re-sorts out-of-ammo archers by carried equipment and switches to sidearms at close range; our ammo gate/melee fallback is the Warband version of the same capability, without a shop or per-agent target control (§2.6).
+
 **Optional experiments (not baseline):** WSE2 `agent_set_can_multihit` 3353 (shotgun vs horde), `agent_set_can_piercing` 3359 (sniper vs line), `agent_set_crush_through` 3355 (shield pressure). All are per-agent mutations, server-side, and need separate builds + D evidence; do not bundle them into the class matrix baseline.
 
 ---
@@ -131,6 +151,8 @@ The bands overlap deliberately (real fights compress distances). The point is **
 | Lumberjack | 5 rear element or 8 | behind E0 / between anchor and centre | last line; if division 8 is used it is **B-unproven** (native uses 8 as a reserved division in field battles, task-61) |
 
 **Current build reality:** the default is rear hold `(0,1,0)` with all team-0 bots adopted round-robin into 5/6/7 (no class mapping); forward posts are only used with `--defensive-line forward` after the task-63 staged approval. Class→division mapping is therefore **F-build**, and its effect is **B-unproven** until task-61's division round-trip proves adoption/addressability.
+
+**Community precedent:** FormAI issues per-class orders and positions through `grc_infantry`/`grc_archers`/`grc_cavalry`, and TLD reassigns horsearcher→archer divisions during sieges; both operate on the class/division channel, not per-agent targets (§2.6).
 
 ### 5.2 Threat posture (task-62 alignment)
 
@@ -152,6 +174,8 @@ The bands overlap deliberately (real fights compress distances). The point is **
 | P0 | 907/908/909/910 Tank/strong/mounted, 895 Tough (shield), 898 Steroid, 900 Witchy | shield/HP/mounted pressure; breaks the line | Sniper (long band), Lumberjack at close | Commando volume fire |
 | P1 | 896 Fast, 911/912 ranged Horde | flanks and chip damage; reaches the line first | Scout (screen/evade) | Commando |
 | P2 | 894 Zombie, 899/901 Mutated, 902–906 weak Invaders | mass; attrites ammo | Commando | Lumberjack |
+
+**Bannerlord contrast:** RBM's formation AI can send "Charge" at the nearest sizeable enemy formation and change class responsibilities by ammo/equipment; Warband has no target setter, so our P0/P1 rows remain **responsibility assignments**, not enforceable priority (§2.6).
 
 **Profile dependency and D correction (2026-10-24):** the weak profile only normalizes **generic fill** to 894; native wave visitors still spawn original troops. D observed faction slots `221:898, 231:895, 241:896` and wave-2 `troops_team1=896:7,894:6` before A's P0 fix; with A's P0 build the slots read 894 but that build crashed and is frozen. Therefore **weak-wave-1 currently is NOT a clean negative control**: it contains stronger enemies through native visitors. Do not use it to claim "P0 absent"; record the active profile and wave-faction slots with every observation.
 
@@ -207,6 +231,8 @@ Armour progression is limited to original clothing items already in the archive 
 ### 8.3 Why tiering is the honest upgrade path
 
 The engine only lets a spawn choose a troop record; it does not let a script add armour or a weapon to a living bot. Therefore "between-wave upgrades" are **respawn as a better class record** (B) plus **rearm/heal** (A), not a shop. This must be stated in the owner-facing summary; a purchase/upgrade UI would be a different project scope (engine/UI work, not this matrix).
+
+**Community analogy:** RBM treats class role as equipment/ammo-driven — out-of-ammo archers are re-sorted by what they carry rather than buying upgrades mid-battle; our tier/role changes are spawn-data changes, not purchases (§2.6).
 
 ---
 
@@ -278,6 +304,7 @@ The engine only lets a spawn choose a troop record; it does not let a script add
 10. **Class skills/armour** changes are build-time data only; do not assume runtime stat edits.
 11. **Per-class isolation is unavailable (D):** all four classes come from one spawner/refill; no per-class composition knob. Only single-class build variants or A-exposed per-class state can support per-class behaviour attribution.
 12. **Ammo-limited/desperation and tier paths are unreachable in current builds (D):** strict no-refill/no-wave-reinforcement build exists but is not installed (Lead-owned); no tier concept/telemetry. Do not plan sealed claims on them.
+13. **Community implementations offer no workaround (surveyed §2.6):** Bannerlord mods use formation-AI/behaviour hooks Warband lacks; Warband mods use class-scoped module scripts and division reassignment. Neither provides per-agent target control. Do not import their code or assume their outcomes transfer to our engine.
 
 ---
 
@@ -288,6 +315,7 @@ The engine only lets a spawn choose a troop record; it does not let a script add
 - **A, 2026-10-24 (against `f1ba5c5`): consistent with build, corrections applied:** reserve slot 8 marked **B-unproven/blocked** (baseline is division 5 rear element); class speed on team 0 confirmed feasible/F-now and non-conflicting with the team-1-only native wave-speed loop, observable after re-seal; `agent_set_accuracy_modifier` (2092) explicitly stated to stack/override the global automatic-accuracy profile; fallback thresholds limited to counts/positions/ammo/HP (**no target/strength getter**) with order reach B-unproven; refill/heal ops 1728/1721 confirmed native; tier clones explicitly owner-approved separately; multihit/piercing separate builds only.
 - **D, 2026-10-24 (against `abac9df`): bounded feasibility flags applied:** per-class isolation unavailable (mixed 981–984 spawn; only class presence observable); weak-wave-1 contains stronger native visitors (895/896/898; A P0 fix crashed) so it is **not** a P0-negative control; ammo-limited desperation run unreachable (fresh defenders full ammo, `melee_after_empty_observed=false`) until a strict build is installed; `agent_is_routed` has no verified getter → report unknown, not 0; between-wave regroup/rearm and tier selection are out of scope until A implements/exposes them. Allowed per-run claims are bounded in §9-D item 6. No acceptance.
 - **C, 2026-10-24 (against `f1ba5c5`/`30b9697`): feasible as listed, with corrections applied here:** (a) class map/per-class aggregates and weapon/attack_action are feasible now without A globals if the build pins 981–984; (b) range/engagement is only a 15 s sample-tick proxy, not shot-time or kill-time distance; (c) `kills_team0_by_class` is feasible but class × victim-troop attribution is **not** feasible now and is listed as a proposed field; (d) `agent_get_simple_behavior`/`agent_is_routed` are native but **not currently read** and need msfiles lhs/can_fail declarations + capability flags; fallback/regroup events and tier sourcing are proxies/A-dependent; (e) no acceptance claim. No unresolved C blocker.
+- Related-work/community citations added at Lead's request (2026-10-24): see §2.6 (Native tactics, FormAI, TLD, Chinese class tutorials, Bannerlord NPCCharacter/assignment logic, RBM, Bannerlord formation-AI mods); no code or assets imported.
 - D was sent the validation asks; any later findings should be appended here.
 
 *End of document.*
