@@ -170,6 +170,15 @@ Bounded observations (descriptive only):
 Panels: `telemetry/spatial_task76/panels/spatial_panel_task76-heatmap-hit.svg`. This is a
 single baseline sample, **not** a baseline-vs-variant result; no visual/acceptance claim.
 
+**A independent reading** (`agent/a-heatmap-interpretation` @ `e2068cf`, §task76) matches
+these numbers and adds no correction: team-0's southward displacement away from the north
+anchor is **combat/attrition/survivor-idle drift**, not adaptive fallback or a forward-post
+hold; team-1's masses move toward each other and tighten; no 360° claim; no role
+separation from source-troop-fallback divisions; no fallback condition; single baseline,
+not A/B. A's required gates: verified formation_mode/seed/entry/round-end, true
+class/division identity, fixed hit attribution, and a real matched A/B pair. No causal or
+behavior-acceptance claim.
+
 ## 4. Outputs
 
 - `telemetry/spatial_sample/` - raw-bundle sample (2 runs):
