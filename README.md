@@ -109,7 +109,7 @@ py -3 -m unittest discover -s tests -v
 
 Tests are offline and require **no game launch**. Set `ZOMBIEEE_ORIGINAL_MODULE` and `ZOMBIEEE_ORIGINAL_ARCHIVE` to your private extracted module and original RAR to enable the original-asset source tests; without them those tests skip explicitly rather than pass by default. There is **no CI** by owner choice.
 
-Consolidated source revision: 50bd07e40e15a3c81328ad9258fc7b01655d0e99.
+Consolidated source revision: 723db8dda872e7ad998a624afa0c38e5454e57ac.
 
 Latest recorded run (2026-10-24, Windows 11, Python 3.11.9, rebased on `main` `095f1b0`): **634 tests, OK, 10 skipped**. Original-asset source tests skip unless `ZOMBIEEE_ORIGINAL_MODULE`/`ZOMBIEEE_ORIGINAL_ARCHIVE` are set; the earlier embedded-NUL Windows discovery bug is fixed and covered by regression tests. The release gate verifies recorded metadata only; test counts are not release acceptance.
 
