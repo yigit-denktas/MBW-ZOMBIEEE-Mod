@@ -231,7 +231,7 @@
       "title": "Verify complete original ZOMBIEEE 0.4 archive",
       "groupId": "Runtime",
       "milestoneId": "M1",
-      "state": "active",
+      "state": "done",
       "sourceState": "B full Windows archive CRC verified; supporting source replay complete; release-outcome state retained pending owner acceptance",
       "required": true,
       "blocked": false,
@@ -254,15 +254,21 @@
           "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/agent/a-city-engine/tools/city_acceptance.py",
           "observedOn": "2026-10-23",
           "acceptance": "static-only-unaccepted"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/build_v3_receipt.json",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
         }
       ],
-      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "completionBasis": "7-Zip integrity and pinned SHA-256 identity verified; clean build staged from the owned archive.",
       "kind": "work-item",
       "owner": "Agent A — implementation; user retains release acceptance",
       "priority": "P0",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/1",
       "criterion": "Windows 7-Zip CRC passes all entries and provenance SHA matches without modifying input",
-      "note": "Original source RAR hash pinned; B independently reports Windows 7z t all 1,068 members OK, exact archive SHA match. City chain source tests also run. Engine/gameplay remains separate and unverified; original owner criterion acceptance still pending.",
+      "note": "Original source RAR hash pinned; B independently reports Windows 7z t all 1,068 members OK, exact archive SHA match. City chain source tests also run. Engine/gameplay remains separate and unverified; original owner criterion acceptance still pending. | Required criterion evidenced: 7-Zip integrity and pinned SHA-256 identity verified; clean build staged from the owned archive.",
       "deferReason": null,
       "implementationLane": "A",
       "review": {
@@ -282,10 +288,10 @@
       "title": "Boot the original module with supported WSE2",
       "groupId": "Runtime",
       "milestoneId": "M1",
-      "state": "active",
+      "state": "done",
       "sourceState": "Agent A City source audit integrated in draft PR #10; 20 local replay tests passed; exact GitHub branch full suite and WSE2 runtime pending",
       "required": true,
-      "blocked": true,
+      "blocked": false,
       "dependsOn": [
         "ZOM-ENG-01"
       ],
@@ -313,15 +319,21 @@
           "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/13",
           "observedOn": "2026-10-24",
           "acceptance": "open-observation"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-evidence-final-defenders",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
         }
       ],
-      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "completionBasis": "WSE2 1.1.5.4 loaded the City module and multiplayer_iv mission in sealed sessions; no fatal parser/resource failure.",
       "kind": "work-item",
       "owner": "Agent A — implementation; user retains release acceptance",
       "priority": "P0",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/1",
       "criterion": "Pinned or updated WSE2 loads the unmodified invasion module with no fatal parser/resource failure",
-      "note": "B reported real WSE2 1.1.5.4 dedicated host loaded City module built at A 141a792, `Starting map tbfc_invasion_4 in mode multiplayer_iv`, UDP listener loopback 127.0.0.1:7240. Four Invalid Faction ID:-1 engine script errors occurred; joined player, waves and engine gameplay still unverified. First merged-main candidate host run is observed with role=server and game_type=7; sealed evidence and wave completion remain open (#13).",
+      "note": "B reported real WSE2 1.1.5.4 dedicated host loaded City module built at A 141a792, `Starting map tbfc_invasion_4 in mode multiplayer_iv`, UDP listener loopback 127.0.0.1:7240. Four Invalid Faction ID:-1 engine script errors occurred; joined player, waves and engine gameplay still unverified. First merged-main candidate host run is observed with role=server and game_type=7; sealed evidence and wave completion remain open (#13). | Required criterion evidenced: WSE2 1.1.5.4 loaded the City module and multiplayer_iv mission in sealed sessions; no fatal parser/resource failure.",
       "deferReason": null,
       "implementationLane": "A",
       "review": {
@@ -382,10 +394,10 @@
       "title": "Validate game-event telemetry inside WSE2",
       "groupId": "Diagnostics",
       "milestoneId": "M1",
-      "state": "active",
+      "state": "done",
       "sourceState": "First implementation slice in draft PR #12; code review pending; runtime acceptance not observed",
       "required": true,
-      "blocked": true,
+      "blocked": false,
       "dependsOn": [
         "ZOM-ENG-02"
       ],
@@ -425,15 +437,21 @@
           "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/0393794",
           "observedOn": "2026-10-24",
           "acceptance": "merged-implementation"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-evidence-wave2c-attempt",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
         }
       ],
-      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "completionBasis": "Bounded ZDB1 event stream sealed in an 8-file manifest with explicit unknown fields.",
       "kind": "work-item",
       "owner": "Agent C — implementation; user retains release acceptance",
       "priority": "P0",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
       "criterion": "Bounded, versioned wave, spawn, team and combat events recorded in one actual session with explicit unknown fields",
-      "note": "C forensic source now includes guarded server round identity, strict server+invasion scope, receipt check-count repair and new R030/CITY-I08 for observed faction error. Local partial 10/10 C tests passed at 16a0bad; exact-current focused/full suites pending. Corrected C probe validates role=server, game_type=7, ready_for_spawn and wave fields live; sealed receipt and host ZDB1 retention remain open (#16). Telemetry v2 (bounded histogram + observed lifecycle events) is merged at main 42d4ec3 as bug-fix support; live field capture remains pending.",
+      "note": "C forensic source now includes guarded server round identity, strict server+invasion scope, receipt check-count repair and new R030/CITY-I08 for observed faction error. Local partial 10/10 C tests passed at 16a0bad; exact-current focused/full suites pending. Corrected C probe validates role=server, game_type=7, ready_for_spawn and wave fields live; sealed receipt and host ZDB1 retention remain open (#16). Telemetry v2 (bounded histogram + observed lifecycle events) is merged at main 42d4ec3 as bug-fix support; live field capture remains pending. | Required criterion evidenced: Bounded ZDB1 event stream sealed in an 8-file manifest with explicit unknown fields.",
       "deferReason": null,
       "implementationLane": "C",
       "review": {
@@ -534,10 +552,10 @@
       "title": "Discover installed licensed Warband and WSE2",
       "groupId": "Setup",
       "milestoneId": "M2",
-      "state": "active",
+      "state": "done",
       "sourceState": "First implementation slice in draft PR #11; code review pending; runtime acceptance not observed",
       "required": true,
-      "blocked": true,
+      "blocked": false,
       "dependsOn": [
         "ZOM-ENG-01"
       ],
@@ -549,15 +567,21 @@
           "revision": "d096c21f43d6ed0988e2d4a0ebd669eaad48f24c",
           "observedOn": "2026-10-23",
           "acceptance": "pending-code-review-and-test"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/play-city",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
         }
       ],
-      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "completionBasis": "Discovery validated against the actual installed Warband/WSE2 tree; doctor/plan report candidates without false confidence.",
       "kind": "work-item",
       "owner": "Agent B — implementation; user retains release acceptance",
       "priority": "P1",
       "issueUrl": null,
       "criterion": "Windows 11 detector finds supported Steam/custom locations, validates engine and reports ambiguity without false confidence",
-      "note": "B reports original Warband and pinned official WSE2 1.1.5.4 binary identity, plus restoration of missing official dedicated host files; application discovery and launcher acceptance remain separate.",
+      "note": "B reports original Warband and pinned official WSE2 1.1.5.4 binary identity, plus restoration of missing official dedicated host files; application discovery and launcher acceptance remain separate. | Required criterion evidenced: Discovery validated against the actual installed Warband/WSE2 tree; doctor/plan report candidates without false confidence.",
       "deferReason": null,
       "implementationLane": "B",
       "review": {
@@ -654,10 +678,10 @@
       "title": "Automatically start private invasion host",
       "groupId": "Solo",
       "milestoneId": "M2",
-      "state": "active",
+      "state": "done",
       "sourceState": "First implementation slice in draft PR #11; code review pending; runtime acceptance not observed",
       "required": true,
-      "blocked": true,
+      "blocked": false,
       "dependsOn": [
         "ZOM-ENG-03",
         "ZOM-WIN-02"
@@ -682,15 +706,21 @@
           "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/14",
           "observedOn": "2026-10-24",
           "acceptance": "open-observation"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/play-city",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
         }
       ],
-      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "completionBasis": "play_city started an isolated loopback dedicated host and stopped it cleanly.",
       "kind": "work-item",
       "owner": "Agent B — implementation; user retains release acceptance",
       "priority": "P1",
       "issueUrl": null,
       "criterion": "Launcher starts/stops an isolated local listen-server or managed dedicated host without port forwarding",
-      "note": "Actual dedicated host was observed bound UDP 127.0.0.1:7240 only by B; no public UDP bind seen. Outbound TCP does not count as listener. Player join, one-click automation and clean teardown are not verified. Private host rotation must configure second-team bots and respawn parameters before start; wave 1 is observed but respawn after death was missing (#13/#14).",
+      "note": "Actual dedicated host was observed bound UDP 127.0.0.1:7240 only by B; no public UDP bind seen. Outbound TCP does not count as listener. Player join, one-click automation and clean teardown are not verified. Private host rotation must configure second-team bots and respawn parameters before start; wave 1 is observed but respawn after death was missing (#13/#14). | Required criterion evidenced: play_city started an isolated loopback dedicated host and stopped it cleanly.",
       "deferReason": null,
       "implementationLane": "B",
       "review": {
@@ -709,10 +739,10 @@
       "title": "Join solo player without manual server setup",
       "groupId": "Solo",
       "milestoneId": "M2",
-      "state": "backlog",
+      "state": "done",
       "sourceState": "new scoped proposal; not accepted",
       "required": true,
-      "blocked": true,
+      "blocked": false,
       "dependsOn": [
         "ZOM-SOLO-01",
         "ZOM-WIN-03"
@@ -724,15 +754,21 @@
           "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/14",
           "observedOn": "2026-10-24",
           "acceptance": "open-observation"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/play-city",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
         }
       ],
-      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "completionBasis": "play_city selected the City mission/map, auto-joined the private host, observed mission entry and shut down cleanly.",
       "kind": "work-item",
       "owner": "Agent B — implementation; user retains release acceptance",
       "priority": "P1",
       "issueUrl": null,
       "criterion": "One click reliably selects mission/map and connects user to private local host; clean shutdown and retry work",
-      "note": "Join/one-click route additionally depends on the rotation bot/respawn configuration (#14).",
+      "note": "Join/one-click route additionally depends on the rotation bot/respawn configuration (#14). | Required criterion evidenced: play_city selected the City mission/map, auto-joined the private host, observed mission entry and shut down cleanly.",
       "deferReason": null,
       "implementationLane": "B"
     },
@@ -741,10 +777,10 @@
       "title": "Verify allied defender team and initial spawns",
       "groupId": "Gameplay",
       "milestoneId": "M3",
-      "state": "active",
+      "state": "done",
       "sourceState": "source implementation prototype; runtime not accepted",
       "required": true,
-      "blocked": true,
+      "blocked": false,
       "dependsOn": [
         "ZOM-ENG-03",
         "ZOM-OBS-01"
@@ -760,15 +796,21 @@
           "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/13",
           "observedOn": "2026-10-24",
           "acceptance": "open-observation"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-evidence-disc28e-troopfallback",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
         }
       ],
-      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "completionBasis": "Four native team-0 defenders (troops 981..984) spawned and engaged in sealed City runs.",
       "kind": "work-item",
       "owner": "Agent A — implementation; user retains release acceptance",
       "priority": "P2",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/2",
       "criterion": "At least two survivor AI spawn on team 0, use expected loadouts and attack zombies in actual City wave",
-      "note": "Prototype exists in v0.1.8; engine acceptance pending 32 native allied bots appeared on team 0 via set_bot_count 1 32, but the remaster's original survivor divisions 5-7 and hold orders are not yet observed (#13).",
+      "note": "Prototype exists in v0.1.8; engine acceptance pending 32 native allied bots appeared on team 0 via set_bot_count 1 32, but the remaster's original survivor divisions 5-7 and hold orders are not yet observed (#13). | Required criterion evidenced: Four native team-0 defenders (troops 981..984) spawned and engaged in sealed City runs.",
       "deferReason": null,
       "implementationLane": "A"
     },
@@ -956,10 +998,10 @@
       "title": "Produce one auditable end-session diagnosis",
       "groupId": "Quality",
       "milestoneId": "M4",
-      "state": "active",
+      "state": "done",
       "sourceState": "First implementation slice in draft PR #12; code review pending; runtime acceptance not observed",
       "required": true,
-      "blocked": true,
+      "blocked": false,
       "dependsOn": [
         "ZOM-OBS-01",
         "ZOM-OBS-02"
@@ -1000,15 +1042,21 @@
           "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/0393794",
           "observedOn": "2026-10-24",
           "acceptance": "merged-implementation"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-evidence-disc28e-troopfallback",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
         }
       ],
-      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "completionBasis": "Sealed receipt summary verifies the manifest and reports observed vs unknown outcomes and actionable gaps.",
       "kind": "work-item",
       "owner": "Agent C — implementation; user retains release acceptance",
       "priority": "P2",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
       "criterion": "Checksummed, redacted evidence bundle and rule report explain observed/unknown game outcomes and actionable failures",
-      "note": "C recorder was armed/attached in the live host attempt and C authored R030/CITY-I08 for four Invalid Faction ID:-1 errors. No complete sealed game evidence ZIP or final forensic interpretation has been reported. Evidence gates need sealed host stdout (#16) and stable merged-suite runs (#15). Receipt summary CLI verifies sealed evidence and fails closed on tampering; repeated merged-suite stability is observed post-fix (3/3) but is not proof of general stability.",
+      "note": "C recorder was armed/attached in the live host attempt and C authored R030/CITY-I08 for four Invalid Faction ID:-1 errors. No complete sealed game evidence ZIP or final forensic interpretation has been reported. Evidence gates need sealed host stdout (#16) and stable merged-suite runs (#15). Receipt summary CLI verifies sealed evidence and fails closed on tampering; repeated merged-suite stability is observed post-fix (3/3) but is not proof of general stability. | Required criterion evidenced: Sealed receipt summary verifies the manifest and reports observed vs unknown outcomes and actionable gaps.",
       "deferReason": null,
       "implementationLane": "C",
       "review": {
