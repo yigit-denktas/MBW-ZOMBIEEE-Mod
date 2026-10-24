@@ -86,7 +86,7 @@ No gameplay validation is claimed; D/Lead validate in a sealed run.
   them charge into melee instead of shooting). Division/group writes and team hold
   orders remain. Hold stability is intentionally not claimed.
 - **Weak wave-1 generic bots (default):** `--zombie-bot-roster weak` restricts city
-  generic invader bots to the weak native block 902..906 (weak Invader scythe/pitchfork/butcher-knife);
+  generic invader bots to the weak native block 894 only (weak Invader scythe/pitchfork/butcher-knife);
   `full` restores 894..911. Receipt records the range/profile.
 - **Zombie block (default on):** `--zombie-block default` gives native invader
   troops 894..911 the `itm_wooden_shield` item (they already have shield skill);

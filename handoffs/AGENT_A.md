@@ -146,7 +146,7 @@ While actual B boot results remained unposted, A fixed a **false-positive diagno
 - Removed the per-agent `agent_set_scripted_destination` from the City adoption trigger
   (it overrode combat aiming; defenders charged instead of shooting). Division/group
   adoption + team hold orders remain.
-- `--zombie-bot-roster weak` (default) stages generic invader bots to 902..906;
+- `--zombie-bot-roster weak` (default) stages generic invader bots to 894 only;
   `full` restores 894..911. `--zombie-block default` appends `itm_wooden_shield` to
   invader troops 894..911 only (shield skill already present); `stock` disables.
 - Build receipt + chain verification include both profiles (`troops.txt` intentional
