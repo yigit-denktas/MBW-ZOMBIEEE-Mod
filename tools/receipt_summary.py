@@ -1224,6 +1224,11 @@ def summarize_receipt(target: Path) -> dict:
             unattributed += 1
         elif dmeta.get("team") is not None and dmeta.get("team") == vmeta.get("team"):
             friendly_fire += 1
+    last_hb_fields = {}
+    for event in reversed(events):
+        if event["event"] == "heartbeat":
+            last_hb_fields = event["fields"]
+            break
     hits = {
         "source": (
             "candidate ti_on_agent_hit param mapping (victim=1,dealer=2,"
@@ -1255,6 +1260,11 @@ def summarize_receipt(target: Path) -> dict:
         "param_mapping_source": (
             "Native-derived module_mission_templates.py: 1=victim,2=dealer,"
             "3=damage,5=missile; cited, not yet verified in our build"),
+        "heartbeat_last": {
+            "hit_attempts": _bounded_int(last_hb_fields.get("hit_attempts")),
+            "hit_events": _bounded_int(last_hb_fields.get("hit_events")),
+            "hit_param_invalid": _bounded_int(last_hb_fields.get("hit_param_invalid")),
+        },
     }
 
     if not hit_events and "hit_telemetry_unavailable" not in gaps_hint:

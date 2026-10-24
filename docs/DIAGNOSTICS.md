@@ -393,6 +393,10 @@ dealer/victim team and troop breakdowns where sampled agent metadata exists,
 friendly-fire count and unattributed hits. **Friendly-fire is a metadata-limited
 undercount**, not a total; hits without both dealer and victim metadata are
 `unattributed`. No hit causality beyond the engine trigger params is claimed.
+Event-trigger params are read in the **consequence** callback (conditions only
+return true); heartbeat exposes `hit_attempts`, `hit_events`,
+`hit_param_invalid` to distinguish “never fired” from “fired with invalid
+params”.
 
 ### Heatmap-ready ZDB1 input (task-74)
 

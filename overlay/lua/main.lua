@@ -1236,7 +1236,9 @@ local function heartbeat()
             .. "|agents=" .. (world.ok and world.total or -1)
             .. "|team0=" .. (world.ok and world.team0 or -1)
             .. "|team1=" .. (world.ok and world.team1 or -1)
-            .. "|template=" .. current_mission() .. state_fields(world) .. skip_fields(world))
+            .. "|template=" .. current_mission() .. state_fields(world) .. skip_fields(world)
+            .. "|hit_attempts=" .. hit_attempts .. "|hit_events=" .. hit_events
+            .. "|hit_param_invalid=" .. hit_param_invalid)
         local round_start = global_int("g_round_start_time")
         if role == "server" then
             if wave >= 0 and wave ~= previous_wave then
@@ -1304,6 +1306,9 @@ local function heartbeat()
     return false
 end
 local hit_events = 0
+local hit_attempts = 0
+local hit_param_invalid = 0
+local hit_handler_anomaly_emitted = false
 local hit_cap_emitted = false
 local MAX_HIT_EVENTS = 2000
 local function hit_param(index)
@@ -1313,28 +1318,42 @@ local function hit_param(index)
     if ok and type(value) == "number" then return math.floor(value) end
     return -1
 end
-local function on_agent_hit()
+-- Event-trigger params are populated for the CONSEQUENCE callback, not the
+-- condition callback; emitting from conditions produced hit_sample=0 despite
+-- a registered trigger. Conditions always pass; consequences read/emit.
+local function on_agent_hit_conditions()
+    return true
+end
+local function on_agent_hit_consequence()
+    hit_attempts = hit_attempts + 1
     local role = resolve_role()
-    if role ~= "server" then return false end
+    if role ~= "server" then return end
     if hit_events >= MAX_HIT_EVENTS then
         if not hit_cap_emitted then
             hit_cap_emitted = true
             emit("probe_anomaly", "|kind=hit_event_cap|cap=" .. MAX_HIT_EVENTS)
         end
-        return false
+        return
     end
     local victim = hit_param(1)
     local dealer = hit_param(2)
     local damage = hit_param(3)
     local missile = hit_param(5)
-    if victim <= 0 and dealer <= 0 then return false end
+    if victim <= 0 and dealer <= 0 then
+        hit_param_invalid = hit_param_invalid + 1
+        if not hit_handler_anomaly_emitted then
+            hit_handler_anomaly_emitted = true
+            emit("probe_anomaly", "|kind=hit_params_invalid|attempt=" .. hit_attempts)
+        end
+        return
+    end
     emit("hit_sample", "|victim=" .. victim .. "|dealer=" .. dealer
         .. "|damage=" .. damage .. "|missile=" .. missile
         .. "|kind=" .. (missile > 0 and "missile" or "melee"))
     hit_events = hit_events + 1
-    return false
 end
-local ok_hit, hit_idx = pcall(game.addTrigger, MISSION, -28, 0, 0, on_agent_hit)
+local ok_hit, hit_idx = pcall(game.addTrigger, MISSION, -28, 0, 0,
+    on_agent_hit_conditions, on_agent_hit_consequence)
 if ok_hit then
     emit("probe_registered", "|kind=hit|index=" .. tostring(hit_idx))
 else

@@ -546,8 +546,9 @@ class LuaOperationMetadataTests(unittest.TestCase):
 
     def test_native_hit_trigger_surface(self):
         for token in ("|hit_trigger=-28", "|hit_attribution=1",
-                      "store_trigger_param_", "on_agent_hit", "hit_sample",
-                      "hit_events_cap"):
+                      "store_trigger_param_", "on_agent_hit_conditions",
+                      "on_agent_hit_consequence", "hit_sample",
+                      "hit_events_cap", "hit_attempts", "hit_param_invalid"):
             self.assertIn(token, self.main)
 
 
