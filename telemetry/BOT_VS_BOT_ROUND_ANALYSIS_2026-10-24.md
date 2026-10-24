@@ -10,9 +10,11 @@ descriptive and bounded by the gaps listed in section 8; `runtime_verified=false
   `manifest.json` (`zombieee.flight.v1` sha256 table), `recorder.json`, and
   `host_stdout.log` containing the `ZDB1|...` stream.
 - **Analyzer:** C's canonical `tools.telemetry_studio balance` (schema
-  `zombieee.balance-analysis.v1`) from branch `agent/c-task65-balance` @ `f30cec8`;
-  canonical parser `tools/receipt_summary.py`/`tools/diagnostics.py`. The analyzer was
-  run read-only on the bundles; its per-window outcomes and lower-bound troop
+  `zombieee.balance-analysis.v1`) from branch `agent/c-task65-balance`; these tables were
+  generated with the analyzer at `f30cec8`. C's final rebased head is `d4b9bbb` with the
+  same frozen schema (a rebase, not a result change; no re-run was needed). Canonical
+  parser `tools/receipt_summary.py`/`tools/diagnostics.py`. The analyzer was run
+  read-only on the bundles; its per-window outcomes and lower-bound troop
   contributions are the statistical base for this report.
 - **Machine-readable tables:** [`bot_vs_bot_runs.csv`](bot_vs_bot_runs.csv),
   [`bot_vs_bot_round_windows.csv`](bot_vs_bot_round_windows.csv),
@@ -201,10 +203,13 @@ created here.
 ## 9. Coordination and reproducibility
 
 - **C:** the `balance` analyzer (schema `zombieee.balance-analysis.v1`) is the canonical
-  statistical base. It is on branch `agent/c-task65-balance` @ `f30cec8`, not yet on
-  main; confirm/merge it and freeze the JSON schema before release metadata cites it.
+  statistical base. It is on branch `agent/c-task65-balance` (tables generated at
+  `f30cec8`; C's final rebased head is `d4b9bbb`, same frozen schema), not yet on main;
+  confirm/merge it and freeze the JSON schema before release metadata cites it.
   The analyzer intentionally returns no causal recommendations without parameter
-  receipts; that behavior is correct and is preserved in this report.
+  receipts; that behavior is correct and is preserved in this report. The canonical
+  parameter map is the `--params` JSON `{"<run-root-or-name>": {scalar: value}}`; D has
+  been asked for an autonomous `defender_target` 4 vs 8 pair.
 - **D:** canonical paths used: `task55-p0` (P0-clean), `task45-wave2` (wave progression),
   `task44-wave2b` (wave2b), plus six launcher-sealed flights with receipts. The three
   evidence bundles lack a sealed build receipt; do not infer build/parameter values from
