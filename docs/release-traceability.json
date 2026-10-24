@@ -6,7 +6,7 @@
   "acceptance": "none",
   "runtime_verified": false,
   "observed_on": "2026-10-24",
-  "source_revision": "67dd2818679a41af8bd57c2aaf59667a27e65449",
+  "source_revision": "8d07f2f7678c7e37b33609c2102870fd33947ab2",
   "version_sources": {
     "version": "VERSION",
     "changelog": "CHANGELOG.md#030-beta1-2026-10-24",
@@ -523,7 +523,7 @@
     "published": false
   },
   "source_revision_exception": {
-    "reason": "task-76 adaptive sampling branch metadata-only head revision; Lead syncs final release metadata",
+    "reason": "heartbeat counter nil fix; metadata-only head revision",
     "changed_paths": [
       "docs/release-traceability.json",
       "CHANGELOG.md",

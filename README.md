@@ -208,3 +208,6 @@ This project deliberately separates **source-verified**, **observed**, **unknown
 
 
 <!-- task-76 adaptive sampling metadata-only source revision: 67dd281 -->
+
+
+<!-- heartbeat nil-fix metadata-only source revision: 8d07f2f -->
