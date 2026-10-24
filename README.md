@@ -226,3 +226,6 @@ This project deliberately separates **source-verified**, **observed**, **unknown
 
 
 <!-- shot proxy metadata-only source revision: 9e4342c -->
+
+
+<!-- refill-off context metadata-only source revision: c170ebf -->

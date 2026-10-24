@@ -6,7 +6,7 @@
   "acceptance": "none",
   "runtime_verified": false,
   "observed_on": "2026-10-24",
-  "source_revision": "9e4342c61eb85a61ac9c1cebc40ab50bab5d9bb4",
+  "source_revision": "c170ebff4ae5d4daa8d140145b9faba0c81ad185",
   "version_sources": {
     "version": "VERSION",
     "changelog": "CHANGELOG.md#030-beta1-2026-10-24",
@@ -523,7 +523,7 @@
     "published": false
   },
   "source_revision_exception": {
-    "reason": "ammo-refill shot proxy caveat; metadata-only head revision",
+    "reason": "build-receipt refill-off context; metadata-only head revision",
     "changed_paths": [
       "docs/release-traceability.json",
       "CHANGELOG.md",
