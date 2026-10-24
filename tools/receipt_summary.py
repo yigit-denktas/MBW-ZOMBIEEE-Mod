@@ -350,6 +350,101 @@ def summarize_receipt(target: Path) -> dict:
     waves = sorted({v for v in (
         _bounded_int(e["fields"].get("wave"), minimum=0) for e in events
         if e["event"] in ("heartbeat", "wave_change", "mission_enter", "wave_started")) if v is not None})
+    # Division (agent_get_group) telemetry: bounded per-team group histograms and
+    # sampled-bot groups, so hold/sector claims have a measured field. Defender
+    # divisions are 5-7 by A's contract; absence is reported, never assumed.
+    division_groups = {0: {}, 1: {}}
+    for event in samples:
+        for team in (0, 1):
+            hist = _histogram(event["fields"].get(f"groups_team{team}"))
+            for group, count in (hist or {}).items():
+                division_groups[team][group] = max(
+                    division_groups[team].get(group, 0), count)
+    sampled_groups = {0: {}, 1: {}}
+    for event in events:
+        if event["event"] != "ai_sample":
+            continue
+        team = _bounded_int(event["fields"].get("team"), minimum=0, maximum=1)
+        group = _bounded_int(event["fields"].get("group"), minimum=0, maximum=255)
+        if team in (0, 1) and group is not None:
+            sampled_groups[team][group] = sampled_groups[team].get(group, 0) + 1
+    group_unknown_values = [_bounded_int(e["fields"].get("group_read_unknown"), minimum=0)
+                            for e in samples]
+    group_unknown_values = [value for value in group_unknown_values if value is not None]
+    group_read_unknown = max(group_unknown_values) if group_unknown_values else None
+    defender_groups = [group for group in (5, 6, 7)
+                       if division_groups[0].get(group) or sampled_groups[0].get(group)]
+    divisions = {
+        "team0": (dict(sorted(division_groups[0].items(),
+                              key=lambda kv: (-kv[1], kv[0]))[:MAX_HIST_ENTRIES]) or None),
+        "team1": (dict(sorted(division_groups[1].items(),
+                              key=lambda kv: (-kv[1], kv[0]))[:MAX_HIST_ENTRIES]) or None),
+        "sampled_team0": (dict(sorted(sampled_groups[0].items(),
+                                      key=lambda kv: (-kv[1], kv[0]))[:MAX_HIST_ENTRIES]) or None),
+        "sampled_team1": (dict(sorted(sampled_groups[1].items(),
+                                      key=lambda kv: (-kv[1], kv[0]))[:MAX_HIST_ENTRIES]) or None),
+        "read_unknown": group_read_unknown,
+        "defender_groups_observed": defender_groups,
+        "defender_divisions_observed": bool(defender_groups),
+        "defenders_sampled": any(e["event"] == "combat_sample" for e in events),
+        "note": ("agent_get_group per non-player bot; defender divisions 5-7 are "
+                 "the hold-order candidates; absent divisions stay unobserved and "
+                 "are never assumed to have adopted orders."),
+    }
+
+    # Team-0 defender telemetry: divisions 5-7, alive/kill evidence, and bounded
+    # position/motion samples. guard_entries_reached is a coarse-position proxy,
+    # never a guard-entry identity, and hold behaviour is never assumed.
+    defender_samples = [event for event in events
+                        if event["event"] == "ai_sample"
+                        and _bounded_int(event["fields"].get("team")) == 0
+                        and _bounded_int(event["fields"].get("group"), minimum=0,
+                                         maximum=255) in (5, 6, 7)]
+    defender_positions = {}
+    for event in defender_samples:
+        agent = _bounded_int(event["fields"].get("id"), minimum=0)
+        try:
+            px = float(event["fields"].get("x"))
+            py = float(event["fields"].get("y"))
+        except (TypeError, ValueError):
+            continue
+        if agent is None or not (-100000 <= px <= 100000 and -100000 <= py <= 100000):
+            continue
+        defender_positions.setdefault(agent, set()).add((round(px), round(py)))
+    coarse_positions = {point for points in defender_positions.values() for point in points}
+    defender_divisions = {group: (division_groups[0].get(group)
+                                  or sampled_groups[0].get(group) or 0)
+                          for group in (5, 6, 7)}
+    defender_troop_counts = (troops.get("classes") or {}).get("defender") or {}
+
+    def _max_field(name):
+        values = [_bounded_int(e["fields"].get(name), minimum=0) for e in samples]
+        values = [value for value in values if value is not None]
+        return max(values) if values else None
+
+    defender_alive = _max_field("defender_alive_team0")
+    defender_kills = _max_field("defender_kills_team0")
+    defender_read_unknown = _max_field("defender_read_unknown")
+    defenders = {
+        "observed": bool(sum(defender_divisions.values())) or bool(defender_troop_counts),
+        "divisions": ({group: count for group, count in defender_divisions.items() if count}
+                      or None),
+        "bots": sum(defender_divisions.values()) or None,
+        "troops": defender_troop_counts or None,
+        "alive": defender_alive,
+        "kills": defender_kills,
+        "read_unknown": defender_read_unknown,
+        "positions_sampled": len(defender_samples),
+        "distinct_positions": len(coarse_positions),
+        "guard_entries_reached": min(len(coarse_positions), 16),
+        "moving": sum(1 for points in defender_positions.values() if len(points) >= 2),
+        "hold_samples": len(defender_samples),
+        "hold_behavior_observed": False,
+        "note": ("team-0 non-player defenders; guard_entries_reached is a bounded "
+                 "distinct-coarse-position proxy, not a guard-entry identity; "
+                 "hold behaviour is not asserted from samples."),
+    }
+
     # Round identity must not be inflated by a monotonically increasing
     # g_round_start_time: count a raw heartbeat/entry value only when it is
     # stable across samples, and always keep explicit round_started events.
@@ -554,6 +649,17 @@ def summarize_receipt(target: Path) -> dict:
         gaps_hint.append("kill_telemetry_unavailable")
 
     gaps = list(gaps_hint)
+    if not defenders["observed"]:
+        gaps.append("defenders_not_observed")
+    if defenders["observed"] and not defender_samples:
+        gaps.append("defender_positions_unobserved")
+    if defenders["read_unknown"]:
+        gaps.append("defender_telemetry_unreliable")
+    if (divisions["team0"] or divisions["team1"]) \
+            and not divisions["defender_divisions_observed"]:
+        gaps.append("defender_divisions_unobserved")
+    if divisions["read_unknown"]:
+        gaps.append("division_reads_unreliable")
     if not engagement["reliable"]:
         gaps.append("engagement_kills_unreliable")
     if troops.get("read_unknown"):
@@ -605,6 +711,8 @@ def summarize_receipt(target: Path) -> dict:
         "engagement": engagement,
         "events": event_section,
         "troops": troops,
+        "divisions": divisions,
+        "defenders": defenders,
         "waves": {"observed": waves, "max": waves[-1] if waves else None,
                   "multiple_observed": len([w for w in waves if w >= 1]) >= 2},
         "rounds": {"round_starts": rounds[:MAX_ROUNDS],
@@ -702,6 +810,17 @@ def format_summary(summary: dict) -> str:
                          f"unknown_id_count={roster['unknown_id_count']}")
     else:
         lines.append("troops:          unavailable (histogram not sealed)")
+    lines.append(f"divisions:       team0={summary['divisions']['team0']} "
+                 f"team1={summary['divisions']['team1']} "
+                 f"defender_groups={summary['divisions']['defender_groups_observed']} "
+                 f"defenders_sampled={summary['divisions']['defenders_sampled']}")
+    defend = summary["defenders"]
+    lines.append(f"defenders:       observed={defend['observed']} divisions={defend['divisions']} "
+                 f"alive={defend['alive']} kills={defend['kills']} "
+                 f"positions_sampled={defend['positions_sampled']} "
+                 f"guard_entries_reached={defend['guard_entries_reached']} "
+                 f"moving={defend['moving']} hold_samples={defend['hold_samples']} "
+                 f"hold_behavior_observed={defend['hold_behavior_observed']}")
     lines.append(f"waves:           observed={summary['waves']['observed']} "
                  f"max={summary['waves']['max']}")
     lines.append(f"rounds:          {summary['rounds']['count']} distinct "

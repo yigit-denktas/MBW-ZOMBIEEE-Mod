@@ -256,6 +256,45 @@ counts a raw heartbeat `round_start` only when the value is stable across
 samples, adds `rounds.identity_unstable` and the `round_identity_unstable`
 evidence gap on the anomaly, and never reports a monotonic series as rounds.
 
+### Division telemetry (`agent_get_group`) and hold-order observability
+
+The probe now reports bounded per-team division counts in the heartbeat:
+`groups_team0/1=group:count,...` (at most 12 groups/team, same bounded helper as
+the troop histogram) for non-player bots, `group_read_unknown`, and a
+`group=` field on each bounded `ai_sample`. `agent_get_group` (opcode 1765) is
+verified against the original compiled scripts, where it appears as
+`is_human; is_alive; agent_get_group <dest> <agent>`.
+
+The summary adds `divisions` with `team0`/`team1` bounded group histograms,
+`sampled_team0/1` group counts from `ai_sample`, `read_unknown`,
+`defender_groups_observed` (divisions 5-7 on team 0), `defender_divisions_observed`
+and `defenders_sampled` (whether any `combat_sample` was sealed). Absent
+defender divisions raise `defender_divisions_unobserved`; unreadable groups
+raise `division_reads_unreliable`.
+
+### Defender block: divisions 5-7, guard entries and hold observability
+
+Beyond the per-team group histogram the probe emits team-0 defender specifics:
+`defenders_team0`, `defender_alive_team0`, `defender_kills_team0` and
+`defender_read_unknown`, accumulated only for non-player team-0 bots in
+divisions 5-7. The summary adds a `defenders` block:
+`observed`, `divisions`, `bots`, `troops` (981-984), `alive`, `kills`,
+`read_unknown`, `positions_sampled`, `distinct_positions`,
+`guard_entries_reached`, `moving`, `hold_samples` and
+`hold_behavior_observed` (always false: samples cannot assert hold behaviour).
+`guard_entries_reached` is a bounded proxy - distinct coarse positions rounded
+to 1 m, capped at 16 - and is **not** a guard-entry identity. Gaps:
+`defenders_not_observed`, `defender_positions_unobserved`,
+`defender_telemetry_unreliable`. This makes A/F hold-sector claims either
+observable (divisions seen, positions/motion measured) or honestly unobserved
+(DISC-28 stays active; no hold-behaviour claim from samples).
+
+This closes the observability gap behind silent `sample_defenders` in defender
+runs: if defender bots are in divisions 5-7 the heartbeat group histogram now
+shows it directly, and if they are not, the summary reports the adoption as
+unobserved instead of assuming hold orders. It remains an observation field, not
+an AI-behaviour acceptance claim; the probe never assumes orders were adopted.
+
 ### Kill and troop reads: returned lhs values, not stale registers
 
 WSE2 lhs module operations return `(intResult, intError)`; the first Lua

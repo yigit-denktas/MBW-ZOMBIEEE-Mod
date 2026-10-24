@@ -370,5 +370,23 @@ class LuaOperationMetadataTests(unittest.TestCase):
         self.assertIn("|kills_measured_team0=", self.main)
         self.assertIn("|troop_read_unknown=", self.main)
 
+
+    def test_division_telemetry_is_bounded_and_bot_only(self):
+        for token in ("|groups_team0=", "|groups_team1=", "|group_read_unknown=",
+                      "groups0 = {}, groups1 = {}", "sample.group"):
+            self.assertIn(token, self.main)
+        self.assertIn('read_agent_number("agent_get_group", agent)', self.main)
+        # sampler stays bounded (histogram text helper caps ids/chars)
+        self.assertIn("result.groups_text0 = (histogram_text(result.groups0))", self.main)
+
+
+    def test_defender_telemetry_is_division_gated_and_bounded(self):
+        for token in ("|defenders_team0=", "|defender_alive_team0=",
+                      "|defender_kills_team0=", "|defender_read_unknown=",
+                      "result.defender_count", "result.defender_read_unknown"):
+            self.assertIn(token, self.main)
+        self.assertIn("if side == 0 and group >= 5 and group <= 7 then", self.main)
+        self.assertIn("MAX_PLAUSIBLE_KILLS", self.main)
+
 if __name__ == "__main__":
     unittest.main()

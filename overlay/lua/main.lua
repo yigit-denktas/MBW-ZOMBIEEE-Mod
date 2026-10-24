@@ -220,6 +220,12 @@ local function sample_world()
                          kills = {[0] = 0, [1] = 0},
                          kills_unknown = {[0] = 0, [1] = 0},
                          troop_read_unknown = 0,
+                         groups0 = {}, groups1 = {},
+                         group_read_unknown = 0,
+                         defender_count = 0,
+                         defender_alive = 0,
+                         defender_kills = 0,
+                         defender_read_unknown = 0,
                          ai_samples = {},
                          pos_count = {[0] = 0, [1] = 0},
                          pos_sum = {[0] = {0, 0}, [1] = {0, 0}},
@@ -267,6 +273,33 @@ local function sample_world()
                 elseif human == true and supports_npc then
                     if is_npc(agent) then
                         result.bots[side] = result.bots[side] + 1
+                        if type(game.agent_get_group) == "function" then
+                            local group = read_agent_number("agent_get_group", agent)
+                            if group >= 0 and group <= 255 then
+                                local groups = side == 0 and result.groups0 or result.groups1
+                                groups[group] = (groups[group] or 0) + 1
+                            else
+                                result.group_read_unknown = result.group_read_unknown + 1
+                            end
+                            -- Team-0 defender divisions 5-7: expose alive/kill
+                            -- evidence alongside the group histogram so hold/sector
+                            -- adoption can be checked without assuming it.
+                            if side == 0 and group >= 5 and group <= 7 then
+                                result.defender_count = result.defender_count + 1
+                                if supports_alive and is_alive(agent) == true then
+                                    result.defender_alive = result.defender_alive + 1
+                                end
+                                if supports_kills then
+                                    local dk = read_agent_number("agent_get_kill_count", agent)
+                                    if dk >= 0 and dk <= MAX_PLAUSIBLE_KILLS then
+                                        result.defender_kills = result.defender_kills + dk
+                                    else
+                                        result.defender_read_unknown =
+                                            result.defender_read_unknown + 1
+                                    end
+                                end
+                            end
+                        end
                     else
                         result.humans[side] = result.humans[side] + 1
                         if side == 0 then
@@ -323,8 +356,14 @@ local function sample_world()
                             local kills = supports_kills
                                 and read_agent_number("agent_get_kill_count", agent) or -1
                             if kills < 0 or kills > MAX_PLAUSIBLE_KILLS then kills = -1 end
+                            local group = -1
+                            if type(game.agent_get_group) == "function" then
+                                group = read_agent_number("agent_get_group", agent)
+                                if group < 0 or group > 255 then group = -1 end
+                            end
                             result.ai_samples[#result.ai_samples + 1] =
-                                { team = side, id = agent, x = x, y = y, kills = kills }
+                                { team = side, id = agent, x = x, y = y,
+                                  kills = kills, group = group }
                         end
                     end
                 end
@@ -381,6 +420,8 @@ local function sample_world()
         result.text1, result.names1 = t1, n1
         result.troop_unknown = u0 + u1
         result.troop_truncated = x0 + x1
+        result.groups_text0 = (histogram_text(result.groups0))
+        result.groups_text1 = (histogram_text(result.groups1))
         return result
     end)
     if not ok then
@@ -448,6 +489,13 @@ local function state_fields(world)
             .. "|kills_unknown_team0=" .. world.kills_unknown[0]
             .. "|kills_unknown_team1=" .. world.kills_unknown[1]
             .. "|troop_read_unknown=" .. world.troop_read_unknown
+            .. "|groups_team0=" .. world.groups_text0
+            .. "|groups_team1=" .. world.groups_text1
+            .. "|group_read_unknown=" .. world.group_read_unknown
+            .. "|defenders_team0=" .. world.defender_count
+            .. "|defender_alive_team0=" .. world.defender_alive
+            .. "|defender_kills_team0=" .. world.defender_kills
+            .. "|defender_read_unknown=" .. world.defender_read_unknown
             .. "|pos_team0=" .. world.pos_text[0]
             .. "|pos_team1=" .. world.pos_text[1]
             .. "|bbox_team0=" .. world.bbox_text[0]
@@ -463,7 +511,10 @@ local function state_fields(world)
             .. "|alive_players_team0=-1|no_player=-1|alive_team0=-1|alive_team1=-1"
             .. "|kills_team0=-1|kills_team1=-1|kills_measured_team0=-1"
             .. "|kills_measured_team1=-1|kills_unknown_team0=-1|kills_unknown_team1=-1"
-            .. "|troop_read_unknown=-1|pos_team0=-1|pos_team1=-1"
+            .. "|troop_read_unknown=-1|groups_team0=-1|groups_team1=-1"
+            .. "|group_read_unknown=-1|defenders_team0=-1|defender_alive_team0=-1"
+            .. "|defender_kills_team0=-1|defender_read_unknown=-1"
+            .. "|pos_team0=-1|pos_team1=-1"
             .. "|bbox_team0=-1|bbox_team1=-1|pos_sampled_team0=-1|pos_sampled_team1=-1"
     end
     return fields
@@ -575,7 +626,8 @@ local function emit_ai_samples(world, role, wave, tick)
     if role ~= "server" or not world or not world.ok then return end
     for _, sample in ipairs(world.ai_samples or {}) do
         emit("ai_sample", "|role=server|tick=" .. tick .. "|team=" .. sample.team
-            .. "|id=" .. sample.id .. "|x=" .. sample.x .. "|y=" .. sample.y
+            .. "|id=" .. sample.id .. "|group=" .. (sample.group or -1)
+            .. "|x=" .. sample.x .. "|y=" .. sample.y
             .. "|kills=" .. (sample.kills or -1) .. "|wave=" .. wave)
     end
 end
