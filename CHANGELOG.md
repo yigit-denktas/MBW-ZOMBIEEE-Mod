@@ -51,6 +51,7 @@ work-item → PR → commit → version links are in
 - **AI/map/telemetry research and design:** Warband + Bannerlord engine/combat-AI references, City map-defense design (three southern approaches, north safe anchor, private/local asset policy), class-matrix/task definitions and bot-vs-bot balance analyzer — docs-only, no acceptance.
 - **Script-error log cleanup:** raw faction-id probe fix and trigger-14 guard; sealed logs show 0 INT_MIN/opcode-522/trigger-14 errors (implementation-only runtime acceptance pending).
 - **Firearm AI profiles:** accuracy/reload modifiers + wave-mode policy + pre-game fire-mode selector; manual in-game switching blocked on WES2 1.1.5.4 input APIs (#43); reticle icon unproven.
+- **Class matrix + bot-vs-bot analysis:** commando/sniper/scout/lumberjack roles/range/formation/fallback design and a feasibility-gated round-stat report with machine-readable tables; no causal/sensitivity or acceptance claim.
 ### Changed
 - Launcher City default rotation now requests the native team-0 defender squad
   (`set_bot_count 1 8`) with enemy profiles `generic`/`weak-wave1`/`native-only`
