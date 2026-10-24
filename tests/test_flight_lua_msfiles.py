@@ -76,6 +76,7 @@ OPS = {
 # operations, so they have no opcode and no operation class.
 LUA_API = frozenset({
     "addTrigger", "removeTrigger", "getNumTriggers", "getNumTemplates",
+    "store_trigger_param",
     "getCurTemplateId", "getCurTemplateNo", "getTemplateId", "agentsIt",
     "gvar", "reg0", "preg", "sreg", "const", "op",
 })
@@ -583,6 +584,13 @@ class LuaOperationMetadataTests(unittest.TestCase):
             self.assertLess(self.main.index(token), heartbeat_at, token)
         self.assertIn("(hit_param_invalid or 0)", self.main)
         self.assertIn("(hit_attempts or 0)", self.main)
+
+
+    def test_hit_param_generic_api_and_capability(self):
+        for token in ("game.store_trigger_param", "pcall(generic, 0, index)",
+                      "pcall(fn, 0, index)",
+                      "|hit_param_api=generic_0_index_or_specific"):
+            self.assertIn(token, self.main)
 
 if __name__ == "__main__":
     unittest.main()
