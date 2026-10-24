@@ -2,7 +2,7 @@
 
 A private, City-first compatibility rebuild of the 2012 **ZOMBIEEE (Invasion) Beta 0.4** multiplayer mod for *Mount & Blade: Warband* â€” built from a legally owned original archive, instrumented with a local flight recorder, and documented without overclaiming.
 
-> **Status: not accepted as a playable release.** Runtime evidence now exists â€” native Zombie roster, native allied defenders, hands-off AI-vs-AI combat, wave 2 in a defender-heavy variant, and a live-validated `play_city` path â€” but the City release still sits at **0/23 required outcomes / 0/5 accepted milestones** with `runtime_verified=false`. Division/hold behavior, wave 3+/completion, combat feel, redistribution and public release gates remain open. Do not treat any build here as an accepted release.
+> **Status: not accepted as a playable release.** Runtime evidence now exists â€” native Zombie roster, native allied defenders, hands-off AI-vs-AI combat, wave 2 in a defender-heavy variant, and a live-validated `play_city` path â€” but the City release still sits at **8/23 required outcomes done / 0/5 accepted milestones** with `runtime_verified=false`. Division/hold behavior, wave 3+/completion, combat feel, redistribution and public release gates remain open. Do not treat any build here as an accepted release.
 
 **Current project version:** `0.3.0-beta.1` (pre-release beta candidate; **not release-accepted**). See [CHANGELOG.md](CHANGELOG.md) and [docs/RELEASE_TRACEABILITY.md](docs/RELEASE_TRACEABILITY.md).
 
@@ -16,7 +16,7 @@ A private, City-first compatibility rebuild of the 2012 **ZOMBIEEE (Invasion) Be
 
 [Interactive roadmap](https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/) · Source file: `progress/ledger.json` (content-addressed file snapshot).
 
-Observed 2026-10-24 against `67b82990`.
+Observed 2026-10-24 against `b5569812`.
 <!-- project-record:end -->
 
 *The generated progress block above is a derived view observed at `c49cd3b9`; it is
@@ -135,7 +135,7 @@ See [docs/MANUAL_TESTS.md](docs/MANUAL_TESTS.md) and [docs/INTEGRATED_CITY_ACCEP
 
 ## Current status â€” 2026-10-24
 
-- **Release reality:** City required outcomes **0/23**, accepted milestones **0/5**, `runtime_verified=false`. Every "done" item in the ledger is bounded support work, not release acceptance.
+- **Release reality:** City required outcomes **8/23 done**, accepted milestones **0/5**, `runtime_verified=false`. Every "done" item in the ledger is bounded support work, not release acceptance.
 - **Observed (unsealed, Lead-reported)** on merged main `4c56242` with C's corrected probe: dedicated host loopback-only `127.0.0.1:7240`, `role=server`, `game_type=7`, `ready_for_spawn=1`; `set_bot_count 2 32` produced `team1=41`, `wave=1`. This is a candidate observation, not acceptance.
 - **Open defects:** stable squad hold/guard-entry identity (division 5-7 adoption unobservable); wave 3+/completion and stock-squad wave 2; combat feel with the firearm profile; legal redistribution/public release gates. Native Zombie roster, native defenders, wave 2 in the defender-heavy variant and sealed ZDB1/play_city evidence are demonstrated but are not release acceptance.
 - **Known original quirk:** repeated engine `SCRIPT ERROR: Invalid Faction ID: -1` is decoded as four trailing `faction_set_slot(-1, 200, â€¦)` writes in the 2012 mission (trigger 14), byte-identical to the pinned original prefix. It is non-fatal and not proven causal; no gameplay patch is authorized.
