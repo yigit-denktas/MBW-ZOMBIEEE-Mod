@@ -1,0 +1,8 @@
+﻿{
+  "updated": "2026-10-24T16:15:00+02:00",
+  "phase": "P0 crash triage",
+  "build": "Known-good f57c800 installed (mission 5EEF3162...)",
+  "now": "Speed-loop OFF + corrected probe: no AV crash; client still logs Invalid Group ID:0 at Trigger 31 (probe fix in progress).",
+  "next": "Gate group ops, rerun clean speed-off seal, then speed-on A/B; no acceptance.",
+  "acceptance": false
+}
