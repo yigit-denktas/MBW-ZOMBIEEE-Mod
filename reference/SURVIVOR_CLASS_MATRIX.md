@@ -265,6 +265,41 @@ The engine only lets a spawn choose a troop record; it does not let a script add
 5. **Negative controls:** **weak-wave-1 is not a P0-negative control today** — generic fill is normalized to 894 but native visitors still spawn stronger troops (D observed 895/896/898 slots and wave-2 896). A's P0 fix that normalized slots read 894 but crashed (frozen). Do not use weak-wave-1 as a "P0 absent" control until a crash-free P0 native-wave fix is sealed.
 6. **Evidence boundary:** allowed claims per run = class presence (981–984), positions/troop-fallback, weapon/ammo/mode, kill/death aggregates, explicit unknown classes; **not** per-class hold/fire attribution, not per-class targeting, not rout (getter unavailable). No acceptance claim.
 
+### 9.5 Implementation handoff — F-now class rules → A files/tasks
+
+Short routing map for implementation. **A owns code/PRs; C owns telemetry; D owns evidence.** This table authorizes nothing by itself — no build change, no acceptance.
+
+#### F-now / F-build rules and where they land
+
+| Class rule | A file / function | A task | Gate / note |
+| --- | --- | --- | --- |
+| Class id map 981–984 → class | `tools/city_defense.py` `orders_trigger` (troop-id branch; read `agent_get_troop_id` 1718); `tests/test_city_defense.py` | task-53 / task-62 | No A global needed if build pins IDs; class presence is already readable by C |
+| Class speed via `agent_set_speed_modifier` 2093 (commando 100 / sniper 85 / scout 115 / lumberjack 95 targets) | `tools/city_defense.py` `orders_trigger` — **team-0** class loop, separate from the existing team-1 wave-speed loop | task-54 / task-62 | Team-0 only; D-observable after re-seal; not a behaviour claim by itself |
+| Keep fire orders (`mordr_hold` + `fire_at_will` + `use_ranged_weapons`), ammo gate, no scripted destination | existing `tools/city_defense.py` `defender_orders` block; `tools/city_behavior.py` `hold_and_fire_plan`/validator | task-45 / task-46 / task-53 | Already implemented for all defenders; the class change is **per-class application**, not new ops |
+| Per-class accuracy via 2092 | `tools/city_defense.py` class branch; `tools/firearm_balance.py` profile awareness | task-22/59 (profile) + task-62 | 2092 stacks/overrides the auto accuracy profile — measure both |
+| Regroup/rearm/heal between waves | `tools/tactical_recovery.py` `recovery_trigger` (fallback/regroup), `tools/city_defense.py` refill; ops 1728/1721 | task-53 / task-62 | Refill/heal F-now; no tier or purchase |
+| Melee last-resort gate | `tools/city_defense.py` ammo gate (`agent_get_ammo` 1727 + `agent_ai_set_can_weapon_switch` 3343) | task-46 / task-54 | Code F-now; **sealing blocked** (D: no empty-ammo state in current builds) |
+| Class→division/slot mapping (5/6/7; division 5 rear baseline for reserve) | `tools/city_defense.py` `orders_trigger` mapping; `tools/city_behavior.py` plan builder | task-53 | **B-unproven**: code can land, but adoption/order reach is unproven — no behaviour claim |
+| Range bands as placement (anchor/element offsets; rear vs `--defensive-line`) | `tools/city_defense.py` hold entries/anchor math; `tools/build.py` `--defensive-line`; task-63 line approval | task-53 / task-62 + task-63 | Placement only; dynamic range keeping is B-engine |
+| Tier clones + wave-based refill selection | `tools/bot_loadouts.py` `LOADOUTS`/`patch_text`; `tools/native_roster_patch.py`/`tools/wave_reinforcements.py` selection; `tools/build.py` flags; tests | task-62 / task-67; owner approval | **F-build**: owner approval, new troop records, loadout/item validation, receipt/tests; no tier telemetry yet |
+| Optional WSE2 capability experiments (multihit 3353 / piercing 3359 / crush-through 3355) | `tools/city_behavior.py` plan + separate build flag; tests | task-62 | Separate build + D evidence only; never baseline |
+
+#### B-engine / blocked — do not implement as if available
+
+| Rule | Blocker | What to do instead |
+| --- | --- | --- |
+| Enforce per-class target priority / focus fire on specials | No target setter; `agent_set_look_target_agent` 1713 controls look direction only | Responsibility via position/loadout; C measures class presence + `kills_team0_by_class`; no target claim |
+| Dynamic range keeping / kiting per class | No op; engine decides movement | Placement + hold/fire only; label bands as design targets |
+| Per-class fire mode / burst cadence | No per-agent fire-mode op; launcher fire-mode is global/pre-game (task-68) | Class differentiation through weapon data/loadout; do not claim per-class auto/burst |
+| Mid-mission armour/weapon purchase or upgrade | No agent armour/inventory op; `agent_set_wielded_item` 1747 only swaps carried items; WSE2 3804/3805 edit item templates globally | Rearm/heal (F-now) + respawn tier clones (F-build); no shop |
+| Division 8 reserve / group-based orders | Division 8 is in the 0–9 space but adoption/order reach is unproven; group ids are not sub-classes | Division 5 rear element baseline; re-test only after task-61 round-trip |
+| Rout observation/control | No verified `agent_is_routed` getter (D); courage scripts absent from City chain only statically | Report unknown, never 0; use movement/fallback proxies; `agent_stop_running_away` only as observed-corrective in test mode |
+| Per-class hold/fire attribution in sealed runs | 981–984 are a mixed spawn; no per-class isolation | Single-class build variants or A-exposed per-class state (F-build); otherwise only class presence |
+| Ammo-limited / desperation sealed run | Fresh defenders always full ammo; refill+wave-reinforcement-disabled build (`_zom-city-build-strict`) not installed (Lead-owned) | Wait for strict build install + D seal; do not plan claim |
+| Between-wave tier selection sealed claims | No tier concept/telemetry in current builds | A implements tiers first; then C fields, then D seal |
+
+**Prerequisite fix that gates several items:** the `add_visitors_to_current_scene` group-argument defect in `tools/wave_reinforcements.py:102` (`GROUPS=(5,6,7)` passed as the MP group argument) must be fixed and re-sealed before visitor/survivor arrival claims; A owns it.
+
 ---
 
 ## 10. Feasible-now vs blocked — summary
@@ -316,6 +351,7 @@ The engine only lets a spawn choose a troop record; it does not let a script add
 - **D, 2026-10-24 (against `abac9df`): bounded feasibility flags applied:** per-class isolation unavailable (mixed 981–984 spawn; only class presence observable); weak-wave-1 contains stronger native visitors (895/896/898; A P0 fix crashed) so it is **not** a P0-negative control; ammo-limited desperation run unreachable (fresh defenders full ammo, `melee_after_empty_observed=false`) until a strict build is installed; `agent_is_routed` has no verified getter → report unknown, not 0; between-wave regroup/rearm and tier selection are out of scope until A implements/exposes them. Allowed per-run claims are bounded in §9-D item 6. No acceptance.
 - **C, 2026-10-24 (against `f1ba5c5`/`30b9697`): feasible as listed, with corrections applied here:** (a) class map/per-class aggregates and weapon/attack_action are feasible now without A globals if the build pins 981–984; (b) range/engagement is only a 15 s sample-tick proxy, not shot-time or kill-time distance; (c) `kills_team0_by_class` is feasible but class × victim-troop attribution is **not** feasible now and is listed as a proposed field; (d) `agent_get_simple_behavior`/`agent_is_routed` are native but **not currently read** and need msfiles lhs/can_fail declarations + capability flags; fallback/regroup events and tier sourcing are proxies/A-dependent; (e) no acceptance claim. No unresolved C blocker.
 - Related-work/community citations added at Lead's request (2026-10-24): see §2.6 (Native tactics, FormAI, TLD, Chinese class tutorials, Bannerlord NPCCharacter/assignment logic, RBM, Bannerlord formation-AI mods); no code or assets imported.
+- Implementation handoff added at Lead's request (2026-10-24): see §9.5 — F-now/F-build rules mapped to A files/functions and task IDs, with a separate B-engine/blocked table and the `add_visitors` prerequisite.
 - D was sent the validation asks; any later findings should be appended here.
 
 *End of document.*
