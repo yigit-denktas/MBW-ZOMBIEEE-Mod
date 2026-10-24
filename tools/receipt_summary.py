@@ -956,6 +956,43 @@ def summarize_receipt(target: Path) -> dict:
     if engagement["kills_team0"] is None and engagement["kills_team1"] is None:
         gaps_hint.append("kill_telemetry_unavailable")
 
+    # Task-55 P0: wave-table faction-slot + current-scene readback. Raw values,
+    # no inference: lets us separate "trigger wrote 894" from "engine kept
+    # original/wave values" and check the trigger's scene condition.
+    def _latest_field(name):
+        for event in reversed(samples):
+            raw = event["fields"].get(name)
+            if isinstance(raw, str) and raw not in ("", "none", "-1"):
+                return raw
+        return None
+
+    wave_slots = None
+    raw_slots = _latest_field("wave_faction_slots")
+    if raw_slots:
+        parsed_slots = {}
+        for part in raw_slots.split(","):
+            slot_text, sep, value_text = part.partition(":")
+            if not sep:
+                continue
+            try:
+                slot, value = int(slot_text), int(value_text)
+            except ValueError:
+                continue
+            if 0 <= slot <= 255:
+                parsed_slots[slot] = value
+        wave_slots = parsed_slots or None
+    wave_slots_slow = None
+    if wave_slots:
+        wave_slots_slow = all(wave_slots.get(slot) == 894
+                              for slot in (200, 221, 231, 241))
+    current_scene = None
+    raw_scene = _latest_field("current_scene")
+    if raw_scene:
+        try:
+            current_scene = int(raw_scene)
+        except ValueError:
+            pass
+
     gaps = list(gaps_hint)
     if defender_samples and not defenders["weapon_mode_observed"]:
         gaps.append("weapon_mode_unobserved")
@@ -969,6 +1006,8 @@ def summarize_receipt(target: Path) -> dict:
         gaps.append("defender_orders_unavailable")
     if defender_native_groups:
         gaps.append("native_group_orders_unavailable")
+    if wave_slots is None:
+        gaps.append("wave_slot_readback_unavailable")
     if (teams["speed_modifiers_team1"] is None
             and teams["time_multipliers_team1"] is None
             and (teams["bots_team1"] or teams["max_team1"])):
@@ -1053,7 +1092,10 @@ def summarize_receipt(target: Path) -> dict:
                   "wave1": {"observed": wave1_observed,
                             "team1_classes": wave1_classes if wave1_observed else None},
                   "classes_by_wave": (dict(sorted(classes_by_wave.items()))
-                                      or None)},
+                                      or None),
+                  "faction_slots": wave_slots,
+                  "slots_slow": wave_slots_slow,
+                  "current_scene": current_scene},
         "rounds": {"round_starts": rounds[:MAX_ROUNDS],
                    "count": len(rounds),
                    "multiple_observed": len(rounds) >= 2,
@@ -1170,7 +1212,10 @@ def format_summary(summary: dict) -> str:
                  f"deaths={defend['deaths']}")
     lines.append(f"waves:           observed={summary['waves']['observed']} "
                  f"max={summary['waves']['max']} "
-                 f"wave1={summary['waves']['wave1']}")
+                 f"wave1={summary['waves']['wave1']} "
+                 f"faction_slots={summary['waves']['faction_slots']} "
+                 f"slots_slow={summary['waves']['slots_slow']} "
+                 f"current_scene={summary['waves']['current_scene']}")
     lines.append(f"rounds:          {summary['rounds']['count']} distinct "
                  f"round_start values")
     done = ", ".join(f"{kind}={len(items)}" for kind, items in summary["lifecycle"].items())

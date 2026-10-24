@@ -801,5 +801,29 @@ class ReceiptSummaryTests(unittest.TestCase):
         self.assertIsNone(summary["teams"]["speed_modifiers_team1"])
         self.assertIn("speed_readback_team1_unavailable", summary["evidence_gaps"])
 
+
+    def test_task55_faction_slot_and_scene_readback(self):
+        lines = [
+            "ZDB1|heartbeat|count=1|role=server|team0=8|team1=16|wave=2"
+            "|game_type=7|current_scene=516"
+            "|wave_faction_slots=200:894,221:894,231:894,241:894,245:895"
+            "|troops_team1=894:6,896:7",
+        ]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        waves = summary["waves"]
+        self.assertEqual(waves["faction_slots"],
+                         {200: 894, 221: 894, 231: 894, 241: 894, 245: 895})
+        self.assertTrue(waves["slots_slow"])
+        self.assertEqual(waves["current_scene"], 516)
+        self.assertNotIn("wave_slot_readback_unavailable", summary["evidence_gaps"])
+        # the leak remains visible in the troop histogram even with slow slots
+        self.assertEqual(waves["classes_by_wave"][2]["native_zombie"], 7)
+
+    def test_task55_slot_readback_gap_when_absent(self):
+        summary = self.run_summary(files={"host_stdout.log": "ZDB1|heartbeat|count=1|role=server|wave=2"})
+        self.assertIn("wave_slot_readback_unavailable", summary["evidence_gaps"])
+        self.assertIsNone(summary["waves"]["faction_slots"])
+        self.assertIsNone(summary["waves"]["slots_slow"])
+
 if __name__ == "__main__":
     unittest.main()
