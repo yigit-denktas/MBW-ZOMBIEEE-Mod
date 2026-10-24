@@ -11,8 +11,7 @@ from faction_log_guard_prefix import original_prefix_ok, trigger_guard_diff
 from ai_wave_contract import decode_trigger
 from patch_defenders import mission_bounds
 
-ORIGINAL = Path(os.environ.get("ZOMBIEEE_ORIGINAL_MODULE",
-                               "C:/Users/yigit/Documents/repos/MBW-ZOMBIEEE-Mod/local/original-beta04/ZOMBIEEE"))
+ORIGINAL = Path(os.environ.get("ZOMBIEEE_ORIGINAL_MODULE", "/mnt/data/zombieee"))
 MISSION = ORIGINAL / "mission_templates.txt"
 
 
