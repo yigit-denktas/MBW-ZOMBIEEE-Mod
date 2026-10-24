@@ -1,8 +1,8 @@
 ﻿{
-  "updated": "2026-10-24T16:22:00+02:00",
-  "phase": "P0 crash triage",
-  "build": "Known-good f57c800 restored and installed.",
-  "now": "Speed-loop OFF + corrected probe reached 300s with NO AV crash (killed by timeout); no Invalid Agent ID 0. Client Invalid Group ID 0 was fixed in C probe ecd3f4b, not yet in this run.",
-  "next": "Install ecd3f4b probe on clean-off/clean-on builds; rerun bounded, then speed-on A/B.",
+  "updated": "2026-10-24T16:25:00+02:00",
+  "phase": "P0 clean bisect",
+  "build": "Clean-off test build installed (no recovery/wave triggers). Known-good f57c800 backup available.",
+  "now": "C probe ecd3f4b fixes Invalid Agent ID 0 and Invalid Group ID 0; D sealing clean-off bounded 240s.",
+  "next": "If clean-off has no AV, run clean-on; then full pairs. No acceptance.",
   "acceptance": false
 }
