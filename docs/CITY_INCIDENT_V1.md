@@ -276,6 +276,53 @@ A single observed `wave=1` is not wave completion, AI combat acceptance or
 gameplay verification; `runtime.gameplay_verified` stays false and the sealed
 recorder receipt plus screenshots still have to be reviewed.
 
+## Respawn and round-restart configuration: what was and was not measured
+
+A follow-up dedicated attempt (2026-10-24 02:12 UTC) added
+`set_respawn_period 5`, `set_defender_spawn_count 0`,
+`set_round_max_seconds 1800` and `set_player_respawn_as_bot 0` to the team-2
+bot rotation. The recorder sealed the attempt (`outcome=stopped`,
+`simulation=false`, 7 integrity-verified files) and the corrected probe again
+emitted `|opmeta=1`, `role=server`, `game_type=7`, `ready_for_spawn=1`, with no
+`Illegal lvalue` and no new script errors beyond the four original Trigger 14
+faction messages.
+
+What the probe **directly observed** at its 15 s sampling:
+
+* repeated new rounds: `round_start` 28 -> 61 -> 133 -> 228 -> 317, with
+  `wave` resetting to 0 and `team1` repopulating (32/41) at each new round;
+* one explicit round-end marker: `round=1` (`g_round_ended`) on heartbeat 9;
+* the player present on team 0 from heartbeat 3 through heartbeat 21;
+* team0=0 on heartbeats 22-24 on the last new round, around the client exit
+  that stopped the recorder.
+
+**Respawn-interval semantics — bounded claim only.** The dedicated server's own
+help text lists `set_respawn_period <value>` as "sets respawn period" with no
+printed unit, and `set_round_max_seconds <value>` as "maximum seconds for
+round". The probe samples every 15 s, so a 5 s respawn is shorter than one
+sampling interval: a death followed by an immediate respawn is invisible
+between samples. There is **no sampled `team0=0 -> 1` transition while the
+player was connected**, so this attempt measures neither respawn latency nor a
+death/respawn cycle; it only shows a team-0 agent present again at every
+sampled heartbeat from 3 to 21. Round restarts were roughly 33/72/95/89 s
+apart, far below the configured 1800 s maximum, so they were game-mode round
+ends rather than the max-seconds limit. The final `team0=0` spans ~45 s, more
+than the configured 5 s period, and coincides with client exit; the ZDB1
+stream cannot distinguish "died again and quit before respawn" from "left
+before the new round", and `exit_code_observed=false` (B owns the process
+handles) keeps that unknown. Neither `team0=0` nor `team1>0` may be promoted
+to a death or a native-zombie claim: the generic `set_bot_count` roster is
+Crazed Civilian (issues #13/#14).
+
+**Sealed receipt completeness caveat:** in this attempt the stored redacted
+`logs/log_01.txt` is a strict prefix of the engine log and misses its final
+appended line (~82 characters), while `recorder.json` reports
+`log_seen_bytes=[15172]` with `log_omitted_bytes=[0]`. The bundle is
+integrity-verified but slightly overstates log completeness — the same class
+as the terminal-write/atomic-replace issue #15, not corruption. The engine log
+itself contains only the original Trigger 14 errors; the probe stream remains
+outside the sealed bundle (issue #16).
+
 ## Verification and privacy
 
 Synthetic regression tests cover source/runtime claims, the original game

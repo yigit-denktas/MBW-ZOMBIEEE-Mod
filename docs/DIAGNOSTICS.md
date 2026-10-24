@@ -110,6 +110,36 @@ The launcher/installer must establish bot counts before `start` (B's lane).
 One observed `wave=1` is not wave completion, AI combat or gameplay
 acceptance.
 
+**Respawn/round commands and sampling resolution (2026-10-24 follow-up):** a
+second dedicated attempt added `set_respawn_period 5`,
+`set_defender_spawn_count 0`, `set_round_max_seconds 1800` and
+`set_player_respawn_as_bot 0`. The dedicated server's own help describes these
+only as "sets respawn period", "sets maximum seconds for round", etc., with
+no printed unit, and the 15 s heartbeat cannot resolve a 5 s respawn: a death
+plus immediate respawn is invisible between samples. The attempt did show
+repeated new rounds (`round_start` 28 -> 61 -> 133 -> 228 -> 317, `wave`
+resetting to 0 and `team1` repopulating each round), one explicit
+`round=1` (`g_round_ended`) marker, and the player's team-0 agent present from
+heartbeat 3 through 21. It did **not** sample a `team0=0 -> 1` transition
+while connected, so it measures neither respawn latency nor a death/respawn
+cycle; round restarts (~33-95 s apart) ended well before the 1800 s limit, so
+they were game-mode ends. The final `team0=0` over ~45 s is four times the
+configured 5 s period and coincides with client exit, so "died and quit in a
+respawn window" cannot be distinguished from "left before the new round"
+(`exit_code_observed=false` in passive mode). Do not read `team0=0` as a
+death, and keep the generic `set_bot_count` roster (Crazed Civilian, issues
+#13/#14) separate from native zombie troops.
+
+**Sealed receipt completeness caveat:** in that attempt the stored redacted
+`logs/log_01.txt` was a strict prefix of the engine log, missing its final
+appended line, while `recorder.json` reported `log_seen_bytes=[15172]` and
+`log_omitted_bytes=[0]`. Integrity still verified, but the receipt slightly
+overstates log completeness: the same terminal-write race class as the
+atomic-replace issue #15. Treat the last poll window as possibly absent and
+never infer completion from `log_omitted_bytes=[0]` alone. The engine log also
+carries no probe stream at all: host stdout stays outside the bundle (issue
+#16).
+
 ## Agent C: external flight recorder (development prototype)
 
 **Status: offline prototype on `agent/c-flight-recorder`; Windows/WSE2 integration not verified.** The recorder runs as a separate Python process, observes a subprocess launched with `--` or a pre-existing PID with `--observe-pid`, and independently stores atomic, bounded evidence snapshots. No game memory injection, shell execution, external telemetry or background uploads. It does not replace the final WSE2 session.
