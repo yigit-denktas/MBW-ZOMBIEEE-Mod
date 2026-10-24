@@ -75,6 +75,14 @@ class BotLoadoutTests(unittest.TestCase):
         for troop in CLONES:
             self.assertIn(str(360287970189639680 + ids[troop]), trigger)
 
+    def test_each_clone_has_one_melee_and_double_ammo(self):
+        for loadout in LOADOUTS:
+            self.assertEqual(loadout.count("itm_bowie"), 1)
+            melee = [name for name in loadout if name in ("itm_bowie", "itm_sword", "itm_knife")]
+            self.assertEqual(melee, ["itm_bowie"])
+            ammo = [name for name in loadout if name.startswith("itm_cartridges")]
+            self.assertEqual(len(ammo), 8)
+
     def test_unknown_or_corrupt_items_rejected(self):
         with self.assertRaises(PatchError):
             clone_loadouts(self.base_troops, self.items.replace("itemsfile version 3", "itemsfile version 8"))

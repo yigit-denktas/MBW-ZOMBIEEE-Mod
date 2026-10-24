@@ -22,9 +22,12 @@ INVADER_FACTION = FACTION_BASE + 16
 SLOW_ZOMBIE = 894
 WAVE_TABLE_SLOTS = tuple(range(200, 245))
 DEFAULT_DEFENDER_TARGET = 8
-ZOMBIE_SPEED_BASE = 70             # percent, wave 0/1
+DEFENDER_TARGET_CAP = 12
+WINS_SLOT = 250          # invader faction slot: rounds survived (bounded)
+ROUND_SLOT = 252         # invader faction slot: previous g_round_ended
+ZOMBIE_SPEED_BASE = 60             # percent, wave 0/1 (task-45 pressure tuning)
 ZOMBIE_SPEED_PER_WAVE = 5          # +5% per wave, capped at 100
-HOLD_FIRE_ORDERS = (0, 12, 13, 16)  # hold, hold_fire, fire_at_will, use_ranged_weapons
+HOLD_FIRE_ORDERS = (0, 13, 16)  # hold, fire_at_will, use_ranged_weapons (never suppress fire)
 defender_reinforce_supported = True
 DIVISIONS = (5, 6, 7)
 GUARD_ENTRIES = (2, 3, 4)
@@ -46,7 +49,9 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None,
                    wave_visitors: str = "slow",
                    defender_target: int = DEFAULT_DEFENDER_TARGET,
                    zombie_speed: bool = True,
-                   defender_orders: bool = True) -> str:
+                   defender_orders: bool = True,
+                   game_type_operand: int | None = None,
+                   round_ended_operand: int | None = None) -> str:
     """City hold-order trigger body.
 
     With ``wave_global`` provided, each wave rotates the three sector posts by
@@ -60,6 +65,10 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None,
     """
     conditions = ["417", "0", "2211", "1", str(LOCAL0),
                   "31", "2", str(LOCAL0), str(SCENE_BASE + scene_idx)]
+    if game_type_operand is not None:
+        # Explicit Invasion game_type=7 path: this trigger must not act in
+        # unrelated multiplayer modes.
+        conditions += ["31", "2", str(game_type_operand), "7"]
     pos = POS_BASE + 120
     ops = []
     if wave_visitors == "slow":
@@ -71,7 +80,7 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None,
                         str(TROOP_BASE + SLOW_ZOMBIE)])
     if zombie_speed:
         # City-only zombie pace: native per-agent speed modifier, no gear or
-        # global mission time speed. 70% at wave 0/1, +5% per wave, capped 100%.
+        # global mission time speed. 60% at wave 0/1, +5% per wave, capped 100%.
         l12, l13, l14 = (str(LOCAL0 + n) for n in (12, 13, 14))
         ops.append(["2133", "2", l12, str(ZOMBIE_SPEED_BASE)])
         if wave_global is not None:
@@ -132,9 +141,30 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None,
         ops.append(["2120", "3", l0, l0, "1"])             # count += 1
         ops.append(["3", "0"])                             # try_end
         if defender_target:
+            l6, l7, l12, l13 = (str(LOCAL0 + n) for n in (6, 7, 12, 13))
             l8, l9, l10, l11 = (str(LOCAL0 + n) for n in (8, 9, 10, 11))
-            ops.append(["2133", "2", l8, str(defender_target)])
-            ops.append(["2121", "3", l9, l8, l0])           # missing = target - count
+            # Rounds survived accumulate a bounded survivor target: 8 base,
+            # +1 per completed round, cap 12. State lives in invader faction slots
+            # so it persists across native round resets without new globals.
+            if round_ended_operand is not None:
+                ops.append(["522", "3", l6, str(INVADER_FACTION), str(WINS_SLOT)])
+                ops.append(["522", "3", l7, str(INVADER_FACTION), str(ROUND_SLOT)])
+                ops.append(["2133", "2", l12, str(round_ended_operand)])
+                ops.append(["4", "0"])                    # try_begin
+                ops.append(["31", "2", l7, "1"])           # previous round ended
+                ops.append(["31", "2", l12, "0"])          # new round started
+                ops.append(["2120", "3", l6, l6, "1"])     # wins += 1
+                ops.append(["3", "0"])                    # try_end
+                ops.append(["4", "0"])                    # cap wins
+                ops.append(["32", "2", l6, "4"])
+                ops.append(["2133", "2", l6, "4"])
+                ops.append(["3", "0"])
+                ops.append(["502", "3", str(INVADER_FACTION), str(WINS_SLOT), l6])
+                ops.append(["502", "3", str(INVADER_FACTION), str(ROUND_SLOT), l12])
+                ops.append(["2120", "3", l13, "8", l6])    # target = 8 + wins
+            else:
+                ops.append(["2133", "2", l13, str(defender_target)])
+            ops.append(["2121", "3", l9, l13, l0])          # missing = target - count
             ops.append(["32", "2", l9, "0"])
             ops.append(["4", "0"])                          # try_begin
             ops.append(["1780", "2", str(pos), "0"])        # spawn at rear entry
@@ -194,8 +224,9 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None,
     tokens = [token for row in ops for token in row]
     # Periodic 5 s upkeep: re-issues hold positions after dedicated round
     # resets / squad respawns and re-selects the sector on each new wave.
+    condition_count = 4 if game_type_operand is not None else 3
     return " ".join(["5.000000", "0.000000", "0.000000",
-                     "3", *conditions, str(len(ops)), *tokens])
+                     str(condition_count), *conditions, str(len(ops)), *tokens])
 
 
 def patch_orders(original: str, scene_idx: int,
@@ -204,7 +235,9 @@ def patch_orders(original: str, scene_idx: int,
                  wave_visitors: str = "slow",
                  defender_target: int = DEFAULT_DEFENDER_TARGET,
                  zombie_speed: bool = True,
-                 defender_orders: bool = True) -> str:
+                 defender_orders: bool = True,
+                 game_type_operand: int | None = None,
+                 round_ended_operand: int | None = None) -> str:
     lines = original.splitlines(keepends=True)
     count_line, count, insert_at = mission_bounds(lines)
     if count != 26:
@@ -240,7 +273,9 @@ def patch_orders(original: str, scene_idx: int,
     lines[count_line] = "27" + newline
     lines.insert(insert_at, orders_trigger(scene_idx, wave_global, hold_entries,
                                             wave_visitors, defender_target,
-                                            zombie_speed, defender_orders) + newline)
+                                            zombie_speed, defender_orders,
+                                            game_type_operand,
+                                            round_ended_operand) + newline)
     updated = "".join(lines)
     if mission_bounds(updated.splitlines(keepends=True))[1] != 27:
         raise PatchError("Invalid tactical trigger count")
@@ -260,16 +295,25 @@ def apply_module(module: Path, hold_entries: tuple[int, ...] = REAR_HOLD_ENTRIES
     plan = plan_city(original_scene)
     idx = scene_index(module / "scenes.txt")
     wave_global = None
+    game_type_operand = None
+    round_ended_operand = None
     variables_path = module / "variables.txt"
     if variables_path.is_file():
         variables = variables_path.read_text(encoding="utf-8").splitlines()
         if "wave_number" not in variables:
             raise PatchError("Original wave_number global missing for sector rotation")
         wave_global = 144115188075855872 + variables.index("wave_number")
+        if "g_multiplayer_game_type" in variables:
+            game_type_operand = (144115188075855872
+                                 + variables.index("g_multiplayer_game_type"))
+        if "g_round_ended" in variables:
+            round_ended_operand = (144115188075855872
+                                   + variables.index("g_round_ended"))
     changed_scene = apply_city_overlay(original_scene, plan)
     changed_mission = patch_orders(original_mission, idx, wave_global, hold_entries,
                                     wave_visitors, defender_target,
-                                    zombie_speed, defender_orders)
+                                    zombie_speed, defender_orders,
+                                    game_type_operand, round_ended_operand)
     if len(decode_scene(changed_scene)["objects"]) != len(decode_scene(original_scene)["objects"]) + 3:
         raise PatchError("Scene overlay failed binary roundtrip")
     # All validations happen before writes. On a mission-write failure, restore the SCO.
@@ -286,6 +330,9 @@ def apply_module(module: Path, hold_entries: tuple[int, ...] = REAR_HOLD_ENTRIES
             "invasion_triggers": 27,
             "engine_verified": False,
             "wave_sector_rotation": True,
+            "game_type": 7 if game_type_operand is not None else None,
+            "defender_target_cap": DEFENDER_TARGET_CAP,
+            "survivor_growth_per_round": 1 if round_ended_operand is not None else 0,
             "zombie_speed": zombie_speed,
             "defender_standoff": defender_orders,
             "explosive_gating": "not_applicable_ai_loadouts_have_no_bombs",

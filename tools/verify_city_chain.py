@@ -126,7 +126,7 @@ def verify(original: Path, archive: Path | None = None) -> dict:
             apply_city(stage)
             chain.append(mission_check(stage, original, 27))
             apply_wave(stage, cap=4, city_only=True,
-                       balanced_ai=variant == "balanced-ai")
+                       balanced_ai=variant == "balanced-ai", slow_visitors=True)
             chain.append(mission_check(stage, original, 29))
             classes = CLONES if variant == "balanced-ai" else SURVIVOR_CLASSES
             troop_ids = index_troops(stage / "troops.txt")
@@ -196,7 +196,7 @@ def verify(original: Path, archive: Path | None = None) -> dict:
         apply_firearm_balance(solo, "default")
         patch_file(solo, 4, city_only=True)
         apply_city(solo)
-        apply_wave(solo, cap=4, city_only=True)
+        apply_wave(solo, cap=4, city_only=True, slow_visitors=True)
         solo_troops = index_troops(solo / "troops.txt")
         solo_defense_ids = [solo_troops[name] for name in SURVIVOR_CLASSES]
         solo_game_type = GLOBAL_BASE + (solo / "variables.txt").read_text(

@@ -80,3 +80,23 @@ with `runtime_verified=false` and no acceptance claim.
   that survivors shoot the slowed wave before it reaches the line. Runtime
   distance/KD/ammo evidence is D's sealed validation; no acceptance claim.
 
+## Task-45 balance after sealed task-38/42 evidence
+
+Sealed runs showed 72/72 ranged, rear hold and refill working, but KD 4-6 kills
+vs 49-52 deaths, zombies outmoving defenders, and wave 2 never reached. Fixes:
+- remove `mordr_hold_fire` from the per-group order set (hold + fire_at_will +
+  use_ranged_weapons only) so defenders actually engage;
+- zombie speed base 70% -> **60%** at wave 0/1 (+5%/wave, cap 100%);
+- launcher generic enemy default 32 -> **24** generic bots (`DEFAULT_TEAM2_BOTS`);
+  weak-wave1/native-only profiles unchanged.
+D validates KD, wave-2 reachability (894-only) and the ammo/melee branch with a
+no-refill variant; no acceptance claim.
+
+## Task-46 survivor consolidation (after task-45 balance)
+
+- Exactly one melee weapon per AI survivor: all four clone loadouts carry itm_bowie (and no other melee item).
+- Double ammunition: each clone carries eight matching cartridge stacks (was four).
+- Survivors accumulate per won round: a bounded invader-faction slot counter (slot 250, previous round-ended slot 252) increments on a real round-end -> new-round transition; the spawn_agent refill target = 8 + wins, capped 12. Rear hold and refill remain.
+- Explicit Invasion path: the City hold/order trigger now also requires $g_multiplayer_game_type == 7, so it cannot act in other multiplayer modes; receipt records game_type=7.
+- Task-45 balance retained: fire_at_will/use_ranged orders (no hold_fire), 60%% wave-1 zombie base pace, 24 generic bots default. D validates KD/wave-2/ammo; no acceptance.
+

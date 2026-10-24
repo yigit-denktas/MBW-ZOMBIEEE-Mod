@@ -44,9 +44,9 @@ DEFAULT_TEAM1_BOTS = 0
 # rear hold line against the wave-1 horde; runtime positions/KD remain D
 # evidence, not an acceptance claim.
 DEFENDER_SQUAD_BOTS = 8
-DEFAULT_TEAM2_BOTS = 32
+DEFAULT_TEAM2_BOTS = 24
 # Enemy rotation profiles for the live wave/balance regression:
-# generic      - current default, a mixed 32-bot team-2 roster
+# generic      - current default, a mixed 24-bot team-2 roster (task-45 pressure tuning)
 # weak-wave1   - a small staged wave-1 enemy count (generic candidates)
 # native-only  - no generic team-2 bots; only native wave visitors
 ENEMY_PROFILE_GENERIC = 'generic'
