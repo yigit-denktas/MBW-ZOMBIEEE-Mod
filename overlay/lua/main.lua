@@ -13,6 +13,8 @@ local MAX_TROOP_NAME = 32
 local MAX_PLAYER_IDS = 8
 local MAX_AI_SAMPLES = 8
 local MAX_PRE_ROUND_SAMPLES = 6
+local MAX_PLAUSIBLE_KILLS = 10000
+local MAX_TROOP_ID = 100000
 local function emit(event, details)
     print("ZDB1|" .. event .. "|version=" .. VERSION .. (details or ""))
 end
@@ -99,6 +101,7 @@ local previous_round_ended = nil
 local round_increase_count = 0
 local round_first_start = nil
 local round_anomaly_emitted = false
+local kill_range_anomaly_emitted = false
 local previous_alive_players = {}
 local player_seen = false
 local player_pending = false
@@ -106,16 +109,24 @@ local function current_mission()
     local value = guarded_call(game.getCurTemplateId, "unknown")
     return tostring(value):gsub("[^%w_]", "_"):sub(1, 60)
 end
--- Read-only agent getters. Module-system operations are optional: a missing
--- binding means unknown, not zero. Destination register 0 is a scratch slot.
+-- Read-only agent getters. WSE2 lhs module operations return
+-- (intResult, intError); the first Lua argument is only a placeholder
+-- destination. Reading game.reg0 afterwards is WRONG (it is stale), which is
+-- why all agents once reported a single troop id and kill sums were garbage.
+-- Use the returned value; a non-zero error, a throw or a non-numeric result is
+-- unknown (-1), never 0.
 local function read_agent_number(name, agent, extra)
     local fn = game[name]
     if type(fn) ~= "function" then return -1 end
-    local ok = pcall(function()
-        if extra ~= nil then fn(0, agent, extra) else fn(0, agent) end
+    local ok, value, op_error = pcall(function()
+        if extra ~= nil then return fn(0, agent, extra) end
+        return fn(0, agent)
     end)
     if not ok then return -1 end
-    return tonumber(game.reg0) or -1
+    if op_error ~= nil and op_error ~= 0 then return -1 end
+    local number = tonumber(value)
+    if number == nil then return -1 end
+    return math.floor(number)
 end
 local function is_npc(agent)
     local value = guarded_call(function()
@@ -207,6 +218,8 @@ local function sample_world()
                          horses = {[0] = 0, [1] = 0},
                          alive = {[0] = 0, [1] = 0},
                          kills = {[0] = 0, [1] = 0},
+                         kills_unknown = {[0] = 0, [1] = 0},
+                         troop_read_unknown = 0,
                          ai_samples = {},
                          pos_count = {[0] = 0, [1] = 0},
                          pos_sum = {[0] = {0, 0}, [1] = {0, 0}},
@@ -234,9 +247,11 @@ local function sample_world()
             if side == 1 then result.team1 = result.team1 + 1 end
             if supports_troop and side ~= nil then
                 local troop = read_agent_number("agent_get_troop_id", agent)
-                if troop >= 0 then
+                if troop >= 0 and troop <= MAX_TROOP_ID then
                     local hist = side == 0 and result.hist0 or result.hist1
                     hist[troop] = (hist[troop] or 0) + 1
+                else
+                    result.troop_read_unknown = result.troop_read_unknown + 1
                 end
             end
             -- Composition: agent_is_horse does not exist in this engine, so the
@@ -271,7 +286,16 @@ local function sample_world()
                 end
                 if supports_kills then
                     local kills = read_agent_number("agent_get_kill_count", agent)
-                    if kills >= 0 then result.kills[side] = result.kills[side] + kills end
+                    if kills >= 0 and kills <= MAX_PLAUSIBLE_KILLS then
+                        result.kills[side] = result.kills[side] + kills
+                    else
+                        result.kills_unknown[side] = result.kills_unknown[side] + 1
+                        if kills > MAX_PLAUSIBLE_KILLS and not kill_range_anomaly_emitted then
+                            kill_range_anomaly_emitted = true
+                            emit("probe_anomaly", "|kind=kill_count_out_of_range|agent="
+                                .. agent .. "|value=" .. kills)
+                        end
+                    end
                 end
                 -- Bounded bot position samples (max MAX_AI_SAMPLES per heartbeat)
                 -- give the no-player summary positions/movement without ever
@@ -298,6 +322,7 @@ local function sample_world()
                                 result.pos_max[side][2] = y end
                             local kills = supports_kills
                                 and read_agent_number("agent_get_kill_count", agent) or -1
+                            if kills < 0 or kills > MAX_PLAUSIBLE_KILLS then kills = -1 end
                             result.ai_samples[#result.ai_samples + 1] =
                                 { team = side, id = agent, x = x, y = y, kills = kills }
                         end
@@ -325,6 +350,11 @@ local function sample_world()
         end
         if not supports_alive then result.alive[0], result.alive[1] = -1, -1 end
         if not supports_kills then result.kills[0], result.kills[1] = -1, -1 end
+        for team = 0, 1 do
+            -- No partial/fabricated sums: one unreadable agent makes that
+            -- team's kill total unknown.
+            if result.kills_unknown[team] > 0 then result.kills[team] = -1 end
+        end
         if not supports_pos then result.pos_count[0], result.pos_count[1] = -1, -1 end
         for team = 0, 1 do
             if result.pos_count[team] > 0 then
@@ -413,6 +443,11 @@ local function state_fields(world)
             .. "|alive_team1=" .. world.alive[1]
             .. "|kills_team0=" .. world.kills[0]
             .. "|kills_team1=" .. world.kills[1]
+            .. "|kills_measured_team0=" .. (world.kills[0] >= 0 and 1 or -1)
+            .. "|kills_measured_team1=" .. (world.kills[1] >= 0 and 1 or -1)
+            .. "|kills_unknown_team0=" .. world.kills_unknown[0]
+            .. "|kills_unknown_team1=" .. world.kills_unknown[1]
+            .. "|troop_read_unknown=" .. world.troop_read_unknown
             .. "|pos_team0=" .. world.pos_text[0]
             .. "|pos_team1=" .. world.pos_text[1]
             .. "|bbox_team0=" .. world.bbox_text[0]
@@ -426,7 +461,9 @@ local function state_fields(world)
             .. "|humans_team0=-1|humans_team1=-1|players_team0=-1|players_team1=-1"
             .. "|bot_agents_team0=-1|bot_agents_team1=-1|horses_team0=-1|horses_team1=-1"
             .. "|alive_players_team0=-1|no_player=-1|alive_team0=-1|alive_team1=-1"
-            .. "|kills_team0=-1|kills_team1=-1|pos_team0=-1|pos_team1=-1"
+            .. "|kills_team0=-1|kills_team1=-1|kills_measured_team0=-1"
+            .. "|kills_measured_team1=-1|kills_unknown_team0=-1|kills_unknown_team1=-1"
+            .. "|troop_read_unknown=-1|pos_team0=-1|pos_team1=-1"
             .. "|bbox_team0=-1|bbox_team1=-1|pos_sampled_team0=-1|pos_sampled_team1=-1"
     end
     return fields

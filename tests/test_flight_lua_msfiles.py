@@ -357,5 +357,18 @@ class LuaOperationMetadataTests(unittest.TestCase):
         self.assertIn("round_start < previous_round_start", self.main)
         self.assertIn("previous_round_ended == 1 and round_ended == 0", self.main)
 
+
+    def test_lhs_reads_use_return_values_not_stale_registers(self):
+        # WSE2 lhs ops return (result, error); game.reg0 is stale. Reading it
+        # made every agent report one troop id and produced bogus kill sums.
+        self.assertNotIn("tonumber(game.reg0)", self.main)
+        self.assertIn("local ok, value, op_error = pcall", self.main)
+        self.assertIn("if op_error ~= nil and op_error ~= 0 then return -1 end", self.main)
+        self.assertIn("MAX_PLAUSIBLE_KILLS = 10000", self.main)
+        self.assertIn("kind=kill_count_out_of_range", self.main)
+        self.assertIn("result.kills_unknown[team] > 0", self.main)
+        self.assertIn("|kills_measured_team0=", self.main)
+        self.assertIn("|troop_read_unknown=", self.main)
+
 if __name__ == "__main__":
     unittest.main()

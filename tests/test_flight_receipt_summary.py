@@ -333,7 +333,8 @@ class ReceiptSummaryTests(unittest.TestCase):
         self.assertEqual(positions["team1"]["sampled"], 8)
         self.assertEqual(positions["team1"]["distinct_bots"], 2)
         self.assertEqual(positions["team1"]["moving_bots"], 1)  # id 100 displaced
-        self.assertEqual(summary["engagement"], {"kills_team0": 0, "kills_team1": 5})
+        self.assertEqual(summary["engagement"]["kills_team0"], 0)
+        self.assertEqual(summary["engagement"]["kills_team1"], 5)
         self.assertGreaterEqual(summary["events"]["zdbi_lines"], 8)
         self.assertEqual(summary["events"]["counts"].get("ai_sample"), 4)
         for kind in ("player_joined", "player_died", "player_respawned", "player_left"):
@@ -449,6 +450,38 @@ class ReceiptSummaryTests(unittest.TestCase):
         ]
         summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
         self.assertEqual(summary["rounds"]["round_starts"], [84])
+
+
+    def test_unlabelled_kill_totals_are_unreliable_not_zeros(self):
+        # Old/buggy builds produced bogus sums (e.g. 15351) without measurement
+        # flags; the summary must mark them unreliable, not as kills or zeros.
+        lines = ["ZDB1|heartbeat|count=1|role=server|team0=1|team1=17"
+                 "|kills_team0=0|kills_team1=15351"]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        engagement = summary["engagement"]
+        self.assertFalse(engagement["reliable"])
+        self.assertIsNone(engagement["measured_team0"])
+        self.assertIn("engagement_kills_unreliable", summary["evidence_gaps"])
+
+    def test_measured_kill_counts_are_reliable(self):
+        lines = ["ZDB1|heartbeat|count=1|role=server|team0=1|team1=17"
+                 "|kills_team0=2|kills_team1=7|kills_measured_team0=1"
+                 "|kills_measured_team1=1|kills_unknown_team0=0|kills_unknown_team1=0"
+                 "|troop_read_unknown=0|troops_team1=894:17"]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        engagement = summary["engagement"]
+        self.assertTrue(engagement["reliable"])
+        self.assertEqual((engagement["kills_team0"], engagement["kills_team1"]), (2, 7))
+        self.assertTrue(summary["troops"]["reliable"])
+        self.assertNotIn("engagement_kills_unreliable", summary["evidence_gaps"])
+
+    def test_unknown_kill_agent_makes_team_total_unknown(self):
+        lines = ["ZDB1|heartbeat|count=1|role=server|team0=1|team1=2"
+                 "|kills_team0=-1|kills_team1=7|kills_measured_team0=-1"
+                 "|kills_measured_team1=1|kills_unknown_team0=1|kills_unknown_team1=0"]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        self.assertIsNone(summary["engagement"]["kills_team0"])
+        self.assertFalse(summary["engagement"]["reliable"])
 
 if __name__ == "__main__":
     unittest.main()

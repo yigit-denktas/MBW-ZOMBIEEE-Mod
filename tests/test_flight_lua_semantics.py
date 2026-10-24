@@ -60,6 +60,22 @@ local bad = { humans = {0, 0} }
 checks[#checks + 1] = tostring(bad.humans[0] == nil)
 checks[#checks + 1] = tostring(bad.humans[1] == 0)
 
+
+-- lhs operation accessor contract: result comes from the RETURNED values,
+-- never from a stale register; errors and non-numeric results are unknown.
+local function read_agent_number(fn)
+    local ok, value, op_error = pcall(fn)
+    if not ok then return -1 end
+    if op_error ~= nil and op_error ~= 0 then return -1 end
+    local number = tonumber(value)
+    if number == nil then return -1 end
+    return math.floor(number)
+end
+checks[#checks + 1] = tostring(read_agent_number(function() return 5, 0 end) == 5)
+checks[#checks + 1] = tostring(read_agent_number(function() return 7, 0 end) == 7)
+checks[#checks + 1] = tostring(read_agent_number(function() return 7, 1 end) == -1)
+checks[#checks + 1] = tostring(read_agent_number(function() error("boom") end) == -1)
+checks[#checks + 1] = tostring(read_agent_number(function() return nil, 0 end) == -1)
 return table.concat(checks, ",")
 """
 
@@ -102,7 +118,7 @@ class RealLuaSemanticsTests(unittest.TestCase):
 
     def test_team_tables_arithmetic_and_precedence(self):
         checks = self.run_lua(SEMANTICS_SCRIPT).split(",")
-        self.assertEqual(len(checks), 8)
+        self.assertEqual(len(checks), 13)
         for index, value in enumerate(checks, 1):
             self.assertEqual(value, "true", f"Lua semantics check {index} failed")
 
