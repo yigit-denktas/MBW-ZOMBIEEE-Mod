@@ -483,5 +483,79 @@ class ReceiptSummaryTests(unittest.TestCase):
         self.assertIsNone(summary["engagement"]["kills_team0"])
         self.assertFalse(summary["engagement"]["reliable"])
 
+
+    def test_division_telemetry_exposes_defender_groups(self):
+        lines = [
+            "ZDB1|heartbeat|count=1|role=server|team0=8|team1=17"
+            "|groups_team0=5:3,6:2,7:2|groups_team1=0:17|group_read_unknown=0",
+            "ZDB1|ai_sample|role=server|tick=1|team=0|id=5|group=5|x=1.0|y=2.0|kills=0|wave=1",
+            "ZDB1|ai_sample|role=server|tick=1|team=0|id=6|group=6|x=2.0|y=3.0|kills=0|wave=1",
+            "ZDB1|ai_sample|role=server|tick=1|team=1|id=9|group=0|x=9.0|y=9.0|kills=1|wave=1",
+        ]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        divisions = summary["divisions"]
+        self.assertEqual(divisions["team0"], {5: 3, 6: 2, 7: 2})
+        self.assertEqual(divisions["team1"], {0: 17})
+        self.assertEqual(divisions["defender_groups_observed"], [5, 6, 7])
+        self.assertTrue(divisions["defender_divisions_observed"])
+        self.assertFalse(divisions["defenders_sampled"])  # no combat_sample sealed
+        self.assertEqual(divisions["sampled_team0"], {5: 1, 6: 1})
+        self.assertNotIn("defender_divisions_unobserved", summary["evidence_gaps"])
+        self.assertIn("divisions:", format_summary(summary))
+
+    def test_missing_defender_divisions_are_unobserved_not_assumed(self):
+        lines = ["ZDB1|heartbeat|count=1|role=server|team0=4|team1=17"
+                 "|groups_team0=0:4|groups_team1=0:17"]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        self.assertEqual(summary["divisions"]["defender_groups_observed"], [])
+        self.assertFalse(summary["divisions"]["defender_divisions_observed"])
+        self.assertIn("defender_divisions_unobserved", summary["evidence_gaps"])
+
+    def test_unreadable_divisions_are_unreliable(self):
+        lines = ["ZDB1|heartbeat|count=1|role=server|team0=4|team1=2"
+                 "|groups_team0=-1|groups_team1=-1|group_read_unknown=4"]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        self.assertIsNone(summary["divisions"]["team0"])
+        self.assertEqual(summary["divisions"]["read_unknown"], 4)
+        self.assertIn("division_reads_unreliable", summary["evidence_gaps"])
+
+
+    def test_defender_telemetry_block(self):
+        lines = [
+            "ZDB1|heartbeat|count=1|role=server|team0=4|team1=17"
+            "|groups_team0=5:2,6:1,7:1|groups_team1=0:17|group_read_unknown=0"
+            "|defenders_team0=4|defender_alive_team0=4|defender_kills_team0=1"
+            "|defender_read_unknown=0|troops_team0=981:2,982:1,983:1",
+            "ZDB1|ai_sample|role=server|tick=1|team=0|id=1|group=5|x=166.0|y=181.0|kills=0|wave=1",
+            "ZDB1|ai_sample|role=server|tick=2|team=0|id=1|group=5|x=166.4|y=181.6|kills=0|wave=1",
+            "ZDB1|ai_sample|role=server|tick=1|team=0|id=2|group=6|x=167.0|y=182.0|kills=1|wave=1",
+            "ZDB1|ai_sample|role=server|tick=2|team=0|id=2|group=6|x=167.0|y=182.0|kills=1|wave=1",
+            "ZDB1|ai_sample|role=server|tick=1|team=1|id=9|group=0|x=100.0|y=100.0|kills=0|wave=1",
+        ]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        defenders = summary["defenders"]
+        self.assertTrue(defenders["observed"])
+        self.assertEqual(defenders["divisions"], {5: 2, 6: 1, 7: 1})
+        self.assertEqual(defenders["bots"], 4)
+        self.assertEqual(defenders["alive"], 4)
+        self.assertEqual(defenders["kills"], 1)
+        self.assertEqual(defenders["positions_sampled"], 4)
+        self.assertEqual(defenders["guard_entries_reached"], 3)
+        self.assertEqual(defenders["moving"], 1)
+        self.assertEqual(defenders["hold_samples"], 4)
+        self.assertFalse(defenders["hold_behavior_observed"])
+        self.assertEqual(defenders["troops"], {981: 2, 982: 1, 983: 1})
+        self.assertNotIn("defenders_not_observed", summary["evidence_gaps"])
+        self.assertIn("defenders:", format_summary(summary))
+
+    def test_missing_defenders_are_unobserved_not_assumed(self):
+        lines = ["ZDB1|heartbeat|count=1|role=server|team0=0|team1=17"
+                 "|groups_team1=0:17"]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        self.assertFalse(summary["defenders"]["observed"])
+        self.assertIsNone(summary["defenders"]["divisions"])
+        self.assertFalse(summary["defenders"]["hold_behavior_observed"])
+        self.assertIn("defenders_not_observed", summary["evidence_gaps"])
+
 if __name__ == "__main__":
     unittest.main()
