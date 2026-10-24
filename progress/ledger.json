@@ -4401,6 +4401,36 @@
       "originReason": "Owner: stop bumps, convert to tangible playable work.",
       "discoveredDuring": "review-b2 2026-10-24",
       "graphImpact": "Unblocks visible play iteration."
+    },
+    {
+      "id": "ZOM-DISC-82",
+      "title": "Zombie targets: slower, weaker, more numerous (Walking Dead horde)",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "active",
+      "sourceState": "A assigned; targets pending play build",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-55",
+        "ZOM-DISC-77"
+      ],
+      "evidence": [],
+      "completionBasis": "Numeric targets recorded; implementation/validation pending",
+      "kind": "work-item",
+      "owner": "Agent A build; C telemetry; D validation",
+      "priority": "P0",
+      "criterion": "Receipts/tests show slower base speed, weaker HP/damage, 2-3x wave counts, zero morale, validated by D.",
+      "note": "Speed 45-55% +3-5/wave cap85; HP 60-75%; 2-3x counts; headshot lethality; southern multi-entry.",
+      "deferReason": "Supplemental difficulty design; not denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "feature",
+      "supportsOutcomeId": "ZOM-WAVE-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner: Walking Dead slower/weaker/more numerous zombies.",
+      "discoveredDuring": "owner design directive 2026-10-24",
+      "graphImpact": "Defines wave balance/performance target."
     }
   ],
   "warnings": [
