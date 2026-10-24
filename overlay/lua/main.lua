@@ -85,7 +85,7 @@ emit("recorder_capabilities",
     .. "|human_getter=" .. binding_flag("agent_is_human")
     .. "|composition=1|engagement=1|position_summary=1|pre_round=1"
     .. "|group_getter=" .. binding_flag("agent_get_group")
-    .. "|group_probe=1"
+    .. "|group_reader=direct_single_arg|group_probe=1"
     .. "|npc_getter=" .. binding_flag("agent_is_non_player")
     .. "|position_getter=" .. binding_flag("agent_get_position")
     .. "|weapon_getter=" .. binding_flag("agent_get_wielded_item")
@@ -140,49 +140,56 @@ local function read_agent_number(name, agent, extra)
     if number == nil then return -1 end
     return math.floor(number)
 end
--- Dedicated division reader with convention detection: some WSE2 builds want
--- the lhs placeholder call (0, agent), others want the plain (agent) call.
--- The first working convention is cached; if none works, one bounded
--- probe_anomaly is emitted and divisions stay unobservable (never guessed).
+-- Dedicated division reader. Two safety rules learned from live evidence:
+--  * NEVER call an agent opcode with a fake agent id (a lhs placeholder 0 was
+--    bound as an agent id by the engine and spammed "Invalid Agent ID: 0",
+--    corrupting the sealed stdout);
+--  * defer convention detection until a real agent id (> 0) exists, cache it
+--    one-shot, and emit at most one bounded capability line.
+-- Only the direct single-argument call is attempted; a returned value equal to
+-- the agent id is treated as an echo (wrong convention), never as a division.
 local MAX_DIVISION = 255
-local group_convention = nil
-local function group_from_returns(ok, first, second)
+local group_convention = nil  -- nil until detectable; then "direct" or "unknown"
+-- Group reads are attempted only once a full round is running (safe, valid
+-- agent ids, periodic cadence), never from the pre-round/entry trigger.
+local group_read_enabled = false
+local group_capability_emitted = false
+local function emit_group_capability(value)
+    if group_capability_emitted then return end
+    group_capability_emitted = true
+    emit("probe_capability", "|group_convention=" .. value)
+end
+local function decode_group_returns(agent, ok, first, second)
     if not ok then return -1 end
     local value
-    if type(first) == "boolean" then value = second
-    elseif type(first) == "number" then value = first
-    else value = second end
+    if type(first) == "boolean" then
+        value = second
+    elseif type(first) == "number" then
+        value = first
+    else
+        value = second
+    end
     if type(value) ~= "number" or value < 0 or value > MAX_DIVISION then return -1 end
-    return math.floor(value)
-end
-local function group_lhs(fn, agent)
-    local ok, first, second = pcall(function() return fn(0, agent) end)
-    return group_from_returns(ok, first, second)
-end
-local function group_direct(fn, agent)
-    local ok, first, second = pcall(function() return fn(agent) end)
-    return group_from_returns(ok, first, second)
+    value = math.floor(value)
+    if value == agent then return -1 end  -- agent-id echo, not a division
+    return value
 end
 local function read_group(agent)
     local fn = game.agent_get_group
     if type(fn) ~= "function" then return -1 end
+    if type(agent) ~= "number" or agent <= 0 then return -1 end
     if group_convention == nil then
-        group_convention = "unreadable"
-        local lhs_value = group_lhs(fn, agent)
-        if lhs_value >= 0 then
-            group_convention = "lhs"
-        else
-            local direct_value = group_direct(fn, agent)
-            if direct_value >= 0 then group_convention = "direct" end
+        local ok, first, second = pcall(function() return fn(agent) end)
+        local candidate = decode_group_returns(agent, ok, first, second)
+        group_convention = candidate >= 0 and "direct" or "unknown"
+        emit_group_capability(group_convention)
+        if group_convention == "unknown" then
+            emit("probe_anomaly", "|kind=group_convention_unknown|agent=" .. agent)
         end
-        if group_convention == "unreadable" then
-            emit("probe_anomaly", "|kind=group_unreadable|getter=1|agent=" .. agent)
-        end
-        emit("probe_capability", "|group_convention=" .. group_convention)
     end
-    if group_convention == "lhs" then return group_lhs(fn, agent) end
-    if group_convention == "direct" then return group_direct(fn, agent) end
-    return -1
+    if group_convention ~= "direct" then return -1 end
+    local ok, first, second = pcall(function() return fn(agent) end)
+    return decode_group_returns(agent, ok, first, second)
 end
 local function is_npc(agent)
     local value = guarded_call(function()
@@ -329,7 +336,7 @@ local function sample_world()
                 elseif human == true and supports_npc then
                     if is_npc(agent) then
                         result.bots[side] = result.bots[side] + 1
-                        if type(game.agent_get_group) == "function" then
+                        if group_read_enabled and type(game.agent_get_group) == "function" then
                             local group = read_group(agent)
                             if group >= 0 and group <= 255 then
                                 local groups = side == 0 and result.groups0 or result.groups1
@@ -413,7 +420,7 @@ local function sample_world()
                                 and read_agent_number("agent_get_kill_count", agent) or -1
                             if kills < 0 or kills > MAX_PLAUSIBLE_KILLS then kills = -1 end
                             local group = -1
-                            if type(game.agent_get_group) == "function" then
+                            if group_read_enabled and type(game.agent_get_group) == "function" then
                                 group = read_group(agent)
                                 if group < 0 or group > 255 then group = -1 end
                             end
@@ -747,6 +754,11 @@ local function heartbeat()
     heartbeat_count = heartbeat_count + 1
     -- At most 480 periodic records (~2 h at 15 s each).
     if heartbeat_count <= 480 then
+        local prior_round_start = global_int("g_round_start_time")
+        local prior_ready = global_int("g_multiplayer_ready_for_spawning_agent")
+        if not group_read_enabled and prior_round_start > 0 and prior_ready > 0 then
+            group_read_enabled = true
+        end
         local world = sample_world()
         local role = resolve_role()
         local wave, mode = global_int("wave_number"), global_int("zdr_defence_mode")

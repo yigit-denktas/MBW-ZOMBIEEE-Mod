@@ -372,6 +372,11 @@ def summarize_receipt(target: Path) -> dict:
                             for e in samples]
     group_unknown_values = [value for value in group_unknown_values if value is not None]
     group_read_unknown = max(group_unknown_values) if group_unknown_values else None
+    group_capability = next((e for e in events
+                             if e["event"] == "probe_capability"
+                             and "group_convention" in e["fields"]), None)
+    group_convention = (group_capability["fields"].get("group_convention", "")[:32]
+                        if group_capability else None)
     defender_groups = [group for group in (5, 6, 7)
                        if division_groups[0].get(group) or sampled_groups[0].get(group)]
     divisions = {
@@ -384,6 +389,7 @@ def summarize_receipt(target: Path) -> dict:
         "sampled_team1": (dict(sorted(sampled_groups[1].items(),
                                       key=lambda kv: (-kv[1], kv[0]))[:MAX_HIST_ENTRIES]) or None),
         "read_unknown": group_read_unknown,
+        "convention": group_convention,
         "defender_groups_observed": defender_groups,
         "defender_divisions_observed": bool(defender_groups),
         "defenders_sampled": any(e["event"] == "combat_sample" for e in events),
@@ -652,6 +658,8 @@ def summarize_receipt(target: Path) -> dict:
         gaps_hint.append("kill_telemetry_unavailable")
 
     gaps = list(gaps_hint)
+    if group_convention == "unknown":
+        gaps.append("group_convention_unknown")
     if defenders["observed"] and not defenders["divisions"]:
         gaps.append("defender_division_unreadable")
     if not defenders["observed"]:
@@ -815,7 +823,8 @@ def format_summary(summary: dict) -> str:
                          f"unknown_id_count={roster['unknown_id_count']}")
     else:
         lines.append("troops:          unavailable (histogram not sealed)")
-    lines.append(f"divisions:       team0={summary['divisions']['team0']} "
+    lines.append(f"divisions:       convention={summary['divisions']['convention']} "
+                 f"team0={summary['divisions']['team0']} "
                  f"team1={summary['divisions']['team1']} "
                  f"defender_groups={summary['divisions']['defender_groups_observed']} "
                  f"defenders_sampled={summary['divisions']['defenders_sampled']}")

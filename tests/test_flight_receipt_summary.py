@@ -576,5 +576,22 @@ class ReceiptSummaryTests(unittest.TestCase):
         self.assertIn("defender_division_unreadable", summary["evidence_gaps"])
         self.assertIn("division_reads_unreliable", summary["evidence_gaps"])
 
+
+    def test_group_convention_unknown_is_explicit(self):
+        lines = ["ZDB1|probe_capability|group_convention=unknown",
+                 "ZDB1|heartbeat|count=1|role=server|team0=4|team1=17"
+                 "|groups_team0=none|groups_team1=none|group_read_unknown=0"]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        self.assertEqual(summary["divisions"]["convention"], "unknown")
+        self.assertIn("group_convention_unknown", summary["evidence_gaps"])
+
+    def test_group_convention_direct_is_exposed(self):
+        lines = ["ZDB1|probe_capability|group_convention=direct",
+                 "ZDB1|heartbeat|count=1|role=server|team0=4|team1=17"
+                 "|groups_team0=5:2|groups_team1=0:17|group_read_unknown=0"]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        self.assertEqual(summary["divisions"]["convention"], "direct")
+        self.assertNotIn("group_convention_unknown", summary["evidence_gaps"])
+
 if __name__ == "__main__":
     unittest.main()
