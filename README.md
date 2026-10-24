@@ -7,23 +7,16 @@ Modernization of the **2012 ZOMBIEEE (Invasion) Beta 0.4** mod for *Mount & Blad
 **Scope:** preserve the original guns, zombies, wave mode, maps and feel; restore current-runtime compatibility; add AI survivor teammates, defensible hold points, quality-of-life features, private cheats, and later LAN co-op. **ZOMBIEEE2 is explicitly excluded.**
 
 <!-- project-record:start -->
-### Project record — City-first outcome and discovered work
+[![ZOMBIEEE Remaster · current required scope](./progress.svg)](https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/)
 
-| Measure | Evidence-gated status | Boundary |
+| Measure | Completion | Meaning |
 | --- | ---: | --- |
-| Original required City-release outcomes | **0/23 · 0.0% accepted** | The original 23 required leaf criteria remain unaccepted; the deferred five-map leaf stays optional. |
-| Merged integration candidate | **main `24ed22f`** (canonical AI build `24ed22f`) | #10/#12/#11 merged, then C telemetry v2 (`0393794`) and B sealing/retry/rotation (`42d4ec3`) as **bug-fix support**. Merged suite **496 OK / 7 skips** with owned originals; one earlier run flaked with 1 failure in the pre-existing Windows `test_windows_discovery` NUL bug, fixed by F with regression tests (recorded honestly, not claimed stably green). Sealed hands-off runs now show native Zombies **894..911**, native team-0 defender spawn **981..984** (hold/division unproven), both-team positions/engagement, sealed host ZDB1 stdout, and a passed one-command `play_city` lifecycle; wave 2+, survivor sector hold correctness, combat feel and all release gates remain open — **no gameplay acceptance**. |
-| Discovered supporting work <span aria-label="Discovered task">●</span> | **24/26 · 92.3% bounded complete** | Unplanned source bug fixes, hardening, audits and integration tasks; **not additional release credit**. 24 narrowly complete; two active: live validated rotation/roster (#14 / `ZOM-DISC-23`) and an actual sealed ZDB1-bearing attempt (#16 / `ZOM-DISC-24`). Includes the owner-requested **bug-fix/diagnostics-hardening track** (`ZOM-DISC-22..26`). |
-| Accepted outcome milestones | **0/5 · 0.0% accepted** | WSE2 City gameplay, durable Windows installation and owner release acceptance remain open. |
-| Agent readiness | **L0 (provisional, not reassessed)** | Separately evidenced readiness, not derived from work completion. |
+| Required work | 0/23 · 0.0% | Completed leaf items in the named required scope. |
+| Accepted milestones | 0/5 · 0.0% | Milestones whose declared outcome gates passed. |
 
-**Active outcome:** verified private City mission on Warband/WSE2 with survivor AI and a safe installer and recorder. **Scoped evidence:** main `24ed22f` (canonical AI build `24ed22f`) carries unified A/B/C/D/E/F work plus the owner-requested bug-fix/diagnostics-hardening pass — telemetry v2, sealed host ZDB1 bundles, native Zombie roster 894..911, native team-0 defender spawn 981..984 (hold rotation unproven), one-command `play_city` with validated rotation (`set_bot_count 1 4`), E's archived-OP provenance/owner-attested permission record, and the default automatic-firearm accuracy profile. Merged suite **496 OK / 7 skips** (with the NUL-flake caveat). Sealed runs report team compositions/positions/kills reliably, waves max 1 across stable rounds, and a passed play_city lifecycle; **wave 3+, wave completion (wave 2 reached in the defender-heavy hands-off variant; play_city validated on the same install), survivor sector-hold correctness, combat feel and all release gates remain unverified. Legal gate stays open: redistribution not cleared. No gameplay or release acceptance.**
+[Interactive roadmap](https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/) · Source file: `progress/ledger.json` (content-addressed file snapshot).
 
-**<span aria-label="Discovered task">●</span> Discovered** means work absent from the original 2026-10-23 proposal; it is linked to an existing outcome and tracked in a **separate denominator**. [Bug-fix/diagnostics-hardening track](progress/scope-changes/2026-10-24-bugfix-diagnostics-track.json), [live bot/roster/respawn record](progress/scope-changes/2026-10-24-live-bot-roster-respawn.json), [unification/merge record](progress/scope-changes/2026-10-24-unification-and-postmerge.json), [current incident amendment](progress/scope-changes/2026-10-24-live-incident-amendment.json) and [initial history](progress/scope-changes/2026-10-24-discovered-work.json) preserve the original [24-task snapshot](progress/snapshots/ledger-2026-10-23-original.json).
-
-[Interactive tracker](https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/) · [A/B/C allocation](progress/agent-handoff.md) · [Scoped overview](progress/overview.md) · [Ledger](progress/ledger.json) · [Readiness limits](progress/readiness-summary.md)
-
-<small>Source observation 2026-10-24, main <code>24ed22f</code> (breakthrough at <code>4c56242</code>). Project Record proposal remains unapproved as a complete release baseline. The bug-fix/diagnostics-hardening leaves are support work, not release criteria. The GitHub Pages branch was updated with this source and a byte-identical public ledger. No gameplay acceptance is inferred from the observed first wave, merged test runs or the receipt summary.</small>
+Observed 2026-10-24 against `d6130f26`.
 <!-- project-record:end -->
 
 ## Requirements and local development
