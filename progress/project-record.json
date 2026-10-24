@@ -1,38 +1,39 @@
 {
-    "projects":  [
-                     {
-                         "adapter":  "normalized-v1",
-                         "sourceFile":  "ledger.json",
-                         "project":  {
-                                         "id":  "zombieee-remaster",
-                                         "name":  "ZOMBIEEE Remaster",
-                                         "repository":  "yigit-denktas/MBW-ZOMBIEEE-Mod",
-                                         "visibility":  "public"
-                                     },
-                         "source":  {
-                                        "kind":  "file-snapshot",
-                                        "path":  "progress/ledger.json",
-                                        "commit":  null,
-                                        "observedOn":  "2026-10-24",
-                                        "updatedOn":  "2026-10-24",
-                                        "authority":  "Proposed owner-review draft authored from v0.1.8 README/ROADMAP/issue inventory; no accepted baseline",
-                                        "previousSourceFile":  "snapshots/ledger-2026-10-24-pre-toolkit-passover.json",
-                                        "snapshotHistory":  [
-                                                                "scope-changes/2026-10-24-discovered-work.json",
-                                                                "scope-changes/2026-10-24-live-incident-amendment.json",
-                                                                "scope-changes/2026-10-24-unification-and-postmerge.json",
-                                                                "scope-changes/2026-10-24-live-bot-roster-respawn.json",
-                                                                "scope-changes/2026-10-24-bugfix-diagnostics-track.json",
-                                                                "snapshots/ledger-2026-10-24-pre-toolkit-passover.json"
-                                                            ]
-                                    },
-                         "presentation":  {
-                                              "renderer":  "host",
-                                              "theme":  "theme.json",
-                                              "readmeMetric":  "work",
-                                              "progressUrl":  "https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/",
-                                              "existingSite":  "https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/"
-                                          }
-                     }
-                 ]
+  "projects": [
+    {
+      "adapter": "normalized-v1",
+      "sourceFile": "ledger.json",
+      "project": {
+        "id": "zombieee-remaster",
+        "name": "ZOMBIEEE Remaster",
+        "repository": "yigit-denktas/MBW-ZOMBIEEE-Mod",
+        "visibility": "public"
+      },
+      "source": {
+        "kind": "file-snapshot",
+        "path": "progress/ledger.json",
+        "commit": null,
+        "observedOn": "2026-10-24",
+        "updatedOn": "2026-10-24",
+        "authority": "Proposed owner-review draft authored from v0.1.8 README/ROADMAP/issue inventory; no accepted baseline",
+        "previousSourceFile": "snapshots/ledger-2026-10-24-pre-required-status-pass.json",
+        "snapshotHistory": [
+          "scope-changes/2026-10-24-discovered-work.json",
+          "scope-changes/2026-10-24-live-incident-amendment.json",
+          "scope-changes/2026-10-24-unification-and-postmerge.json",
+          "scope-changes/2026-10-24-live-bot-roster-respawn.json",
+          "scope-changes/2026-10-24-bugfix-diagnostics-track.json",
+          "snapshots/ledger-2026-10-24-pre-toolkit-passover.json",
+          "snapshots/ledger-2026-10-24-pre-required-status-pass.json"
+        ]
+      },
+      "presentation": {
+        "renderer": "host",
+        "theme": "theme.json",
+        "readmeMetric": "work",
+        "progressUrl": "https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/",
+        "existingSite": "https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/"
+      }
+    }
+  ]
 }

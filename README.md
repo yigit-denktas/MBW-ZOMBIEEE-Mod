@@ -11,12 +11,12 @@ A private, City-first compatibility rebuild of the 2012 **ZOMBIEEE (Invasion) Be
 
 | Measure | Completion | Meaning |
 | --- | ---: | --- |
-| Required work | 0/23 · 0.0% | Completed leaf items in the named required scope. |
+| Required work | 8/23 · 34.8% | Completed leaf items in the named required scope. |
 | Accepted milestones | 0/5 · 0.0% | Milestones whose declared outcome gates passed. |
 
 [Interactive roadmap](https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/) · Source file: `progress/ledger.json` (content-addressed file snapshot).
 
-Observed 2026-10-24 against `d6130f26`.
+Observed 2026-10-24 against `291c31fd`.
 <!-- project-record:end -->
 
 ## Scope
