@@ -42,13 +42,21 @@ from pathlib import Path
 from .discovery import discover, known_locations
 from .engines import plan_engines
 from .install import (MODULE_NAME, CITY_BUILD_FLAGS, execute_install,
+                      running_game_processes,
                       plan_install, restore_backup, verify_built_module)
 from .recorder import PassiveRecorder, atomic_write_json, is_redirected
 from .rotation import (DEFAULT_ENEMY_PROFILE, DEFAULT_TEAM1_BOTS,
                       DEFENDER_SQUAD_BOTS, ENEMY_PROFILE_BOTS, ENEMY_PROFILES,
                       build_rotation, rotation_sha256, validate_rotation)
+from .maintenance import (MaintenanceError, execute_repair, execute_uninstall,
+                          find_latest_install_receipt, load_install_receipt,
+                          plan_repair, plan_uninstall, verify_module)
 from .profile_matrix import (build_profile_matrix, extract_installed_profile,
                              format_profile_matrix)
+from .release_gate import build_release_gate, format_release_gate
+from .settings import (SettingsError, default_settings_path, load_settings,
+                       merge_cli, save_settings)
+from .shortcut import ShortcutError, create_shortcut, shortcut_spec
 from .runtime import (ENDPOINT, JOIN_MARKERS, MISSION_MARKERS, Waiter,
                       contains_marker, host_bound_loopback, is_loopback_endpoint)
 from .solo import Session
@@ -1142,6 +1150,222 @@ def command_matrix(args):
     return 0 if matrix.get('ok') else 2
 
 
+def _private_evidence_root(args):
+    value = getattr(args, 'evidence_root', None)
+    return (Path(value).expanduser() if value else DEFAULT_EVIDENCE_DIR)
+
+
+def _public(value):
+    """Strip internal (leading-underscore) keys before printing plans/receipts."""
+    if isinstance(value, dict):
+        return {key: _public(item) for key, item in value.items()
+                if not str(key).startswith('_')}
+    if isinstance(value, list):
+        return [_public(item) for item in value]
+    return value
+
+
+def _install_receipt_path(args):
+    if getattr(args, 'receipt', None):
+        return Path(args.receipt).expanduser()
+    latest = find_latest_install_receipt(_private_evidence_root(args))
+    if latest is None:
+        raise LaunchError('install receipt not found; pass --receipt or use '
+                          'the evidence root that recorded an install')
+    return latest
+
+
+def _print_json(value):
+    print(json.dumps(_public(value), indent=2, sort_keys=True))
+
+
+def command_verify(args):
+    receipt_path = _install_receipt_path(args)
+    receipt = load_install_receipt(receipt_path)
+    report = verify_module(receipt['target'], receipt)
+    if args.json:
+        _print_json(report)
+    else:
+        print('Module verification: ' + ('OK' if report['verified']
+                                         else 'ATTENTION'))
+        print('  target      : ' + str(report.get('module_dir')))
+        print('  owned files : %s unchanged, %s missing, %s modified, %s extra'
+              % (report.get('owned_unchanged'), report.get('missing_count'),
+                 report.get('modified_count'), report.get('unrecognized_count')))
+        for problem in report.get('problems') or []:
+            print('  problem     : ' + str(problem))
+        print('  runtime_verified : False (read-only structural check)')
+    return 0 if report['verified'] else 2
+
+
+def command_repair(args):
+    receipt_path = _install_receipt_path(args)
+    receipt = load_install_receipt(receipt_path)
+    transaction_id = (args.transaction_id or
+                      'repair-' + time.strftime('%Y%m%d-%H%M%S'))
+    plan = plan_repair(install_receipt=receipt,
+                       source_module=args.from_module,
+                       transaction_id=transaction_id,
+                       evidence_dir=_private_evidence_root(args),
+                       replace_modified=args.replace_modified,
+                       running_processes=running_game_processes())
+    if plan.get('blockers'):
+        if args.json:
+            _print_json(plan)
+        else:
+            print('Repair plan blocked: ' + ', '.join(plan['blockers']))
+        return 2
+    result = execute_repair(plan, process_checker=running_game_processes)
+    try:
+        atomic_write_json(_private_evidence_root(args)
+                          / ('repair-receipt-' + transaction_id + '.json'),
+                          result)
+    except OSError:
+        pass
+    if args.json:
+        _print_json(result)
+    else:
+        print('Repair: ' + str(result.get('status')))
+        print('  repaired : %d files' % len(result.get('repaired') or []))
+        print('  preserved conflicts : %s'
+              % (result.get('preserved_conflicts') or []))
+        print('  preserved unrecognized : %s'
+              % (result.get('preserved_unrecognized') or []))
+        if result.get('error'):
+            print('  error    : ' + str(result['error']))
+    return 0 if result.get('status') in ('repaired', 'noop') else 2
+
+
+def command_uninstall(args):
+    receipt_path = _install_receipt_path(args)
+    receipt = load_install_receipt(receipt_path)
+    transaction_id = (args.transaction_id or
+                      'uninstall-' + time.strftime('%Y%m%d-%H%M%S'))
+    plan = plan_uninstall(install_receipt=receipt,
+                          transaction_id=transaction_id,
+                          evidence_dir=_private_evidence_root(args),
+                          purge_owned=args.purge_owned,
+                          running_processes=running_game_processes())
+    if plan.get('blockers'):
+        if args.json:
+            _print_json(plan)
+        else:
+            print('Uninstall plan blocked: ' + ', '.join(plan['blockers']))
+        return 2
+    result = execute_uninstall(plan,
+                               process_checker=running_game_processes)
+    try:
+        atomic_write_json(_private_evidence_root(args)
+                          / ('uninstall-receipt-' + transaction_id + '.json'),
+                          result)
+    except OSError:
+        pass
+    if args.json:
+        _print_json(result)
+    else:
+        print('Uninstall: ' + str(result.get('status')))
+        print('  quarantine : ' + str(result.get('quarantine')))
+        print('  deleted owned files : %s'
+              % len(result.get('purged_owned_files') or []))
+        print('  preserved modified : %s'
+              % (result.get('preserved_modified') or []))
+        print('  preserved unrecognized : %s'
+              % (result.get('preserved_unrecognized') or []))
+    return 0 if result.get('status') in ('quarantined', 'uninstalled') else 2
+
+
+def command_logs(args):
+    root = _private_evidence_root(args)
+    print(str(root))
+    if args.open:
+        try:
+            os.startfile(str(root))  # type: ignore[attr-defined]
+        except (AttributeError, OSError):
+            return 2
+    return 0
+
+
+def command_settings(args):
+    path = (Path(args.settings_path).expanduser() if args.settings_path
+            else default_settings_path())
+    if args.action == 'show':
+        settings, warnings = load_settings(path)
+        if args.json:
+            _print_json({'settings': settings, 'warnings': warnings,
+                         'path': str(path)})
+        else:
+            print('Settings: ' + str(path))
+            for key in ('game_root', 'archive', 'evidence_root',
+                        'enemy_profile', 'team0_bots', 'team2_bots',
+                        'max_minutes', 'no_known_folders'):
+                if key in settings:
+                    print('  %-16s %s' % (key, settings[key]))
+            for warning in warnings:
+                print('  warning : ' + str(warning))
+        return 0
+    values = {
+        'game_root': args.game_root,
+        'archive': (args.archive[0] if args.archive else None),
+        'evidence_root': args.evidence_root,
+        'enemy_profile': args.enemy_profile,
+        'team0_bots': args.team0_bots,
+        'team2_bots': args.team2_bots,
+        'max_minutes': getattr(args, 'max_minutes', None),
+        'no_known_folders': (True if getattr(args, 'no_known_folders', False)
+                             else None),
+    }
+    payload = {key: value for key, value in values.items() if value is not None}
+    if not payload:
+        raise LaunchError('no settings fields given; pass at least one option')
+    payload.update({'schema': 'zombieee.launcher-settings.v1',
+                    'schema_version': 1})
+    written = save_settings(payload, path)
+    if args.json:
+        _print_json({'written': str(written), 'settings': payload})
+    else:
+        print('Settings written: ' + str(written))
+    return 0
+
+
+def command_shortcut(args):
+    spec = shortcut_spec(settings_path=args.settings_path)
+    if not args.output:
+        if args.json:
+            _print_json(spec)
+        else:
+            print('Desktop shortcut spec (dry run):')
+            print('  target : ' + spec['target'])
+            print('  args   : ' + spec['arguments'])
+            print('  cwd    : ' + spec['working_directory'])
+            print('  create : pass --output <path>.lnk --create to write it')
+        return 0
+    output = Path(args.output).expanduser()
+    if not args.create:
+        if args.json:
+            _print_json({'spec': spec, 'would_create': str(output)})
+        else:
+            print('Would create: ' + str(output))
+            print('  args: ' + spec['arguments'])
+        return 0
+    receipt = create_shortcut(spec, output)
+    if args.json:
+        _print_json(receipt)
+    else:
+        print('Shortcut created: ' + str(receipt['path']))
+    return 0
+
+
+def command_release_check(args):
+    gate = build_release_gate(
+        game_root=args.game_root,
+        expected_version=None)
+    if args.json:
+        _print_json(gate)
+    else:
+        print(format_release_gate(gate))
+    return 0 if gate['ok'] else 2
+
+
 def command_rollback(args):
     try:
         receipt = _read_bounded_json(args.receipt)
@@ -1172,6 +1396,8 @@ def build_parser():
     common.add_argument('--custom-path', action='append',
                         help='extra discovery path (never executed)')
     common.add_argument('--json', action='store_true', help='emit JSON')
+    common.add_argument('--settings', dest='settings_path',
+                        help='private launcher settings JSON for defaults')
     common.add_argument('--team0-bots', '--team1-bots', dest='team0_bots',
                         type=int, default=None, metavar='N',
                         help='allied team-0 bots (1-based rotation team 1; '
@@ -1229,6 +1455,46 @@ def build_parser():
                         choices=('default', 'stock'), default='default',
                         help='expected spawn_agent defender refill')
     matrix.set_defaults(func=command_matrix)
+    verify = sub.add_parser('verify', parents=[common],
+                            help='read-only module/receipt verification')
+    verify.add_argument('--receipt', help='install receipt JSON')
+    verify.set_defaults(func=command_verify)
+    repair = sub.add_parser('repair', parents=[common],
+                            help='restore missing owned files from a verified build')
+    repair.add_argument('--receipt', help='install receipt JSON')
+    repair.add_argument('--from-module', required=True,
+                        help='verified built ZOMBIEEE_Remaster directory')
+    repair.add_argument('--replace-modified', action='store_true',
+                        help='also restore modified owned files (user files '
+                             'are otherwise preserved)')
+    repair.add_argument('--transaction-id')
+    repair.set_defaults(func=command_repair)
+    uninstall = sub.add_parser('uninstall', parents=[common],
+                               help='quarantine the module (no game data deleted)')
+    uninstall.add_argument('--receipt', help='install receipt JSON')
+    uninstall.add_argument('--purge-owned', action='store_true',
+                           help='delete only owned unchanged files inside the '
+                                'quarantine; modified/unrecognised files stay')
+    uninstall.add_argument('--transaction-id')
+    uninstall.set_defaults(func=command_uninstall)
+    logs = sub.add_parser('logs', parents=[common],
+                          help='print (or open) the private evidence directory')
+    logs.add_argument('--open', action='store_true')
+    logs.set_defaults(func=command_logs)
+    settings_cmd = sub.add_parser('settings', parents=[common],
+                                  help='show or write private launcher settings')
+    settings_cmd.add_argument('action', choices=('show', 'write'),
+                              nargs='?', default='show')
+    settings_cmd.set_defaults(func=command_settings)
+    shortcut = sub.add_parser('shortcut', parents=[common],
+                              help='inspect or create the desktop control-panel shortcut')
+    shortcut.add_argument('--output', help='.lnk output path')
+    shortcut.add_argument('--create', action='store_true',
+                          help='actually create the shortcut (Windows only)')
+    shortcut.set_defaults(func=command_shortcut)
+    release_gate = sub.add_parser('release-check', parents=[common],
+                                  help='read-only delivery checks (candidate gate)')
+    release_gate.set_defaults(func=command_release_check)
     rollback = sub.add_parser('rollback', help='restore a retained install backup')
     rollback.add_argument('--receipt', required=True,
                           help='install receipt JSON recorded by a previous run')
@@ -1237,7 +1503,9 @@ def build_parser():
     return parser
 
 
-COMMANDS = ('play', 'plan', 'install', 'doctor', 'matrix', 'rollback')
+COMMANDS = ('play', 'plan', 'install', 'doctor', 'matrix', 'verify',
+            'repair', 'uninstall', 'logs', 'settings', 'shortcut',
+            'release-check', 'rollback')
 
 
 def main(argv=None):
@@ -1247,9 +1515,18 @@ def main(argv=None):
         argv = ['play', *argv]
     parser = build_parser()
     args = parser.parse_args(argv)
+    settings_path = getattr(args, 'settings_path', None)
+    if settings_path and getattr(args, 'command', None) in (
+            'play', 'plan', 'install', 'doctor', 'matrix'):
+        try:
+            loaded, _warnings = load_settings(settings_path)
+            args = merge_cli(loaded, args)
+        except SettingsError as exc:
+            print('Launcher settings refused: ' + str(exc), file=sys.stderr)
+            return 2
     try:
         return args.func(args)
-    except LaunchError as exc:
+    except (LaunchError, MaintenanceError, SettingsError, ShortcutError) as exc:
         print('Play City refused: ' + str(exc), file=sys.stderr)
         return 2
 
