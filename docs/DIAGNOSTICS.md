@@ -375,6 +375,17 @@ D's task-42 sealed runs exposed three readback gaps, now closed:
   `ammo > 0 -> 0` transitions plus `weapon_mode=melee`. This is an inference,
   not a direct AI-mode getter; the note records that explicitly.
 
+### Wall-clock timestamps and explicit round-ended event
+
+Every ZDB1 line now carries `ts_ms` from WSE2 `getTime()` when available
+(guarded; `-1` when unavailable). This gives the telemetry studio a real
+wall-clock heartbeat cadence (`tick_cadence_seconds`,
+`wall_clock_missing_intervals`) instead of only tick-count deltas; older
+bundles without `ts_ms` remain `unknown`, not zero. The heartbeat also emits an
+explicit `round_ended` lifecycle event on an observed `g_round_ended` 0→1
+transition (no inferred win/wipe). Both are read-only additions to the existing
+ZDB1 wire format.
+
 ### Invalid Group ID: 0 guard (team-order getters, client/entry path)
 
 D's speed-off run had no AV but repeated

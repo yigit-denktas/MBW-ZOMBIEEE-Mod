@@ -9,6 +9,7 @@ from pathlib import Path
 
 from .anomaly import detect_anomalies
 from .balance import analyze_balance, render_balance_report
+from .loop import run_iteration
 from .compare import compare_ingests
 from .ingest import IngestError, ingest_bundle
 from .perf import analyze_performance
@@ -76,6 +77,19 @@ def main(argv: list[str] | None = None) -> int:
     p_balance.add_argument("--allow-unsealed", action="store_true")
     p_balance.add_argument("--json", action="store_true")
 
+    p_loop = sub.add_parser("loop", help="record a fresh-loop iteration receipt")
+    p_loop.add_argument("baseline", type=Path)
+    p_loop.add_argument("candidate", type=Path, nargs="?")
+    p_loop.add_argument("--hypothesis", required=True)
+    p_loop.add_argument("--next", required=True)
+    p_loop.add_argument("--decision", choices=("pending", "keep", "discard"),
+                        default="pending")
+    p_loop.add_argument("--out-dir", type=Path, default=Path("telemetry/iterations"))
+    p_loop.add_argument("--state", type=Path, default=None)
+    p_loop.add_argument("--module", type=Path, default=None)
+    p_loop.add_argument("--allow-unsealed", action="store_true")
+    p_loop.add_argument("--json", action="store_true")
+
     p_report = sub.add_parser("report", help="render an iteration receipt")
     p_report.add_argument("baseline", type=Path)
     p_report.add_argument("candidate", type=Path, nargs="?")
@@ -115,6 +129,13 @@ def main(argv: list[str] | None = None) -> int:
             base, _ = _ingest(args.baseline, args.allow_unsealed)
             cand, _ = _ingest(args.candidate, args.allow_unsealed)
             return _print(compare_ingests(base, cand), args.json)
+        if args.command == "loop":
+            result = run_iteration(
+                args.baseline, args.candidate, hypothesis=args.hypothesis,
+                next_hypothesis=args.next, decision=args.decision,
+                out_dir=args.out_dir, state_path=args.state,
+                allow_unsealed=args.allow_unsealed, module=args.module)
+            return _print(result, args.json)
         if args.command == "balance":
             import json as _json
             params = _json.loads(args.params.read_text(encoding="utf-8")) if args.params else None

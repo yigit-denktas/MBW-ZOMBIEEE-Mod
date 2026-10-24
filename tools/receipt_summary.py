@@ -40,7 +40,8 @@ ROSTER_SURVIVOR = frozenset({875, 876, 877, 878, 32, 33})
 DEFENDER_TROOPS = frozenset(range(981, 985))
 TEXT_NAME_HINTS = ("stdout", "stderr")
 LIFECYCLE_KINDS = ("player_joined", "player_died", "player_respawned",
-                   "player_left", "round_started", "wave_started")
+                   "player_left", "round_started", "wave_started",
+                   "round_ended")
 ERROR_CLASSES = (
     (re.compile(r"Invalid Faction ID: -1"), "invalid_faction_id_minus_one"),
     (re.compile(r"Illegal lvalue in statement"), "illegal_lvalue"),

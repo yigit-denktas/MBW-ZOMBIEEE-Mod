@@ -19,6 +19,7 @@ from tools.telemetry_studio import (
     schema_catalog,
 )
 from tools.telemetry_studio.balance import analyze_balance, render_balance_report
+from tools.telemetry_studio.loop import run_iteration
 from tools.telemetry_studio.ingest import IngestError
 from tools.telemetry_studio.__main__ import main
 from tools.telemetry_studio.tail import tail_events
@@ -234,6 +235,39 @@ class BalanceTests(unittest.TestCase):
             self.assertIn("insufficient_runs_for_ranked_recommendations", result["gaps"])
             self.assertEqual(result["runs"][0]["metrics"]["rounds"][0]["outcome"],
                              "round_reset_no_wipe")
+
+
+    def test_wall_clock_cadence_when_probe_ts_ms_is_present(self):
+        lines = [
+            "ZDB1|heartbeat|count=1|role=server|ts_ms=1000|agents=4|team0=2|team1=2",
+            "ZDB1|heartbeat|count=2|role=server|ts_ms=16000|agents=4|team0=2|team1=2",
+            "ZDB1|heartbeat|count=3|role=server|ts_ms=46000|agents=4|team0=2|team1=2",
+        ]
+        with tempfile.TemporaryDirectory() as td:
+            root = _bundle(Path(td), lines, sealed=False)
+            ingest = ingest_bundle(root, allow_unsealed=True)
+            perf = analyze_performance(ingest)
+            self.assertAlmostEqual(perf["tick_cadence_seconds"], 22.5, places=3)
+            self.assertEqual(perf["wall_clock_missing_intervals"], 1)
+            self.assertNotIn("tick_cadence_seconds", perf["unknown"])
+
+
+class LoopTests(unittest.TestCase):
+    def test_loop_iteration_receipt_state_and_decision(self):
+        with tempfile.TemporaryDirectory() as td:
+            base = _bundle(Path(td) / "base", HEARTBEATS, sealed=False)
+            cand = _bundle(Path(td) / "cand", HEARTBEATS, sealed=False)
+            result = run_iteration(
+                base, cand, hypothesis="test", next_hypothesis="next",
+                decision="keep", out_dir=Path(td) / "out",
+                allow_unsealed=True)
+            self.assertEqual(result["entry"]["iteration"], 1)
+            self.assertEqual(result["entry"]["decision"], "keep")
+            self.assertTrue(Path(result["receipt"]).is_file())
+            self.assertTrue(Path(result["state"]).is_file())
+            state = json.loads(Path(result["state"]).read_text(encoding="utf-8"))
+            self.assertEqual(len(state["iterations"]), 1)
+            self.assertIs(state["iterations"][0]["not_acceptance"], True)
 
 if __name__ == "__main__":
     unittest.main()

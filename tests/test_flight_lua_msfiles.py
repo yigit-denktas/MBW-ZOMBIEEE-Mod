@@ -534,5 +534,11 @@ class LuaOperationMetadataTests(unittest.TestCase):
         self.assertIn("subclass < 1 or subclass > 9", self.main)
         self.assertIn("skipped_invalid_group", self.main)
 
+
+    def test_wall_clock_timestamp_and_round_ended_surface(self):
+        for token in ("|ts_ms=", "getTime", "round_ended",
+                      "observed=round_end_transition", "previous_round_ended == 0"):
+            self.assertIn(token, self.main)
+
 if __name__ == "__main__":
     unittest.main()

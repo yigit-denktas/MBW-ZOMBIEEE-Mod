@@ -28,8 +28,15 @@ local WAVE_SLOT_PROBES = {200, 221, 231, 241, 245}
 -- fallback when native bots are not in divisions 5-7.
 local DEFENDER_TROOP_MIN = 981
 local DEFENDER_TROOP_MAX = 984
+local function now_ms()
+    if type(getTime) ~= "function" then return -1 end
+    local ok, value = pcall(getTime)
+    if ok and type(value) == "number" then return math.floor(value) end
+    return -1
+end
 local function emit(event, details)
-    print("ZDB1|" .. event .. "|version=" .. VERSION .. (details or ""))
+    print("ZDB1|" .. event .. "|version=" .. VERSION
+        .. "|ts_ms=" .. now_ms() .. (details or ""))
 end
 local function guarded_call(fn, default)
     if type(fn) ~= "function" then return default end
@@ -1253,6 +1260,10 @@ local function heartbeat()
             else
                 round_increase_count = 0
                 round_first_start = nil
+            end
+            if previous_round_ended == 0 and round_ended == 1 then
+                emit("round_ended", "|observed=round_end_transition"
+                    .. lifecycle_fields("server", wave, world))
             end
             previous_round_ended = round_ended
             if mode >= 0 and mode ~= previous_mode then

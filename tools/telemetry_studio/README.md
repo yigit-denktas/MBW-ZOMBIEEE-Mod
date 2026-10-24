@@ -33,6 +33,9 @@ python -m tools.telemetry_studio report <baseline> [candidate] --out receipt.md 
     --hypothesis "..." --next "..." [--module <installed-module-dir>]
 python -m tools.telemetry_studio balance <run1> [run2 ...] \
     [--params params.json] [--out balance.md] [--json]
+python -m tools.telemetry_studio loop <baseline> [candidate] \
+    --hypothesis "..." --next "..." [--decision pending|keep|discard] \
+    [--out-dir telemetry/iterations] [--state state.json] [--module DIR]
 ```
 
 `ingest`/`perf`/`anomalies` require a verified sealed bundle by default. Use
@@ -84,6 +87,15 @@ say `unsealed_bundle`.
 No parameter metadata or fewer than two variants produces explicit
 `parameter_metadata_missing` / `insufficient_runs_for_ranked_recommendations`
 rather than a guessed recommendation.
+
+## Fresh-loop runner
+
+`loop` records one iteration receipt from a baseline/candidate pair, appends a
+bounded entry to a JSON state file, and requires an explicit decision
+(`pending`/`keep`/`discard`). It never launches/seals a game and never invents a
+candidate: missing or unsealed bundles produce explicit gaps and stay pending.
+`ts_ms` (when the probe provides it) makes `tick_cadence_seconds` and
+`wall_clock_missing_intervals` measurable; older bundles remain `unknown`.
 
 ## Tests
 

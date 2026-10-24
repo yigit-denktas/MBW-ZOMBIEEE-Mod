@@ -56,13 +56,24 @@ def analyze_performance(ingest: dict[str, Any]) -> dict[str, Any]:
     duration = float(duration) if isinstance(duration, (int, float)) and duration > 0 else None
 
     tick_values = []
+    timestamp_values = []
     for index, event in enumerate(heartbeats):
-        count = _int((event.get("fields") or {}).get("count"))
+        fields = event.get("fields") or {}
+        count = _int(fields.get("count"))
         tick_values.append(count if count is not None else index)
+        timestamp = _int(fields.get("ts_ms"))
+        if timestamp is not None and timestamp >= 0:
+            timestamp_values.append(timestamp)
     tick_values.sort()
     deltas = [b - a for a, b in zip(tick_values, tick_values[1:]) if b >= a]
     missing_intervals = sum(max(delta - 1, 0) for delta in deltas)
     non_monotonic = sum(1 for a, b in zip(tick_values, tick_values[1:]) if b < a)
+    wall_deltas_ms = [b - a for a, b in zip(timestamp_values, timestamp_values[1:])
+                      if b >= a]
+    wall_cadence = ((sum(wall_deltas_ms) / len(wall_deltas_ms) / 1000.0)
+                    if wall_deltas_ms else None)
+    wall_missing = (sum(max(int(round(delta / (EXPECTED_HEARTBEAT_SECONDS * 1000))) - 1, 0)
+                         for delta in wall_deltas_ms) if wall_deltas_ms else None)
     agents = [_int((e.get("fields") or {}).get("agents")) for e in heartbeats]
     agents = [v for v in agents if v is not None]
 
@@ -70,7 +81,7 @@ def analyze_performance(ingest: dict[str, Any]) -> dict[str, Any]:
     cpu_seconds = runtime_metrics.get("cpu_seconds")
     peak_memory_kib = runtime_metrics.get("peak_memory_kib")
 
-    unknown: list[str] = ["tick_cadence_seconds"]
+    unknown: list[str] = []
     if not heartbeats:
         unknown.append("heartbeat_count")
     if not any(isinstance(cpu_seconds, (int, float)) for _ in (0,)):
@@ -81,6 +92,8 @@ def analyze_performance(ingest: dict[str, Any]) -> dict[str, Any]:
         unknown.append("duration_seconds")
     if not any(tick_values):
         unknown.append("tick_cadence")
+    if wall_cadence is None:
+        unknown.append("tick_cadence_seconds")
     if not ai_samples:
         unknown.append("ai_sample_rate")
 
@@ -105,7 +118,10 @@ def analyze_performance(ingest: dict[str, Any]) -> dict[str, Any]:
         "missing_heartbeat_intervals": missing_intervals,
         "non_monotonic_ticks": non_monotonic,
         "expected_heartbeat_seconds": EXPECTED_HEARTBEAT_SECONDS,
-        "tick_cadence_seconds": None,  # ZDB1 lines carry no wall-clock stamps
+        "tick_cadence_seconds": wall_cadence,
+        "wall_clock_heartbeat_intervals_ms": wall_deltas_ms[:32],
+        "wall_clock_missing_intervals": wall_missing,
+        "timestamp_source": ("probe_ts_ms (getTime)") if wall_cadence is not None else None,
         "agents_mean": statistics.fmean(agents) if agents else None,
         "agents_max": max(agents) if agents else None,
         "ai_sample_count": len(ai_samples),
