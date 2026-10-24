@@ -1,15 +1,15 @@
 ﻿{
   "schema": "zombieee.playbuild.v1",
-  "name": "ranged-noshield-play",
-  "branch": "agent/a-ranged-fix",
-  "commit": "ce600ee",
+  "name": "nextplay-holdground-zombietargets",
+  "branch": "agent/a-nextplay",
+  "commit": "b48cfa9",
   "probe": "ce9d98e",
-  "mission_sha256": "7A48C83D4CF4E7F8C7A4115873EAD653CC9DA5FB1F45C6DD46857BE3CAF44D6B",
-  "zombie_block": "stock (no wooden shields)",
+  "mission_sha256": "C62F0BCD0D0B6AFF3959DF1F753EEE1DBB0F528E548D00442F24DA54FD52AA88",
+  "zombie_block": "stock (no shields)",
   "firearm_class": "crossbow_type_ranged",
-  "ai_accuracy_modifier": 130,
-  "features": ["P2 fixes", "ranged classification", "crossbow/archery proficiency", "no 1730 scripted destination", "speed loop on"],
-  "excludes": ["task-81 zombie count/HP targets", "formation branch abc6e51"],
-  "backup": "ZOMBIEEE_Remaster.backup-20261024-180955",
-  "rule": "Do not install while a WSE2 run is active. Verify receipt/mission before a play run."
+  "ai_accuracy_modifier": 100,
+  "features": ["stand_ground 11 / hold / fire_at_will / use_ranged", "no 1730", "1737=0", "aggressiveness=0", "zombie speed 50+4 cap85", "HP 67.5%", "proficiency x0.5", "wave counts x2"],
+  "excludes": ["formation abc6e51", "heroes/morale", "ammo panic", "heatmap/hit", "specials"],
+  "backup": "ZOMBIEEE_Remaster.backup-20261024-182841",
+  "rule": "Do not install while a WSE2 run is active. Accuracy claim is 100, not 130."
 }
