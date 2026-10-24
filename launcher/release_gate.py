@@ -80,12 +80,17 @@ SCAN_EXEMPT_FILES = {
         'diagnostics research quoting log-path policy examples',
     'tests/test_windows_release_traceability.py':
         'privacy-scanner regression fixtures (intentional leak strings)',
+    'tests/test_flight_receipt_summary.py':
+        'synthetic receipt/manifest path fixtures (no real personal paths)',
 }
 PERSONAL_PATH_RES = (
-    re.compile(r'[A-Za-z]:\\Users\\[^\\\s"|\']+'),
-    re.compile(r'[A-Za-z]:/Users/[^\s"\'<>]+'),
+    # One or more literal backslashes: plain Windows paths and JSON-escaped
+    # forms such as "C:\\Users\\name" in committed receipts/manifests.
+    # Drive path with any mix of one-or-more backslashes/forward slashes
+    # (plain, JSON-escaped and mixed-separator forms).
+    re.compile(r'[A-Za-z]:[\\/]+Users[\\/]+[^"\\\s|<>]+'),
     re.compile(r'/(?:home|Users)/[^\s"\'<>]+'),
-    re.compile(r'\\\\[A-Za-z0-9._-]+\\[^\\\s"|\']+'),
+    re.compile(r'(?<![\w.>])(?:\\\\)+[A-Za-z0-9._-]+\\+[^\\\s"|<>]+'),
     re.compile(r'file://(?:/[A-Za-z]:)?/[^\s"\'<>]+'),
 )
 SECRET_RE = re.compile(

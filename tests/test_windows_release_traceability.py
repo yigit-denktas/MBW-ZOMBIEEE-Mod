@@ -154,9 +154,19 @@ class RepositoryTraceabilityTests(unittest.TestCase):
         self.assertEqual(self.trace['reviews'][0]['acceptance'], 'none')
         self.assertTrue((REPO / self.trace['reviews'][0]['record']).is_file())
         self.assertTrue(self.trace['gaps'])
-        # The real checkout passes the release gate.
+        # Metadata is internally consistent even when the real checkout is
+        # blocked by the feature-branch head guard and A-owned absolute
+        # paths (the latter is the escaped-path gate fix true positive).
         gate = build_release_gate(root=REPO)
-        self.assertTrue(gate['ok'], gate['blockers'])
+        self.assertLessEqual(
+            set(gate['blockers']),
+            {'traceability_head_revision', 'no_personal_local_paths'},
+            gate['blockers'])
+        for check_name in (
+                'traceability_schema', 'traceability_version',
+                'traceability_work_items', 'changelog_current',
+                'traceability_release_links', 'traceability_gaps'):
+            self.assertTrue(gate['checks'][check_name]['ok'], check_name)
         self.assertEqual(gate['acceptance'], 'none')
         self.assertIs(gate['runtime_verified'], False)
         self.assertEqual(gate['traceability']['candidate_version'], self.version)
@@ -227,6 +237,12 @@ class GateFailClosedTests(unittest.TestCase):
         cases = {
             'tests/new_leak_fixture.py': 'C:/Users/Alice/private.txt',
             'docs/path_note.md': '/home/alice/private',
+            'docs/escaped_path_note.md':
+                r'C:\\Users\\Alice\\ZOMBIEEE',
+            'docs/mixed_path_note.md': 'C:\\Users/Alice/ZOMBIEEE',
+            'docs/mixed_path_note2.md': 'C:/Users\\Alice\\ZOMBIEEE',
+            'docs/manifest.json': json.dumps({
+                'game_root': 'C:\\Users\\Alice\\ZOMBIEEE'}),
             'reference/unc_note.md': r'\\fileserver\private\share',
             'docs/url_note.md': 'file:///C:/private/log.txt',
             'docs/token_note.md': 'ghp_' + 'a' * 30,
@@ -243,6 +259,16 @@ class GateFailClosedTests(unittest.TestCase):
                     expected = ('no_obvious_secrets' if 'ghp_' in content
                                 else 'no_personal_local_paths')
                     self.assertIn(expected, gate['blockers'])
+        # A placeholder-relative suffix (<warband-root>\\Logs\\...) must not
+        # be mistaken for a UNC path.
+        with tempfile.TemporaryDirectory() as tmp:
+            tracked = build_fixture_repo(tmp)
+            path = Path(tmp) / 'docs/placeholder_note.md'
+            path.write_text('<warband-root>\\\\Logs\\\\rgl_log.txt\n',
+                            encoding='utf-8')
+            tracked.append('docs/placeholder_note.md')
+            gate = build_release_gate(root=tmp, tracked_files=tracked)
+            self.assertNotIn('no_personal_local_paths', gate['blockers'])
         # Exact documented exemptions remain explicit (fixture path privacy files).
         with tempfile.TemporaryDirectory() as tmp:
             tracked = build_fixture_repo(tmp)

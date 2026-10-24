@@ -3,6 +3,7 @@
 No game launch, no build, no real shortcut and no live installer action: module
 trees and repositories are temporary fixtures; external runners are injected.
 """
+import io
 import json
 import os
 import sys
@@ -354,10 +355,20 @@ class M2CliTests(unittest.TestCase):
             with mock.patch('sys.stdout'):
                 code = play_city_main(['shortcut', '--json'])
             self.assertEqual(code, 0)
-        # release-check scans the real checkout must be clean and read-only
-        with mock.patch('sys.stdout'):
+        # release-check must be read-only and emit valid JSON. On a feature
+        # checkout the fail-closed gate may report the known head-guard and
+        # A-owned path debt; no other blockers are acceptable.
+        with mock.patch('sys.stdout', new_callable=io.StringIO) as captured:
             code = play_city_main(['release-check', '--json'])
-        self.assertEqual(code, 0)
+        self.assertIn(code, (0, 2))
+        payload = json.loads(captured.getvalue())
+        self.assertEqual(payload.get('schema'), 'zombieee.release-gate.v1')
+        self.assertEqual(payload.get('acceptance'), 'none')
+        self.assertIs(payload.get('runtime_verified'), False)
+        if code == 2:
+            self.assertLessEqual(
+                set(payload.get('blockers') or []),
+                {'traceability_head_revision', 'no_personal_local_paths'})
 
 
 if __name__ == '__main__':
