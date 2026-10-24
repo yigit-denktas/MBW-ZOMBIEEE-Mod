@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 from patch_defenders import mission_bounds
 from city_defense import SCENE_BASE, LOCAL0, scene_index
+from faction_log_guard_prefix import original_prefix_ok
 from wave_reinforcements import LOCAL_BASE
 from trace_calls import read_mission_calls
 
@@ -71,8 +72,13 @@ def audit_city(module: Path, original: Path) -> dict:
                 "Original source invasion must have 25 triggers")
         require("city_trigger_count", after == CITY_TRIGGERS,
                 "Expected 31 native City tactical triggers")
-        require("original_trigger_prefix", actual[:25] == baseline[:25],
+        prefix_ok = original_prefix_ok(actual, baseline)
+        require("original_trigger_prefix", prefix_ok,
                 "Original invasion trigger contents were modified")
+        if actual[:25] != baseline[:25]:
+            require("original_trigger_14_log_guard",
+                    original_prefix_ok(actual, baseline),
+                    "Only the authorised trigger-14 invalid-faction log guard may differ")
         city = SCENE_BASE + scene_index(module / "scenes.txt")
         require("scenes_table_untouched",
                 (module / "scenes.txt").read_bytes() ==

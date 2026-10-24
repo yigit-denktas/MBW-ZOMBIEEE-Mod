@@ -13,6 +13,8 @@ import tempfile
 from pathlib import Path
 
 from archive_audit import inspect_original_archive
+from faction_log_guard_prefix import original_prefix_ok
+from faction_log_guard import apply_module as apply_faction_log_guard
 from city_acceptance import audit_city
 from final_city_gate import audit_final_city_controls
 from patch_defenders import (mission_bounds, patch_file, index_troops,
@@ -47,6 +49,7 @@ def stage_source(original: Path, dest: Path) -> None:
         shutil.copy2(original / name, dest / name)
     for name in SCENE_NAMES:
         shutil.copy2(original / "SceneObj" / name, dest / "SceneObj" / name)
+    apply_faction_log_guard(dest)
 
 
 def mission_check(stage: Path, original: Path, expected: int) -> dict:
@@ -62,8 +65,9 @@ def mission_check(stage: Path, original: Path, expected: int) -> dict:
         "native_stream_complete": len(decoded) == count,
         "original_25_triggers_unchanged": (
             src_count == 25 and
-            [v.rstrip("\r\n") for v in lines[idx+1:idx+26]] ==
-            [v.rstrip("\r\n") for v in baseline[src_idx+1:src_idx+26]]),
+            original_prefix_ok(
+                [v.rstrip("\r\n") for v in lines[idx+1:idx+26]],
+                [v.rstrip("\r\n") for v in baseline[src_idx+1:src_idx+26]])),
         "deferred_scenes_unchanged": all(
             sha(stage / "SceneObj" / name) == sha(original / "SceneObj" / name)
             for name in SCENE_NAMES if not name.endswith("_4.sco")),
