@@ -6,7 +6,7 @@
   "acceptance": "none",
   "runtime_verified": false,
   "observed_on": "2026-10-24",
-  "source_revision": "db3b3caa03cf855e1ad7e89b3422d0065a4cad8e",
+  "source_revision": "1374abdca4a132a0e6f3c303e80b0d83af364d11",
   "version_sources": {
     "version": "VERSION",
     "changelog": "CHANGELOG.md#030-beta1-2026-10-24",
@@ -510,7 +510,7 @@
       "record": "reference/CROSS_REVIEW_LEGAL_RELEASE_2026-10-24.md",
       "date": "2026-10-24",
       "scope": "release/legal/privacy claims (task-51)",
-      "status": "initial review complete; must-fix items C1\u2013C7 addressed in the task-50 branch; re-review of the pushed branch pending",
+      "status": "initial review complete; must-fix items C1–C7 addressed in the task-50 branch; re-review of the pushed branch pending",
       "acceptance": "none"
     }
   ],
@@ -523,7 +523,9 @@
     "published": false
   },
   "source_revision_exception": {
-    "kind": "metadata-and-release-gate-branch",
-    "reason": "source_revision is the main revision the candidate is built from; HEAD on the metadata PR adds only release-metadata, release-gate and its focused tests. The gate verifies every changed path is in the documented metadata-only allowlist. A second self-referential revision (set to the PR head) is impossible because that commit hash cannot contain itself."
+    "reason": "task-65 branch metadata-only receipt commit; Lead updates final release metadata",
+    "changed_paths": [
+      "docs/release-traceability.json"
+    ]
   }
 }
