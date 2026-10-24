@@ -4,8 +4,9 @@ The first live City runs showed three server-side configuration traps that are
 not visible in the build:
 
 * ``set_bot_count`` team numbers are 1-based (1 = player/first team); the
-  City native defender squad is switched on with team-1 bots = 4 (telemetry
-  team 0), while ``build_rotation()`` stays stock by default;
+  City native defender squad is switched on with team-1 bots =
+  ``DEFENDER_SQUAD_BOTS`` (currently 8; telemetry team 0), while
+  ``build_rotation()`` stays stock by default;
 * without a positive second-team bot count the native wave controller stayed at
   ``wave=0`` / ``team1=0`` (the explicit ``native-only`` enemy profile is an
   experimental exception that emits ``set_bot_count 2 0`` and relies on the
@@ -37,8 +38,11 @@ ROSTER_CAVEAT = ('generic set_bot_count bots use the faction default '
 DEFAULT_MAX_BOTS = 200
 DEFAULT_TEAM1_BOTS = 0
 # A's merged roster patch maps faction 15 + ``g_multiplayer_game_type==7``
-# bots to the 981..984 survivor troops; ``set_bot_count 1 4`` is the switch
-# that spawns the native team-0 allied squad (1-based rotation team 1).
+# bots to the 981..984 survivor troops; ``set_bot_count 1 <N>`` (N =
+# DEFENDER_SQUAD_BOTS, currently 8) is the switch that spawns the native
+# team-0 allied squad (1-based rotation team 1). Eight bodies survive the
+# rear hold line against the wave-1 horde; runtime positions/KD remain D
+# evidence, not an acceptance claim.
 DEFENDER_SQUAD_BOTS = 8
 DEFAULT_TEAM2_BOTS = 32
 # Enemy rotation profiles for the live wave/balance regression:

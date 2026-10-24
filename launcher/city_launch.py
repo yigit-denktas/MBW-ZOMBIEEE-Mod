@@ -302,7 +302,8 @@ def build_launch_plan(*, discovery_report, evidence_root, archive=None,
     if team0_bots is None:
         # One-click City always builds/uses A's City defender profile, so the
         # native team-0 ally squad must be requested explicitly: rotation team 1
-        # (1-based) == telemetry team 0, `set_bot_count 1 4`.
+        # (1-based) == telemetry team 0, `set_bot_count 1 <DEFENDER_SQUAD_BOTS>`
+        # (currently 8). `--team0-bots N` is the per-run size parameter.
         team0_bots = 0 if stock_rotation else DEFENDER_SQUAD_BOTS
     if (type(team0_bots) is not int or isinstance(team0_bots, bool)
             or not 0 <= team0_bots <= 200):
