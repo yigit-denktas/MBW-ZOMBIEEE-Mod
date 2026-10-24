@@ -3344,20 +3344,27 @@
       "title": "Semantic versioning, CHANGELOG and PR/version traceability",
       "groupId": "Quality",
       "milestoneId": "M4",
-      "state": "active",
+      "state": "done",
       "sourceState": "implementation pending",
       "required": false,
       "blocked": false,
       "dependsOn": [
         "ZOM-DISC-37"
       ],
-      "evidence": [],
-      "completionBasis": "Pending",
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/85ca8cd/docs/release-traceability.json",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static"
+        }
+      ],
+      "completionBasis": "Release metadata merged; E-approved candidate",
       "kind": "work-item",
       "owner": "Agent F — release metadata; Agent E review",
       "priority": "P2",
       "criterion": "VERSION/CHANGELOG follow semver; each work item links PR/commit/tag; release-check surfaces missing links.",
-      "note": "0.3.0 candidate; link work items to PRs.",
+      "note": "0.3.0 candidate; link work items to PRs. | 0.3.0-rc.1: VERSION/CHANGELOG updated; 16 work items/13 PRs/3 support PRs/5 gaps in release-traceability; gate fail-closed; E approved with nonblocking findings.",
       "deferReason": "Supplemental release metadata; not part of the required denominator.",
       "implementationLane": "F",
       "workOrigin": "discovered",
@@ -3400,7 +3407,7 @@
       "title": "Cross-review of free assets and release/legal claims",
       "groupId": "Quality",
       "milestoneId": "M4",
-      "state": "active",
+      "state": "done",
       "sourceState": "review pending",
       "required": false,
       "blocked": false,
@@ -3409,13 +3416,20 @@
         "ZOM-DISC-50",
         "ZOM-DISC-51"
       ],
-      "evidence": [],
-      "completionBasis": "Pending",
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/da689a2/reference/CROSS_REVIEW_LEGAL_RELEASE_2026-10-24.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-review"
+        }
+      ],
+      "completionBasis": "Independent cross-review delivered; no acceptance",
       "kind": "work-item",
       "owner": "Agent E — independent reviewer; Lead merges",
       "priority": "P1",
       "criterion": "Licences/attribution and CHANGELOG/version claims independently reviewed; findings recorded.",
-      "note": "No self-review.",
+      "note": "No self-review. | E reviewed G/F/C on actual heads; F approved with 4 nonblocking findings; G five fixes; C clean.",
       "deferReason": "Supplemental review work; not part of the required denominator.",
       "implementationLane": "E",
       "workOrigin": "discovered",
