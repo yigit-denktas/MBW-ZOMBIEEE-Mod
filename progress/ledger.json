@@ -4450,7 +4450,7 @@
       "owner": "Agent A AI/skills; C telemetry; D play",
       "priority": "P0",
       "criterion": "Gun survivors hold ranged, do not charge, time-to-first-shot/shots-per-min improve without fake damage.",
-      "note": "firearm_balance.py: 2012 module treats firearms as crossbow-type; raise crossbow/archery proficiency, fire_at_will/use_ranged, prevent scripted charge. | Confirmed firearms crossbow-type; task assigned.",
+      "note": "firearm_balance.py: 2012 module treats firearms as crossbow-type; raise crossbow/archery proficiency, fire_at_will/use_ranged, prevent scripted charge. | Confirmed firearms crossbow-type; task assigned. | C support branch 80684c0: firearms time_to_first_shot/shots_per_minute/weapon_modes, charge/backward projection; summary-only.",
       "deferReason": "Supplemental AI/combat behavior.",
       "implementationLane": "A",
       "workOrigin": "discovered",
@@ -4574,6 +4574,35 @@
       "originReason": "Owner suggested Rhodok crossbow AI stance.",
       "discoveredDuring": "owner live feedback 2026-10-24",
       "graphImpact": "Feeds tasks 84/85."
+    },
+    {
+      "id": "ZOM-DISC-88",
+      "title": "Ranged-fire summary telemetry for gun-AI validation",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "done",
+      "sourceState": "C delivered 80684c0",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-83"
+      ],
+      "evidence": [],
+      "completionBasis": "Summary fields delivered; D uses on sealed bundle",
+      "kind": "work-item",
+      "owner": "Agent C telemetry; D analysis",
+      "priority": "P1",
+      "criterion": "Summary exposes time_to_first_shot, shots_per_minute, weapon/attack modes, charge/backward projection with gaps.",
+      "note": "agent/c-ranged-telemetry 80684c0; 628 tests/0; no probe change; hit unavailable.",
+      "deferReason": "Supporting telemetry; not denominator.",
+      "implementationLane": "C",
+      "workOrigin": "discovered",
+      "workType": "diagnostics",
+      "supportsOutcomeId": "ZOM-AI-02",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Needed to measure gun-AI charge/cadence fix.",
+      "discoveredDuring": "owner gun AI feedback 2026-10-24",
+      "graphImpact": "Unblocks visible ranged-AI validation."
     }
   ],
   "warnings": [
