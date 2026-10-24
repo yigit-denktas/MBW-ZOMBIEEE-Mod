@@ -1,15 +1,15 @@
 {
   "schema": "zombieee.release-traceability.v1",
   "schema_version": 1,
-  "candidate_version": "0.3.0-rc.1",
+  "candidate_version": "0.3.0-beta.1",
   "release_state": "candidate",
   "acceptance": "none",
   "runtime_verified": false,
   "observed_on": "2026-10-24",
-  "source_revision": "1c27514a8738fa88b88a6fdecf5be9442e082369",
+  "source_revision": "9b9fb2da7c0af01e019efd88c0634339e1cd4821",
   "version_sources": {
     "version": "VERSION",
-    "changelog": "CHANGELOG.md#030-rc1-2026-10-24",
+    "changelog": "CHANGELOG.md#030-beta1-2026-10-24",
     "roadmap": "docs/ROADMAP.md",
     "release_gate": "launcher/release_gate.py"
   },
@@ -20,7 +20,7 @@
       "lane": "B",
       "state": "active",
       "acceptance": "none",
-      "release": "0.3.0-rc.1",
+      "release": "0.3.0-beta.1",
       "summary": "Reversible install/rollback plus per-file ownership receipts, verify/repair and quarantine-first uninstall; owner acceptance still pending.",
       "prs": [
         {
@@ -49,7 +49,7 @@
       "lane": "B",
       "state": "backlog",
       "acceptance": "none",
-      "release": "0.3.0-rc.1",
+      "release": "0.3.0-beta.1",
       "summary": "Control panel, private schema-validated settings and an explicit desktop shortcut spec; no real Desktop shortcut was created or reviewed.",
       "prs": [
         {
@@ -68,7 +68,7 @@
       "lane": "B",
       "state": "done",
       "acceptance": "none",
-      "release": "0.3.0-rc.1",
+      "release": "0.3.0-beta.1",
       "summary": "One-command play_city validated live (loopback host, auto-join, sealed stop); owner acceptance and wave completion remain open.",
       "prs": [
         {
@@ -97,7 +97,7 @@
       "lane": "B",
       "state": "done",
       "acceptance": "none",
-      "release": "0.3.0-rc.1",
+      "release": "0.3.0-beta.1",
       "summary": "Validated rotation, native defender squad set_bot_count 1 8 and enemy profiles; rotation SHA recorded in sealed receipts.",
       "prs": [
         {
@@ -122,7 +122,7 @@
       "lane": "B",
       "state": "done",
       "acceptance": "none",
-      "release": "0.3.0-rc.1",
+      "release": "0.3.0-beta.1",
       "summary": "Host stdout tee plus add_artifact before the signed stop; verified 8-file sealed manifests.",
       "prs": [
         {
@@ -141,7 +141,7 @@
       "lane": "C",
       "state": "done",
       "acceptance": "none",
-      "release": "0.3.0-rc.1",
+      "release": "0.3.0-beta.1",
       "summary": "Troop histogram and observed-only lifecycle events shipped in the ZDB1 probe.",
       "prs": [
         {
@@ -160,7 +160,7 @@
       "lane": "C",
       "state": "done",
       "acceptance": "none",
-      "release": "0.3.0-rc.1",
+      "release": "0.3.0-beta.1",
       "summary": "Sealed-bundle summary CLI, consumed by the one-command launcher.",
       "prs": [
         {
@@ -180,7 +180,7 @@
       "lane": "A",
       "state": "done",
       "acceptance": "none",
-      "release": "0.3.0-rc.1",
+      "release": "0.3.0-beta.1",
       "summary": "Native team-0 defender spawn path (981..984) merged; live sealed spawn observed.",
       "prs": [],
       "commits": [
@@ -194,7 +194,7 @@
       "lane": "A",
       "state": "active",
       "acceptance": "none",
-      "release": "0.3.0-rc.1",
+      "release": "0.3.0-beta.1",
       "summary": "Rear-line hold/fire, standoff and ammo-gated melee merged; KD measurement still being balanced.",
       "prs": [],
       "commits": [
@@ -208,7 +208,7 @@
       "lane": "A",
       "state": "active",
       "acceptance": "none",
-      "release": "0.3.0-rc.1",
+      "release": "0.3.0-beta.1",
       "summary": "Rear hold entries [0,1,0] and native-group orders merged; hold-sector identity remains unobservable.",
       "prs": [],
       "commits": [
@@ -222,7 +222,7 @@
       "lane": "A",
       "state": "active",
       "acceptance": "none",
-      "release": "0.3.0-rc.1",
+      "release": "0.3.0-beta.1",
       "summary": "Slow-894 wave-visitor gating, spawn_agent defender refill and weak generic roster merged; wave 2+/completion unverified.",
       "prs": [],
       "commits": [
@@ -237,7 +237,7 @@
       "lane": "A",
       "state": "active",
       "acceptance": "none",
-      "release": "0.3.0-rc.1",
+      "release": "0.3.0-beta.1",
       "summary": "Native defender squad and rear hold merged; group/division adoption and stable hold still unproven.",
       "prs": [],
       "commits": [
@@ -253,7 +253,7 @@
       "lane": "E",
       "state": "backlog",
       "acceptance": "none",
-      "release": "0.3.0-rc.1",
+      "release": "0.3.0-beta.1",
       "summary": "Credits and permission basis recorded; redistribution remains uncleared and no assets were committed.",
       "prs": [
         {
@@ -277,7 +277,7 @@
       "lane": "B",
       "state": "backlog",
       "acceptance": "none",
-      "release": "0.3.0-rc.1",
+      "release": "0.3.0-beta.1",
       "summary": "Read-only delivery gate and desktop/installer surfaces merged; accessibility, legal and owner acceptance gates remain open.",
       "prs": [
         {
@@ -296,7 +296,7 @@
       "lane": "A",
       "state": "backlog",
       "acceptance": "none",
-      "release": "0.3.0-rc.1",
+      "release": "0.3.0-beta.1",
       "summary": "Tracker and Pages graph merged; current version line and presentation regeneration pending the publisher.",
       "prs": [
         {
@@ -315,7 +315,7 @@
       "lane": "D",
       "state": "blocked",
       "acceptance": "none",
-      "release": "0.3.0-rc.1",
+      "release": "0.3.0-beta.1",
       "blocker": "No sustained wave-completion runtime evidence exists; owned by D/owner, not the launcher.",
       "summary": "Blocked on sustained sealed runtime evidence; no PR or commit can substitute for it.",
       "prs": [],
@@ -324,9 +324,9 @@
   ],
   "releases": [
     {
-      "version": "0.3.0-rc.1",
+      "version": "0.3.0-beta.1",
       "state": "candidate",
-      "changelog": "CHANGELOG.md#030-rc1-2026-10-24",
+      "changelog": "CHANGELOG.md#030-beta1-2026-10-24",
       "acceptance": "none",
       "runtime_verified": false,
       "published": false,
@@ -372,6 +372,12 @@
           "number": 26,
           "reason": "matrix summary-schema alignment"
         }
+      ],
+      "pending_prs": [
+        {
+          "number": 31,
+          "reason": "G free-asset catalogue docs/definitions; pending merge"
+        }
       ]
     }
   ],
@@ -381,8 +387,10 @@
     "ZOM-LEGAL-01 redistribution not cleared; original assets stay local and uncommitted.",
     "0.3.0 milestone is not awarded: allied survivor/class/loadout acceptance is pending.",
     "Project Record delivery pipeline replay is unavailable in this runtime (toolkit ZIP unverified); derived Pages/README presentation must be regenerated by the publisher.",
-    "Generated README progress block is a derived view observed at `c49cd3b9` and is stale for the 0.3.0-rc.1 candidate; publisher regeneration is pending (E finding C2).",
-    "Repository LICENSE / THIRD_PARTY_NOTICES.md are absent (owner decision/open risk); absence is reported by the release gate rather than silently passing (E finding C6)."
+    "Generated README progress block is a derived view observed at `c49cd3b9` and is stale for the 0.3.0-beta.1 candidate; publisher regeneration is pending (E finding C2).",
+    "Repository LICENSE / THIRD_PARTY_NOTICES.md are absent (owner decision/open risk); absence is reported by the release gate rather than silently passing (E finding C6).",
+    "E review finding 1 (version label): beta.1 is a pre-release candidate and does not award 0.3.0; owner approval at packaging is still pending.",
+    "G PR #31 free-asset catalogue/icon mapping is pending merge; docs/definitions only, no binaries, no legal clearance or acceptance."
   ],
   "notes": [
     "Pre-release candidate only: source merges and a CHANGELOG heading establish neither publication nor acceptance.",
@@ -415,6 +423,23 @@
       "merge_commit": "148f7f3",
       "pending_branch": "agent/c-task48-final-amend",
       "pending_commit": "50fa25b"
+    },
+    {
+      "id": "G-TASK-49",
+      "kind": "docs-definitions-only",
+      "state": "pending-merge",
+      "merged": false,
+      "summary": "Free-asset licence catalogue + icon/currency mapping contract (docs/definitions only, no binaries); independent E licence review; no legal clearance or acceptance.",
+      "acceptance": "none",
+      "pr": {
+        "number": 31,
+        "url": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/31",
+        "head_commit": "85b9c0b"
+      },
+      "commits": [
+        "85b9c0b"
+      ],
+      "merge_commit": null
     }
   ],
   "reviews": [
@@ -426,5 +451,13 @@
       "status": "initial review complete; must-fix items C1\u2013C7 addressed in the task-50 branch; re-review of the pushed branch pending",
       "acceptance": "none"
     }
-  ]
+  ],
+  "version_decision": {
+    "candidate": "0.3.0-beta.1",
+    "kind": "semver-prerelease-beta",
+    "milestone_awarded": "none; the 0.3.0 milestone remains reserved",
+    "rationale": "docs/ROADMAP.md reserves 0.3.0 for verified allied survivor/survivor-faction/class/loadout acceptance. E review finding 1 noted an RC implies completeness for a milestone whose acceptance is active, so the candidate is the explicit pre-release beta.1; owner may rename/approve at packaging.",
+    "owner_approval": "pending",
+    "published": false
+  }
 }

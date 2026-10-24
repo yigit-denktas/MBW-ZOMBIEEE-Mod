@@ -138,7 +138,77 @@ def _valid_pr(entry, number):
     return isinstance(commit, str) and bool(HEX_COMMIT_RE.fullmatch(commit))
 
 
-def _traceability_checks(root, version_text, check):
+def _git(root, arguments, runner=None, timeout=60):
+    if runner is None:
+        def runner(command, **kwargs):
+            return subprocess.run(command, capture_output=True, text=True,
+                                  timeout=kwargs.get('timeout', timeout),
+                                  shell=False)
+    try:
+        completed = runner(['git', '-C', str(Path(root).absolute())] + arguments,
+                           timeout=timeout)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise ReleaseGateError('git_unavailable') from exc
+    return getattr(completed, 'returncode', 1)
+
+
+def _ancestry_checks(root, data, git_runner=None):
+    """Check every recorded commit/merge SHA is an ancestor of the candidate."""
+    source = data.get('source_revision')
+    if not isinstance(source, str) or not re.fullmatch(r'[0-9a-fA-F]{40}', source):
+        return {'status': 'invalid_source_revision', 'missing': [],
+                'checked': 0, 'available': False}
+    try:
+        inside = _git(root, ['rev-parse', '--is-inside-work-tree'],
+                      runner=git_runner)
+    except ReleaseGateError:
+        return {'status': 'unavailable', 'missing': [], 'checked': 0,
+                'available': False}
+    if inside != 0:
+        return {'status': 'not_a_repository', 'missing': [], 'checked': 0,
+                'available': False}
+    commits = set()
+    for item in data.get('work_items') or []:
+        if not isinstance(item, dict):
+            continue
+        for value in item.get('commits') or []:
+            if isinstance(value, str) and HEX_COMMIT_RE.fullmatch(value):
+                commits.add(value)
+        for pr in item.get('prs') or []:
+            if isinstance(pr, dict):
+                commit = pr.get('merge_commit')
+                if isinstance(commit, str) and HEX_COMMIT_RE.fullmatch(commit):
+                    commits.add(commit)
+    for artifact in data.get('support_artifacts') or []:
+        if isinstance(artifact, dict):
+            if artifact.get('merged') is False or 'pending' in str(
+                    artifact.get('state', '')):
+                continue  # explicitly pending integration: never claimed as shipped
+            for value in artifact.get('commits') or []:
+                if isinstance(value, str) and HEX_COMMIT_RE.fullmatch(value):
+                    commits.add(value)
+            commit = artifact.get('merge_commit')
+            if isinstance(commit, str) and HEX_COMMIT_RE.fullmatch(commit):
+                commits.add(commit)
+    for release in data.get('releases') or []:
+        if isinstance(release, dict):
+            for value in release.get('included_commits') or []:
+                if isinstance(value, str) and HEX_COMMIT_RE.fullmatch(value):
+                    commits.add(value)
+    missing = []
+    for commit in sorted(commits):
+        try:
+            if _git(root, ['merge-base', '--is-ancestor', commit, source],
+                    runner=git_runner) != 0:
+                missing.append(commit)
+        except ReleaseGateError:
+            return {'status': 'unavailable', 'missing': [], 'checked': 0,
+                    'available': False}
+    return {'status': 'failed' if missing else 'checked', 'missing': missing,
+            'checked': len(commits), 'available': True}
+
+
+def _traceability_checks(root, version_text, check, git_runner=None):
     """Validate VERSION <-> CHANGELOG <-> work-item/PR/commit traceability."""
     summary = {'schema': None, 'work_items': 0, 'linked_prs': 0,
                'included_prs': 0, 'gaps': 0, 'candidate_version': None}
@@ -252,6 +322,24 @@ def _traceability_checks(root, version_text, check):
     summary['gaps'] = len(gaps)
     check('traceability_gaps', bool(gaps) and all(isinstance(item, str) for item in gaps),
           '%d gaps recorded' % len(gaps))
+    ancestry = _ancestry_checks(root, data, git_runner=git_runner)
+    summary['ancestry_status'] = ancestry['status']
+    summary['ancestry_commits'] = ancestry['checked']
+    if ancestry['available']:
+        check('traceability_ancestry', not ancestry['missing'],
+              ('%d/%d commits are ancestors of %s'
+               % (ancestry['checked'] - len(ancestry['missing']),
+                  ancestry['checked'], data.get('source_revision')))
+              if ancestry['missing'] else
+              ('all %d recorded commits are ancestors of %s'
+               % (ancestry['checked'], data.get('source_revision'))))
+    else:
+        check('traceability_ancestry', True,
+              'unavailable: ' + ancestry['status']
+              + ' (offline fixture or missing repo)')
+    check('pr_merged_state', True,
+          'GitHub merged-state is unavailable offline; merge-commit '
+          'ancestry is checked instead')
     return summary
 
 
@@ -289,7 +377,11 @@ def build_release_gate(*, root=None, game_root=None, tracked_files=None,
                       if token not in instructions]
     check('reproducible_commands', not missing_tokens,
           'missing=' + ','.join(missing_tokens) if missing_tokens else 'documented')
-    traceability = _traceability_checks(root, version_text, check)
+    traceability = _traceability_checks(root, version_text, check,
+                                          git_runner=git_runner)
+    if traceability.get('ancestry_status') != 'checked':
+        warnings.append('git_ancestry_unavailable:'
+                        + str(traceability.get('ancestry_status')))
 
     if tracked_files is None:
         try:
@@ -339,8 +431,8 @@ def build_release_gate(*, root=None, game_root=None, tracked_files=None,
     else:
         warnings.append('installed_module_not_provided')
     license_present = (root / 'LICENSE').is_file()
-    notices_present = ((root / 'THIRD_PARTY_NOTICES.md').is_file()
-                       or (root / 'NOTICE').is_file())
+    notices_present = any((root / name).is_file() for name in (
+        'THIRD_PARTY_NOTICES.md', 'NOTICE', 'docs/CREDITS.md'))
     checks['repo_license_status'] = {
         'ok': True,
         'note': ('present' if license_present else
