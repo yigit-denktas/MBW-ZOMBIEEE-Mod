@@ -181,3 +181,6 @@ The original **ZOMBIEEE (Invasion) Beta 0.4** was publicly released in 2012 for 
 This project deliberately separates **source-verified**, **observed**, **unknown** and **failed** evidence, and forbids promoting one class to another. A static build receipt, a self-reported test count or a log line is not playability. If a run is incomplete, missing telemetry is reported as `unknown`, never as zero, pass or success.
 
 <!-- task-65 branch metadata-only source revision: 1374abd (rebased on e80bbf4) -->
+
+
+<!-- P0 probe fix metadata-only source revision: 39aa3a7 -->
