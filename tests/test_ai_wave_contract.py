@@ -176,9 +176,9 @@ class OriginalInvasionModeTests(unittest.TestCase):
 
     def test_wrong_visitor_team_is_rejected(self):
         changed = self.after.copy()
-        # Multiplayer add_visitors_to_current_scene: (entry,troop,1,team0,group5).
+        # Multiplayer add_visitors_to_current_scene: (entry,troop,1,team0,leader_id 0).
         changed[28], replacements = re.subn(
-            r'(1265 5 [01] \d+ 1) 0 ([567])', r'\1 1 \2', changed[28], count=1)
+            r'(1265 5 [01] \d+ 1) 0 (0)', r'\1 1 \2', changed[28], count=1)
         self.assertEqual(replacements, 1)
         result = self.inspect(new=changed)
         self.assertFalse(result['checks']['reinforcement_visitors_team_and_groups'])

@@ -17,7 +17,7 @@ from doctor import inspect_module
 from preflight import report_for_module
 from patch_defenders import patch_file, index_troops, TROOP_BASE, SURVIVOR_CLASSES
 from native_roster_patch import GLOBAL_BASE, apply_module as apply_native_roster
-from faction_log_guard import apply_module as apply_faction_log_guard
+from native_wave_patch import apply_module as apply_native_wave_patch
 from city_defense import (GUARD_ENTRIES, REAR_HOLD_ENTRIES,
                           apply_module as apply_city_defense)
 from all_map_defense import apply_module as apply_all_maps
@@ -119,7 +119,7 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         raise ValueError("Unknown --zombie-bot-roster profile")
     if zombie_block not in ("default", "stock"):
         raise ValueError("Unknown --zombie-block profile")
-    if defensive_line not in ("rear", "forward"):
+    if defensive_line not in ("rear", "forward", "adaptive"):
         raise ValueError("Unknown --defensive-line profile")
     if wave_visitors not in ("slow", "original"):
         raise ValueError("Unknown --wave-visitors profile")
@@ -189,12 +189,17 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
                 shutil.copy2(source / "SceneObj" / scene_name,
                              original_evidence / "SceneObj" / scene_name)
         apply_overlay(source)
-        faction_log_guard_report = None
+        native_wave_report = None
         if city_guardposts and not all_map_defenses:
-            # Logs-only City exception: original trigger 14's four trailing
-            # faction_set_slot(-1, 200, ...) writes become valid faction 16 /
-            # unused slot 245; wave composition is unchanged.
-            faction_log_guard_report = apply_faction_log_guard(source)
+            # Original City wave-controller patch: trigger 14 table -> 894,
+            # invalid writes redirected to slot 245, trigger 15 gains the
+            # native team-1 speed loop. Appended normalizers are ineffective.
+            variables = (source / "variables.txt").read_text(encoding="utf-8").splitlines()
+            if "wave_number" not in variables:
+                raise RuntimeError("Missing wave_number for native wave patch")
+            wave_global = GLOBAL_BASE + variables.index("wave_number")
+            native_wave_report = apply_native_wave_patch(
+                source, wave_global, speed_loop=native_speed_loop == "on")
         balanced = defender_loadouts == "balanced-ai"
         loadout_report = apply_balanced_ai_loadouts(source) if balanced else None
         # Default build profile: automatic firearms get a modest accuracy buff;
@@ -254,7 +259,7 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         city_report = None
         if city_guardposts:
             city_report = apply_city_defense(
-                source, REAR_HOLD_ENTRIES if defensive_line == "rear" else GUARD_ENTRIES,
+                source, REAR_HOLD_ENTRIES if defensive_line != "forward" else GUARD_ENTRIES,
                 wave_visitors=wave_visitors,
                 defender_target=defender_target if defender_reinforce == "default" else 0,
                 zombie_speed=zombie_speed == "slow",
@@ -384,7 +389,7 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
                                        else "city-only" if city_guardposts
                                        else "original-baseline"),
             "experimental_city_guardposts": city_report,
-            "faction_log_guard": faction_log_guard_report,
+            "native_wave_patch": native_wave_report,
             "experimental_all_map_defenses": all_maps_report,
             "experimental_wave_reinforcements": wave_report,
             "experimental_tactical_recovery": recovery_report,
@@ -436,7 +441,7 @@ def main():
     parser.add_argument("--firearm-accuracy", choices=("default", "stock"), default="default", help="Default build profile buffs automatic firearm accuracy (+5..10 pts); stock keeps original stats")
     parser.add_argument("--zombie-bot-roster", choices=("weak", "full"), default="weak", help="City generic invader bots: weak original Zombie 894 only or full native 894..911 roster")
     parser.add_argument("--zombie-block", choices=("default", "stock"), default="default", help="Give City invader troops a shield for block capability; stock keeps original equipment")
-    parser.add_argument("--defensive-line", choices=("rear", "forward"), default="rear", help="City defender hold line: rear/spawn line (default) or the old forward guard sectors")
+    parser.add_argument("--defensive-line", choices=("rear", "forward", "adaptive"), default="rear", help="City defender hold line: rear (default), forward guard sectors, or adaptive formation (task-53/62)")
     parser.add_argument("--wave-visitors", choices=("slow", "original"), default="slow", help="City wave visitors: slow Zombie 894 only (default) or original 0.4 wave table")
     parser.add_argument("--defender-reinforce", choices=("default", "stock"), default="default", help="City defender spawn_agent refill to --defender-target; stock disables")
     parser.add_argument("--defender-target", type=int, default=8, metavar="N", help="City team-0 defender target (1..8) for reinforcement")

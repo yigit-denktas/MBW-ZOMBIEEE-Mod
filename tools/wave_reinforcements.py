@@ -112,7 +112,7 @@ def reinforce_on_wave(g, troop_ids, cap=4, troop_classes=SURVIVOR_CLASSES, first
         body.extend([
             op(31, loc[6], index),
             op(1265, index % 2, TROOP_BASE + troop_ids[name],
-               1, 0, GROUPS[index % 3]),
+               1, 0, 0),  # 5th arg is MP leader id, not a formation slot
         ])
     body.extend([op(3), op(3), op(3)])
     return " ".join(["4.000000", "0.000000", "0.000000", str(len(conditions)),
