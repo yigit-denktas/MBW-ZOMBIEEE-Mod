@@ -313,5 +313,25 @@ class HeatmapInputTests(unittest.TestCase):
             self.assertIn("heatmap_has_no_points", data["gaps"])
             self.assertIn("no_position_points", data["gaps"])
 
+
+    def test_adaptive_samples_feed_heatmap_with_ticks(self):
+        lines = [
+            "ZDB1|heartbeat|count=1|ts_ms=1000|role=server|wave=1|team0=1"
+            "|team1=1|alive_team0=1|alive_team1=1",
+            "ZDB1|adaptive_sample|reason=active|tick=1|agent=1|team=0|troop=981"
+            "|class=1|division=5|hp=90|alive=1|wave=1|mode=0|ts_ms=1000|x=10|y=10",
+            "ZDB1|adaptive_event|reason=hit|tick=2|agent=1|team=0|troop=981"
+            "|class=1|division=5|hp=80|alive=1|wave=1|mode=0|ts_ms=2000|x=11|y=10",
+        ]
+        with tempfile.TemporaryDirectory() as td:
+            root = _bundle(Path(td), lines, sealed=False)
+            data = extract_heatmap(ingest_bundle(root, allow_unsealed=True))
+            self.assertEqual(len(data["points"]), 2)
+            self.assertEqual(data["points"][0]["source"], "adaptive_sample")
+            self.assertEqual(data["points"][1]["source"], "adaptive_event")
+            self.assertEqual(data["points"][1]["reason"], "hit")
+            self.assertGreater(data["agents"]["1"]["movement_total"], 0)
+            self.assertTrue(data["heartbeats"])
+
 if __name__ == "__main__":
     unittest.main()

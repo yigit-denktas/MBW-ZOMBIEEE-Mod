@@ -262,6 +262,16 @@ def summarize_receipt(target: Path) -> dict:
                             if capability else None),
         "hit_events_cap": (_bounded_int(capability["fields"].get("hit_events_cap"))
                            if capability else None),
+        "adaptive_sampling": (_bounded_int(capability["fields"].get("adaptive_sampling"))
+                              if capability else None),
+        "adaptive_active_ms": (_bounded_int(capability["fields"].get("adaptive_active_ms"))
+                               if capability else None),
+        "adaptive_idle_ms": (_bounded_int(capability["fields"].get("adaptive_idle_ms"))
+                             if capability else None),
+        "adaptive_max_events": (_bounded_int(capability["fields"].get("adaptive_max_events"))
+                                if capability else None),
+        "adaptive_max_agents": (_bounded_int(capability["fields"].get("adaptive_max_agents"))
+                                if capability else None),
         "pre_round_samples": len(pre_round),
         "pre_round_only": bool(pre_round) and not heartbeats,
         "sampling_interval_s": _bounded_int(
@@ -1269,6 +1279,30 @@ def summarize_receipt(target: Path) -> dict:
 
     if not hit_events and "hit_telemetry_unavailable" not in gaps_hint:
         gaps_hint.append("hit_telemetry_unavailable")
+    adaptive_rows = [event for event in events
+                     if event["event"] in ("adaptive_sample", "adaptive_event")]
+    adaptive_reasons = {}
+    for event in adaptive_rows:
+        reason = event["fields"].get("reason") or "unknown"
+        adaptive_reasons[reason] = adaptive_reasons.get(reason, 0) + 1
+    adaptive = {
+        "samples": sum(1 for event in adaptive_rows
+                       if event["event"] == "adaptive_sample"),
+        "events": sum(1 for event in adaptive_rows
+                      if event["event"] == "adaptive_event"),
+        "reasons": adaptive_reasons or None,
+        "heartbeat_last": {
+            "ticks": _bounded_int(last_hb_fields.get("adaptive_ticks")),
+            "samples": _bounded_int(last_hb_fields.get("adaptive_samples")),
+            "events": _bounded_int(last_hb_fields.get("adaptive_events")),
+            "skips": _bounded_int(last_hb_fields.get("adaptive_skips")),
+            "active_ticks": _bounded_int(last_hb_fields.get("adaptive_active_ticks")),
+            "last_interval_ms": _bounded_int(last_hb_fields.get("adaptive_last_interval_ms")),
+        },
+        "validation": "static/test-only pending sealed adaptive run",
+    }
+    if not adaptive_rows:
+        gaps_hint.append("adaptive_sampling_unavailable")
     gaps = list(gaps_hint)
     if defender_samples and not defenders["weapon_mode_observed"]:
         gaps.append("weapon_mode_unobserved")
@@ -1365,6 +1399,7 @@ def summarize_receipt(target: Path) -> dict:
         "defenders": defenders,
         "firearms": firearms,
         "hits": hits,
+        "adaptive": adaptive,
         "waves": {"observed": waves, "max": waves[-1] if waves else None,
                   "multiple_observed": len([w for w in waves if w >= 1]) >= 2,
                   "wave1": {"observed": wave1_observed,
@@ -1489,6 +1524,11 @@ def format_summary(summary: dict) -> str:
                  f"melee_team0={defend['melee_fallback_team0']} "
                  f"deaths={defend['deaths']}")
     fire = summary["firearms"]
+    adaptive = summary.get("adaptive") or {}
+    lines.append(f"adaptive:        samples={adaptive.get('samples')} "
+                 f"events={adaptive.get('events')} "
+                 f"reasons={adaptive.get('reasons')} "
+                 f"last={adaptive.get('heartbeat_last')}")
     hits = summary.get("hits") or {}
     lines.append(f"hits:            total={hits.get('events')} damage={hits.get('damage_total')} "
                  f"friendly_fire={hits.get('friendly_fire')} "

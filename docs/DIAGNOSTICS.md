@@ -398,6 +398,32 @@ return true); heartbeat exposes `hit_attempts`, `hit_events`,
 `hit_param_invalid` to distinguish “never fired” from “fired with invalid
 params”.
 
+### Adaptive sampling (task-76)
+
+The probe adds a 1 s `adaptive_tick` trigger:
+- **1 s** snapshots while active (`wave>=1`, recent hit within 5 s, or candidate
+  tactical `mode>=1`); **5 s** idle/between waves; event snapshots on
+  **hit**, **death** (last observed position), **wave transition**, and
+  **mode change**.
+- Each snapshot samples **all alive non-player agents**, bounded by
+  `zdr_adaptive_max_agents` (default 128) and emits `adaptive_sample`
+  (reason active/idle) or `adaptive_event` (reason hit/death/wave_transition/
+  mode_change) with agent/team/troop/class/division/hp/x/y/alive/wave/mode/tick.
+- Config (globals; defaults): `zdr_adaptive_active_ms=1000`,
+  `zdr_adaptive_idle_ms=5000`, `zdr_adaptive_max_events=50000`,
+  `zdr_adaptive_max_agents=128`. Heartbeat exposes `adaptive_ticks`,
+  `adaptive_samples`, `adaptive_events`, `adaptive_skips`,
+  `adaptive_active_ticks`, `adaptive_last_interval_ms`.
+- Hard caps stop emission with a bounded `probe_anomaly`; no unbounded log
+  growth. The mode>=1 active signal is a candidate/fallback heuristic, not
+  validated behavior semantics.
+- Heatmap exporter accepts `adaptive_sample`/`adaptive_event` points and keeps
+  `reason`; `tick` is primary, `ts_ms` probe-relative only.
+
+**Measurement plan:** D seals matched 15 s vs adaptive runs with identical
+build/settings; compare CPU/memory/log size/event rate/heartbeat cadence and
+heatmap point density. No acceptance/visual claim.
+
 ### Heatmap-ready ZDB1 input (task-74)
 
 `tools/telemetry_studio/heatmap_input.py` exports `zombieee.heatmap-input.v1`

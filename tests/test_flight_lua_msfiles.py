@@ -560,5 +560,14 @@ class LuaOperationMetadataTests(unittest.TestCase):
             source = header_text() if token.endswith(("1772", "1773", "1720")) else self.main
             self.assertIn(token, source)
 
+
+    def test_adaptive_sampling_surface(self):
+        for token in ("adaptive_tick", "adaptive_sampling=1",
+                      "adaptive_active_ms=1000", "adaptive_idle_ms=5000",
+                      "adaptive_max_events=50000", "adaptive_max_agents=128",
+                      "adaptive_sample", "adaptive_event", "hit_attempts",
+                      "hit_param_invalid", "adaptive_active_ticks"):
+            self.assertIn(token, self.main)
+
 if __name__ == "__main__":
     unittest.main()
