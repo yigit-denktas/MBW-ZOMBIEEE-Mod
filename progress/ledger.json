@@ -3292,7 +3292,7 @@
       "owner": "Lead — coordination; reviewers A/C/D/E/F/G",
       "priority": "P1",
       "criterion": "No self-review; each owner has an independent reviewer; worktrees do not overlap; statuses/PRs/ledger stay current.",
-      "note": "Review pairs A↔C, D↔A, F↔E, G↔E; Lead owns merges/installs.",
+      "note": "Review pairs A↔C, D↔A, F↔E, G↔E; Lead owns merges/installs. | Owner directive 2026-10-24: fixed reviewers review-b2 + E; builders do not evaluate peers; build next package while waiting; Lead merges only after reviewer sign-off.",
       "deferReason": "Supplemental coordination work; not part of the required denominator.",
       "implementationLane": "Lead",
       "workOrigin": "discovered",
