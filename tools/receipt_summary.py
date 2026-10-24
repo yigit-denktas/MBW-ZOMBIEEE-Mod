@@ -256,6 +256,12 @@ def summarize_receipt(target: Path) -> dict:
         "game_type": _bounded_int(latest_field("game_type"), minimum=0),
         "ready_for_spawn": _bounded_int(latest_field("ready_for_spawn"), minimum=0),
         "template": latest_field("template"),
+        "hit_trigger": (_bounded_int(capability["fields"].get("hit_trigger"))
+                        if capability else None),
+        "hit_attribution": (_bounded_int(capability["fields"].get("hit_attribution"))
+                            if capability else None),
+        "hit_events_cap": (_bounded_int(capability["fields"].get("hit_events_cap"))
+                           if capability else None),
         "pre_round_samples": len(pre_round),
         "pre_round_only": bool(pre_round) and not heartbeats,
         "sampling_interval_s": _bounded_int(
@@ -1219,7 +1225,15 @@ def summarize_receipt(target: Path) -> dict:
         elif dmeta.get("team") is not None and dmeta.get("team") == vmeta.get("team"):
             friendly_fire += 1
     hits = {
-        "source": "ti_on_agent_hit trigger params (victim/dealer/damage/missile)",
+        "source": (
+            "candidate ti_on_agent_hit param mapping (victim=1,dealer=2,"
+            "damage=3,missile=5); mapping and in-build behavior unverified"),
+        "mapping_unverified": True,
+        "capability": {
+            "hit_trigger": probe.get("hit_trigger"),
+            "hit_attribution": probe.get("hit_attribution"),
+            "hit_events_cap": probe.get("hit_events_cap"),
+        },
         "events": len(hit_events),
         "damage_total": damage_total,
         "by_kind": hit_counts,

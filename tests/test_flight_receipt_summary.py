@@ -914,6 +914,8 @@ class ReceiptSummaryTests(unittest.TestCase):
             self.assertEqual(hits["by_victim_troop"], {"894": 1, "895": 1})
             self.assertEqual(hits["friendly_fire"], 1)
             self.assertNotIn("hit_telemetry_unavailable", summary["evidence_gaps"])
+            self.assertIs(hits["mapping_unverified"], True)
+            self.assertIn("mapping and in-build behavior unverified", hits["source"])
             self.assertIn("hits:", format_summary(summary))
 
 if __name__ == "__main__":
