@@ -382,7 +382,9 @@ WSE2 Lua can add a mission-template trigger for native `ti_on_agent_hit`
 `1=victim, 2=dealer, 3=damage, 5=missile flag` comes from the Native-derived
 module source (`module_mission_templates.py` uses params 1/2/3; the same
 source reads param 5 as the missile flag) and is **cited but not yet verified
-in our build**. The probe emits a bounded `hit_sample` event per hit (server
+in our build**. Citations: [Native-derived `module_mission_templates.py` L1449-L1459](https://github.com/LilyModzStuff/warband_mod_source/blob/master/source/module_mission_templates.py#L1449-L1459)
+and [TLD `module_mission_templates_TLD_wb.py` L1588-L1596](https://github.com/tldmod/tldmod/blob/master/ModuleSystem/module_mission_templates_TLD_wb.py#L1588-L1596).
+The probe emits a bounded `hit_sample` event per hit (server
 role only, max 2000 per run) with `victim`, `dealer`, `damage`, `missile`,
 `kind`; capability `hit_trigger=-28|hit_attribution=1`. **Status: static/test-only
 until D seals a hit-bearing `3196ef5` run** — no inspected local run contains
