@@ -25,18 +25,21 @@ baseline observations only.
    evidence explains it.
 2. **Survivor sample drifts east/south after wave 0.** Wave 1 centroid (181.6,180.8),
    anchor share 0.11; wave 2 centroid (192.0,186.9), anchor share 0.0. This is **not** a
-   forward-hold success: mean alive fell to 2.33 and then fewer, so it is dominated by
-   **survivorship/combat displacement**. It is consistent with the nearest guard post 3
-   (185.2,185.0), but with no division/class data it cannot be called role-based
-   occupation.
+   forward-hold success: the wave-1 mean-alive low is 2.33, then later samples include
+   respawns/new agents (wave 2 mean alive 8.0, wave 3 4.0, wave 4 6.0), so the drift is
+   **survivorship/combat displacement**, not a monotonic alive decline. It is consistent
+   with the nearest guard post 3 (185.2,185.0), but with no division/class data it cannot
+   be called role-based occupation.
 3. **No fallback condition is sampled.** These bundles contain no `mode=1`/fallback
    condition samples; the adaptive fallback branch (round-ended/outnumbered → base) is
-   therefore **unobserved**, not validated. Outnumbered windows dominate (task45: 308
-   outnumbered; task55: 388), yet no northward regroup trace is distinguishable from
-   attrition.
-4. **Cohesion proxies collapse with attrition.** Spread RMS drops 4.0 → 0.64 → near 0 as
-   survivors die; this is a sampling/survivorship effect, not evidence that a tighter
-   formation was ordered. Local superiority/advantage windows are too sparse to compare.
+   therefore **unobserved**, not validated. Outnumbered windows dominate, but counts are
+   **dataset-specific**: raw task45 = 308 outnumbered / 526 points; C export of the same
+   run = 375 / 692 points; task55 raw = 388 / 572 points. No northward regroup trace is
+   distinguishable from attrition in either dataset.
+4. **Cohesion proxies track sample composition, not an ordered formation.** Spread RMS
+   drops 4.0 → 0.64 → near 0 as the sampled survivor set mixes deaths and respawns; this
+   is a sampling/survivorship effect, not evidence that a tighter formation was ordered.
+   Local superiority/advantage windows are too sparse to compare.
 5. **Team-1 stays on the southern approaches.** Task45 team-1 centroids (137.6,139.6) →
    (161.9,155.5); no north-side entry appears. This supports the E map claim of SW/S/SSE
    clusters and **not** a 360° encirclement, but remains a sample-shape observation.
