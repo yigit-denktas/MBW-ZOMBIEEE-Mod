@@ -100,7 +100,8 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
           defender_reinforce: str = "default",
           defender_target: int = 8,
           zombie_speed: str = "slow",
-          defender_orders: str = "hold-fire") -> dict:
+          defender_orders: str = "hold-fire",
+          fire_mode: str = "ai") -> dict:
     support = profile(difficulty)
     if difficulty != "standard" and not wave_reinforcements:
         raise ValueError("Nonstandard difficulty needs --wave-reinforcements")
@@ -128,6 +129,8 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         raise ValueError("--defender-target must be between 1 and 8")
     if zombie_speed not in ("slow", "stock"):
         raise ValueError("Unknown --zombie-speed profile")
+    if fire_mode not in ("ai", "single", "burst", "auto"):
+        raise ValueError("Unknown --fire-mode profile")
     if defender_orders not in ("hold-fire", "stock"):
         raise ValueError("Unknown --defender-orders profile")
     if defender_loadouts != "original" and not experimental_defenders:
@@ -255,7 +258,8 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
                 wave_visitors=wave_visitors,
                 defender_target=defender_target if defender_reinforce == "default" else 0,
                 zombie_speed=zombie_speed == "slow",
-                defender_orders=defender_orders == "hold-fire")
+                defender_orders=defender_orders == "hold-fire",
+                fire_mode=fire_mode)
             updated = report_for_module(source)
             if not updated["ok"] or updated["mission"]["triggers"] != 27:
                 raise RuntimeError("City defence failed static post-apply validation")
@@ -437,6 +441,7 @@ def main():
     parser.add_argument("--defender-reinforce", choices=("default", "stock"), default="default", help="City defender spawn_agent refill to --defender-target; stock disables")
     parser.add_argument("--defender-target", type=int, default=8, metavar="N", help="City team-0 defender target (1..8) for reinforcement")
     parser.add_argument("--zombie-speed", choices=("slow", "stock"), default="slow", help="City zombie pace: native per-agent speed modifier ~70%% with wave scaling, stock unchanged")
+    parser.add_argument("--fire-mode", choices=("ai", "single", "burst", "auto"), default="ai", help="City survivor fire mode: ai wave-cycle or fixed single/burst/auto (pre-game setting; no mid-session key)")
     parser.add_argument("--defender-orders", choices=("hold-fire", "stock"), default="hold-fire", help="City team hold/fire orders (hold, hold_fire, fire_at_will, use_ranged) on native groups")
     args = parser.parse_args()
     try:
@@ -446,7 +451,7 @@ def main():
                          args.private_commands, args.difficulty, args.firearm_accuracy,
                          args.zombie_bot_roster, args.zombie_block, args.defensive_line,
                          args.wave_visitors, args.defender_reinforce, args.defender_target,
-                         args.zombie_speed, args.defender_orders), indent=2))
+                         args.zombie_speed, args.defender_orders, args.fire_mode), indent=2))
     except (RuntimeError, FileNotFoundError, FileExistsError, ValueError, subprocess.CalledProcessError) as exc:
         print(f"Build refused: {exc}", file=sys.stderr)
         raise SystemExit(2)

@@ -46,3 +46,26 @@ same weapon/range). If the icon is fixed, the path is a **UI asset task**:
 G/#40 author a narrower reticle texture (or a UI presentation override) with
 documented ownership/licence, then D validates the exact installed asset. A is
 not claiming the icon is narrowed by the accuracy delta alone.
+
+## Corrections from C's cross-review (task-59)
+
+- `2092`/`2094` set **accuracy/reload percentages only**. This build exposes
+  **no engine fire-mode setter/getter**, so the `single/burst/auto` labels are
+  **accuracy/reload tuning profiles**, not an actual single/burst/auto weapon
+  mode switch. Receipt records `fire_mode_semantics`; D cannot validate an
+  engine fire mode from these modifiers.
+- The item-accuracy patch in `tools/firearm_balance.py` changes the built
+  **global item table**, so it affects every user of the module, not only City
+  survivors; receipt records `scope=global_item_table_not_city_only`. The
+  City-scoped lever is the per-agent `2092` modifier.
+- Higher `2094` = faster reload is an **assumption** from community headers
+  (percent, 100 default, 0..1000); receipt records
+  `reload_direction=unverified_percent_assumed_higher_is_faster`. D must
+  validate reload/cadence intervals, not infer direction from the value.
+- New/refilled bots read **100%** until the next 5 s tick (spawn transient);
+  telemetry should show this as observed data, not a failure.
+- **Pre-game selector implemented:** `tools/build.py --fire-mode
+  {ai,single,burst,auto}` (default `ai`) selects the session tuning profile;
+  receipt records `fire_mode` and `fire_mode_policy`. This is a pre-game
+  session choice, not a mid-session key switch.
+

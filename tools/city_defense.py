@@ -60,7 +60,8 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None,
                    defender_orders: bool = True,
                    game_type_operand: int | None = None,
                    round_ended_operand: int | None = None,
-                   round_start_operand: int | None = None) -> str:
+                   round_start_operand: int | None = None,
+                   fire_mode: str = "ai") -> str:
     """City hold-order trigger body.
 
     With ``wave_global`` provided, each wave rotates the three sector posts by
@@ -155,7 +156,7 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None,
             # native accuracy field, but applied per agent so it works with the
             # 2012 crossbow-style firearms. Preserve ammo/loadout.
             l6 = str(LOCAL0 + 6)
-            if wave_global is not None:
+            if fire_mode == "ai" and wave_global is not None:
                 ops.append(["2119", "3", l6, str(wave_global), "3"])
                 ops.append(["4", "0"])                  # try_begin
                 ops.append(["31", "2", l6, "0"])
@@ -170,8 +171,11 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None,
                 ops.append(["2094", "2", l1, str(FIRE_MODES[2]["reload"])])
                 ops.append(["3", "0"])                  # try_end
             else:
-                ops.append(["2092", "2", l1, str(FIRE_MODES[1]["accuracy"])])
-                ops.append(["2094", "2", l1, str(FIRE_MODES[1]["reload"])])
+                selected = {"single": FIRE_MODES[0], "burst": FIRE_MODES[1],
+                            "auto": FIRE_MODES[2]}[
+                                "burst" if fire_mode == "ai" else fire_mode]
+                ops.append(["2092", "2", l1, str(selected["accuracy"])])
+                ops.append(["2094", "2", l1, str(selected["reload"])])
         ops.append(["2120", "3", l0, l0, "1"])             # count += 1
         ops.append(["3", "0"])                             # try_end
         if defender_target:
@@ -290,7 +294,8 @@ def patch_orders(original: str, scene_idx: int,
                  defender_orders: bool = True,
                  game_type_operand: int | None = None,
                  round_ended_operand: int | None = None,
-                 round_start_operand: int | None = None) -> str:
+                 round_start_operand: int | None = None,
+                 fire_mode: str = "ai") -> str:
     lines = original.splitlines(keepends=True)
     count_line, count, insert_at = mission_bounds(lines)
     if count != 26:
@@ -329,7 +334,8 @@ def patch_orders(original: str, scene_idx: int,
                                             zombie_speed, defender_orders,
                                             game_type_operand,
                                             round_ended_operand,
-                                            round_start_operand) + newline)
+                                            round_start_operand,
+                                            fire_mode) + newline)
     updated = "".join(lines)
     if mission_bounds(updated.splitlines(keepends=True))[1] != 27:
         raise PatchError("Invalid tactical trigger count")
@@ -340,7 +346,8 @@ def apply_module(module: Path, hold_entries: tuple[int, ...] = REAR_HOLD_ENTRIES
                  wave_visitors: str = "slow",
                  defender_target: int = DEFAULT_DEFENDER_TARGET,
                  zombie_speed: bool = True,
-                 defender_orders: bool = True) -> dict:
+                 defender_orders: bool = True,
+                 fire_mode: str = "ai") -> dict:
     module = Path(module)
     scene_path = module / "SceneObj" / "scn_tbfc_invasion_4.sco"
     mission_path = module / "mission_templates.txt"
@@ -372,7 +379,7 @@ def apply_module(module: Path, hold_entries: tuple[int, ...] = REAR_HOLD_ENTRIES
                                     wave_visitors, defender_target,
                                     zombie_speed, defender_orders,
                                     game_type_operand, round_ended_operand,
-                                    round_start_operand)
+                                    round_start_operand, fire_mode)
     if len(decode_scene(changed_scene)["objects"]) != len(decode_scene(original_scene)["objects"]) + 3:
         raise PatchError("Scene overlay failed binary roundtrip")
     # All validations happen before writes. On a mission-write failure, restore the SCO.
@@ -395,8 +402,19 @@ def apply_module(module: Path, hold_entries: tuple[int, ...] = REAR_HOLD_ENTRIES
             "zombie_speed": zombie_speed,
             "defender_standoff": defender_orders,
             "explosive_gating": "not_applicable_ai_loadouts_have_no_bombs",
+            # These are accuracy/reload tuning profiles only. WSE2 1.1.5.4
+            # exposes no weapon fire-mode setter/getter, so the labels are
+            # policy metadata, not an engine single/burst/auto switch.
             "fire_modes": [mode["name"] for mode in FIRE_MODES],
-            "fire_mode_policy": "ai_wave_mod3_single_burst_auto",
+            "fire_mode": fire_mode,
+            "fire_mode_policy": ("ai_wave_mod3_accuracy_reload_tuning"
+                                 if fire_mode == "ai" else "fixed_session_tuning"),
+            "fire_mode_semantics": (
+                "accuracy_reload_tuning_only; no engine fire-mode setter/getter; "
+                "labels are policy metadata"),
+            "item_accuracy_scope": "global_item_table_not_city_only",
+            "reload_direction": "unverified_percent_assumed_higher_is_faster",
+            "spawn_transient": "new_or_refilled_bots_read_100_until_next_5s_tick",
             "accuracy_modifier_percent": [mode["accuracy"] for mode in FIRE_MODES],
             "reload_speed_modifier_percent": [mode["reload"] for mode in FIRE_MODES],
             "defender_orders": defender_orders,

@@ -96,6 +96,7 @@ def patch_text(text: str, profile: str = "default") -> tuple[str, dict]:
     receipt = {
         "applied": profile == "default",
         "profile": profile,
+        "scope": "global_item_table_not_city_only",
         "item_count": len(items),
         "automatic_items": sorted(group),
         "single_shot_guards_unchanged": list(SINGLE_SHOT_GUARD),
