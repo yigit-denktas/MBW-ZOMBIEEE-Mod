@@ -339,6 +339,20 @@ Bare invocation defaults to `play`; `play --rebuild` forces a fresh build.
    and the sealed stop are unchanged. Plan and launch receipt record
    `enemy_profile` and `team2_bots`; e.g.
    `python -m launcher.play_city --enemy-profile native-only --max-minutes 3 --json`.
+   Fire mode is a **pre-game/session accuracy/reload tuning profile**:
+   `--fire-mode {ai,single,burst,auto}` (default `ai` = the AI wave-cycle
+   policy; `single`/`burst`/`auto` = fixed session pacing). It is **not** an
+   engine single/burst/auto weapon switch: the pinned WSE2 surface exposes no
+   fire-mode setter and no key-binding path, so manual in-game switching
+   remains blocked (#43). The launcher records `fire_mode`,
+   `fire_mode_scope=pre-game/session-only`, `fire_mode_applied` and
+   `fire_mode_manual_switch_supported=false`; `fire_mode_semantics` states
+   the accuracy/reload-only meaning. A non-default mode requires a rebuild
+   (the flag is passed through Agent A's `tools/build.py` when that builder
+   supports `--fire-mode`; otherwise the plan blocks instead of pretending to
+   apply it). Settings files accept `"fire_mode": "ai|single|burst|auto"`;
+   CLI values win over settings. Example:
+   `python -m launcher.play_city plan --rebuild --fire-mode burst`.
 4. Recorder first: C's passive recorder is armed and must publish a canonical
    ready marker for this exact session/attempt/PID before any game child starts.
    The host is then started with a generated loopback-only WSE2 config
@@ -519,11 +533,11 @@ attach, join/mission markers, stop after client exit, artifact-before-stop,
 manifest/summary results, and fail-closed cleanup for bind timeout, recorder
 readiness failure, attachment rejection, recorder death and Ctrl+C. No game,
 recorder subprocess or network probe is started by tests. Latest Windows result:
-`python -B -m unittest discover -s tests -q` → **595 tests, OK, 115
+`python -B -m unittest discover -s tests -q` → **617 tests, OK, 115
 skipped**; the B launcher/C-recorder interop cases run because C's recorder
 is present in the merged tree. Launcher-only suites are green:
 `python -B -m unittest discover -s tests -p "test_windows_*.py" -q` →
-**199 tests, OK, 1 skipped** (includes the release-traceability, M2 maintenance, settings,
+**206 tests, OK, 1 skipped** (includes the release-traceability, M2 maintenance, settings,
 shortcut/control-panel and release-gate fixtures).
 
 ### Python 3.13 NUL-path regression

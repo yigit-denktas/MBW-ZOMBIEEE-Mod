@@ -68,6 +68,11 @@ MAX_ARCHIVE_CANDIDATES = 16
 MAX_ARCHIVE_SCAN = 4096
 MAX_RECEIPT_BYTES = 1024 * 1024
 MAX_SUMMARY_OUTPUT = 1024 * 1024
+FIRE_MODES = ('ai', 'single', 'burst', 'auto')
+DEFAULT_FIRE_MODE = 'ai'
+FIRE_MODE_SCOPE = 'pre-game/session-only'
+FIRE_MODE_MANUAL_SWITCH_SUPPORTED = False
+FIRE_MODE_SEMANTICS = ('accuracy/reload tuning profile only; no engine fire-mode setter/getter; no mid-session key')
 SERVER_CONFIG_TEMPLATE = """\
 # Generated per launch by launcher.play_city. Private loopback only.
 [Log]
@@ -240,6 +245,16 @@ def _normalize_archive(archive):
     return None, 'archive_selection_required'
 
 
+def builder_supports_fire_mode(repo_root):
+    """True when Agent A's tools/build.py accepts --fire-mode (no execution)."""
+    try:
+        text = (Path(repo_root) / 'tools' / 'build.py').read_text(
+            encoding='utf-8', errors='replace')
+    except OSError:
+        return False
+    return '--fire-mode' in text and 'fire_mode' in text
+
+
 def build_launch_plan(*, discovery_report, evidence_root, archive=None,
                       archive_identity=None, audit_runner=None,
                       game_root=None, client_exe=None, dedicated_exe=None,
@@ -247,7 +262,8 @@ def build_launch_plan(*, discovery_report, evidence_root, archive=None,
                       process_checker=None, installed_status=None,
                       archive_resolver=None, settings=None,
                       team0_bots=None, stock_rotation=False,
-                      enemy_profile=DEFAULT_ENEMY_PROFILE, team2_bots=None):
+                      enemy_profile=DEFAULT_ENEMY_PROFILE, team2_bots=None,
+                      fire_mode=None):
     """Compose the full read-only launch plan; no writes or process starts."""
     repo_root = Path(repo_root) if repo_root is not None else Path(__file__).resolve().parents[1]
     evidence_root = Path(evidence_root).expanduser().absolute()
@@ -259,12 +275,21 @@ def build_launch_plan(*, discovery_report, evidence_root, archive=None,
     install_plan = None
     install_needed = False
     installed = None
+    builder_fire_support = builder_supports_fire_mode(repo_root)
+    launch_city_flags = list(CITY_BUILD_FLAGS)
+    fire_mode_applied = False
+    if fire_mode is None:
+        fire_mode = DEFAULT_FIRE_MODE
+    if fire_mode not in FIRE_MODES:
+        raise LaunchError('fire_mode must be one of ' + ', '.join(FIRE_MODES))
     if engines['warband_root'] is not None:
         installed = (installed_status if installed_status is not None
                      else installed_module_status(engines['warband_root']))
         install_needed = rebuild or not installed.get('ok', False)
         if install_needed and not allow_install:
             blockers.append('install_required_but_disabled')
+        if install_needed and builder_fire_support:
+            launch_city_flags += ['--fire-mode', fire_mode]
         if install_needed and allow_install:
             chosen_archive, archive_blocker = _normalize_archive(archive)
             if archive_blocker:
@@ -294,10 +319,24 @@ def build_launch_plan(*, discovery_report, evidence_root, archive=None,
                     archive=chosen_archive, archive_identity=identity,
                     evidence_dir=evidence_root, repo_root=repo_root,
                     running_processes=(process_checker() if process_checker else None),
+                    city_flags=tuple(launch_city_flags),
                     build_timeout=1800)
                 blockers.extend('install:' + item for item in install_plan['blockers'])
         elif not install_needed:
             warnings.append('installed_city_module_reused')
+    if install_needed:
+        if builder_fire_support:
+            if '--fire-mode' not in launch_city_flags:
+                launch_city_flags += ['--fire-mode', fire_mode]
+            fire_mode_applied = bool(allow_install)
+        elif fire_mode != DEFAULT_FIRE_MODE:
+            blockers.append('fire_mode_requires_builder_support')
+        else:
+            warnings.append('fire_mode_builder_default_only')
+    elif fire_mode != DEFAULT_FIRE_MODE:
+        blockers.append('fire_mode_requires_rebuild')
+    else:
+        warnings.append('fire_mode_default_unverified_for_installed_module')
     evidence_issues = []
     if evidence_root.exists() and not evidence_root.is_dir():
         evidence_issues.append('evidence_root_not_directory')
@@ -382,6 +421,12 @@ def build_launch_plan(*, discovery_report, evidence_root, archive=None,
         'rotation_profile': rotation_profile,
         'enemy_profile': enemy_profile,
         'team2_bots': team2_bots,
+        'fire_mode': fire_mode,
+        'fire_mode_scope': FIRE_MODE_SCOPE,
+        'fire_mode_applied': fire_mode_applied,
+        'fire_mode_builder_supported': builder_fire_support,
+        'fire_mode_manual_switch_supported': False,
+        'fire_mode_semantics': FIRE_MODE_SEMANTICS,
         'rotation_sha256': rotation_sha256(rotation),
         'client_join_address': ENDPOINT,
         'client_argv_suffix': ['--module', MODULE_NAME, '--address', ENDPOINT,
@@ -389,13 +434,15 @@ def build_launch_plan(*, discovery_report, evidence_root, archive=None,
         'host_argv_suffix': ['--config-path', '<server-config.ini>',
                              '-r', '<rotation.txt>', '--module', MODULE_NAME],
         'server_config_loopback': True,
-        'custom_city_flags': list(CITY_BUILD_FLAGS),
+        'custom_city_flags': list(launch_city_flags),
         'settings': settings,
         'runtime_verified': False,
         'notes': [
             'host readiness is a read-only loopback UDP 7240 observation',
             'join/mission markers are C probe observations, not acceptance',
             'stopping after client exit is the normal end of a Play City session',
+            'fire mode is a pre-game/session accuracy/reload tuning profile; '
+            'manual in-game switching is blocked (#43)',
         ],
     }
     return plan
@@ -566,6 +613,12 @@ class CityLauncher:
             'rotation_profile': plan.get('rotation_profile'),
             'enemy_profile': plan.get('enemy_profile'),
             'team2_bots': plan.get('team2_bots'),
+            'fire_mode': plan.get('fire_mode'),
+            'fire_mode_scope': plan.get('fire_mode_scope'),
+            'fire_mode_applied': plan.get('fire_mode_applied'),
+            'fire_mode_builder_supported': plan.get('fire_mode_builder_supported'),
+            'fire_mode_manual_switch_supported': False,
+            'fire_mode_semantics': plan.get('fire_mode_semantics'),
             'host_bound_loopback': None,
             'join_observed': None,
             'mission_observed': None,
@@ -950,6 +1003,9 @@ def _print_plan(plan):
                  % (plan.get('team0_bots'), plan.get('rotation_profile')))
     lines.append('  enemies : team-2 bots=%s (%s)'
                  % (plan.get('team2_bots'), plan.get('enemy_profile')))
+    lines.append('  fire    : %s (%s; applied=%s; in-game switch unsupported)'
+                 % (plan.get('fire_mode'), plan.get('fire_mode_scope'),
+                    plan.get('fire_mode_applied')))
     for blocker in plan.get('blockers') or []:
         lines.append('  blocker : ' + blocker)
     for warning in plan.get('warnings') or []:
@@ -965,6 +1021,8 @@ def _print_receipt(receipt):
              '  join observed       : ' + str(receipt.get('join_observed')),
              '  mission observed    : ' + str(receipt.get('mission_observed')),
              '  evidence  : ' + str(receipt.get('evidence')),
+             '  fire mode : ' + str(receipt.get('fire_mode'))
+             + ' (' + str(receipt.get('fire_mode_scope')) + ')',
              '  bundle    : ' + str(receipt.get('evidence_bundle')),
              '  runtime_verified : ' + str(receipt.get('runtime_verified'))]
     if receipt.get('error'):
@@ -1009,7 +1067,8 @@ def _build_plan_from_args(args, *, allow_install):
         team0_bots=getattr(args, 'team0_bots', None),
         stock_rotation=getattr(args, 'stock_rotation', False),
         enemy_profile=getattr(args, 'enemy_profile', DEFAULT_ENEMY_PROFILE),
-        team2_bots=getattr(args, 'team2_bots', None))
+        team2_bots=getattr(args, 'team2_bots', None),
+        fire_mode=getattr(args, 'fire_mode', None))
 
 
 def _run_install_if_needed(plan):
@@ -1296,8 +1355,8 @@ def command_settings(args):
         else:
             print('Settings: ' + str(path))
             for key in ('game_root', 'archive', 'evidence_root',
-                        'enemy_profile', 'team0_bots', 'team2_bots',
-                        'max_minutes', 'no_known_folders'):
+                        'enemy_profile', 'fire_mode', 'team0_bots',
+                        'team2_bots', 'max_minutes', 'no_known_folders'):
                 if key in settings:
                     print('  %-16s %s' % (key, settings[key]))
             for warning in warnings:
@@ -1308,6 +1367,7 @@ def command_settings(args):
         'archive': (args.archive[0] if args.archive else None),
         'evidence_root': args.evidence_root,
         'enemy_profile': args.enemy_profile,
+        'fire_mode': getattr(args, 'fire_mode', None),
         'team0_bots': args.team0_bots,
         'team2_bots': args.team2_bots,
         'max_minutes': getattr(args, 'max_minutes', None),
@@ -1358,7 +1418,8 @@ def command_shortcut(args):
 def command_release_check(args):
     gate = build_release_gate(
         game_root=args.game_root,
-        expected_version=None)
+        expected_version=None,
+        feature_branch=bool(getattr(args, 'feature_branch', False)))
     if args.json:
         _print_json(gate)
     else:
@@ -1407,6 +1468,10 @@ def build_parser():
     common.add_argument('--enemy-profile', choices=ENEMY_PROFILES,
                         default=DEFAULT_ENEMY_PROFILE,
                         help='team-2 enemy staging for live balance runs')
+    common.add_argument('--fire-mode', choices=FIRE_MODES, default=None,
+                        help='City survivor pre-game fire tuning profile '
+                             '(accuracy/reload only; not an engine mode; '
+                             'no in-game key switch)')
     common.add_argument('--team2-bots', type=int, default=None, metavar='N',
                         help='explicit team-2 generic bot count '
                              '(profile default otherwise)')
@@ -1494,6 +1559,10 @@ def build_parser():
     shortcut.set_defaults(func=command_shortcut)
     release_gate = sub.add_parser('release-check', parents=[common],
                                   help='read-only delivery checks (candidate gate)')
+    release_gate.add_argument('--feature-branch', action='store_true',
+                              help='work-branch allowance for non-metadata '
+                                   'changes (per invocation only; never used '
+                                   'on main or for metadata PRs)')
     release_gate.set_defaults(func=command_release_check)
     rollback = sub.add_parser('rollback', help='restore a retained install backup')
     rollback.add_argument('--receipt', required=True,

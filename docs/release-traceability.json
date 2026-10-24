@@ -524,6 +524,6 @@
   },
   "source_revision_exception": {
     "kind": "metadata-and-release-gate-branch",
-    "reason": "source_revision is the main revision the candidate is built from; HEAD on the metadata PR adds only release-metadata, release-gate and its focused tests. The gate verifies every changed path is in the documented metadata-only allowlist. A second self-referential revision (set to the PR head) is impossible because that commit hash cannot contain itself."
+    "reason": "source_revision is the main revision the candidate is built from; HEAD on a metadata PR adds only release metadata, release-gate and focused tests. The gate verifies every changed path is in the metadata-only allowlist. A self-referential revision (PR head) is impossible because a commit hash cannot contain itself. Feature work uses the per-invocation --feature-branch allowance, never a persisted exception."
   }
 }

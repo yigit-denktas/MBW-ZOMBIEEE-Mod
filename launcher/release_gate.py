@@ -232,7 +232,8 @@ def _git_output(root, arguments, runner=None, timeout=60):
     return getattr(completed, 'returncode', 1), stdout
 
 
-def _head_revision_checks(root, data, check, git_runner=None):
+def _head_revision_checks(root, data, check, git_runner=None,
+                          allow_feature_branch=False):
     """Fail closed when source_revision != HEAD without a metadata-only exception.
 
     A metadata PR cannot set source_revision to its own commit (that commit does
@@ -259,6 +260,13 @@ def _head_revision_checks(root, data, check, git_runner=None):
     if head.lower() == source.lower():
         check('traceability_head_revision', True,
               'source_revision == HEAD (%s)' % source)
+        return
+    if allow_feature_branch:
+        # Per-invocation allowance only: never persisted in the record, so
+        # a normal gate run on main stays fail-closed after merge.
+        check('traceability_head_revision', True,
+              'explicit feature-branch allowance at gate invocation; '
+              'not persisted and not a candidate release claim')
         return
     exception = data.get('source_revision_exception')
     if not isinstance(exception, dict) or not exception.get('reason'):
@@ -287,7 +295,8 @@ def _head_revision_checks(root, data, check, git_runner=None):
            + ','.join(offending[:10])))
 
 
-def _traceability_checks(root, version_text, check, git_runner=None):
+def _traceability_checks(root, version_text, check, git_runner=None,
+                         allow_feature_branch=False):
     """Validate VERSION <-> CHANGELOG <-> work-item/PR/commit traceability."""
     summary = {'schema': None, 'work_items': 0, 'linked_prs': 0,
                'included_prs': 0, 'gaps': 0, 'candidate_version': None}
@@ -412,7 +421,8 @@ def _traceability_checks(root, version_text, check, git_runner=None):
               and (source in trace_md or short in trace_md),
               'source_revision=%s must appear in CHANGELOG, README and '
               'traceability doc' % source)
-        _head_revision_checks(root, data, check, git_runner=git_runner)
+        _head_revision_checks(root, data, check, git_runner=git_runner,
+                              allow_feature_branch=allow_feature_branch)
     ancestry = _ancestry_checks(root, data, git_runner=git_runner)
     summary['ancestry_status'] = ancestry['status']
     summary['ancestry_commits'] = ancestry['checked']
@@ -435,7 +445,8 @@ def _traceability_checks(root, version_text, check, git_runner=None):
 
 
 def build_release_gate(*, root=None, game_root=None, tracked_files=None,
-                       git_runner=None, expected_version=None):
+                       git_runner=None, expected_version=None,
+                       feature_branch=False):
     """Compose the read-only delivery-gate report."""
     root = Path(root) if root is not None else Path(__file__).resolve().parents[1]
     root = root.absolute()
@@ -468,8 +479,9 @@ def build_release_gate(*, root=None, game_root=None, tracked_files=None,
                       if token not in instructions]
     check('reproducible_commands', not missing_tokens,
           'missing=' + ','.join(missing_tokens) if missing_tokens else 'documented')
-    traceability = _traceability_checks(root, version_text, check,
-                                          git_runner=git_runner)
+    traceability = _traceability_checks(
+        root, version_text, check, git_runner=git_runner,
+        allow_feature_branch=feature_branch)
     if traceability.get('ancestry_status') != 'checked':
         warnings.append('git_ancestry_unavailable:'
                         + str(traceability.get('ancestry_status')))
@@ -599,8 +611,13 @@ def main(argv=None):
     parser.add_argument('--root', help='repository checkout to check')
     parser.add_argument('--game-root', help='optional installed Warband root')
     parser.add_argument('--json', action='store_true')
+    parser.add_argument('--feature-branch', action='store_true',
+                        help='allow a non-metadata delta for a work '
+                             'branch (per-invocation only; never used on '
+                             'main or for metadata PRs)')
     args = parser.parse_args(argv)
-    gate = build_release_gate(root=args.root, game_root=args.game_root)
+    gate = build_release_gate(root=args.root, game_root=args.game_root,
+                              feature_branch=args.feature_branch)
     if args.json:
         print(json.dumps(gate, indent=2, sort_keys=True))
     else:
