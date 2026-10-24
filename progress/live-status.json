@@ -1,8 +1,8 @@
 {
-  "updated": "2026-10-24T17:58:00+02:00",
-  "phase": "Play checkpoint / tracker sync",
-  "build": "Installed test build (DF21AE88); A play candidate e90763d ready.",
-  "now": "D is running the 10-minute survivor play session with join retry/screenshots. Gun-armed survivor AI task added (firearms are crossbow-type).",
-  "next": "Review play screenshots/blockers; install A e90763d; zombie targets next. No acceptance.",
+  "updated": "2026-10-24T18:05:00+02:00",
+  "phase": "Survivor stance design",
+  "build": "Ranged-fix play build queued; D play run pending.",
+  "now": "New cards: hold guard posts/no chase; ranged assist/focus-fire + special swarm; wave escalation/battle-size cap; Rhodok crossbow stance research.",
+  "next": "Finish D play run, install ranged build, then stance/focus-fire implementation. No acceptance.",
   "acceptance": false
 }
