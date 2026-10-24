@@ -4616,6 +4616,35 @@
       "originReason": "Needed to measure gun-AI charge/cadence fix.",
       "discoveredDuring": "owner gun AI feedback 2026-10-24",
       "graphImpact": "Unblocks visible ranged-AI validation."
+    },
+    {
+      "id": "ZOM-DISC-90",
+      "title": "Canonical zombie shield policy: no wood, half cosmetic, no block",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "active",
+      "sourceState": "A assigned; policy/rebuild pending",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-82"
+      ],
+      "evidence": [],
+      "completionBasis": "Policy implementation/rebuild pending",
+      "kind": "work-item",
+      "owner": "Agent A build/tests; D validation",
+      "priority": "P0",
+      "criterion": "No build receipt with wooden shield; default stock; cosmetic-half practice shield on half with shield skill0; build gate enforces.",
+      "note": "Old task-30 default removed. Current measurement build zombie_block=off.",
+      "deferReason": "Build hygiene/cosmetic; not denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "bug",
+      "supportsOutcomeId": "ZOM-WAVE-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner: never see wooden-shield zombie builds; half hand shield cosmetic, no block.",
+      "discoveredDuring": "owner live feedback 2026-10-24",
+      "graphImpact": "Prevents branch default regressions."
     }
   ],
   "warnings": [
