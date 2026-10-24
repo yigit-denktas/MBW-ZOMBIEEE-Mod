@@ -2,7 +2,7 @@
 
 A private, City-first compatibility rebuild of the 2012 **ZOMBIEEE (Invasion) Beta 0.4** multiplayer mod for *Mount & Blade: Warband* — built from a legally owned original archive, instrumented with a local flight recorder, and documented without overclaiming.
 
-> **Status: not playable and not engine-verified.** This repository is a development and evidence scaffold. The real play loop has not been accepted, the City wave roster is still being fixed, and the City release sits at **0/23 required outcomes / 0/5 accepted milestones** with `runtime_verified=false` everywhere. Do not treat any build here as a working game or a release.
+> **Status: not accepted as a playable release.** Runtime evidence now exists — native Zombie roster, native allied defenders, hands-off AI-vs-AI combat, wave 2 in a defender-heavy variant, and a live-validated `play_city` path — but the City release still sits at **0/23 required outcomes / 0/5 accepted milestones** with `runtime_verified=false`. Division/hold behavior, wave 3+/completion, combat feel, redistribution and public release gates remain open. Do not treat any build here as an accepted release.
 
 ## Scope
 
@@ -20,12 +20,19 @@ A private, City-first compatibility rebuild of the 2012 **ZOMBIEEE (Invasion) Be
 - **Windows discovery/rotation groundwork.** Offline discovery of owned Warband/WSE2 installs and a validated dedicated-host rotation builder, both exercised only against fake fixtures so far.
 - **Offline regression suite.** See [Testing](#testing) for the current count on this machine.
 
+## Runtime evidence (bounded, not release acceptance)
+
+- No-player/dual-team AI spawn is sealed: 8 allied bots + 32 enemies with zero client; native Zombie roster **894..911** (873/874 absent).
+- Native allied defenders **981..984** spawn (`bots_team0=4`) and move out of the spawn cluster; scripted-destination movement is proven, stable hold/guard-entry identity is not.
+- **Wave 2** observed in the defender-heavy variant (`set_bot_count 1 8 / 2 4`, `player_respawn_as_bot 1`); stock squad runs max wave 1 due the native round reset.
+- `python -m launcher.play_city` validated live three times: loopback-only host, join/mission observed, clean stop, verified 8-file sealed manifest.
+- Sealed evidence and reproduce notes: `local/session/PLAYABLE_EVIDENCE.md`, `NIGHT_STATUS_D.md` (local, gitignored).
 ## What does not work yet
 
-- **No accepted end-to-end play loop.** Launch → join → City mission → weapon/supply use → wave progression → round transition → clean stop has not been demonstrated with sealed evidence.
-- **AI/roster work is in progress.** A first real enemy wave was observed on a merged-main candidate (`set_bot_count 2 32` → `team1=41`, `wave=1`), but those bots were the faction-default **Crazed Civilian**, not native Zombie troops. Native roster selection, wave 2+, allied defender divisions 5–7 and respawn/round behaviour remain open (issues [#13](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/13), [#14](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/14)).
-- **Evidence is not sealed yet.** Host-stdout sealing and the receipt summary are merged (issue [#16](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/16), now closed), but no sealed attempt containing the live `ZDB1` probe stream has been accepted.
-- **One-click launcher/installer is not finished.** Install planning is dry-run only; there is no journaled installer, desktop shortcut or automatic join that has actually run (issues [#8](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/8), [#9](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/9)).
+- **No accepted end-to-end release loop.** Launch/join/mission/stop works in the validated `play_city` path, but wave 3+/completion, stable squad hold/guard-entry identity, combat feel, installer/public release and redistribution gates are not accepted.
+- **AI behavior is partially proven.** Native Zombie troops (894..911) and native defenders (981..984) spawn and fight; wave 2 is only observed in the defender-heavy variant (`set_bot_count 1 8 / 2 4` + `player_respawn_as_bot 1`), not in stock squad configurations. Division 5–7 adoption/hold is unobservable in this runtime; no wave-carryover patch is shipped.
+- **Strict no-client cannot start a round.** The pure no-client run seals only the spawn/pre-round snapshot; AI-vs-AI combat evidence uses one **unattended client with zero human input**, not a literal player-less round.
+- **One-click launcher is implemented and live-validated**, but there is no desktop shortcut, public installer/redistribution or release packaging yet.
 
 ## Prerequisites
 
@@ -104,7 +111,7 @@ See [docs/MANUAL_TESTS.md](docs/MANUAL_TESTS.md) and [docs/INTEGRATED_CITY_ACCEP
 
 - **Release reality:** City required outcomes **0/23**, accepted milestones **0/5**, `runtime_verified=false`. Every "done" item in the ledger is bounded support work, not release acceptance.
 - **Observed (unsealed, Lead-reported)** on merged main `4c56242` with C's corrected probe: dedicated host loopback-only `127.0.0.1:7240`, `role=server`, `game_type=7`, `ready_for_spawn=1`; `set_bot_count 2 32` produced `team1=41`, `wave=1`. This is a candidate observation, not acceptance.
-- **Open defects:** generic Crazed-Civilian bots instead of native Zombie troops; allied survivor divisions 5–7 not observed taking/holding positions; wave 2+ and round transitions unproven; no sealed `ZDB1` receipt; no journaled installer or automatic join.
+- **Open defects:** stable squad hold/guard-entry identity (division 5-7 adoption unobservable); wave 3+/completion and stock-squad wave 2; combat feel with the firearm profile; legal redistribution/public release gates. Native Zombie roster, native defenders, wave 2 in the defender-heavy variant and sealed ZDB1/play_city evidence are demonstrated but are not release acceptance.
 - **Known original quirk:** repeated engine `SCRIPT ERROR: Invalid Faction ID: -1` is decoded as four trailing `faction_set_slot(-1, 200, …)` writes in the 2012 mission (trigger 14), byte-identical to the pinned original prefix. It is non-fatal and not proven causal; no gameplay patch is authorized.
 - **Version:** project version `0.1.8` is a development scaffold. `v0.2.0` is reserved for an actual WSE2 startup + City smoke test, which has not happened. See [CHANGELOG.md](CHANGELOG.md), [docs/ROADMAP.md](docs/ROADMAP.md), [docs/ENGINE.md](docs/ENGINE.md).
 
