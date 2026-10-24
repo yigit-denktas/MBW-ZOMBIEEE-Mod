@@ -46,6 +46,7 @@ MAIN = ROOT / "overlay" / "lua" / "main.lua"
 OPS = {
     "multiplayer_is_server": (417, "can_fail"),
     "agent_is_alive": (1702, "can_fail"),
+    "agent_is_human": (1704, "can_fail"),
     "agent_is_non_player": (1707, "can_fail"),
     "agent_get_position": (1710, "lhs"),
     "agent_get_troop_id": (1718, "lhs"),
@@ -206,7 +207,9 @@ class LuaOperationMetadataTests(unittest.TestCase):
         self.assertTrue(id_file.is_file())
         constants, _lists = parse_header(id_file.read_text(encoding="utf-8"))
         documented = {
-            "trp_invader_multiplayer_ai", "trp_invader1_multiplayer_ai",
+            "trp_invader_multiplayer_ai", "trp_invaderb_multiplayer_ai",
+            "trp_mercenary_horseman", "trp_mercenary_cavalry",
+            "trp_invader1_multiplayer_ai",
             "trp_invader2_multiplayer_ai", "trp_invader3_multiplayer_ai",
             "trp_invader4_multiplayer_ai", "trp_invader5_multiplayer_ai",
             "trp_invader6_multiplayer_ai", "trp_invader7_multiplayer_ai",
@@ -276,6 +279,43 @@ class LuaOperationMetadataTests(unittest.TestCase):
         self.assertIn("game.getNumTriggers(MISSION)", self.main)
         self.assertIn("|kind=entry|index=", self.main)
 
+
+
+    def test_composition_categories_are_measured_and_bounded(self):
+        # Playerless AI-vs-AI: humans are all human agents, players are human
+        # non-AI agents, bots are human AI agents, horses are the native
+        # agent_is_human==false fallback (agent_is_horse does not exist here).
+        self.assertIn("|composition=1", self.main)
+        self.assertIn("|human_getter=", self.main)
+        self.assertIn("agent_is_horse does not exist in this engine", self.main)
+        for field in ("|humans_team0=", "|humans_team1=",
+                      "|players_team0=", "|players_team1=",
+                      "|bot_agents_team0=", "|bot_agents_team1=",
+                      "|horses_team0=", "|horses_team1=",
+                      "|alive_players_team0="):
+            self.assertIn(field, self.main)
+        # A missing type predicate must not fabricate a category.
+        self.assertIn("if not result.human_measured then", self.main)
+        self.assertIn("result.horses[0], result.horses[1] = -1, -1", self.main)
+
+
+    def test_engagement_and_position_telemetry_is_bounded(self):
+        self.assertIn("|engagement=1|position_summary=1", self.main)
+        self.assertIn("MAX_AI_SAMPLES = 8", self.main)
+        for field in ("|no_player=", "|alive_team0=", "|alive_team1=",
+                      "|kills_team0=", "|kills_team1=", "|pos_team0=", "|pos_team1=",
+                      "|bbox_team0=", "|bbox_team1=",
+                      "|pos_sampled_team0=", "|pos_sampled_team1="):
+            self.assertIn(field, self.main)
+        self.assertIn('emit("ai_sample"', self.main)
+        # Only non-player bots are position-sampled; no human position is read.
+        self.assertIn("is_human(agent) == true and is_npc(agent)", self.main)
+        self.assertIn("reading a human player's position", self.main)
+        # A missing getter must leave the aggregate unknown (-1), never 0.
+        self.assertIn("if not supports_alive then result.alive[0], result.alive[1] = -1, -1 end",
+                      self.main)
+        self.assertIn("if not supports_kills then result.kills[0], result.kills[1] = -1, -1 end",
+                      self.main)
 
 if __name__ == "__main__":
     unittest.main()

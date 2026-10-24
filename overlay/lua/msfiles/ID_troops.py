@@ -10,6 +10,9 @@
 # that an id belongs to the installed module version, so labels are an
 # observation aid, not authoritative identity.
 trp_invader_multiplayer_ai = 873
+trp_invaderb_multiplayer_ai = 874
+trp_mercenary_horseman = 32
+trp_mercenary_cavalry = 33
 trp_swadian_crossbowman_multiplayer = 875
 trp_swadian_sniper_multiplayer = 876
 trp_swadian_infantry_multiplayer = 877

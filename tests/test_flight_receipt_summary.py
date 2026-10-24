@@ -230,5 +230,136 @@ class ReceiptSummaryTests(unittest.TestCase):
         self.assertIn("verification failed", bad.stderr)
 
 
+
+    def test_playerless_composition_and_absent_player_events(self):
+        lines = [
+            "ZDB1|recorder_capabilities|opmeta=1|sampling_interval_s=15",
+            "ZDB1|heartbeat|count=1|role=server|team0=33|team1=41|wave=0"
+            "|game_type=7|ready_for_spawn=1|players_team0=0|players_team1=0"
+            "|humans_team0=33|humans_team1=41|bot_agents_team0=33|bot_agents_team1=41"
+            "|horses_team0=0|horses_team1=0|troops_team0=33:33"
+            "|troops_team1=873:32,874:9",
+            "ZDB1|round_started|observed=entry_observation|role=server|wave=0"
+            "|round_start=2|team0=33|team1=41|game_type=7|ready_for_spawn=1",
+            "ZDB1|wave_started|observed=wave_transition|role=server|wave=1"
+            "|round_start=2|team0=33|team1=41|game_type=7|ready_for_spawn=1",
+        ]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        composition = summary["composition"]
+        self.assertEqual(composition["mode"], "no_human_player_observed")
+        self.assertEqual(composition["team0"]["bots"], 33)
+        self.assertEqual(composition["team1"]["bots"], 41)
+        self.assertEqual(composition["team1"]["horses"], 0)
+        self.assertFalse(composition["player_events_expected"])
+        # Absent player_* events are expected in this mode, not a measured zero.
+        for kind in ("player_joined", "player_died", "player_respawned", "player_left"):
+            self.assertEqual(summary["lifecycle"][kind], [])
+        self.assertEqual(summary["waves"]["observed"], [0, 1])
+        text = format_summary(summary)
+        self.assertIn("composition mode: no_human_player_observed", text)
+        self.assertIn("playerless:", text)
+
+    def test_horses_are_counted_in_composition(self):
+        lines = [
+            "ZDB1|heartbeat|count=1|role=server|team0=5|team1=5|players_team0=0"
+            "|players_team1=0|bot_agents_team0=2|bot_agents_team1=2|horses_team0=3|horses_team1=4"
+            "|humans_team0=2|humans_team1=2",
+        ]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        self.assertEqual(summary["composition"]["team0"]["horses"], 3)
+        self.assertEqual(summary["composition"]["team1"]["horses"], 4)
+        self.assertEqual(summary["composition"]["mode"], "no_human_player_observed")
+
+    def test_human_present_mode_keeps_player_events_expected(self):
+        lines = [
+            "ZDB1|heartbeat|count=1|role=server|team0=1|team1=41|players_team0=1"
+            "|players_team1=0|bot_agents_team0=0|bot_agents_team1=41|horses_team0=0|horses_team1=0",
+        ]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        self.assertEqual(summary["composition"]["mode"], "human_present")
+        self.assertTrue(summary["composition"]["player_events_expected"])
+
+    def test_unknown_composition_is_explicit(self):
+        lines = [
+            "ZDB1|heartbeat|count=1|role=server|team0=5|team1=5|players_team0=-1"
+            "|bot_agents_team0=-1|horses_team0=-1|humans_team0=-1",
+        ]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        composition = summary["composition"]
+        self.assertEqual(composition["mode"], "unknown")
+        self.assertIsNone(composition["team0"]["players"])
+        self.assertIn("team_composition_unknown", summary["evidence_gaps"])
+
+
+    def _playerless_lines(self):
+        common = ("|players_team0=0|players_team1=0|humans_team0=8|humans_team1=32"
+                  "|bot_agents_team0=8|bot_agents_team1=32|horses_team0=0|horses_team1=0"
+                  "|alive_team0=8|alive_team1=32|no_player=1")
+        return [
+            "ZDB1|recorder_capabilities|opmeta=1|sampling_interval_s=15|composition=1"
+            "|engagement=1|position_summary=1",
+            "ZDB1|heartbeat|count=1|role=server|team0=8|team1=32|wave=1|game_type=7"
+            "|ready_for_spawn=1" + common +
+            "|kills_team0=0|kills_team1=3|pos_team0=10.5:20.5|pos_team1=30.0:40.0"
+            "|bbox_team0=9.0:19.0:11.0:21.0|bbox_team1=25.0:35.0:35.0:45.0"
+            "|pos_sampled_team0=8|pos_sampled_team1=8",
+            "ZDB1|ai_sample|role=server|tick=1|team=1|id=100|x=30.0|y=40.0|kills=1|wave=1",
+            "ZDB1|heartbeat|count=2|role=server|team0=8|team1=32|wave=1|game_type=7"
+            "|ready_for_spawn=1" + common +
+            "|kills_team0=0|kills_team1=5|pos_team0=10.5:20.5|pos_team1=31.0:41.0"
+            "|bbox_team0=9.0:19.0:11.0:21.0|bbox_team1=25.0:35.0:35.0:45.0"
+            "|pos_sampled_team0=8|pos_sampled_team1=8",
+            "ZDB1|ai_sample|role=server|tick=2|team=1|id=100|x=31.0|y=41.0|kills=2|wave=1",
+            "ZDB1|ai_sample|role=server|tick=2|team=1|id=101|x=30.0|y=40.0|kills=0|wave=1",
+            "ZDB1|ai_sample|role=server|tick=1|team=1|id=101|x=30.0|y=40.0|kills=0|wave=1",
+            "ZDB1|round_started|observed=round_identity_change|role=server|wave=1"
+            "|round_start=2|team0=8|team1=32|game_type=7|ready_for_spawn=1",
+            "ZDB1|wave_started|observed=wave_transition|role=server|wave=1"
+            "|round_start=2|team0=8|team1=32|game_type=7|ready_for_spawn=1",
+        ]
+
+    def test_playerless_run_reports_no_player_positions_kills(self):
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(self._playerless_lines())})
+        self.assertIs(summary["no_player"], True)
+        teams = summary["teams"]
+        self.assertEqual((teams["max_team0"], teams["max_team1"]), (8, 32))
+        self.assertEqual((teams["bots_team0"], teams["bots_team1"]), (8, 32))
+        self.assertEqual((teams["horses_team0"], teams["horses_team1"]), (0, 0))
+        self.assertEqual((teams["alive_team0"], teams["alive_team1"]), (8, 32))
+        positions = summary["positions"]
+        self.assertEqual(positions["team1"]["centroid"], {"x": 31.0, "y": 41.0})
+        self.assertEqual(positions["team1"]["spread"],
+                         {"min_x": 25.0, "min_y": 35.0, "max_x": 35.0, "max_y": 45.0})
+        self.assertEqual(positions["team1"]["sampled"], 8)
+        self.assertEqual(positions["team1"]["distinct_bots"], 2)
+        self.assertEqual(positions["team1"]["moving_bots"], 1)  # id 100 displaced
+        self.assertEqual(summary["engagement"], {"kills_team0": 0, "kills_team1": 5})
+        self.assertGreaterEqual(summary["events"]["zdbi_lines"], 8)
+        self.assertEqual(summary["events"]["counts"].get("ai_sample"), 4)
+        for kind in ("player_joined", "player_died", "player_respawned", "player_left"):
+            self.assertEqual(summary["lifecycle"][kind], [])
+        self.assertNotIn("position_telemetry_unavailable", summary["evidence_gaps"])
+        self.assertNotIn("kill_telemetry_unavailable", summary["evidence_gaps"])
+        text = format_summary(summary)
+        self.assertIn("no_player:       True", text)
+        self.assertIn("engagement:      kills_team0=0 kills_team1=5", text)
+
+    def test_absent_positions_and_kills_are_none_not_zero(self):
+        lines = ["ZDB1|heartbeat|count=1|role=server|team0=1|team1=1|wave=1"]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        self.assertIsNone(summary["positions"]["team0"]["centroid"])
+        self.assertIsNone(summary["engagement"]["kills_team0"])
+        self.assertIn("position_telemetry_unavailable", summary["evidence_gaps"])
+        self.assertIn("kill_telemetry_unavailable", summary["evidence_gaps"])
+
+    def test_gvar_bots_field_never_masquerades_as_ai_bot_count(self):
+        # bots_team1 is the native g_multiplayer_num_bots_team_1 global; it must
+        # not be read as the AI bot population (that is bot_agents_team1).
+        lines = ["ZDB1|heartbeat|count=1|role=server|team0=1|team1=41|wave=1"
+                 "|bots_team1=0"]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        self.assertIsNone(summary["teams"]["bots_team0"])
+        self.assertIsNone(summary["teams"]["bots_team1"])
+
 if __name__ == "__main__":
     unittest.main()
