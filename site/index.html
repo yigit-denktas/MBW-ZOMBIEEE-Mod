@@ -74,7 +74,7 @@ footer{border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
 <section aria-label="Tracking figures"><div class="stats">
 <div class="stat"><strong id="work" aria-live="polite">Not measured</strong><span>Required leaves done — not accepted</span></div>
 <div class="stat"><strong id="gates" aria-live="polite">Not measured</strong><span>Milestones accepted by declared gates</span></div>
-<div class="stat"><strong id="readiness">L0 · provisional</strong><span>Current evidenced agent readiness; target pending</span></div><div class="stat"><strong id="discovered">Not measured</strong><span>Discovered supporting tasks completed (not release acceptance)</span></div></div>
+<div class="stat"><strong id="readiness">L0 · provisional</strong><span>Current evidenced agent readiness; target pending</span></div><div class="stat"><strong id="discovered">Not measured</strong><span>Discovered supporting tasks done (not release acceptance)</span></div></div>
 <p class="meta" id="source">Loading proposal…</p></section>
 <section aria-labelledby="roadmap-heading"><h2 id="roadmap-heading">Milestone roadmap</h2><div id="milestones" aria-live="polite"></div></section>
 <section class="dep-section" aria-labelledby="dep-heading" id="dependency-graph">
@@ -200,6 +200,8 @@ $('gates').textContent=accepted.length+'/'+record.milestones.length+' · '+pct(a
 const discovered=record.items.filter(i=>i.workOrigin==='discovered'),discoveredDone=discovered.filter(i=>i.state==='done');
 $('discovered').textContent=discoveredDone.length+'/'+discovered.length+' · '+pct(discoveredDone.length,discovered.length);
 $('source').textContent='Source: progress/ledger.json - 2026-10-24 - v0.3.0-beta.1 - main - single tracker - required City leaves '+done.length+'/'+req.length+' (done, not accepted) - discovered '+discoveredDone.length+'/'+discovered.length+' - milestones '+accepted.length+'/'+record.milestones.length+' - no City acceptance';
+const allDone=record.items.filter(i=>i.state==='done');
+$('source').textContent += ' · task cards done '+allDone.length+'/'+record.items.length;
 for(const m of record.milestones){const option=el('option',m.id+' — '+m.title);option.value=m.id;$('milestone').append(option);
 const card=el('section',undefined,'card');card.append(el('small',m.id+' · '+m.horizon));card.append(el('h3',m.title));const work=itemsFor(m),complete=work.filter(x=>x.state==='done');card.append(el('p',complete.length+'/'+work.length+' proposed leaves complete · '+pct(complete.length,work.length)));card.append(el('p',m.goal));const button=el('button','Show '+m.id+' items');button.addEventListener('click',()=>{$('milestone').value=m.id;render();$('work-heading').scrollIntoView();$('search').focus()});card.append(button);$('milestones').append(card)}
 ['search','milestone','status','origin'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',render));
