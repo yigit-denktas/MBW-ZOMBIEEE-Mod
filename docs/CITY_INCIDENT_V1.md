@@ -228,6 +228,54 @@ overlay call to an unclassified operation. R030/CITY-I08 (`Invalid Faction ID:
 -1`, trigger [14] opcode 502) is untouched: it is original Beta 0.4 content and
 remains a **noncausal** lead.
 
+## Dedicated bot-count gap and the first observed enemy wave
+
+The fixed probe was validated on the rebuilt City module from merged
+`main@4c56242` (recorder armed, host loopback-only). Its ZDB1 lines now
+self-identify with `|opmeta=1` and report `role=server`, `game_type=7`,
+`ready_for_spawn=1` and per-agent team sampling. The new dedicated session log
+contains only the four original Trigger 14 `Invalid Faction ID: -1` messages;
+there is no repeated `SCRIPT ERROR: Illegal lvalue in statement`.
+
+The same rebuilt module then produced the **first observed enemy wave**, and
+the three configurations isolate the cause:
+
+1. Unconfigured dedicated rotation: `team1=0 wave=0` for 90+ s while the probe
+   already reported `role=server`, `game_type=7`, `ready_for_spawn=1`. The
+   probe was no longer blind, so this was not a measurement artefact.
+2. `set_bot_count 1 32` (1-based first team, the player team):
+   `agents=33 team0=33 team1=0` — allied bots only.
+3. `set_bot_count 2 32` (1-based second team, the enemy team):
+   `agents=42 team0=1 team1=41 wave=1` plus `wave_change wave=1`, still
+   loopback-only. The final run's entry marker was
+   `agents=32 team0=0 team1=32 wave=0`, so enemy agents were present before
+   the player joined and the wave counter advanced afterwards.
+
+The earlier "no team-1 agents/waves" observation therefore has a
+**dedicated-server rotation configuration** cause: the rotation lacked a
+second-team bot count before `start`. It is not a remaster build defect and it
+is distinct from A's original-versus-patched source attribution and from
+R030/CITY-I08. The launcher/installer still needs a validated configuration
+step (for example `max_num_bots` plus the 1-based `set_bot_count` entries)
+before any City re-run; that is B's lane.
+
+The measured round identity also advanced correctly within one session
+(`round_start` 2 -> 84 -> 152) with `wave` resetting to 0 at each new round.
+That is the expected new-round pattern from A's round-aware source contract,
+so it is **not** a CITY-I04 wave regression; CITY-I04 still requires a lower
+wave without a measured new round.
+
+**Field-semantics caveat (evidence hygiene):** `bots_team1` is a read of the
+native `g_multiplayer_num_bots_team_1` global. It stayed `0` in the successful
+run even while team 1 held 41 agents, because the rotation command is 1-based
+(`set_bot_count 2 ...` addresses the enemy team) while that global names the
+first team. `bots_team1=0` must **not** be read as "no enemy bots", and enemy
+population must only come from the measured `team1` agent count.
+
+A single observed `wave=1` is not wave completion, AI combat acceptance or
+gameplay verification; `runtime.gameplay_verified` stays false and the sealed
+recorder receipt plus screenshots still have to be reviewed.
+
 ## Verification and privacy
 
 Synthetic regression tests cover source/runtime claims, the original game
