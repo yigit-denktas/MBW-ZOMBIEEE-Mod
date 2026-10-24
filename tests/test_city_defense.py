@@ -120,6 +120,7 @@ class CityDefenseTests(unittest.TestCase):
         self.assertIn("2121", orders)  # division - 5
         self.assertIn("2120", orders)  # entry math
         self.assertIn("1783", orders)  # native team-0 bot division adoption
+        self.assertIn("1766", orders)  # group assignment used by team orders
         self.assertIn("12", orders)  # try_for_agents adoption loop
         self.assertEqual(orders.count("1783"), 1)
         self.assertIn(str(wave_global), orders)
