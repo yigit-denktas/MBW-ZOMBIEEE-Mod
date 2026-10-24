@@ -2,7 +2,7 @@
 
 Uses [Semantic Versioning](https://semver.org/) for the remaster, not the historical original.
 
-## [0.3.0-beta.1] — consolidated source save point (source 723db8dda872e7ad998a624afa0c38e5454e57ac) (2026-10-24)
+## [0.3.0-beta.1] — consolidated source save point (source 70026d2d964953ffa62cf0a67faa5ffb7f3ee3a6) (2026-10-24)
 
 - Consolidated reviewed C/G/H work; 634 tests OK, release gate 0; tag `save/0.3.0-beta.1-consolidated-2026-10-24`.
 - Froze 18 branch tips as `archive/2026-10-24/*` tags before cleanup; manifest in `archive/2026-10-24/branches.json`.
