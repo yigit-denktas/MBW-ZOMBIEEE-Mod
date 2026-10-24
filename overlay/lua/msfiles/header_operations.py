@@ -39,6 +39,13 @@ agent_get_wielded_item = 1726
 agent_get_ammo = 1727
 agent_get_group = 1765
 agent_get_team = 1770
+agent_get_speed_modifier = 2067
+agent_get_time_speed_multiplier = 3336
+agent_get_action_speed_modifier = 3341
+team_get_hold_fire_order = 1784
+team_get_movement_order = 1785
+team_get_riding_order = 1786
+team_get_weapon_usage_order = 1787
 
 lhs_operations = [
     agent_get_position,
@@ -48,6 +55,13 @@ lhs_operations = [
     agent_get_ammo,
     agent_get_group,
     agent_get_team,
+    agent_get_speed_modifier,
+    agent_get_time_speed_multiplier,
+    agent_get_action_speed_modifier,
+    team_get_hold_fire_order,
+    team_get_movement_order,
+    team_get_riding_order,
+    team_get_weapon_usage_order,
 ]
 
 can_fail_operations = [

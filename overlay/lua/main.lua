@@ -93,6 +93,11 @@ emit("recorder_capabilities",
     -- No verified read-only WSE2 operation exists for shield/block, mounted
     -- identity or current action in this mod: report 0 capability, never guess.
     .. "|shield_getter=0|mounted_getter=0|action_getter=0"
+    .. "|speed_modifier_getter=" .. binding_flag("agent_get_speed_modifier")
+    .. "|time_multiplier_getter=" .. binding_flag("agent_get_time_speed_multiplier")
+    .. "|action_speed_getter=" .. binding_flag("agent_get_action_speed_modifier")
+    .. "|team_order_getter=" .. binding_flag("team_get_hold_fire_order")
+    .. "|behavior_getter=0"
     .. "|npc_getter=" .. binding_flag("agent_is_non_player")
     .. "|position_getter=" .. binding_flag("agent_get_position")
     .. "|weapon_getter=" .. binding_flag("agent_get_wielded_item")
@@ -126,13 +131,7 @@ end
 -- why all agents once reported a single troop id and kill sums were garbage.
 -- Use the returned value; a non-zero error, a throw or a non-numeric result is
 -- unknown (-1), never 0.
-local function read_agent_number(name, agent, extra)
-    local fn = game[name]
-    if type(fn) ~= "function" then return -1 end
-    local ok, first, second, third = pcall(function()
-        if extra ~= nil then return fn(0, agent, extra) end
-        return fn(0, agent)
-    end)
+local function decode_lhs_returns(ok, first, second, third)
     if not ok then return -1 end
     -- Plain lhs ops return (intResult, intError); can-fail-lhs ops return
     -- (boolDidNotFail, intResult, intError). agent_get_group (1765) is
@@ -149,6 +148,27 @@ local function read_agent_number(name, agent, extra)
     local number = tonumber(value)
     if number == nil then return -1 end
     return math.floor(number)
+end
+-- Generic lhs-number read for a real agent: never a fake agent id.
+local function read_agent_number(name, agent, extra)
+    local fn = game[name]
+    if type(fn) ~= "function" then return -1 end
+    if type(agent) ~= "number" or agent <= 0 then return -1 end
+    local ok, first, second, third = pcall(function()
+        if extra ~= nil then return fn(0, agent, extra) end
+        return fn(0, agent)
+    end)
+    return decode_lhs_returns(ok, first, second, third)
+end
+-- Team order readback: (team_get_*_order, <destination>, <team>, <sub_class>).
+-- Read-only and bounded: returns -1 when the getter is absent or unreadable.
+local function read_team_order(name, team, subclass)
+    local fn = game[name]
+    if type(fn) ~= "function" then return -1 end
+    local ok, first, second, third = pcall(function()
+        return fn(0, team, subclass)
+    end)
+    return decode_lhs_returns(ok, first, second, third)
 end
 -- Dedicated division reader. Two safety rules learned from live evidence:
 --  * NEVER call an agent opcode with a fake agent id (a lhs placeholder 0 was
@@ -309,6 +329,10 @@ local function sample_world()
                          defender_groups = {},
                          defender_source = -1,
                          defender_weapons = {}, defender_modes = {},
+                         speed_hist = {}, time_hist = {}, action_hist = {},
+                         speed_unknown = 0, time_unknown = 0, action_unknown = 0,
+                         defender_orders_text = "none",
+                         defender_orders_read_unknown = 0,
                          defender_ids = {}, ranged_team0 = 0, melee_team0 = 0,
                          weapon_read_unknown = 0,
                          horse_ids = {[0] = {}, [1] = {}},
@@ -418,6 +442,33 @@ local function sample_world()
                                 end
                                 result.defender_modes[weapon_mode] =
                                     (result.defender_modes[weapon_mode] or 0) + 1
+                                -- Task-41 readback: verify the task-38 speed/hold
+                                -- patch actually applied, without assuming it.
+                                local speed = read_agent_number(
+                                    "agent_get_speed_modifier", agent)
+                                if speed >= 0 and speed <= 1000 then
+                                    result.speed_hist[speed] =
+                                        (result.speed_hist[speed] or 0) + 1
+                                else
+                                    result.speed_unknown = result.speed_unknown + 1
+                                end
+                                local fixed = read_agent_number(
+                                    "agent_get_time_speed_multiplier", agent)
+                                if fixed >= 0 and fixed <= 10000 then
+                                    local percent = math.floor(fixed / 10 + 0.5)
+                                    result.time_hist[percent] =
+                                        (result.time_hist[percent] or 0) + 1
+                                else
+                                    result.time_unknown = result.time_unknown + 1
+                                end
+                                local action = read_agent_number(
+                                    "agent_get_action_speed_modifier", agent)
+                                if action >= 0 and action <= 10000 then
+                                    result.action_hist[action] =
+                                        (result.action_hist[action] or 0) + 1
+                                else
+                                    result.action_unknown = result.action_unknown + 1
+                                end
                                 if supports_kills then
                                     local dk = read_agent_number("agent_get_kill_count", agent)
                                     if dk >= 0 and dk <= MAX_PLAUSIBLE_KILLS then
@@ -506,12 +557,19 @@ local function sample_world()
                             elseif ammo == 0 and weapon >= 0 then
                                 weapon_mode = "melee"
                             end
+                            local speed = read_agent_number(
+                                "agent_get_speed_modifier", agent)
+                            local fixed = read_agent_number(
+                                "agent_get_time_speed_multiplier", agent)
+                            local action = read_agent_number(
+                                "agent_get_action_speed_modifier", agent)
                             result.ai_samples[#result.ai_samples + 1] =
                                 { team = side, id = agent, x = x, y = y,
                                   kills = kills, group = group, troop = troop,
                                   defender = defender, weapon = weapon, ammo = ammo,
                                   alive = (is_alive(agent) == true) and 1 or 0,
-                                  mode = weapon_mode }
+                                  mode = weapon_mode, speed = speed,
+                                  time_multiplier = fixed, action_speed = action }
                         end
                     end
                 end
@@ -573,6 +631,24 @@ local function sample_world()
         result.defender_weapons_text = (histogram_text(result.defender_weapons))
         result.defender_modes_text = (histogram_text(result.defender_modes))
         result.defender_ids_text = id_list_text(result.defender_ids)
+        -- Defender team-order readback for subclasses 5-7 and everyone (9):
+        -- hold_fire:movement:weapon_usage:riding, or "none" when unreadable.
+        local order_parts = {}
+        for _, subclass in ipairs({5, 6, 7, 9}) do
+            local hold_fire = read_team_order("team_get_hold_fire_order", 0, subclass)
+            local movement = read_team_order("team_get_movement_order", 0, subclass)
+            local weapon = read_team_order("team_get_weapon_usage_order", 0, subclass)
+            local riding = read_team_order("team_get_riding_order", 0, subclass)
+            if hold_fire >= 0 or movement >= 0 or weapon >= 0 or riding >= 0 then
+                order_parts[#order_parts + 1] = subclass .. ":" .. hold_fire
+                    .. ":" .. movement .. ":" .. weapon .. ":" .. riding
+            else
+                result.defender_orders_read_unknown =
+                    result.defender_orders_read_unknown + 1
+            end
+        end
+        result.defender_orders_text = (#order_parts > 0)
+            and table.concat(order_parts, ";") or "none"
         result.horse_ids_text0 = id_list_text(result.horse_ids[0])
         result.horse_ids_text1 = id_list_text(result.horse_ids[1])
         return result
@@ -661,6 +737,14 @@ local function state_fields(world)
             .. "|horse_ids_team1=" .. world.horse_ids_text1
             .. "|shield_team0=-1|shield_team1=-1|mounted_team1=-1|action=-1"
             .. "|weapon_read_unknown=" .. world.weapon_read_unknown
+            .. "|defender_speed_modifiers=" .. (histogram_text(world.speed_hist))
+            .. "|defender_time_multipliers=" .. (histogram_text(world.time_hist))
+            .. "|defender_action_speeds=" .. (histogram_text(world.action_hist))
+            .. "|speed_read_unknown=" .. world.speed_unknown
+            .. "|time_read_unknown=" .. world.time_unknown
+            .. "|action_read_unknown=" .. world.action_unknown
+            .. "|defender_orders=" .. world.defender_orders_text
+            .. "|defender_orders_read_unknown=" .. world.defender_orders_read_unknown
             .. "|pos_team0=" .. world.pos_text[0]
             .. "|pos_team1=" .. world.pos_text[1]
             .. "|bbox_team0=" .. world.bbox_text[0]
@@ -684,6 +768,10 @@ local function state_fields(world)
             .. "|defender_deaths=-1|horse_ids_team0=-1|horse_ids_team1=-1"
             .. "|shield_team0=-1|shield_team1=-1|mounted_team1=-1|action=-1"
             .. "|weapon_read_unknown=-1"
+            .. "|defender_speed_modifiers=-1|defender_time_multipliers=-1"
+            .. "|defender_action_speeds=-1|speed_read_unknown=-1"
+            .. "|time_read_unknown=-1|action_read_unknown=-1"
+            .. "|defender_orders=-1|defender_orders_read_unknown=-1"
             .. "|pos_team0=-1|pos_team1=-1"
             .. "|bbox_team0=-1|bbox_team1=-1|pos_sampled_team0=-1|pos_sampled_team1=-1"
     end
