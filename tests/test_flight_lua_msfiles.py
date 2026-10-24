@@ -385,7 +385,12 @@ class LuaOperationMetadataTests(unittest.TestCase):
                       "|defender_kills_team0=", "|defender_read_unknown=",
                       "result.defender_count", "result.defender_read_unknown"):
             self.assertIn(token, self.main)
-        self.assertIn("if side == 0 and group >= 5 and group <= 7 then", self.main)
+        self.assertIn("DEFENDER_TROOP_MIN = 981", self.main)
+        self.assertIn("DEFENDER_TROOP_MAX = 984", self.main)
+        self.assertIn("troop_defender or group_defender", self.main)
+        self.assertIn("|defender_source=", self.main)
+        self.assertIn("|defender_groups=", self.main)
+        self.assertIn("|troop=", self.main)
         self.assertIn("MAX_PLAUSIBLE_KILLS", self.main)
 
 

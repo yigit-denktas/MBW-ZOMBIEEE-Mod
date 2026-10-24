@@ -303,6 +303,22 @@ if nothing works. If divisions genuinely cannot be read, the summary reports
 `defender_division_unreadable` gap (defenders may still be observed via their
 981-984 troop ids) and never invents a division or hold claim.
 
+**Troop-id defender fallback (native groups):** live evidence shows native
+defender bots in groups 26/28/29/31 rather than 5-7, so a divisions-only filter
+hides their positions. The probe and summary therefore classify team-0
+non-player bots as defenders when either the division is 5-7 **or** the troop id
+is in the native defender roster **981-984**: `sample_defenders` samples
+position/group/troop/alive/kills for them regardless of group, heartbeat
+`defender_source=group|troop-fallback` plus a bounded `defender_groups`
+histogram are emitted, and `ai_sample` carries `troop=` and `defender=1`.
+The summary reports `defenders.division_source`
+(`group`/`troop-fallback`/`unavailable`) and `defenders.groups` from those
+samples, so `positions_sampled`, `distinct_positions`, `guard_entries_reached`,
+`moving` and `hold_samples` become observable even when adoption into 5-7 never
+took effect. It never fabricates a 5-7 division, never claims hold behaviour
+(`hold_behavior_observed=false`), and keeps `defender_divisions_unobserved` /
+`defender_division_unreadable` gaps honest.
+
 ### Defender block: divisions 5-7, guard entries and hold observability
 
 Beyond the per-team group histogram the probe emits team-0 defender specifics:
