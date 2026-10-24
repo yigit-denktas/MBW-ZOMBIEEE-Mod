@@ -253,3 +253,6 @@ work-item → PR → commit → version links are in
 
 
 <!-- task-82 ranged telemetry metadata-only source revision: 41062a3 -->
+
+
+<!-- ranged adaptive coverage metadata-only source revision: 1d714c7 -->

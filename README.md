@@ -220,3 +220,6 @@ This project deliberately separates **source-verified**, **observed**, **unknown
 
 
 <!-- task-82 ranged telemetry metadata-only source revision: 41062a3 -->
+
+
+<!-- ranged adaptive coverage metadata-only source revision: 1d714c7 -->

@@ -139,3 +139,6 @@ Source revision for the hit-param diagnostic metadata-only receipt: `d988597`.
 
 
 Source revision for the task-82 ranged telemetry metadata-only receipt: `41062a3`.
+
+
+Source revision for the ranged adaptive coverage metadata-only receipt: `1d714c7`.
