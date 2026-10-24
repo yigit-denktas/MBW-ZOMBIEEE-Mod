@@ -502,7 +502,7 @@ def summarize_receipt(target: Path) -> dict:
                     subclass, hold_fire, movement, weapon, riding = (int(p) for p in parts)
                 except ValueError:
                     continue
-                if subclass in (5, 6, 7, 9) and all(
+                if 0 <= subclass <= 9 and all(
                         0 <= value <= 1000 for value in
                         (hold_fire, movement, weapon, riding)):
                     parsed[subclass] = {"hold_fire": hold_fire,
@@ -601,6 +601,50 @@ def summarize_receipt(target: Path) -> dict:
     shield_values = [value for value in shield_values if value is not None]
     action_values = [_bounded_int(e["fields"].get("action"), minimum=0) for e in samples]
     action_values = [value for value in action_values if value is not None]
+    defender_orders_scope = None
+    for event in reversed(samples):
+        raw = event["fields"].get("defender_orders_scope")
+        if isinstance(raw, str) and raw not in ("", "none", "-1"):
+            defender_orders_scope = raw[:80]
+            break
+    defender_native_groups = sorted(group for group in defender_groups_seen
+                                    if group is not None and group > 9)
+    ammo_series = {}
+    for event in defender_samples:
+        fields = event["fields"]
+        agent = _bounded_int(fields.get("id"), minimum=1)
+        tick = _bounded_int(fields.get("tick"), minimum=0)
+        ammo = _bounded_int(fields.get("ammo"))
+        if agent is None or tick is None or ammo is None:
+            continue
+        ammo_series.setdefault(agent, []).append(
+            (tick, ammo, fields.get("weapon_mode")))
+    defender_ammo_transition = None
+    if ammo_series:
+        agents_with_ammo = agents_empty = 0
+        melee_after_empty = False
+        transition_samples = 0
+        for points in ammo_series.values():
+            points.sort(key=lambda item: item[0])
+            if any(ammo > 0 for _, ammo, _ in points):
+                agents_with_ammo += 1
+            saw_empty = any(ammo == 0 for _, ammo, _ in points)
+            if saw_empty:
+                agents_empty += 1
+            for _, ammo, mode in points:
+                transition_samples += 1
+                if ammo == 0 and mode == "melee":
+                    melee_after_empty = True
+        defender_ammo_transition = {
+            "samples": transition_samples,
+            "agents": len(ammo_series),
+            "agents_with_ammo": agents_with_ammo,
+            "agents_empty": agents_empty,
+            "melee_after_empty_observed": melee_after_empty,
+            "inference": ("melee last resort is inferred from per-agent ammo>0 -> 0 "
+                          "transitions plus weapon_mode=melee; there is no direct "
+                          "AI-mode getter"),
+        }
     defender_movement = _movement_rate(defender_samples)
     defender_speed_modifiers = _latest_hist("defender_speed_modifiers")
     defender_time_multipliers = _latest_hist("defender_time_multipliers")
@@ -656,6 +700,9 @@ def summarize_receipt(target: Path) -> dict:
         "time_multipliers": defender_time_multipliers,
         "action_speeds": defender_action_speeds,
         "orders": defender_orders,
+        "orders_scope": defender_orders_scope,
+        "orders_native_groups_unavailable": bool(defender_native_groups),
+        "ammo_transition": defender_ammo_transition,
         "behavior_mode": None,
         "movement_rate": defender_movement,
         "refill": defender_refill,
@@ -756,6 +803,25 @@ def summarize_receipt(target: Path) -> dict:
         "mounted_team1": mounted_values[-1] if mounted_values else None,
         "horse_ids_team0": _id_list("horse_ids_team0"),
         "horse_ids_team1": _id_list("horse_ids_team1"),
+    })
+
+    def _latest_hist_field(name):
+        for event in reversed(samples):
+            raw = event["fields"].get(name)
+            if isinstance(raw, str) and raw not in ("", "none", "-1"):
+                hist = _histogram(raw)
+                if hist:
+                    return dict(sorted(hist.items(),
+                                       key=lambda kv: (-kv[1], kv[0]))[:MAX_HIST_ENTRIES])
+        return None
+
+    teams.update({
+        "speed_modifiers_team0": _latest_hist_field("speed_modifiers_team0"),
+        "speed_modifiers_team1": _latest_hist_field("speed_modifiers_team1"),
+        "time_multipliers_team0": _latest_hist_field("time_multipliers_team0"),
+        "time_multipliers_team1": _latest_hist_field("time_multipliers_team1"),
+        "action_speeds_team0": _latest_hist_field("action_speeds_team0"),
+        "action_speeds_team1": _latest_hist_field("action_speeds_team1"),
     })
 
     # no_player: explicit probe marker; None when the probe could not measure it.
@@ -901,6 +967,12 @@ def summarize_receipt(target: Path) -> dict:
         gaps.append("speed_readback_unavailable")
     if defender_samples and defenders["orders"] is None:
         gaps.append("defender_orders_unavailable")
+    if defender_native_groups:
+        gaps.append("native_group_orders_unavailable")
+    if (teams["speed_modifiers_team1"] is None
+            and teams["time_multipliers_team1"] is None
+            and (teams["bots_team1"] or teams["max_team1"])):
+        gaps.append("speed_readback_team1_unavailable")
     gaps.append("behavior_mode_unavailable")
     if teams["mounted_team1"] is None:
         gaps.append("mounted_telemetry_unavailable")

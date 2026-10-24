@@ -454,5 +454,15 @@ class LuaOperationMetadataTests(unittest.TestCase):
         self.assertIn("local function read_team_order", self.main)
         self.assertIn("agent_get_speed_modifier = 2067", header_text())
 
+
+    def test_task43_team1_speed_and_order_scope_surface(self):
+        for token in ("|speed=", "|time_multiplier=", "|action_speed=",
+                      "|speed_modifiers_team1=", "|time_multipliers_team1=",
+                      "|action_speeds_team1=",
+                      "|defender_orders_scope=team0_subclasses_0_9_native_groups_no_op",
+                      "for subclass = 0, 9 do",
+                      "speed_hist_team[side]"):
+            self.assertIn(token, self.main)
+
 if __name__ == "__main__":
     unittest.main()
