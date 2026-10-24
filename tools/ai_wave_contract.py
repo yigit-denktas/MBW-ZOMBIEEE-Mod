@@ -128,10 +128,9 @@ def inspect_city_ai(original_triggers: list[str], final_triggers: list[str],
             any(op == 1707 for op, _ in wave_ops) and
             any(op == 1770 for op, _ in wave_ops) and
             any(op == 31 and args[-1:] == (0,) for op, args in wave_ops) and
-            any(op == 1765 for op, _ in wave_ops) and
-            any(op == 33 and args[-2:] == (min(GROUPS), max(GROUPS) + 1)
-                for op, args in wave_ops),
-            'Reinforcement must count live NPCs in survivor team 0 and groups 5-7')
+            any(op == 2105 for op, _ in wave_ops),
+            'Reinforcement must count live non-player team-0 survivors; '
+            'native bot groups 26-31 are outside the 0..9 order sub-class space')
     require('recovery_reserved_survivors',
             all(any(op == code for op, _ in recovery_ops)
                 for code in (1702, 1707, 1770, 1765)) and

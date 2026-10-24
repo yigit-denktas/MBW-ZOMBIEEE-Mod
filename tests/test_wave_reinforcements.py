@@ -38,7 +38,7 @@ class WaveReinforcementTests(unittest.TestCase):
     def test_reinforcement_ops(self):
         values = reinforce_on_wave(globals_from_original(self.variables), self.troops).split()
         self.assertEqual(values[:4], ["4.000000", "0.000000", "0.000000", "6"])
-        for opcode in ("417", "1702", "1707", "1765", "1770", "2119", "1265"):
+        for opcode in ("417", "1702", "1707", "1770", "2119", "1265"):
             self.assertIn(opcode, values)
         self.assertEqual(values.count("1265"), 4)
 

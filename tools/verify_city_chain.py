@@ -138,8 +138,7 @@ def verify(original: Path, archive: Path | None = None) -> dict:
                                   invader_range=(894, 895))
             zombie = apply_zombie_block(stage)
             respawn_troops = tuple(TROOP_BASE + troop_ids[name] for name in classes)
-            apply_recovery(stage, city_only=True, defender_cap=4,
-                           defender_troops=respawn_troops)
+            apply_recovery(stage, city_only=True, defender_cap=0)
             chain.append(mission_check(stage, original, 31))
             core = audit_city(stage, original)
             if not core["city_accepted"]:
@@ -204,9 +203,7 @@ def verify(original: Path, archive: Path | None = None) -> dict:
         apply_roster(solo, defender_range=(min(solo_defense_ids), max(solo_defense_ids) + 1),
                      game_type_global=solo_game_type, invader_range=(894, 895))
         apply_zombie_block(solo)
-        apply_recovery(solo, city_only=True, defender_cap=4,
-                       defender_troops=tuple(TROOP_BASE + solo_troops[name]
-                                             for name in SURVIVOR_CLASSES))
+        apply_recovery(solo, city_only=True, defender_cap=0)
         prior = audit_city(solo, original)
         if not prior["city_accepted"]:
             raise RuntimeError("Solo profile prerequisite failed")
