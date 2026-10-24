@@ -143,9 +143,10 @@ def inspect_city_ai(original_triggers: list[str], final_triggers: list[str],
             'Tactical fallback/regroup state transitions are missing')
     require('reinforcement_visitors_team_and_groups',
             len([1 for op, args in wave_ops if op == 1265]) == 4 and
-            all(len(args) == 5 and args[2] == 1 and args[3] == 0 and args[4] in GROUPS
+            all(len(args) == 5 and args[2] == 1 and args[3] == 0 and args[4] == 0
                 for op, args in wave_ops if op == 1265),
-            'Reinforcements must add exactly four class branches to team 0 and reserved groups')
+            'Reinforcements must add exactly four class branches to team 0; '
+            'the 5th arg is the MP leader/owner id (0 = no leader), not a formation slot')
     return {'checks': checks, 'problems': problems,
             'original_invasion_mode': INVASION_GAME_TYPE,
             'runtime_verified': False}
