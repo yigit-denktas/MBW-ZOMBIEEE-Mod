@@ -1,8 +1,8 @@
 ﻿{
-  "updated": "2026-10-24T18:31:00+02:00",
-  "phase": "Visual-gated nextplay reseal",
-  "build": "Installed nextplay b3cfe69 + probe c77363e: mission C62F0BCD, backup …183033; accuracy 100 honest.",
-  "now": "Adaptive console is server-only; D running clean 10-min survivor POV with screenshots and adaptive firearm fields.",
-  "next": "Review join, charge/first-shot/shots ratio, KD, screenshots. If clean, this becomes the play checkpoint. No acceptance.",
+  "updated": "2026-10-24T18:44:00+02:00",
+  "phase": "Clean visuals / fire regression",
+  "build": "Installed nextplay b3cfe69 + probe c77363e (mission C62F0BCD).",
+  "now": "Clean 10-min run joined: 43 hb/57 frames, no console spam. But 0 shots/ammo burn across 3564 adaptive samples; survivors hold at line without firing. charge ratio .592; wave max 1; KD 15/7.",
+  "next": "A fixes stand_ground/fire order precedence; next candidate must prove ammo_burn>0 and first shot <30s. No acceptance.",
   "acceptance": false
 }
