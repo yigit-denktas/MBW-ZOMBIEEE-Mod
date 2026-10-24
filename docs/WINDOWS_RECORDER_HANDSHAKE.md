@@ -191,3 +191,27 @@ gameplay test is requested.
 - After both game children exit and **before** `PassiveRecorder.stop_after_exit`, call `adapter.add_artifact(host_stdout)`. C hashes every file in the session directory at seal time, so the ZDB1 probe stream is then inside the verified manifest (issue #16).
 - `launcher.rotation.build_rotation` is the single source of truth for the dedicated rotation: 1-based team numbering, positive second-team bot count, respawn/round fields, and the explicit generic-bot (Crazed Civilian) roster caveat. `Session.rotation_commands()` and `Session.receipt()['rotation_sha256']` expose it.
 
+## One-command launcher consumption (B lane)
+
+launcher.play_city performs the handshake above in the required order and
+adds no new wire message:
+
+1. PassiveRecorder is armed for a fresh session/attempt/start ID and its
+   canonical zombieee.recorder-ready.v1 marker is validated against B's owned
+   recorder PID before any game child exists.
+2. Only then does HostSession start the dedicated host (stdout teed to a
+   bounded private file) and the client is auto-joined at 127.0.0.1:7240.
+3. Both owned Popen handles are attached; a rejected attachment fails closed.
+4. On client exit / Ctrl+C / max-minutes the owned children are stopped first
+   (bounded graceful attempt, then terminate), the host stdout tee is copied in
+   with dd_artifact(host_stdout.log), and only then is the signed stop sent.
+5. The returned evidence manifest is verified again and C's
+   	ools/diagnostics.py summary output is stored beside the launch receipt.
+
+Evidence root defaults to the gitignored local/session/play-city/; the sealed
+bundle is lights/<session>/ and the launch receipt is
+launches/<session>/launch-receipt.json. Receipts keep
+
+untime_verified=false and outcome=unknown; lifecycle fields describe only
+owned-process shutdown. If attachment never happened, the launcher closes its
+own recorder child and records the failure instead of sealing a partial bundle.

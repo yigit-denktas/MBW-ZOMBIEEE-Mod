@@ -10,14 +10,18 @@ from .rotation import build_rotation, rotation_sha256
 
 
 class Session:
-    def __init__(self, route='dedicated', endpoint='127.0.0.1', timeout=30):
+    def __init__(self, route='dedicated', endpoint='127.0.0.1', timeout=30,
+                 client_exit_ends_session=False):
         if route not in ('dedicated', 'listen'):
             raise ValueError('unverified route; use a dedicated or listen simulation')
         if endpoint != '127.0.0.1':
             raise ValueError('only explicit IPv4 loopback is modeled')
         if not math.isfinite(timeout) or timeout <= 0:
             raise ValueError('timeout must be finite and positive')
+        if type(client_exit_ends_session) is not bool:
+            raise ValueError('client_exit_ends_session must be a boolean')
         self.route, self.endpoint, self.timeout = route, endpoint, timeout
+        self.client_exit_ends_session = client_exit_ends_session
         self.state, self.error = 'idle', None
         self.active = set()
         self.deadline = None
@@ -26,6 +30,7 @@ class Session:
         self.attempt_id = None
         self.started = {}
         self.recorder_acknowledged = False
+        self.client_exit_requested_stop = False
         self.last_time = float('-inf')
 
     def receipt(self):
@@ -42,6 +47,8 @@ class Session:
                 'state': self.state, 'error': self.error,
                 'attempt': self.attempt, 'attempt_id': self.attempt_id,
                 'recorder_acknowledged': self.recorder_acknowledged,
+                'client_exit_ends_session': self.client_exit_ends_session,
+                'client_exit_requested_stop': self.client_exit_requested_stop,
                 'processes': sorted(self.active)}
 
     def rotation_commands(self):
@@ -137,6 +144,14 @@ class Session:
             self.active.remove(process)
             self.started.pop(process, None)
             if self.state != 'stopping':
+                if (process == 'client' and self.client_exit_ends_session
+                        and self.state in ('waiting_client_start', 'awaiting_join',
+                                           'awaiting_mission', 'playing')):
+                    # The auto-joined client exiting is the owner's normal way to
+                    # end a Play City session; it still requires an orderly stop of
+                    # the owned host and recorder, so it is never a crash claim.
+                    self.client_exit_requested_stop = True
+                    return self._stop()
                 self.error = process + ('_exited' if event == 'exited' else '_start_failed')
                 return self._stop()
             if process == 'recorder' and self.active.intersection({'client', 'host'}):
