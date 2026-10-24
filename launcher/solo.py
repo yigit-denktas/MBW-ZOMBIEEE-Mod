@@ -6,6 +6,8 @@ No launcher flags, listener sockets, firewall rules or game config are emitted.
 import math
 import uuid
 
+from .rotation import build_rotation, rotation_sha256
+
 
 class Session:
     def __init__(self, route='dedicated', endpoint='127.0.0.1', timeout=30):
@@ -27,6 +29,7 @@ class Session:
         self.last_time = float('-inf')
 
     def receipt(self):
+        rotation = build_rotation()
         return {'schema': 'zombieee.session.v1', 'session_id': self.session_id,
                 'mode': 'private-local-city', 'city': 'tbfc_invasion_4',
                 'build_manifest_sha256': None, 'wse2_version': None,
@@ -35,10 +38,17 @@ class Session:
                 'schema_version': 1, 'simulation': True, 'runtime_verified': False,
                 'route': self.route, 'endpoint': self.endpoint,
                 'mission': 'multiplayer_iv',
+                'rotation_sha256': rotation_sha256(rotation),
                 'state': self.state, 'error': self.error,
                 'attempt': self.attempt, 'attempt_id': self.attempt_id,
                 'recorder_acknowledged': self.recorder_acknowledged,
                 'processes': sorted(self.active)}
+
+    def rotation_commands(self):
+        """Validated dedicated rotation the launcher must emit before start."""
+        if self.route != 'dedicated':
+            raise ValueError('validated rotation is for the dedicated route')
+        return build_rotation()
 
     def _stop(self):
         self.state = 'stopping'

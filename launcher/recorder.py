@@ -34,7 +34,9 @@ MAX_READY_BYTES = 16 * 1024
 MAX_CONTROL_BYTES = 4 * 1024
 MAX_RECEIPT_BYTES = 256 * 1024
 MAX_MANIFEST_BYTES = 1024 * 1024
+MAX_ARTIFACT_BYTES = 8 * 1024 * 1024
 SESSION_RE = re.compile(r'[A-Za-z0-9_.-]{1,64}\Z')
+ARTIFACT_RE = re.compile(r'[A-Za-z0-9_.-]{1,64}\Z')
 FILE_ATTRIBUTE_REPARSE_POINT = 0x400
 
 
@@ -276,7 +278,9 @@ class PassiveRecorder:
             try:
                 marker = read_bounded_json(marker_path, MAX_READY_BYTES,
                                            stop_at=self.output_root)
-            except FileNotFoundError:
+            except (FileNotFoundError, PermissionError):
+                # C atomic-replaces control files; a Windows reader may
+                # transiently miss or be denied the file mid-replace.
                 marker = None
             if marker is not None:
                 validate_ready(marker, recorder_pid=self.proc.pid,
@@ -324,7 +328,7 @@ class PassiveRecorder:
             try:
                 ack = read_bounded_json(ack_path, MAX_CONTROL_BYTES,
                                         stop_at=self.output_root)
-            except FileNotFoundError:
+            except (FileNotFoundError, PermissionError):
                 time.sleep(self.poll_interval)
                 continue
             if (ack.get('schema') != ATTACHMENT_ACK_SCHEMA
@@ -341,6 +345,42 @@ class PassiveRecorder:
             return ack
         raise RecorderRejected('attachment acknowledgment timeout')
 
+    def add_artifact(self, source, *, name='host_stdout.log',
+                     limit=MAX_ARTIFACT_BYTES):
+        """Copy one bounded host artifact into the flight dir before stop.
+
+        C hashes every file in the session directory when it seals, so call
+        this after the game exits and before ``stop_after_exit``. The passive
+        adapter cannot capture another process's stdout; the launcher's
+        HostSession tees it to a file that is passed here.
+        """
+        if self.attached is None:
+            raise RecorderRejected('cannot add artifact before attachment')
+        if not ARTIFACT_RE.fullmatch(name) or name in ('.', '..'):
+            raise RecorderRejected('invalid artifact name')
+        source = Path(source).expanduser().absolute()
+        assert_no_redirect(source, stop_at=source.parent)
+        assert_no_redirect(self.session_dir, stop_at=self.output_root)
+        dest = self.session_dir / name
+        if is_redirected(dest):
+            raise RecorderRejected('redirected artifact destination')
+        with open(source, 'rb') as stream:
+            data = stream.read(limit + 1)
+        if len(data) > limit:
+            raise RecorderRejected('oversized artifact: ' + name)
+        if source == dest.absolute():
+            return dest
+        temp = dest.with_name(dest.name + '.tmp')
+        temp.unlink(missing_ok=True)
+        try:
+            with open(temp, 'xb') as stream:
+                stream.write(data)
+                stream.flush()
+                os.fsync(stream.fileno())
+            os.replace(temp, dest)
+        finally:
+            temp.unlink(missing_ok=True)
+        return dest
     def stop_after_exit(self, timeout=30.0):
         if self.attached is None:
             raise RecorderRejected('cannot stop before confirmed attachment')
