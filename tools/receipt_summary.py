@@ -20,9 +20,9 @@ from pathlib import Path
 SCHEMA = "zombieee.flight.v1"
 SUMMARY_SCHEMA = "zombieee.receipt-summary.v1"
 MANIFEST_LIMIT = 1024 * 1024
-ARTIFACT_LIMIT = 2 * 1024 * 1024
+ARTIFACT_LIMIT = 8 * 1024 * 1024
 MAX_FILES = 24
-MAX_EVENTS = 4096
+MAX_EVENTS = 20000
 MAX_HIST_ENTRIES = 16
 MAX_LIFECYCLE = 32
 MAX_ROUNDS = 32
@@ -301,6 +301,7 @@ def summarize_receipt(target: Path, build_receipt: Path | None = None) -> dict:
         "adaptive_max_agents": (_bounded_int(capability["fields"].get("adaptive_max_agents"))
                                 if capability else None),
         "pre_round_samples": len(pre_round),
+        "heartbeats": len(heartbeats),
         "pre_round_only": bool(pre_round) and not heartbeats,
         "sampling_interval_s": _bounded_int(
             capability["fields"].get("sampling_interval_s")) if capability else None,
@@ -1067,7 +1068,10 @@ def summarize_receipt(target: Path, build_receipt: Path | None = None) -> dict:
             if sample_team not in (0, 1):
                 continue
             tick = _bounded_int(fields.get("tick"), minimum=0)
+            # adaptive_sample/adaptive_event use agent=, ai/combat use id=.
             agent = _bounded_int(fields.get("id"), minimum=0)
+            if agent is None:
+                agent = _bounded_int(fields.get("agent"), minimum=0)
             if tick is None or agent is None:
                 continue
             try:
@@ -1132,8 +1136,13 @@ def summarize_receipt(target: Path, build_receipt: Path | None = None) -> dict:
         first_shot_offsets = []
         first_shot_unit = None
         shot_timestamps = []
+        shot_decrease_events = 0
         charge_distance = backward_distance = 0.0
         charge_samples = backward_samples = 0
+        all_points_flat = [point for points in series.values() for point in points]
+        team_first_ts = min((point[8] for point in all_points_flat
+                             if point[8] is not None), default=None)
+        team_first_tick = min((point[0] for point in all_points_flat), default=None)
         for points in series.values():
             points.sort(key=lambda item: (item[8] if item[8] is not None
                                            else item[0] * 1000, item[0]))
@@ -1196,16 +1205,17 @@ def summarize_receipt(target: Path, build_receipt: Path | None = None) -> dict:
                                 backward_samples += 1
                 if second[1] < first[1]:
                     fired = first[1] - second[1]
+                    shot_decrease_events += 1
                     agent_shots += fired
                     shots += fired
                     burn += fired
                     if not first_shot_recorded:
                         ts = second[8]
-                        if ts is not None and first_seen_ts is not None:
-                            first_shot_offsets.append(ts - first_seen_ts)
+                        if ts is not None and team_first_ts is not None:
+                            first_shot_offsets.append(ts - team_first_ts)
                             first_shot_unit = "ms"
                         else:
-                            first_shot_offsets.append(second[0] - first_seen_tick)
+                            first_shot_offsets.append(second[0] - team_first_tick)
                             first_shot_unit = first_shot_unit or "ticks"
                         first_shot_recorded = True
                     if second[8] is not None:
@@ -1271,8 +1281,10 @@ def summarize_receipt(target: Path, build_receipt: Path | None = None) -> dict:
             "time_to_first_shot": (
                 {"count": len(first_shot_offsets), "min": min(first_shot_offsets),
                  "avg": round(sum(first_shot_offsets) / len(first_shot_offsets), 3),
-                 "max": max(first_shot_offsets), "unit": first_shot_unit}
+                 "max": max(first_shot_offsets), "unit": first_shot_unit,
+                 "baseline": "team_first_observed_sample"}
                 if first_shot_offsets else None),
+            "shot_decrease_events": shot_decrease_events,
             "weapon_modes": (dict(sorted(weapon_modes.items(),
                                          key=lambda kv: (-kv[1], kv[0])))
                              or None),
@@ -1352,9 +1364,9 @@ def summarize_receipt(target: Path, build_receipt: Path | None = None) -> dict:
         if (firearms_team0.get("shots_observed") == 0
                 and firearms_team1.get("shots_observed") == 0):
             gaps_hint = list(gaps_hint) + ["zero_shots_not_proven"]
-    ranged_gaps = sorted(set(
-        (firearms_team0.get("ranged_gaps") or [])
-        + (firearms_team1.get("ranged_gaps") or [])))
+    # Top-level ranged gaps are survivor/team0 relevant; team1 melee gaps stay
+    # in firearms.team1.ranged_gaps and must not mark survivor timing unavailable.
+    ranged_gaps = sorted(set(firearms_team0.get("ranged_gaps") or []))
     if ranged_gaps:
         gaps_hint = list(gaps_hint) + ranged_gaps
     if firearms_team0["samples"] or firearms_team1["samples"]:
@@ -1609,6 +1621,29 @@ def summarize_receipt(target: Path, build_receipt: Path | None = None) -> dict:
     return summary
 
 
+def format_brief(summary: dict) -> str:
+    """One-screen 3-min smoke summary; proxy/gaps explicit, no acceptance."""
+    fire = (summary.get("firearms") or {}).get("team0") or {}
+    shot = (summary.get("firearms") or {}).get("shot_measurement") or {}
+    lines = [
+        "ZOMBIEEE brief summary",
+        f"verified={summary.get('verified')} duration={summary.get('duration_seconds')}s "
+        f"heartbeats={(summary.get('probe') or {}).get('heartbeats', 'n/a')} "
+        f"pre_round_samples={(summary.get('probe') or {}).get('pre_round_samples', 'n/a')}",
+        f"team0 shots={fire.get('shots_observed')} "
+        f"decrease_events={fire.get('shot_decrease_events')} "
+        f"agents={fire.get('agents')} fired={fire.get('agents_with_shots')} "
+        f"ratio={fire.get('agents_fired_ratio')}",
+        f"ttfs={fire.get('time_to_first_shot')} spm={fire.get('shots_per_minute')} "
+        f"movement={fire.get('movement')}",
+        f"shot_proxy={shot.get('proxy')} proven={shot.get('proven')} "
+        f"refill_off={shot.get('ammo_refill_off')}",
+        f"gaps={', '.join(summary.get('evidence_gaps') or ['none'])}",
+        "PROXY: shots are ammo-delta inferred; no acceptance/visual claim.",
+    ]
+    return "\n".join(lines)
+
+
 def format_summary(summary: dict) -> str:
     probe = summary["probe"]
     teams = summary["teams"]
@@ -1759,6 +1794,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Summarize a sealed flight receipt")
     parser.add_argument("receipt", type=Path)
     parser.add_argument("--json", action="store_true", help="Emit JSON instead of text")
+    parser.add_argument("--brief", action="store_true", help="One-screen smoke summary")
     parser.add_argument("--build-receipt", type=Path, default=None,
                         help="optional build/measurement receipt for refill context")
     args = parser.parse_args()
@@ -1767,5 +1803,9 @@ if __name__ == "__main__":
     except ReceiptError as exc:
         print("Receipt verification failed: " + str(exc), file=sys.stderr)
         raise SystemExit(2)
-    print(json.dumps(summary, indent=2, sort_keys=True)
-          if args.json else format_summary(summary))
+    if args.json:
+        print(json.dumps(summary, indent=2, sort_keys=True))
+    elif args.brief:
+        print(format_brief(summary))
+    else:
+        print(format_summary(summary))

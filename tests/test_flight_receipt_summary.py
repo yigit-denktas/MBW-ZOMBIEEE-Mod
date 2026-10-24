@@ -956,10 +956,10 @@ class ReceiptSummaryTests(unittest.TestCase):
             "ZDB1|heartbeat|count=1|role=server|team0=1|team1=1|wave=1|ts_ms=1000",
             "ZDB1|ai_sample|role=server|tick=1|ts_ms=1000|team=0|id=1|troop=981"
             "|weapon=7|ammo=10|alive=1|weapon_mode=ranged|attack_action=2|x=10|y=10|wave=1",
-            "ZDB1|adaptive_sample|reason=active|tick=2|ts_ms=2000|team=0|id=1"
+            "ZDB1|adaptive_sample|reason=active|tick=2|ts_ms=2000|team=0|agent=1"
             "|troop=981|class=1|division=5|hp=90|weapon=7|ammo=8|attack_action=2"
             "|weapon_mode=ranged|alive=1|x=11|y=10|wave=1|mode=0",
-            "ZDB1|adaptive_sample|reason=active|tick=3|ts_ms=3000|team=0|id=1"
+            "ZDB1|adaptive_sample|reason=active|tick=3|ts_ms=3000|team=0|agent=1"
             "|troop=981|class=1|division=5|hp=80|weapon=7|ammo=6|attack_action=2"
             "|weapon_mode=ranged|alive=1|x=12|y=10|wave=1|mode=0",
         ]
