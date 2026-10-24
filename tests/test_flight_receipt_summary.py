@@ -686,5 +686,77 @@ class ReceiptSummaryTests(unittest.TestCase):
         self.assertNotIn("shield_telemetry_unavailable", summary["evidence_gaps"])
         self.assertNotIn("action_telemetry_unavailable", summary["evidence_gaps"])
 
+
+    def test_speed_readback_orders_movement_rate_and_refill(self):
+        lines = [
+            "ZDB1|heartbeat|count=1|role=server|team0=8|team1=20|wave=2"
+            "|defenders_team0=8|defender_alive_team0=8"
+            "|defender_speed_modifiers=70:8|defender_time_multipliers=70:8"
+            "|defender_action_speeds=100:8"
+            "|defender_orders=5:0:0:16:0;6:0:0:16:0;7:0:0:16:0;9:0:0:16:0"
+            "|troops_team1=894:6,896:2,981:1|troops_team0=981:2,982:2,983:2,984:2",
+            "ZDB1|heartbeat|count=2|role=server|team0=6|team1=20|wave=2"
+            "|defenders_team0=6|defender_speed_modifiers=70:6"
+            "|troops_team1=894:6,896:2|troops_team0=981:2,982:2,983:2",
+            "ZDB1|heartbeat|count=3|role=server|team0=8|team1=20|wave=2"
+            "|defenders_team0=8|troops_team1=894:6,896:2"
+            "|troops_team0=981:2,982:2,983:2,984:2",
+            "ZDB1|ai_sample|role=server|tick=1|team=0|id=1|group=5|troop=981"
+            "|defender=1|weapon=7|ammo=10|alive=1|weapon_mode=ranged"
+            "|speed=70|time_multiplier=700|action_speed=100"
+            "|x=10.0|y=10.0|kills=0|wave=2",
+            "ZDB1|ai_sample|role=server|tick=2|team=0|id=1|group=5|troop=981"
+            "|defender=1|weapon=7|ammo=10|alive=1|weapon_mode=ranged"
+            "|speed=70|time_multiplier=700|action_speed=100"
+            "|x=10.5|y=10.0|kills=0|wave=2",
+            "ZDB1|ai_sample|role=server|tick=3|team=0|id=1|group=5|troop=981"
+            "|defender=1|weapon=7|ammo=10|alive=1|weapon_mode=ranged"
+            "|speed=70|time_multiplier=700|action_speed=100"
+            "|x=11.0|y=10.0|kills=0|wave=2",
+            "ZDB1|ai_sample|role=server|tick=1|team=1|id=2|group=0|troop=894"
+            "|defender=0|x=50.0|y=50.0|kills=0|wave=2",
+            "ZDB1|ai_sample|role=server|tick=2|team=1|id=2|group=0|troop=894"
+            "|defender=0|x=50.2|y=50.0|kills=0|wave=2",
+        ]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        defenders = summary["defenders"]
+        # latest heartbeat that reported speed readback is count=2 (6 defenders)
+        self.assertEqual(defenders["speed_modifiers"], {70: 6})
+        self.assertEqual(defenders["time_multipliers"], {70: 8})
+        self.assertEqual(defenders["action_speeds"], {100: 8})
+        self.assertEqual(defenders["orders"][5],
+                         {"hold_fire": 0, "movement": 0, "weapon_usage": 16,
+                          "riding": 0})
+        self.assertEqual(set(defenders["orders"]), {5, 6, 7, 9})
+        self.assertIsNone(defenders["behavior_mode"])
+        self.assertIsNotNone(defenders["movement_rate"])
+        self.assertGreaterEqual(defenders["movement_rate"]["pairs"], 2)
+        self.assertEqual(defenders["movement_rate"]["avg_per_interval"], 0.5)
+        self.assertIsNotNone(summary["positions"]["team0"]["movement_rate"])
+        self.assertIsNotNone(summary["positions"]["team1"]["movement_rate"])
+        self.assertAlmostEqual(
+            summary["positions"]["team0"]["movement_rate"]["avg_per_interval"], 0.5)
+        self.assertEqual(defenders["refill"]["peak"], 8)
+        self.assertTrue(defenders["refill"]["refill_observed"])
+        wave2 = summary["waves"]["classes_by_wave"][2]
+        self.assertGreaterEqual(wave2["native_zombie"], 6)
+        self.assertGreaterEqual(wave2["defender"], 1)
+        self.assertIn("behavior_mode_unavailable", summary["evidence_gaps"])
+        self.assertNotIn("movement_rate_unavailable", summary["evidence_gaps"])
+        self.assertNotIn("speed_readback_unavailable", summary["evidence_gaps"])
+        self.assertNotIn("defender_orders_unavailable", summary["evidence_gaps"])
+
+    def test_speed_orders_and_movement_gaps_when_absent(self):
+        lines = ["ZDB1|heartbeat|count=1|role=server|team0=4|team1=17"
+                 "|defenders_team0=4|troops_team1=894:4"]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        gaps = summary["evidence_gaps"]
+        self.assertIn("speed_readback_unavailable", gaps)
+        self.assertIn("movement_rate_unavailable", gaps)
+        self.assertIn("behavior_mode_unavailable", gaps)
+        self.assertIsNone(summary["defenders"]["speed_modifiers"])
+        self.assertIsNone(summary["defenders"]["orders"])
+        self.assertIsNone(summary["positions"]["team0"]["movement_rate"])
+
 if __name__ == "__main__":
     unittest.main()

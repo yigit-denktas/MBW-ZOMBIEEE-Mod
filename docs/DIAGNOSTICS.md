@@ -349,6 +349,45 @@ troop-class breakdown (`generic`/`native_zombie`/`defender`/`survivor`/
 evidence without a gameplay claim. All fields are bounded; unknown remains
 unknown, never zero.
 
+### Speed / hold / wave-2 / refill telemetry (task-41)
+
+For A's task-38 speed and hold patch the probe now reads back what the engine
+actually applied, without assuming the patch worked:
+
+- Per defender agent: native `agent_get_speed_modifier` (2067, percent 0..1000),
+  WSE2 `agent_get_time_speed_multiplier` (3336, fixed point converted to
+  percent) and `agent_get_action_speed_modifier` (3341). Heartbeats aggregate
+  bounded histograms `defender_speed_modifiers`, `defender_time_multipliers`,
+  `defender_action_speeds` with `speed_read_unknown`/`time_read_unknown`/
+  `action_read_unknown`; `ai_sample` carries the raw per-bot values.
+- Defender order/behavior mode: team-order readback via
+  `team_get_hold_fire_order` (1784), `team_get_movement_order` (1785),
+  `team_get_weapon_usage_order` (1787) and `team_get_riding_order` (1786) for
+  sub-classes 5, 6, 7 and everyone (9), emitted as
+  `defender_orders=<sub>:<hold_fire>:<movement>:<weapon>:<riding>;...`.
+  There is no verified behavior getter in this build, so the summary reports
+  `defenders.behavior_mode=None` plus the `behavior_mode_unavailable` gap.
+- Movement rate from position deltas: the summary pairs consecutive
+  `ai_sample` positions for the same agent id and tick, reporting
+  `positions.team0/team1.movement_rate` and `defenders.movement_rate`
+  (`agents`, `pairs`, `total_distance`, `avg_per_interval`,
+  `max_per_interval`, units = position-units per tick interval). This proves
+  zombies actually slowed and defenders held/moved, independent of the
+  configured values.
+- Wave 2+ visitor classes: `waves.classes_by_wave` now carries the bounded
+  team-1 class breakdown (`generic`/`native_zombie`/`defender`/`survivor`/
+  `unknown`) for every observed wave, not just wave 1.
+- Defender refill: from the heartbeat `defenders_team0` series the summary
+  reports `defenders.refill` (`samples`, `unique_counts`, `peak`, `min`,
+  `refill_observed` when the count increases after a decrease), so
+  `spawn_agent` refills can be seen without trusting a configured target.
+
+Capability line adds `speed_modifier_getter`, `time_multiplier_getter`,
+`action_speed_getter`, `team_order_getter`, `behavior_getter=0`. Missing fields
+stay `None`/`-1` with explicit gaps (`speed_readback_unavailable`,
+`defender_orders_unavailable`, `movement_rate_unavailable`,
+`behavior_mode_unavailable`); nothing is assumed from configuration.
+
 ### Defender block: divisions 5-7, guard entries and hold observability
 
 Beyond the per-team group histogram the probe emits team-0 defender specifics:

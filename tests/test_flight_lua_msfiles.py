@@ -55,6 +55,13 @@ OPS = {
     "agent_get_ammo": (1727, "lhs"),
     "agent_get_group": (1765, "lhs"),
     "agent_get_team": (1770, "lhs"),
+    "agent_get_speed_modifier": (2067, "lhs"),
+    "agent_get_time_speed_multiplier": (3336, "lhs"),
+    "agent_get_action_speed_modifier": (3341, "lhs"),
+    "team_get_hold_fire_order": (1784, "lhs"),
+    "team_get_movement_order": (1785, "lhs"),
+    "team_get_riding_order": (1786, "lhs"),
+    "team_get_weapon_usage_order": (1787, "lhs"),
 }
 
 # `game.<name>` members that are WSE2 Lua API rather than module-system
@@ -432,6 +439,20 @@ class LuaOperationMetadataTests(unittest.TestCase):
         self.assertIn("agent_get_wielded_item", self.main)
         self.assertIn("agent_get_ammo", self.main)
         self.assertIn("agent_is_alive", self.main)
+
+
+    def test_task41_speed_order_and_movement_readback_surface(self):
+        for token in ("agent_get_speed_modifier", "agent_get_time_speed_multiplier",
+                      "agent_get_action_speed_modifier",
+                      "team_get_hold_fire_order", "team_get_movement_order",
+                      "team_get_riding_order", "team_get_weapon_usage_order",
+                      "|defender_speed_modifiers=", "|defender_time_multipliers=",
+                      "|defender_action_speeds=", "|defender_orders=",
+                      "|speed_read_unknown=", "|speed_modifier_getter=",
+                      "|team_order_getter=", "|behavior_getter=0"):
+            self.assertIn(token, self.main)
+        self.assertIn("local function read_team_order", self.main)
+        self.assertIn("agent_get_speed_modifier = 2067", header_text())
 
 if __name__ == "__main__":
     unittest.main()
