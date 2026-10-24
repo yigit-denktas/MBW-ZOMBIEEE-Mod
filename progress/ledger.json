@@ -2062,7 +2062,7 @@
       "groupId": "Solo",
       "milestoneId": "M2",
       "state": "done",
-      "sourceState": "launcher/rotation merged (PR #19 faf02b7/dad2b08 + PR #20 f097c6c); live play_city pass sealed; native roster verified",
+      "sourceState": "launcher/rotation merged (PR #19/#20); sealed play_city lifecycle passes on 156e275 and with the defender squad (bots_team0=4, native roster)",
       "required": false,
       "blocked": false,
       "dependsOn": [],
@@ -2119,6 +2119,12 @@
         {
           "kind": "sealed-evidence",
           "source": "local/session/ai-evidence-final-defenders",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "_zom-d-build/local/session/play-city/flights/b340e92225c14949b762a6a631bfd2ae",
           "observedOn": "2026-10-24",
           "acceptance": "bounded-sealed-evidence"
         }
@@ -2412,6 +2418,12 @@
           "source": "local/session/ai-evidence-final-noclient-killfix",
           "observedOn": "2026-10-24",
           "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "_zom-d-build/local/session/play-city/flights/b340e92225c14949b762a6a631bfd2ae",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
         }
       ],
       "completionBasis": "Done as bounded support work/evidence; not release acceptance.",
@@ -2420,7 +2432,7 @@
       "priority": "P0",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/13",
       "criterion": "Rotation set_bot_count 1 4 yields four native team-0 bots selecting 981..984; City orders adopt them into divisions 5-7 and issue hold/sector orders; movement/positions observable.",
-      "note": "D's sealed defender run: bots_team0=4, alive_team0=5 (player+4), troop histogram team0 includes 981/982/983/984 with zdr names, positions team0 moving 9/12 distinct, tactical_change fired, 251 ZDB1 lines sealed. add_visitors fallback retained; no double-spawn observed. No gameplay acceptance.",
+      "note": "D's sealed defender run: bots_team0=4, alive_team0=5 (player+4), troop histogram team0 includes 981/982/983/984 with zdr names, positions team0 moving 9/12 distinct, tactical_change fired, 251 ZDB1 lines sealed. add_visitors fallback retained; no double-spawn observed. No gameplay acceptance. Latest sealed play_city flight (b340e922) verifies true with bots_team0=4, team0 troops 981..984 and native team1 roster; positions sampled, wave max 1.",
       "deferReason": null,
       "implementationLane": "A"
     },
@@ -2466,7 +2478,7 @@
     "Required City outcomes remain 0/23 and accepted milestones 0/5; runtime_verified=false everywhere. No gameplay, wave-completion, AI or release acceptance is claimed.",
     "Merged main 2fef70d (Windows 3.11.9, owned module+archive): 486 tests OK / 7 skips. One earlier merged run flaked with 1 failure in the pre-existing test_windows_discovery NUL bug; F fixed it with regression tests, but the suite is recorded with that caveat rather than claimed stably green.",
     "Sealed hands-off evidence: no-client bundle (no_player=true) pre-round bots_team0=8 / bots_team1=32 with both-team positions; idle-client bundle team1 894..911 native Zombies reliable, positions moving, kills measured (1 team1 / 0 team0), waves max 1 across 5 stable rounds; defender bundle bots_team0=4 selecting 981..984, positions moving, tactical_change observed.",
-    "D's play_city live validation passed the full lifecycle (loopback host, join, mission, 8-file sealed manifest, clean stop); receipt keeps outcome=unknown and runtime_verified=false.",
+    "D's play_city live validation passed the full lifecycle (loopback host, join, mission, 8-file sealed manifest, clean stop); the latest sealed flight b340e922 verifies true with bots_team0=4 (native defenders 981..984), native team1 roster and positions, while receipts keep outcome=unknown and runtime_verified=false.",
     "Still unproven: wave 2+, wave completion, survivor sector occupancy against the intended guard entries over time, player-facing combat feel with the firearm profile, and release acceptance.",
     "Host stdout sealing verified: sealed bundles include dedicated-host ZDB1 stdout (39,042 B / 251 lines) added before signed stop (#16 closed).",
     "Kill/troop accessor fix (9756b14): stale-register reads replaced with returned lhs values; sealed engagement/troop fields reliable=true, unknown_agents=0, kill bound MAX_PLAUSIBLE_KILLS=10000.",
