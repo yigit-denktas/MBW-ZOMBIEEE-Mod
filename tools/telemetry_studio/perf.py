@@ -121,7 +121,7 @@ def analyze_performance(ingest: dict[str, Any]) -> dict[str, Any]:
         "tick_cadence_seconds": wall_cadence,
         "wall_clock_heartbeat_intervals_ms": wall_deltas_ms[:32],
         "wall_clock_missing_intervals": wall_missing,
-        "timestamp_source": ("probe_ts_ms (getTime)") if wall_cadence is not None else None,
+        "timestamp_source": ("probe_relative_getTime_ms (within-run only; semantics unverified)") if wall_cadence is not None else None,
         "agents_mean": statistics.fmean(agents) if agents else None,
         "agents_max": max(agents) if agents else None,
         "ai_sample_count": len(ai_samples),

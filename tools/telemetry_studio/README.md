@@ -52,8 +52,9 @@ say `unsealed_bundle`.
 - **Performance proxies:** heartbeat count/tick cadence (missing intervals,
   non-monotonic ticks), agent samples per heartbeat, combat samples, event rates,
   log sizes, recorder `event_drops`/truncation, CPU seconds and peak memory only
-  when the recorder receipt actually reports them. Wall-clock tick cadence is
-  `unknown` because ZDB1 lines carry no timestamps.
+  when the recorder receipt actually reports them. `ts_ms` (when present) is a
+  **probe-relative** WSE2 `getTime()` value for within-run cadence only; it is
+  not UTC/cross-run alignment, and older bundles without it stay `unknown`.
 - **WSE2 stats options:** reads the local WSE2 `rgl_config.ini` if present
   (`bShowSimulationStats`, `bShowRenderStats`, `i*StatsLogInterval`,
   `bLogSpeedModifiers`) and reports `available: false` otherwise; it never turns

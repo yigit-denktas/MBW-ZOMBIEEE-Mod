@@ -378,27 +378,34 @@ D's task-42 sealed runs exposed three readback gaps, now closed:
 ### Native hit attribution (ti_on_agent_hit)
 
 WSE2 Lua can add a mission-template trigger for native `ti_on_agent_hit`
-(trigger id `-28`) and read `store_trigger_param_1/2/3/5`:
-`1=victim`, `2=dealer`, `3=damage`, `5=missile flag`. The probe now emits a
-bounded `hit_sample` event per hit (server role only, max 2000 per run) with
-`victim`, `dealer`, `damage`, `missile`, `kind`; a capability line reports
-`hit_trigger=-28|hit_attribution=1`. The summary adds `hits` with total/damage,
-missile-vs-melee counts, dealer/victim team and troop breakdowns (from sampled
-agent metadata), friendly-fire count, unattributed hits and metadata
-availability. This replaces the old `hit_telemetry_unavailable` gap when hits
-are observed; the hit trigger still needs a sealed run to validate. No hit
-causality beyond the engine's own trigger params is claimed.
+(trigger id `-28`) and read `store_trigger_param_1/2/3/5`. The mapping
+`1=victim, 2=dealer, 3=damage, 5=missile flag` comes from the Native-derived
+module source (`module_mission_templates.py` uses params 1/2/3; the same
+source reads param 5 as the missile flag) and is **cited but not yet verified
+in our build**. The probe emits a bounded `hit_sample` event per hit (server
+role only, max 2000 per run) with `victim`, `dealer`, `damage`, `missile`,
+`kind`; capability `hit_trigger=-28|hit_attribution=1`. **Status: static/test-only
+until D seals a hit-bearing `3196ef5` run** — no inspected local run contains
+`hit_sample` yet. The summary adds `hits`: total/damage, missile-vs-melee,
+dealer/victim team and troop breakdowns where sampled agent metadata exists,
+friendly-fire count and unattributed hits. **Friendly-fire is a metadata-limited
+undercount**, not a total; hits without both dealer and victim metadata are
+`unattributed`. No hit causality beyond the engine trigger params is claimed.
 
-### Wall-clock timestamps and explicit round-ended event
+### Probe-relative `ts_ms` and explicit round-ended event
 
 Every ZDB1 line now carries `ts_ms` from WSE2 `getTime()` when available
-(guarded; `-1` when unavailable). This gives the telemetry studio a real
-wall-clock heartbeat cadence (`tick_cadence_seconds`,
-`wall_clock_missing_intervals`) instead of only tick-count deltas; older
-bundles without `ts_ms` remain `unknown`, not zero. The heartbeat also emits an
-explicit `round_ended` lifecycle event on an observed `g_round_ended` 0→1
-transition (no inferred win/wipe). Both are read-only additions to the existing
-ZDB1 wire format.
+(guarded; `-1` when unavailable). **Semantics are unverified:** inspected runs
+show values starting near 946/957 ms and reaching 15924 at the first heartbeat,
+i.e. this is a **probe-relative elapsed clock**, not UTC/absolute wall-clock
+and not cross-run aligned. The studio can use it for **within-run cadence**
+(`tick_cadence_seconds`, `wall_clock_missing_intervals`) only; older bundles
+without `ts_ms` remain `unknown`, not zero. It must not be used to compare
+absolute times between runs until a primary WSE2 API citation establishes the
+clock semantics. The heartbeat also emits an explicit `round_ended` lifecycle
+event on an observed `g_round_ended` 0→1 transition at **heartbeat
+resolution** (no inferred win/wipe; short 0→1→0 transitions can be missed).
+Both are read-only additions to the existing ZDB1 wire format.
 
 ### Invalid Group ID: 0 guard (team-order getters, client/entry path)
 

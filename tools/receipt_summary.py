@@ -1234,6 +1234,13 @@ def summarize_receipt(target: Path) -> dict:
                             or None),
         "unattributed": unattributed,
         "agent_metadata_available": len(agent_meta) if agent_meta else None,
+        "friendly_fire_note": (
+            "metadata-limited undercount: only hits with both dealer and victim "
+            "metadata sampled are classified"),
+        "validation": "static/test-only pending sealed hit-bearing run",
+        "param_mapping_source": (
+            "Native-derived module_mission_templates.py: 1=victim,2=dealer,"
+            "3=damage,5=missile; cited, not yet verified in our build"),
     }
 
     if not hit_events and "hit_telemetry_unavailable" not in gaps_hint:
