@@ -149,20 +149,32 @@ C's analyzer reports sampled `ai_sample` positions per run:
 
 C's balance analyzer with **no parameter receipts** returns **no ranked causal
 recommendations**; it explicitly reports parameter-metadata missing and requires a new
-sealed run. The list below is therefore a **ranked experiment backlog** derived from the
-descriptive gaps, not a sensitivity result. Confidence is deliberately low.
+sealed run. The table below is therefore a **feasibility-ranked experiment backlog**
+derived from the descriptive gaps, not a sensitivity result. Confidence is deliberately
+low.
 
-| Rank | Small change (one variable) | Evidence basis | Confidence | Minimal next run |
-| ---: | --- | --- | --- | --- |
-| 1 | Defender target/cap **+1** (e.g. 8 -> 9) | team-0 fixed at ~8-9 while team-1 reaches 14-25; 19 team-1 wins, 0 team-0 wins | low | same build/seed, 4+ sealed runs, record defender_target |
-| 2 | Wave-1 pressure: **-1/-2 visitors or stagger first wave** | all 19 team-1 wins are in windows with max observed wave 0-1 (16 at wave 1, 3 at wave 0); no team-1 win window reached wave 2+; team-1 strength jumps 7/8 -> 14-25 | low | controlled wave-1 count receipt |
-| 3 | Ranged **ammo/refill +1 magazine** (one class at a time) | lower-bound ranged-class kills vary; ammo not attributed | low | same class mix, ammo receipt |
-| 4 | Class mix: **one slot** toward/away from lumberjack | lumberjack 1.07 vs 0.58-0.61 lower-bound kills/agent | very low | fixed loadout/weapon, per-troop deaths needed |
-| 5 | Hold/regroup at the **north anchor** (map design) or spawn-fairness change | team-0 centroid north, team-1 southern; hold adoption unobserved | very low | D measurement of hold/entry fairness first |
+**A's contract (2026-10-24) constrains what is actually runnable today:** `--defender-target`
+is validated only **1-8** (cap 12 is the in-mission growth cap, not a build value), so
+8 -> 9 is **not a valid build**; wave-1 visitor counts are hard-coded in the compiled
+controller (no build flag); ammo is fixed at 8 stacks (9 is a loadout-code change, not a
+parameter); class mix has no flag; and a north-anchor hold experiment is gated on
+team-order adoption evidence (task-53/61), not testable yet. Minimum receipt for any run:
+build SHA, `defender_target`, `defender_reinforce`, `wave_visitors`, `defender_orders`,
+`defensive_line`, `team0_class_mix`, `ammo_stacks`, `fire_mode` (when F lands it), speed
+profile, sealed bundle id.
 
-Ranking is by expected information gain per run, not by expected effect size. Every item
-requires the controlled-variant protocol in section 8; otherwise it is a hypothesis, not
-a finding.
+| Rank | Candidate | Feasibility today | Evidence basis | Confidence | Next gate/run |
+| ---: | --- | --- | --- | --- | --- |
+| 0 | **P0 native-speed/slot seal** (A lane) | prerequisite, not a balance change | pause balance changes until native speed/faction-slot evidence is sealed | n/a | A/D seal first |
+| 1 | Defender target **4 vs 8** (not +1) | **testable now** on the same P0 build; `defender_reinforce=default` | team-0 ~8-9 vs team-1 14-25; 19 team-1 wins, 0 team-0 wins | low | 4+ sealed runs per value, receipt `defender_target` |
+| 2 | Class-mix variants (one slot) | **blocked** until a `team0_class_mix` parameter + receipt exists | lumberjack 1.07 vs 0.58-0.61 lower-bound kills/agent (small N) | very low | tooling task, then controlled run |
+| 3 | Ammo stacks **8 vs 9** (one class) | **blocked** until loadout code supports `ammo_stacks` + receipt | lower-bound ranged-class kills vary; ammo not attributed | low | loadout task, then controlled run |
+| 4 | Wave-1 pressure **-1/-2 or stagger** | **blocked**: counts are hard-coded in the compiled controller | all 19 team-1 wins are in max-wave 0-1 windows; team-1 jumps 7/8 -> 14-25 | low | trigger-15 count patch + receipt, then run |
+| 5 | North-anchor **hold/regroup** or spawn-fairness | **gated** on task-53/61 order-adoption evidence; not causal today | team-0 centroid north, team-1 southern; hold adoption unobserved | very low | adoption evidence first, then D measurement |
+
+Ranking is by **feasibility and expected information gain**, not expected effect size.
+Every item requires the parameter receipt above; otherwise it is a hypothesis, not a
+finding. No item is an approved run or an acceptance claim.
 
 ## 8. Unmeasured variables -> new tasks
 
@@ -197,8 +209,10 @@ created here.
   `task44-wave2b` (wave2b), plus six launcher-sealed flights with receipts. The three
   evidence bundles lack a sealed build receipt; do not infer build/parameter values from
   task names. No historical/pre-fix bundle is mixed in.
-- **A:** section 7 items 1, 2 and 5 are behavior/build experiments; they need A's
-  parameter surface and a controlled sealed run, not just analysis.
+- **A:** supplied the 2026-10-24 feasibility contract in section 7. Only defender target
+  **4 vs 8** is testable on the current P0 build; class-mix, ammo-stacks and wave-1
+  pressure need tooling/controller changes first, and the north-anchor hold experiment is
+  gated on task-53/61 order-adoption evidence. These are proposals, not approved runs.
 - **Reproduction:** run C's analyzer from the branch worktree:
 
 ```text
