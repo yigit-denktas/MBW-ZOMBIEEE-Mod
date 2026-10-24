@@ -37,6 +37,37 @@ WSE2's `-r` script content/semantics and the client auto-connect mechanism for t
 - Prefer City `tbfc_invasion_4`, mission template `multiplayer_iv`, B session route `dedicated`, local client `127.0.0.1`, source-verifiable final static receipt. Player-side actual in-game join and mission-entry logs must be independently observed.
 - C must be `ready` and armed before B starts any game. After B validates C marker and host/client matching owned processes, signed attach; after all game children exit, signed stop. No claim of playable waves from PID or network liveness.
 
+## 2.1 Dedicated rotation bot-count requirement — observed 2026-10-24
+
+**Root cause of the earlier "no team-1 agents" finding is dedicated rotation configuration, not the remaster build.** Lead-reported live observation on merged `main` `4c56242` with a rebuilt City module (C's corrected `opmeta=1` probe, recorder armed, dedicated host loopback-only `127.0.0.1:7240`). Sealed recorder receipt and screenshots are still pending.
+
+Observed sequence (ZDB1 / host state):
+
+| Step | Observation |
+| --- | --- |
+| Baseline, no bot-count commands | `role=server game_type=7 ready_for_spawn=1 bots_team1=0 team1=0 wave=0` for 90+ s |
+| `set_bot_count 1 32` | `agents=33 team0=33 team1=0` — all allied bots on the player team, no enemies |
+| `set_bot_count 2 32` | `agents=42 team0=1 team1=41 wave=1`, `wave_change wave=1`; still `game_type=7`, `ready_for_spawn=1`, loopback-only |
+
+Engine semantics that caused the trap:
+
+- `set_bot_count` is **1-based**: `1` is the first team, `2` is the second/enemy team.
+- `$g_multiplayer_num_bots_team_1` is the **first** team, so a probe field named `bots_team1` does not describe the enemy team and must not be read as one.
+- With no player/bot population the native round never became active enough for the original one-second wave controller to pass its round-start/time gate; configuring the second team populated the enemy team and the original wave advanced to `wave=1` with `team1=41` living agents (`32` configured + `9` original wave-1 visitors — arithmetic consistent with the source, not separately itemized in the evidence).
+
+**Required for any B launcher/installer P1 attempt (before `start`):**
+
+```text
+max_num_bots 200
+set_bot_count 1 0
+set_bot_count 2 32
+start
+```
+
+`set_round_max_seconds` may additionally bound the round. Offline enforcement: `tools/city_runtime_triage.py --rotation <generated rotation>` exposes `launcher_*` checks (start present, positive `max_num_bots`, positive second-team bot count, bot counts before `start`). This is a static contract, not gameplay proof.
+
+**Boundaries:** one enemy wave observed; wave 2+, original allied survivor divisions 5-7, fallback/regroup, combat, round transition and controlled teardown remain unverified. No gameplay or release acceptance is claimed.
+
 ## 3. Evidence and acceptance sequence (one consolidated final private test)
 
 | Gate | Authority | Acceptance / failure |
@@ -46,9 +77,9 @@ WSE2's `-r` script content/semantics and the client auto-connect mechanism for t
 | 2. WSE2 executable selection | B read-only local identity | **PENDING**: resolve among three candidates by role and pinned edition/version; do not publish private paths |
 | 3. Installed module | B journaled installer | PENDING: validated output + journal/rollback; no live-install mutation before explicit consent |
 | 4. Recorder armed | B+C | Recorded matching live C PID/session/attempt; watcher+offset ready. Not game-ready |
-| 5. Dedicated host private binding | B OS+engine logs | PENDING: actual **loopback-only bound socket** and local server readiness, not config values or PE metadata |
-| 6. Client joined City | B and C | PENDING: actual joined multiplayer session plus server-observed City scene and mission entry, not just game process |
-| 7. Survivors and waves | A+C | PENDING: actual original waves, living allied NPC teams/groups, mode-7 reinforcement sentinel, fallback/regroup and meaningful activity |
+| 5. Dedicated host private binding | B OS+engine logs | **SCOPED OBSERVED** (Lead, merged-main candidate): UDP `127.0.0.1:7240` loopback-only and host readiness reported; sealed receipt still pending |
+| 6. Client joined City | B and C | **SCOPED OBSERVED** (Lead, merged-main candidate): corrected probe reports `role=server`, `game_type=7`, `ready_for_spawn=1`; player agent present. Explicit server-side City scene marker and sealed receipt still pending |
+| 7. Survivors and waves | A+C | **FIRST ENEMY WAVE OBSERVED** (Lead, merged-main candidate): after second-team bot configuration `wave=1`, `wave_change wave=1`, `team1=41` living agents. Wave 2+, original allied survivor groups 5-7, fallback/regroup, combat and round transition remain pending |
 | 8. Shutdown + evidence | B+C | PENDING: B-owned children exited, signed C stop, verified ZIP hashes and manual privacy review |
 
 **Failure behavior:** Keep blocked/unknown states explicit. No false `engine_ready`, `joined`, `mission_entered` or `runtime_verified`; do not fall back to public or LAN hosting, reinstall silently, change RCON/firewall or kill unrelated processes.

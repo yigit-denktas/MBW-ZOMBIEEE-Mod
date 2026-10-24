@@ -81,3 +81,11 @@ While actual B boot results remained unposted, A fixed a **false-positive diagno
 - **No team-1 agents:** unproven causality — host probe reported `role=client` and skipped server-only sampling, and bound reads logged as illegal lvalue. One corrected controlled observation after C's fix is required (Lead-coordinated) to read `g_multiplayer_game_type`, `g_round_start_time`, bot-ready/counts, role and team-1 agents.
 - **New tooling:** `tools/city_runtime_triage.py` + `tests/test_city_runtime_triage.py` (9 tests, incl. negative controls for remaster-introduced/moved writes, game-type-bound probe, non-zero mode init, missing server gate). Full A suite on Windows 11 / Python 3.11.9 with owned original module+archive: **158 tests OK, zero skips**. Reports: [runtime triage](../reference/CITY_RUNTIME_TRIAGE_2026-10-24.md), acceptance ledger updated. No gameplay/WSE2 acceptance claim.
 
+## Live bot-count breakthrough — post-merge 2026-10-24
+
+- **Lead-reported live observation on merged `main` `4c56242` with a rebuilt City module (C's corrected `opmeta=1` probe, recorder armed, dedicated host loopback-only `127.0.0.1:7240`). Sealed recorder receipt and screenshots are still pending.**
+- Baseline: `role=server game_type=7 ready_for_spawn=1 bots_team1=0 team1=0 wave=0` for 90+ s. `set_bot_count 1 32` → `agents=33 team0=33 team1=0`. **`set_bot_count 2 32` → `agents=42 team0=1 team1=41 wave=1`, `wave_change wave=1`.**
+- Root cause: dedicated rotation lacked second-team bot configuration; not a remaster/build defect. `set_bot_count` is 1-based (2 = enemy team); `$g_multiplayer_num_bots_team_1` is the first team. B launcher/installer P1 must emit `max_num_bots 200; set_bot_count 1 0; set_bot_count 2 32` before `start`.
+- A lane: documented in `docs/WSE2_CITY_BOOT_CONTRACT.md` (§2.1), `docs/INTEGRATED_CITY_ACCEPTANCE_2026-10-24.md`, `reference/CITY_DEDICATED_BOT_CONFIG_FINDING_2026-10-24.md`; `tools/city_runtime_triage.py` gained a `--rotation` static contract (+6 tests).
+- No gameplay acceptance: wave 2+, ally survivor divisions 5-7, combat, round transition, teardown and sealed recorder receipt remain open; City release 0/23, milestones 0/5. This supersedes the earlier "no-spawn causality unproven" framing only for the bot-config component.
+

@@ -126,3 +126,15 @@ Use **read-only** `tools/round_lifecycle_audit.py --original <owned original mod
 - **Tooling:** read-only `tools/city_runtime_triage.py` plus 9 regression tests encode the above, including negative controls (remaster-introduced write, moved non-trailing write, game-type-bound probe, non-zero mode initializer, missing server gate). A-lane suite on this laptop: **158 tests, OK, zero skips** (Windows 11, Python 3.11.9, owned original module + pinned archive). Full evidence and exact lines: [runtime triage](../reference/CITY_RUNTIME_TRIAGE_2026-10-24.md).
 - **One corrected controlled observation is required** (Lead-coordinated) after C's probe fix, reading game type, round-start time, bot-ready/bot counts, server role and team-1 counts. No patch, no gameplay claim, and no evidence merge across candidates before that.
 
+## Live bot-count breakthrough — 2026-10-24 (post-merge observation)
+
+**Lead-reported live observation on merged `main` `4c56242` with a rebuilt City module (C's corrected `opmeta=1` probe, recorder armed, dedicated host loopback-only `127.0.0.1:7240`). Sealed recorder receipt and screenshots are still pending.**
+
+- **Baseline without bot-count config:** `role=server game_type=7 ready_for_spawn=1 bots_team1=0 team1=0 wave=0` for 90+ s.
+- **`set_bot_count 1 32`:** `agents=33 team0=33 team1=0` (allied bots on the player team; no enemy).
+- **`set_bot_count 2 32`:** `agents=42 team0=1 team1=41 wave=1`, `wave_change wave=1`; still `game_type=7`, `ready_for_spawn=1`, loopback-only.
+
+This confirms C's corrected probe (role=server, separate game type, ready/bots reads, no illegal-lvalue spam) and identifies the earlier "no AI" cause as **dedicated rotation bot configuration**, not the remaster build: `set_bot_count` is 1-based, `2` is the enemy team, and `$g_multiplayer_num_bots_team_1` names the first team. The launcher/installer P1 requirement is therefore `max_num_bots` plus a positive `set_bot_count 2 <n>` emitted before `start`; offline enforcement is `tools/city_runtime_triage.py --rotation`.
+
+Gate effect (no acceptance change): G05/G07 style probe and loopback observations hold for this candidate; G08 gains server-role/game-type/join evidence but still needs the explicit sealed receipt; G09 remains open (original allied survivor divisions 5-7 not observed — the 32 allied bots were native team-0 bots); **G10 records the first observed enemy wave but stays open** until at least two distinct waves with sealed evidence; G11/G12/G13 remain open. Required City release outcomes remain **0/23**, accepted milestones **0/5**.
+

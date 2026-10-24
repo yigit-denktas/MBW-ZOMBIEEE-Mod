@@ -14,7 +14,10 @@ the shipped native data can prove from what only an engine run can prove:
 
 ``runtime_verified`` is always false and ``causality`` is always ``unproven``:
 native data order is not proof of engine execution order, of wave spawning, or
-of why the observed dedicated host read zero team-1 agents.
+of why the observed dedicated host read zero team-1 agents. The optional
+``--rotation`` check encodes the live-derived launcher contract that the
+dedicated rotation must configure second-team bots (``set_bot_count 2 <n>``,
+1-based) before ``start``; that is a static requirement, not gameplay proof.
 """
 from __future__ import annotations
 
@@ -41,6 +44,88 @@ TROOP_BASE = 360287970189639680
 FACTION_BASE = 432345564227567616
 
 SCHEMA = "zombieee.city-runtime-triage.v1"
+
+ROTATION_SECOND_TEAM_ONE_BASED = 2  # set_bot_count is 1-based: 1 = first team, 2 = enemy team
+
+
+def parse_rotation(text: str) -> list[tuple[str, list[str]]]:
+    """Tokenize a dedicated-server ``-r`` rotation script, ignoring comments."""
+    commands = []
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        parts = line.split()
+        commands.append((parts[0].lower(), parts[1:]))
+    return commands
+
+
+def _ints(values: list[str], count: int):
+    if len(values) < count:
+        return None
+    result = []
+    for value in values[:count]:
+        try:
+            result.append(int(value))
+        except ValueError:
+            return None
+    return result
+
+
+def analyse_rotation(text: str) -> dict:
+    """Static contract for the dedicated rotation bot configuration.
+
+    The engine ``set_bot_count`` command is 1-based: team 1 is the first team and
+    team 2 is the second/enemy team. ``$g_multiplayer_num_bots_team_1`` addresses
+    the first team, so a solo City rotation must configure team 2 explicitly.
+    This is a static contract: it does not prove that the round starts or that a
+    wave spawns.
+    """
+    commands = parse_rotation(text)
+    start_at = next((index for index, (name, _) in enumerate(commands)
+                     if name == "start"), None)
+    max_bots = None
+    bot_counts = []
+    for index, (name, args) in enumerate(commands):
+        if name == "max_num_bots":
+            values = _ints(args, 1)
+            if values:
+                max_bots = values[0]
+        elif name == "set_bot_count":
+            values = _ints(args, 2)
+            if values:
+                bot_counts.append({"index": index,
+                                   "team_1based": values[0],
+                                   "count": values[1]})
+    second_team = [row for row in bot_counts
+                   if row["team_1based"] == ROTATION_SECOND_TEAM_ONE_BASED
+                   and row["count"] > 0]
+    first_team = [row for row in bot_counts if row["team_1based"] == 1]
+    before_start = (start_at is not None and
+                    all(row["index"] < start_at for row in bot_counts))
+    problems = []
+    if start_at is None:
+        problems.append("rotation has no start command")
+    if max_bots is None or max_bots <= 0:
+        problems.append("rotation declares no positive max_num_bots")
+    if not second_team:
+        problems.append("rotation configures no positive second-team bot count "
+                        "(set_bot_count 2 <n>)")
+    if bot_counts and not before_start:
+        problems.append("bot counts are declared after start")
+    return {
+        "analysed": True,
+        "commands": len(commands),
+        "start_index": start_at,
+        "max_num_bots": max_bots,
+        "set_bot_count": bot_counts,
+        "first_team_declared": first_team,
+        "second_team_bots_configured": bool(second_team),
+        "bot_counts_before_start": before_start,
+        "problems": problems,
+        "interpretation": "Static rotation contract only; engine round start and wave "
+                          "spawn remain unverified.",
+    }
 
 
 def mission_rows(module: Path) -> list[str]:
@@ -88,7 +173,8 @@ def flatten(rows: list[str]) -> dict:
 def analyse_defects(original_rows: list[str], module_rows: list[str],
                     factions: list[str], troops: list[str],
                     variables: list[str],
-                    probe_text: str | None = None) -> dict:
+                    probe_text: str | None = None,
+                    rotation_text: str | None = None) -> dict:
     """Pure, path-free source assessment of the two observed defect classes."""
     checks: dict[str, bool] = {}
     problems: list[str] = []
@@ -219,6 +305,25 @@ def analyse_defects(original_rows: list[str], module_rows: list[str],
     else:
         warnings.append("Probe source not supplied; field interpretation is unverified")
 
+    launcher_rotation = {"analysed": rotation_text is not None}
+    if rotation_text is not None:
+        launcher_rotation.update(analyse_rotation(rotation_text))
+        require("launcher_rotation_start_present",
+                launcher_rotation["start_index"] is not None,
+                "Dedicated rotation has no start command")
+        require("launcher_max_num_bots_declared",
+                (launcher_rotation["max_num_bots"] or 0) > 0,
+                "Dedicated rotation declares no positive max_num_bots")
+        require("launcher_second_team_bots_positive",
+                launcher_rotation["second_team_bots_configured"],
+                "Dedicated rotation configures no positive second-team bot count")
+        require("launcher_bot_counts_before_start",
+                bool(launcher_rotation["set_bot_count"]) and
+                launcher_rotation["bot_counts_before_start"],
+                "Dedicated rotation declares bot counts after start")
+    else:
+        warnings.append("Rotation file not supplied; launcher bot-count contract unverified")
+
     report = {
         "schema": SCHEMA,
         "scope": "source and probe-field analysis of the first observed City attempt",
@@ -259,6 +364,7 @@ def analyse_defects(original_rows: list[str], module_rows: list[str],
                 "preserved": checks.get("wave_controller_unchanged", False),
             },
             "probe_fields": probe_fields,
+            "launcher_rotation": launcher_rotation,
             "source_game_type": 7,
             "source_tactical_mode_initial": tactical_mode_initial,
         },
@@ -283,12 +389,27 @@ def analyse_defects(original_rows: list[str], module_rows: list[str],
             "why no team-1 agent was replicated to the joined client",
         ],
         "disposition": "trigger14_original_non_causal_source_scope_only_engine_execution_unproven",
+        "post_merge_live_finding": {
+            "attribution": "Lead-reported observation on merged main 4c56242 with a rebuilt City "
+                           "module and the opmeta=1 recorder probe; sealed receipt pending",
+            "root_cause": "The dedicated rotation did not configure second-team bots, so the native "
+                          "round/bot system never populated the enemy team and the original wave "
+                          "controller could not progress; configuring set_bot_count 2 produced "
+                          "wave=1 with team1=41 agents.",
+            "validated_probe_fields": ["role=server", "game_type=7", "ready_for_spawn=1",
+                                      "bots_team1", "wave", "wave_change"],
+            "launcher_requirement": "max_num_bots and set_bot_count 2 <n> must be emitted before "
+                                    "start (set_bot_count is 1-based; 2 = enemy team).",
+            "gameplay_acceptance": "none",
+            "runtime_verified": False,
+        },
     }
     return report
 
 
 def audit_observed_defects(original: Path, module: Path,
-                           probe: Path | None = None) -> dict:
+                           probe: Path | None = None,
+                           rotation: Path | None = None) -> dict:
     """Read owned module copies; emit path-free evidence."""
     try:
         original_rows = mission_rows(Path(original))
@@ -299,8 +420,11 @@ def audit_observed_defects(original: Path, module: Path,
         probe_text = None
         if probe is not None:
             probe_text = Path(probe).read_text(encoding="utf-8", errors="replace")
+        rotation_text = None
+        if rotation is not None:
+            rotation_text = Path(rotation).read_text(encoding="utf-8", errors="replace")
         return analyse_defects(original_rows, module_rows, factions, troops,
-                               variables, probe_text)
+                               variables, probe_text, rotation_text)
     except (OSError, ValueError, IndexError, KeyError) as exc:
         return {"schema": SCHEMA, "runtime_verified": False, "causality": "unproven",
                 "problems": ["Static inspection error: " + type(exc).__name__ + ": " + str(exc)],
@@ -316,9 +440,11 @@ def main() -> int:
                         help="Fully built City module")
     parser.add_argument("--probe", type=Path,
                         help="Overlay Lua probe used by the observed attempt")
+    parser.add_argument("--rotation", type=Path,
+                        help="Dedicated rotation script (-r) that configures bots")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
-    report = audit_observed_defects(args.original, args.module, args.probe)
+    report = audit_observed_defects(args.original, args.module, args.probe, args.rotation)
     if args.json:
         print(json.dumps(report, indent=2, sort_keys=True))
     else:
@@ -335,6 +461,10 @@ def main() -> int:
         if probe.get("analysed"):
             print("Probe mode global:", probe.get("mode_global"),
                   "/ reads game type:", probe.get("reads_game_type"))
+        rotation = defects.get("launcher_rotation", {})
+        if rotation.get("analysed"):
+            print("Launcher rotation: second-team bots:", rotation["second_team_bots_configured"],
+                  "/ before start:", rotation["bot_counts_before_start"])
         for problem in report.get("problems", []):
             print("Problem:", problem)
         for warning in report.get("warnings", []):

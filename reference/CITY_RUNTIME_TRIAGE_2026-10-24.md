@@ -100,3 +100,10 @@ Local result: **158 tests, OK, zero skips** (Windows 11, Python 3.11.9, owned or
 ## Next controlled observation (requires Lead coordination)
 
 One short, instrumented, loopback-only attempt after the C probe fix, recording at minimum: `g_multiplayer_game_type`, `g_round_start_time`, `g_multiplayer_ready_for_spawning_agent`, `g_multiplayer_num_bots_team_1`, server-role detection, and team-1 agent counts, then stop. No repeated owner playtests and no gameplay patch before that evidence exists.
+
+## Post-merge live resolution — 2026-10-24
+
+**Lead-reported live observation on merged `main` `4c56242` with a rebuilt City module (C's corrected `opmeta=1` probe, recorder armed, dedicated host loopback-only `127.0.0.1:7240`). Sealed recorder receipt and screenshots are still pending.** The earlier no-team-1 finding is now explained: the dedicated rotation did not configure second-team bots, so the enemy team stayed empty and the original one-second wave controller never progressed. `set_bot_count` is 1-based (`2` = enemy team); `$g_multiplayer_num_bots_team_1` names the first team. After `max_num_bots 200; set_bot_count 1 0; set_bot_count 2 32` were added before `start`, the corrected probe reported `role=server game_type=7 ready_for_spawn=1`, `agents=42 team0=1 team1=41 wave=1` and `wave_change wave=1` — the first observed enemy wave.
+
+This validates the probe fix (C `675188a`) and closes the earlier probe-blindness confounder for future runs. It does **not** change the trigger-14 conclusion (original, non-fatal, not proven causal) and does not establish wave 2+, original allied survivor groups, combat, round transition or any gameplay acceptance. The launcher/installer must emit the bot counts before `start`; `tools/city_runtime_triage.py --rotation <file>` now enforces that statically. Sealed recorder receipt and screenshots remain pending.
+

@@ -61,12 +61,24 @@ class CityRuntimeTriageTests(unittest.TestCase):
         self.variables = variable_names(self.module)
         self.probe_text = PROBE.read_text(encoding="utf-8")
 
-    def analyse(self, module_rows=None, probe_text=None):
+    SAMPLE_ROTATION = (
+        "set_server_name ZOMBIEEE_Local_Test\n"
+        "set_mission multiplayer_iv\n"
+        "set_map tbfc_invasion_4\n"
+        "set_factions fac_kingdom_1 fac_kingdom_invaders\n"
+        "max_num_bots 200\n"
+        "set_bot_count 1 0\n"
+        "set_bot_count 2 32\n"
+        "start\n"
+    )
+
+    def analyse(self, module_rows=None, probe_text=None, rotation_text=None):
         return analyse_defects(
             self.original_rows,
             self.module_rows if module_rows is None else module_rows,
             self.factions, self.troops, self.variables,
-            self.probe_text if probe_text is None else probe_text)
+            self.probe_text if probe_text is None else probe_text,
+            rotation_text)
 
     def test_observed_trigger_14_is_original_and_trailing(self):
         report = self.analyse()
@@ -143,6 +155,52 @@ class CityRuntimeTriageTests(unittest.TestCase):
         report = self.analyse(module_rows=rows)
         self.assertFalse(report["checks"]["wave_controller_server_gate_first"])
         self.assertFalse(report["checks"]["wave_controller_unchanged"])
+
+    def test_rotation_contract_passes_with_second_team_bots(self):
+        report = self.analyse(rotation_text=self.SAMPLE_ROTATION)
+        rotation = report["defects"]["launcher_rotation"]
+        self.assertTrue(rotation["analysed"])
+        self.assertTrue(rotation["second_team_bots_configured"])
+        self.assertTrue(rotation["bot_counts_before_start"])
+        self.assertEqual(rotation["max_num_bots"], 200)
+        self.assertEqual(rotation["problems"], [])
+        self.assertTrue(report["checks"]["launcher_second_team_bots_positive"])
+        self.assertTrue(report["checks"]["launcher_bot_counts_before_start"])
+
+    def test_rotation_without_second_team_bots_is_rejected(self):
+        rotation = self.SAMPLE_ROTATION.replace("set_bot_count 2 32\n", "")
+        report = self.analyse(rotation_text=rotation)
+        self.assertFalse(report["checks"]["launcher_second_team_bots_positive"])
+        self.assertTrue(report["defects"]["launcher_rotation"]["problems"])
+
+    def test_rotation_first_team_bots_only_is_rejected(self):
+        rotation = self.SAMPLE_ROTATION.replace("set_bot_count 2 32",
+                                                "set_bot_count 1 32")
+        report = self.analyse(rotation_text=rotation)
+        self.assertFalse(report["checks"]["launcher_second_team_bots_positive"])
+
+    def test_rotation_bot_counts_after_start_are_rejected(self):
+        rotation = self.SAMPLE_ROTATION.replace("set_bot_count 2 32\n", "").replace(
+            "start\n", "start\nset_bot_count 2 32\n")
+        report = self.analyse(rotation_text=rotation)
+        self.assertFalse(report["checks"]["launcher_bot_counts_before_start"])
+
+    def test_missing_rotation_is_unverified_not_silent_pass(self):
+        report = self.analyse()
+        self.assertFalse(report["defects"]["launcher_rotation"]["analysed"])
+        self.assertTrue(any("Rotation file not supplied" in warning
+                            for warning in report["warnings"]))
+        self.assertFalse(report["runtime_verified"])
+
+    def test_file_audit_with_rotation_stays_path_free(self):
+        with tempfile.TemporaryDirectory() as folder:
+            rotation = Path(folder) / "Native.txt"
+            rotation.write_text(self.SAMPLE_ROTATION, encoding="utf-8")
+            report = audit_observed_defects(ORIGINAL, self.module, PROBE, rotation)
+        self.assertEqual(report["problems"], [], report["problems"])
+        self.assertTrue(report["defects"]["launcher_rotation"]["second_team_bots_configured"])
+        self.assertNotIn(str(ORIGINAL), json.dumps(report))
+        self.assertFalse(report["runtime_verified"])
 
     def test_report_is_path_free(self):
         blob = json.dumps(self.analyse())
