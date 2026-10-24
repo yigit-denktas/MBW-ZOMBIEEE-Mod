@@ -255,3 +255,10 @@ Not demonstrated: verified WSE2 release/startup, atomic install/rollback under
 Windows locks or crash/power loss, actual private binding, desktop shortcut,
 real in-engine recorder attachment, automatic join or gameplay. One combined
 final Windows session remains pending after A/B/C integration.
+
+## Host stdout sealing and validated rotation (bug-fix pass)
+
+- The passive recorder cannot capture another process's stdout. The launcher owns the host child via `launcher.host_session.HostSession`, which tees bounded stdout/stderr to `host_stdout.log`.
+- After both game children exit and **before** `PassiveRecorder.stop_after_exit`, call `adapter.add_artifact(host_stdout)`. C hashes every file in the session directory at seal time, so the ZDB1 probe stream is then inside the verified manifest (issue #16).
+- `launcher.rotation.build_rotation` is the single source of truth for the dedicated rotation: 1-based team numbering, positive second-team bot count, respawn/round fields, and the explicit generic-bot (Crazed Civilian) roster caveat. `Session.rotation_commands()` and `Session.receipt()['rotation_sha256']` expose it.
+
