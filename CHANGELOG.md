@@ -238,3 +238,6 @@ work-item → PR → commit → version links are in
 
 
 <!-- task-71 hit-trigger metadata-only source revision: 1845906 -->
+
+
+<!-- heatmap heartbeat nil-fix metadata-only source revision: 9a23857 -->
