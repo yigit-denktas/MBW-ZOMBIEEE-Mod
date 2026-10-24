@@ -140,6 +140,45 @@ never infer completion from `log_omitted_bytes=[0]` alone. The engine log also
 carries no probe stream at all: host stdout stays outside the bundle (issue
 #16).
 
+## Telemetry v2: troop histogram, lifecycle events and receipt summary
+
+The ZDB1 probe (overlay `0.2.0`, `|opmeta=1`) now emits, in `mission_enter`
+and every heartbeat, a bounded per-team troop histogram: `troops_team0/1=id:count,...`,
+`troop_names_team0/1=id:label,...`, `troop_ids_unknown=N` and
+`troops_truncated=N`. At most 12 distinct troops and 400 characters per team;
+labels come only from the bounded `lua/msfiles/ID_troops.py` table (13
+documented roster ids, 32-character sanitized names), never from a guessed
+string opcode - an unknown id or a different module version stays numeric and
+is counted as unknown rather than mislabelled. A missing troop getter reports
+`-1`.
+
+Explicit lifecycle events are emitted only from observed transitions and only
+for `role=server`: `player_joined` (first alive team-0 non-player agent),
+`player_died` (previously alive agent observed dead), `player_left` (previously
+alive agent removed; NOT classified as death or disconnect), `player_respawned`
+(new alive player after an observed absence), `round_started` (`round_start`
+identity changed) and `wave_started` (wave transition to >= 1). Each carries
+`observed=...` plus wave, round_start, team counts, game_type, ready_for_spawn
+and bots_team1. 15 s sampling cannot resolve a 5 s respawn: a death and
+immediate respawn between samples emits nothing, so absence of an event is not
+absence of a death. `wave_change` and `tactical_change` remain for compatibility.
+
+`python tools/diagnostics.py summary <sealed-session-dir-or-attempt-dir> [--json]`
+verifies the recorder manifest first (exact file set, safe paths, no symlinks,
+SHA-256) and fails closed with exit code 2 on tampering. It then reports
+session/attempt/outcome, probe `opmeta`/role/game_type/ready_for_spawn,
+max/last team counts, the union troop histogram with labels and bounds,
+observed waves/rounds, lifecycle events, engine-error counts by class (no raw
+text) and explicit evidence gaps: `zdbi_stream_not_sealed`, passive
+`exit_code_observed=false`, unknown engine runtime, and log
+truncation/omission/poll failures. It never reports `runtime_verified=true`.
+
+The ZDB1 stream can only be read when the launcher/recorder seals
+`host_stdout.log` into the session directory (B `HostSession` +
+`PassiveRecorder.add_artifact` before the signed stop); a passive attach alone
+cannot capture another process's stdout, and attempts 7/8 sealed no ZDB1
+stream at all.
+
 ## Agent C: external flight recorder (development prototype)
 
 **Status: offline prototype on `agent/c-flight-recorder`; Windows/WSE2 integration not verified.** The recorder runs as a separate Python process, observes a subprocess launched with `--` or a pre-existing PID with `--observe-pid`, and independently stores atomic, bounded evidence snapshots. No game memory injection, shell execution, external telemetry or background uploads. It does not replace the final WSE2 session.

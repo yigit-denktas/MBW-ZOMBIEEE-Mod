@@ -657,6 +657,9 @@ def main() -> int:
     many.add_argument("bundles", type=Path, nargs="+")
     ve = sub.add_parser("verify", help="SHA-256 verification and safety check")
     ve.add_argument("bundle", type=Path)
+    su = sub.add_parser("summary", help="Human+JSON 'what happened' summary of a sealed flight receipt")
+    su.add_argument("receipt", type=Path)
+    su.add_argument("--json", action="store_true", help="Emit JSON instead of text")
     args = parser.parse_args()
     try:
         if args.command == "collect":
@@ -664,6 +667,16 @@ def main() -> int:
                              flight_root=args.flight_root)
         elif args.command == "compare":
             result = aggregate(args.bundles)
+        elif args.command == "summary":
+            from receipt_summary import ReceiptError, format_summary, summarize_receipt
+            try:
+                summary = summarize_receipt(args.receipt)
+            except ReceiptError as exc:
+                print("Receipt verification failed: " + str(exc), file=sys.stderr)
+                return 2
+            print(json.dumps(summary, indent=2, sort_keys=True) if args.json
+                  else format_summary(summary))
+            return 0
         else:
             data = read_bundle(args.bundle)
             if args.command == "verify":

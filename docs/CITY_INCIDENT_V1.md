@@ -323,6 +323,32 @@ as the terminal-write/atomic-replace issue #15, not corruption. The engine log
 itself contains only the original Trigger 14 errors; the probe stream remains
 outside the sealed bundle (issue #16).
 
+## Telemetry v2 evidence bounds
+
+Overlay `0.2.0` adds a bounded per-team troop histogram and observed-only
+lifecycle events (`player_joined`, `player_died`, `player_respawned`,
+`player_left`, `round_started`, `wave_started`). Their evidence value is
+explicitly bounded:
+
+* The histogram is capped per team (12 distinct troop ids, 400 characters) and
+  labels come only from the bounded `ID_troops.py` table pinned to Beta 0.4
+  ids. A different module version can therefore show numeric ids with
+  `troop_ids_unknown>0`; labels are an observation aid, never roster
+  authentication. Crazed Civilian vs native zombie remains A's source-level
+  question (#13/#14).
+* `player_died` is emitted only when a previously alive team-0 non-player agent
+  is sampled dead; `player_left` means the agent was sampled absent and is NOT
+  a death claim; `player_respawned` requires a preceding observed absence. With
+  15 s sampling and a ~5 s respawn, a death plus respawn between samples emits
+  nothing, so event absence is not evidence of no death.
+* No summary may promote these markers to gameplay acceptance:
+  `runtime_verified` stays false and `runtime_status` stays unknown.
+* `python tools/diagnostics.py summary <sealed-dir>` fails closed (exit 2) on
+  a tampered/incomplete manifest and reports `zdbi_stream_not_sealed` when the
+  probe stream was not sealed. Until the launcher/recorder seals
+  `host_stdout.log` (issue #16), sealed receipts carry only engine-log text and
+  cannot attest role/game_type/wave from their own contents.
+
 ## Verification and privacy
 
 Synthetic regression tests cover source/runtime claims, the original game

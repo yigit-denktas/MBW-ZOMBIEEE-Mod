@@ -184,8 +184,60 @@ class LuaOperationMetadataTests(unittest.TestCase):
         # attempt-4 team0=1 can coincide with the failed call's zero result).
         self.assertIn("game.agent_get_team(0, agent)", self.main)
         self.assertIn("op_error", self.main)
-        self.assertIn("measured and a or -1", self.main)
-        self.assertIn("measured and z or -1", self.main)
+        self.assertIn("if not result.measured then", self.main)
+        self.assertIn("result.team0, result.team1 = -1, -1", self.main)
+
+    def test_v2_troop_histogram_is_bounded_and_declared(self):
+        # Names come from the bounded msfiles/ID_troops.py table, never from an
+        # unverified string opcode: the probe must not call str_store_troop_name.
+        self.assertIn("game.const.troops", self.main)
+        self.assertNotIn("str_store_troop_name", self.main)
+        self.assertIn("|troop_hist=1", self.main)
+        for field in ("|troops_team0=", "|troops_team1=",
+                      "|troop_names_team0=", "|troop_names_team1=",
+                      "|troop_ids_unknown=", "|troops_truncated="):
+            self.assertIn(field, self.main)
+        for bound in ("MAX_HIST_TROOPS = 12", "MAX_HIST_LINE = 400",
+                      "MAX_TROOP_NAME = 32", "MAX_PLAYER_IDS = 8"):
+            self.assertIn(bound, self.main)
+
+    def test_troop_id_map_is_bounded_and_documented(self):
+        id_file = ROOT / "overlay" / "lua" / "msfiles" / "ID_troops.py"
+        self.assertTrue(id_file.is_file())
+        constants, _lists = parse_header(id_file.read_text(encoding="utf-8"))
+        documented = {
+            "trp_invader_multiplayer_ai", "trp_invader1_multiplayer_ai",
+            "trp_invader2_multiplayer_ai", "trp_invader3_multiplayer_ai",
+            "trp_invader4_multiplayer_ai", "trp_invader5_multiplayer_ai",
+            "trp_invader6_multiplayer_ai", "trp_invader7_multiplayer_ai",
+            "trp_invader8_multiplayer_ai", "trp_swadian_crossbowman_multiplayer",
+            "trp_swadian_sniper_multiplayer", "trp_swadian_infantry_multiplayer",
+            "trp_swadian_man_at_arms_multiplayer",
+        }
+        self.assertEqual(set(constants), documented)
+        self.assertEqual(len(set(constants.values())), len(constants))
+        for name, opcode in constants.items():
+            self.assertIsInstance(opcode, int)
+            self.assertGreaterEqual(opcode, 0)
+            self.assertLess(opcode, 1000, name)
+
+    def test_v2_lifecycle_events_are_explicit(self):
+        self.assertIn("|lifecycle=1", self.main)
+        for event in ("player_joined", "player_died", "player_respawned",
+                      "player_left", "round_started", "wave_started"):
+            self.assertIn(f'emit("{event}"', self.main)
+        # Events carry their observation basis; none is inferred from a metric.
+        for basis in ("observed=first_alive_player", "observed=dead_agent",
+                      "observed=alive_after_absence", "observed=agent_removed",
+                      "observed=round_identity_change", "observed=wave_transition"):
+            self.assertIn(basis, self.main)
+
+    def test_v2_events_are_emitted_only_from_observed_transitions(self):
+        # Player lifecycle requires a server-role world sample and previous state.
+        self.assertIn('if role ~= "server" or not world or not world.ok then return end',
+                      self.main)
+        self.assertIn("previous_alive_players", self.main)
+        self.assertIn("previous_round_start", self.main)
 
     def test_role_probe_uses_can_fail_operation(self):
         self.assertIn("game.multiplayer_is_server", self.main)
