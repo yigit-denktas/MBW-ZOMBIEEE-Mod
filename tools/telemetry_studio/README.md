@@ -31,6 +31,8 @@ python -m tools.telemetry_studio tail <log> [--follow] [--from-start] [--json]
 python -m tools.telemetry_studio inspect <installed-module-dir> [--json]
 python -m tools.telemetry_studio report <baseline> [candidate] --out receipt.md \
     --hypothesis "..." --next "..." [--module <installed-module-dir>]
+python -m tools.telemetry_studio balance <run1> [run2 ...] \
+    [--params params.json] [--out balance.md] [--json]
 ```
 
 `ingest`/`perf`/`anomalies` require a verified sealed bundle by default. Use
@@ -61,6 +63,27 @@ say `unsealed_bundle`.
   ops (2093/502/1790/1791/3314/3343/522/5113), slow-894 slot writes, invalid
   faction literals, speed-op triggers, module receipt fields and the msfiles
   header opcode declarations.
+
+## Bot-vs-bot balance analyzer
+
+`balance` ingests one or more sealed bot-only bundles and reports:
+
+- per-round observed outcomes: `team0_win` / `team1_win` only when one team's
+  observed alive count is 0; `mutual_wipe`; `round_reset_no_wipe` when a round
+  resets with both teams alive (no explicit round-end event exists); `unknown`;
+- `wall_clock_seconds` is always `None` because ZDB1 has no timestamps (gap);
+- troop/class contributions as a **lower bound** from max observed kills per
+  sampled agent aggregated by troop (not per-hit/per-death attribution);
+- a parameter-sensitivity matrix from an optional JSON mapping
+  `run-root-or-name -> {parameter: value}`; correlation only, never causality,
+  and `confidence=low` unless the variants are controlled;
+- ranked small-change recommendations with explicit confidence/unknowns, and
+  `gaps_as_tasks` for unmeasured facts (round-end event, hit attribution,
+  wall-clock survival, parameter receipt, per-troop deaths).
+
+No parameter metadata or fewer than two variants produces explicit
+`parameter_metadata_missing` / `insufficient_runs_for_ranked_recommendations`
+rather than a guessed recommendation.
 
 ## Tests
 

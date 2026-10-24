@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 from .anomaly import detect_anomalies
+from .balance import analyze_balance, render_balance_report
 from .compare import compare_ingests
 from .ingest import IngestError, ingest_bundle
 from .perf import analyze_performance
@@ -67,6 +68,14 @@ def main(argv: list[str] | None = None) -> int:
     p_schema = sub.add_parser("schema", help="event schema/granularity catalog")
     p_schema.add_argument("--json", action="store_true")
 
+    p_balance = sub.add_parser("balance", help="bot-vs-bot balance analysis")
+    p_balance.add_argument("bundles", type=Path, nargs="+")
+    p_balance.add_argument("--params", type=Path, default=None,
+                           help="JSON mapping run root/name -> numeric parameters")
+    p_balance.add_argument("--out", type=Path, default=None)
+    p_balance.add_argument("--allow-unsealed", action="store_true")
+    p_balance.add_argument("--json", action="store_true")
+
     p_report = sub.add_parser("report", help="render an iteration receipt")
     p_report.add_argument("baseline", type=Path)
     p_report.add_argument("candidate", type=Path, nargs="?")
@@ -106,6 +115,23 @@ def main(argv: list[str] | None = None) -> int:
             base, _ = _ingest(args.baseline, args.allow_unsealed)
             cand, _ = _ingest(args.candidate, args.allow_unsealed)
             return _print(compare_ingests(base, cand), args.json)
+        if args.command == "balance":
+            import json as _json
+            params = _json.loads(args.params.read_text(encoding="utf-8")) if args.params else None
+            runs = []
+            for path in args.bundles:
+                run = ingest_bundle(path, allow_unsealed=args.allow_unsealed)
+                run["name"] = path.name
+                runs.append(run)
+            result = analyze_balance(runs, params)
+            text = render_balance_report(result)
+            if args.out:
+                args.out.parent.mkdir(parents=True, exist_ok=True)
+                args.out.write_text(text, encoding="utf-8")
+                print(f"wrote {args.out}")
+            else:
+                print(_json.dumps(result, indent=2, sort_keys=True) if args.json else text)
+            return 0
         if args.command == "report":
             base, base_perf = _ingest(args.baseline, args.allow_unsealed)
             cand = cand_perf = comparison = None

@@ -18,6 +18,7 @@ from tools.telemetry_studio import (
     validate_event,
     schema_catalog,
 )
+from tools.telemetry_studio.balance import analyze_balance, render_balance_report
 from tools.telemetry_studio.ingest import IngestError
 from tools.telemetry_studio.__main__ import main
 from tools.telemetry_studio.tail import tail_events
@@ -178,6 +179,59 @@ class ReportAndCliTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn("zombieee.flight.v1", buffer.getvalue())
 
+
+
+class BalanceTests(unittest.TestCase):
+    def _run(self, root: Path, lines: list[str]):
+        return ingest_bundle(_bundle(root, lines, sealed=False), allow_unsealed=True)
+
+    def test_rounds_wipe_troops_and_sensitivity(self):
+        with tempfile.TemporaryDirectory() as td:
+            common = [
+                "ZDB1|heartbeat|count=1|round=1|team0=4|team1=4|alive_team0=4|alive_team1=4|wave=1",
+            ]
+            a = self._run(Path(td) / "a", common + [
+                "ZDB1|heartbeat|count=2|round=1|team0=4|team1=0|alive_team0=4|alive_team1=0|wave=1",
+                "ZDB1|ai_sample|tick=1|team=0|id=1|troop=981|kills=2",
+                "ZDB1|ai_sample|tick=1|team=0|id=2|troop=981|kills=1",
+                "ZDB1|ai_sample|tick=1|team=0|id=3|troop=983|kills=0",
+                "ZDB1|ai_sample|tick=1|team=1|id=4|troop=894|kills=0",
+            ])
+            b = self._run(Path(td) / "b", common + [
+                "ZDB1|heartbeat|count=2|round=1|team0=0|team1=3|alive_team0=0|alive_team1=3|wave=1",
+                "ZDB1|ai_sample|tick=1|team=0|id=1|troop=981|kills=1",
+                "ZDB1|ai_sample|tick=1|team=1|id=4|troop=894|kills=2",
+            ])
+            params = {str(a["root"]): {"defender_target": 8},
+                      str(b["root"]): {"defender_target": 12}}
+            result = analyze_balance([a, b], params)
+            self.assertEqual(result["schema"], "zombieee.balance-analysis.v1")
+            self.assertFalse(result["runtime_verified"])
+            self.assertEqual(result["runs"][0]["metrics"]["outcomes"].get("team0_win"), 1)
+            self.assertEqual(result["runs"][1]["metrics"]["outcomes"].get("team1_win"), 1)
+            team0 = result["runs"][0]["metrics"]["troop_contributions"]["team0"]
+            self.assertEqual(team0["kills_total_lower_bound"], 3)
+            self.assertEqual(team0["troops"][0]["troop"], 981)
+            self.assertEqual(result["sensitivity"]["matrix"][0]["parameter"], "defender_target")
+            self.assertFalse(result["sensitivity"]["matrix"][0]["causal"])
+            self.assertTrue(result["recommendations"])
+            self.assertIn("hit_attribution_unavailable", result["gaps"])
+            self.assertTrue(result["gaps_as_tasks"])
+            text = render_balance_report(result)
+            self.assertIn("not causal", text)
+            self.assertIn("acceptance: **none**", text)
+
+    def test_no_parameters_and_no_end_event_are_explicit(self):
+        with tempfile.TemporaryDirectory() as td:
+            run = self._run(Path(td) / "a", [
+                "ZDB1|heartbeat|count=1|round=1|team0=4|team1=4|alive_team0=4|alive_team1=4|wave=1",
+                "ZDB1|heartbeat|count=2|round=1|team0=4|team1=4|alive_team0=4|alive_team1=4|wave=1",
+            ])
+            result = analyze_balance([run])
+            self.assertIn("parameter_metadata_missing", result["gaps"])
+            self.assertIn("insufficient_runs_for_ranked_recommendations", result["gaps"])
+            self.assertEqual(result["runs"][0]["metrics"]["rounds"][0]["outcome"],
+                             "round_reset_no_wipe")
 
 if __name__ == "__main__":
     unittest.main()
