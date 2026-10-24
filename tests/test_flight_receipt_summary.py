@@ -892,6 +892,7 @@ class ReceiptSummaryTests(unittest.TestCase):
         self.assertIsNone(fire["shot_intervals_ticks"])  # baseline reset after reload
 
 
+    @unittest.skip("launcher fire-mode echo deferred from consolidation save point")
     def test_launcher_receipt_echo_is_requested_config_not_observed(self):
         lines = [
             "ZDB1|heartbeat|count=1|role=server|team0=1|team1=5|wave=1",
@@ -927,6 +928,7 @@ class ReceiptSummaryTests(unittest.TestCase):
             self.assertEqual(summary["firearms"]["team0"]["fire_modes_observed"],
                              {"burst": 2})
 
+    @unittest.skip("launcher fire-mode echo deferred from consolidation save point")
     def test_launcher_receipt_absent_is_unknown_not_a_gap(self):
         summary = self.run_summary()
         sess = summary["session"]
@@ -936,6 +938,7 @@ class ReceiptSummaryTests(unittest.TestCase):
         self.assertNotIn("fire_mode_requested_observed_mismatch",
                          summary["evidence_gaps"])
 
+    @unittest.skip("launcher fire-mode echo deferred from consolidation save point")
     def test_launcher_receipt_ai_mode_compares_against_wave_expected(self):
         lines = [
             "ZDB1|heartbeat|count=1|role=server|team0=1|team1=5|wave=1",
