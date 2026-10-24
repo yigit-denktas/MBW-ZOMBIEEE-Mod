@@ -375,6 +375,35 @@ D's task-42 sealed runs exposed three readback gaps, now closed:
   `ammo > 0 -> 0` transitions plus `weapon_mode=melee`. This is an inference,
   not a direct AI-mode getter; the note records that explicitly.
 
+### Task-55 P0: wave-table faction-slot and scene readback
+
+To separate "the City trigger wrote 894" from "the engine kept original/wave
+values" (DISC-59: static trigger/flags present but runtime still showed 896 and
+speed 100), the probe now reads, read-only:
+
+- **Wave-table faction slots** `200, 221, 231, 241` plus control slot `245` from
+  invader faction 16 via `faction_get_slot` (522, declared lhs). Values are
+  troop references decoded to troop ids (e.g. `200:894`); unknown/raw values are
+  kept as-is, never inferred. Emitted as `wave_faction_slots=slot:troop,...`;
+  the summary exposes `waves.faction_slots` and `waves.slots_slow` (all four
+  probe slots == 894), with the `wave_slot_readback_unavailable` gap when absent.
+- **Current scene** via `store_current_scene` (2211, declared lhs), emitted as
+  `current_scene=` and exposed as `waves.current_scene`, so the trigger's
+  scene-condition assumption can be checked against the runtime scene id.
+- **Team-1 speed/time readback** already exists (`speed_modifiers_team1`,
+  `time_multipliers_team1`, `ai_sample.speed`). Time multipliers are now stored
+  as the **raw WSE2 getter value** (default observed 100; the previous `/10`
+  conversion was unverified and could misreport 100 as 10).
+- Capability flags `faction_slot_getter` and `scene_getter` record whether the
+  two ops are available.
+
+Interpretation: slots reading 894 during a wave-2/3 heartbeat proves the 5 s/4 s
+overlay writes are being applied (so a still-leaking 896 points at a later
+original selector/spawn path); slots showing original Fast values prove the
+overlay writes are not applied (trigger not executing, condition mismatch, or
+overwritten). `current_scene` distinguishes a scene-condition failure. Nothing
+here asserts acceptance; D must supply the sealed readback.
+
 ### Speed / hold / wave-2 / refill telemetry (task-41)
 
 For A's task-38 speed and hold patch the probe now reads back what the engine

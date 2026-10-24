@@ -15,6 +15,11 @@ local MAX_AI_SAMPLES = 8
 local MAX_PRE_ROUND_SAMPLES = 6
 local MAX_PLAUSIBLE_KILLS = 10000
 local MAX_TROOP_ID = 100000
+-- Native constant bases shared by the mod's generated ops; used only to decode
+-- faction-slot troop references in read-only telemetry.
+local TROOP_BASE = 360287970189639680
+local FACTION_INVADER = 432345564227567632
+local WAVE_SLOT_PROBES = {200, 221, 231, 241, 245}
 -- Native defender roster appended by A's patch: 981..984. Used as a bounded
 -- fallback when native bots are not in divisions 5-7.
 local DEFENDER_TROOP_MIN = 981
@@ -97,6 +102,8 @@ emit("recorder_capabilities",
     .. "|time_multiplier_getter=" .. binding_flag("agent_get_time_speed_multiplier")
     .. "|action_speed_getter=" .. binding_flag("agent_get_action_speed_modifier")
     .. "|team_order_getter=" .. binding_flag("team_get_hold_fire_order")
+    .. "|faction_slot_getter=" .. binding_flag("faction_get_slot")
+    .. "|scene_getter=" .. binding_flag("store_current_scene")
     .. "|behavior_getter=0"
     .. "|npc_getter=" .. binding_flag("agent_is_non_player")
     .. "|position_getter=" .. binding_flag("agent_get_position")
@@ -169,6 +176,30 @@ local function read_team_order(name, team, subclass)
         return fn(0, team, subclass)
     end)
     return decode_lhs_returns(ok, first, second, third)
+end
+-- Generic lhs read with a variable argument list (read-only).
+local function read_lhs_value(name, ...)
+    local fn = game[name]
+    if type(fn) ~= "function" then return -1 end
+    local args = {...}
+    local ok, first, second, third = pcall(function()
+        return fn(0, unpack(args))
+    end)
+    return decode_lhs_returns(ok, first, second, third)
+end
+local function read_faction_slot(faction, slot)
+    return read_lhs_value("faction_get_slot", faction, slot)
+end
+local function read_current_scene()
+    return read_lhs_value("store_current_scene")
+end
+-- A wave-table faction slot holds a troop reference constant; decode it to a
+-- troop id for telemetry, otherwise keep the raw value (never guess).
+local function decode_troop_slot(value)
+    if value < 0 then return value end
+    local troop = value - TROOP_BASE
+    if troop >= 0 and troop <= MAX_TROOP_ID then return troop end
+    return value
 end
 -- Dedicated division reader. Two safety rules learned from live evidence:
 --  * NEVER call an agent opcode with a fake agent id (a lhs placeholder 0 was
@@ -338,6 +369,8 @@ local function sample_world()
                          action_unknown_team = {[0] = 0, [1] = 0},
                          speed_unknown = 0, time_unknown = 0, action_unknown = 0,
                          defender_orders_text = "none",
+                         wave_slots_text = "none",
+                         current_scene = -1,
                          defender_orders_read_unknown = 0,
                          defender_ids = {}, ranged_team0 = 0, melee_team0 = 0,
                          weapon_read_unknown = 0,
@@ -407,7 +440,7 @@ local function sample_world()
                                 result.speed_unknown_team[side] + 1
                         end
                         if team_fixed >= 0 and team_fixed <= 10000 then
-                            local percent = math.floor(team_fixed / 10 + 0.5)
+                            local percent = team_fixed  -- raw WSE2 getter value (default observed 100)
                             result.time_hist_team[side][percent] =
                                 (result.time_hist_team[side][percent] or 0) + 1
                         else
@@ -491,7 +524,7 @@ local function sample_world()
                                 local fixed = read_agent_number(
                                     "agent_get_time_speed_multiplier", agent)
                                 if fixed >= 0 and fixed <= 10000 then
-                                    local percent = math.floor(fixed / 10 + 0.5)
+                                    local percent = fixed  -- raw WSE2 getter value (default observed 100)
                                     result.time_hist[percent] =
                                         (result.time_hist[percent] or 0) + 1
                                 else
@@ -698,6 +731,16 @@ local function sample_world()
             [0] = histogram_text(result.action_hist_team[0]),
             [1] = histogram_text(result.action_hist_team[1])}
         result.horse_ids_text0 = id_list_text(result.horse_ids[0])
+        -- Faction-slot readback (A's P0): the City trigger rewrites wave-table
+        -- slots 200..244 to troop 894; read a few probes plus a control slot to
+        -- distinguish "trigger wrote" from "engine kept original/wave values".
+        local slot_parts = {}
+        for _, slot in ipairs(WAVE_SLOT_PROBES) do
+            local value = read_faction_slot(FACTION_INVADER, slot)
+            slot_parts[#slot_parts + 1] = slot .. ":" .. decode_troop_slot(value)
+        end
+        result.wave_slots_text = table.concat(slot_parts, ",")
+        result.current_scene = read_current_scene()
         result.horse_ids_text1 = id_list_text(result.horse_ids[1])
         return result
     end)
@@ -794,6 +837,8 @@ local function state_fields(world)
             .. "|defender_orders=" .. world.defender_orders_text
             .. "|defender_orders_read_unknown=" .. world.defender_orders_read_unknown
             .. "|defender_orders_scope=team0_subclasses_0_9_native_groups_no_op"
+            .. "|current_scene=" .. world.current_scene
+            .. "|wave_faction_slots=" .. world.wave_slots_text
             .. "|speed_modifiers_team0=" .. world.speed_text_team[0]
             .. "|speed_modifiers_team1=" .. world.speed_text_team[1]
             .. "|time_multipliers_team0=" .. world.time_text_team[0]
@@ -830,6 +875,7 @@ local function state_fields(world)
             .. "|time_read_unknown=-1|action_read_unknown=-1"
             .. "|defender_orders=-1|defender_orders_read_unknown=-1"
             .. "|defender_orders_scope=-1"
+            .. "|current_scene=-1|wave_faction_slots=-1"
             .. "|speed_modifiers_team0=-1|speed_modifiers_team1=-1"
             .. "|time_multipliers_team0=-1|time_multipliers_team1=-1"
             .. "|action_speeds_team0=-1|action_speeds_team1=-1"

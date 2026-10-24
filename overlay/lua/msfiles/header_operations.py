@@ -46,6 +46,8 @@ team_get_hold_fire_order = 1784
 team_get_movement_order = 1785
 team_get_riding_order = 1786
 team_get_weapon_usage_order = 1787
+faction_get_slot = 522
+store_current_scene = 2211
 
 lhs_operations = [
     agent_get_position,
@@ -62,6 +64,8 @@ lhs_operations = [
     team_get_movement_order,
     team_get_riding_order,
     team_get_weapon_usage_order,
+    faction_get_slot,
+    store_current_scene,
 ]
 
 can_fail_operations = [
