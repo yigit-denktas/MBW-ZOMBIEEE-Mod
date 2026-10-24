@@ -1,15 +1,15 @@
 ﻿{
   "schema": "zombieee.playbuild.v1",
-  "name": "nextplay-holdground-zombietargets",
+  "name": "nextplay-no-fire-fix",
   "branch": "agent/a-nextplay",
-  "commit": "b48cfa9",
-  "probe": "ce9d98e",
-  "mission_sha256": "C62F0BCD0D0B6AFF3959DF1F753EEE1DBB0F528E548D00442F24DA54FD52AA88",
+  "commit": "d882691",
+  "probe": "c77363e",
+  "mission_sha256": "EF6E332C5399CC690D06B22D966632C6FBBBC146D5397785F79538CACE163907",
   "zombie_block": "stock (no shields)",
   "firearm_class": "crossbow_type_ranged",
   "ai_accuracy_modifier": 100,
-  "features": ["stand_ground 11 / hold / fire_at_will / use_ranged", "no 1730", "1737=0", "aggressiveness=0", "zombie speed 50+4 cap85", "HP 67.5%", "proficiency x0.5", "wave counts x2"],
+  "features": ["hold 0 + fire_at_will 13 + use_ranged 16", "stand_ground/aggressiveness removed", "no 1730", "1737=0", "zombie speed50+4 cap85", "HP67.5%", "counts x2"],
   "excludes": ["formation abc6e51", "heroes/morale", "ammo panic", "heatmap/hit", "specials"],
-  "backup": "ZOMBIEEE_Remaster.backup-20261024-182841",
-  "rule": "Do not install while a WSE2 run is active. Accuracy claim is 100, not 130."
+  "backup": "ZOMBIEEE_Remaster.backup-20261024-184505",
+  "acceptance": "ammo_burn>0 and first shot <30s; else isolate order/range suppression"
 }
