@@ -1,15 +1,11 @@
-#!/usr/bin/env python3
-"""City-only invader melee-block profile: give native Zombie bots a shield.
+"""City invader shield policy: stock (zero shields) or cosmetic-half.
 
-Owner's live City run showed Zombies have no block. The invader troops already
-have a high shield skill (compiled troops table), but their equipment lists no
-shield item, so they cannot block. This profile appends one low-tier shield
-(item ``itm_wooden_shield``) to the first unused equipment pair of the
-City-native invader troops only (ordinal 894..911); every other troop row is
-byte-identical, and the built module is the only target.
-
-No runtime claim: the sealed WSE2 run must confirm the engine equips the shield
-and the block animation appears.
+Owner policy (task-83 canonical): never add ``itm_wooden_shield`` by default.
+``stock`` removes every shield item (wooden/practice/zombie_hand) from invader
+troops 894..911 and forces shield skill 0. ``cosmetic-half`` gives every other
+invader troop ``itm_practice_shield`` as a cosmetic-only item and still forces
+shield skill 0 (no block). A post-patch gate fails if a wooden shield remains,
+or if any invader shield skill is >0.
 """
 from __future__ import annotations
 
@@ -18,13 +14,14 @@ import hashlib
 import json
 from pathlib import Path
 
-INVADER_RANGE = (894, 912)  # native Zombie troop block
-SHIELD_ITEM = "itm_wooden_shield"
+INVADER_RANGE = (894, 912)
+WOODEN_SHIELD = "itm_wooden_shield"
+PRACTICE_SHIELD = "itm_practice_shield"
+ORIGINAL_SHIELD = "itm_zombie_hand"
+REMOVED_SHIELDS = (WOODEN_SHIELD, PRACTICE_SHIELD, ORIGINAL_SHIELD)
 UNUSED_PAIR = "-1"
-SHIELD_SKILL = 5
-# Compiled troop skills: six 32-bit words, four bits per skill; skill 26 = shield.
-SKILL_WORD = 26 // 8          # 3
-SHIELD_SHIFT = (26 % 8) * 4    # 8
+SKILL_WORD = 26 // 8
+SHIELD_SHIFT = (26 % 8) * 4
 SKILL_MASK = 0xF << SHIELD_SHIFT
 
 
@@ -33,37 +30,30 @@ class ZombieBlockError(ValueError):
 
 
 def item_ids(module: Path) -> dict[str, int]:
-    """Resolve item name -> compiled item id from item_kinds1.txt (ordinal = id)."""
     lines = (Path(module) / "item_kinds1.txt").read_text(encoding="utf-8",
                                                        errors="replace").splitlines()
     rows = [line.strip().split() for line in lines if line.strip().startswith("itm_")]
     return {tokens[0]: index for index, tokens in enumerate(rows)}
 
 
-def shield_id(module: Path) -> int:
+def apply_module(module: Path, mode: str = "stock") -> dict:
+    module = Path(module)
+    if mode not in ("stock", "cosmetic-half"):
+        raise ZombieBlockError("mode must be stock or cosmetic-half")
     ids = item_ids(module)
-    if SHIELD_ITEM not in ids:
-        raise ZombieBlockError(f"Shield item {SHIELD_ITEM} missing from the item table")
-    return ids[SHIELD_ITEM]
-
-
-def _equipment_line(lines: list[str], index: int) -> tuple[str, str]:
-    raw = lines[index]
-    prefix = raw[:len(raw) - len(raw.lstrip())]
-    newline = "\r\n" if raw.endswith("\r\n") else ("\n" if raw.endswith("\n") else "")
-    body = raw.strip()
-    pair = body.split()
-    if len(pair) < 2 or len(pair) % 2:
-        raise ZombieBlockError("Malformed compiled troop equipment line")
-    return prefix, newline
-
-
-def patch_text(text: str, module: Path) -> tuple[str, dict]:
-    shield = shield_id(module)
-    lines = text.splitlines(keepends=True)
+    for name in REMOVED_SHIELDS:
+        if name not in ids:
+            raise ZombieBlockError(f"Missing shield item {name}")
+    wooden = ids[WOODEN_SHIELD]
+    practice = ids[PRACTICE_SHIELD]
+    removed_ids = {ids[name] for name in REMOVED_SHIELDS}
+    removed_text = {str(value) for value in removed_ids}
+    path = module / "troops.txt"
+    original = path.read_bytes()
+    lines = original.decode("utf-8").splitlines(keepends=True)
     troop = -1
-    changed = []
-    skill_changes = []
+    changed = set()
+    cosmetic = []
     for index, raw in enumerate(lines):
         stripped = raw.strip()
         if not stripped.startswith("trp_"):
@@ -71,96 +61,107 @@ def patch_text(text: str, module: Path) -> tuple[str, dict]:
         troop += 1
         if not INVADER_RANGE[0] <= troop < INVADER_RANGE[1]:
             continue
+        if index + 4 >= len(lines):
+            raise ZombieBlockError("Truncated invader troop row")
         equip_index = index + 1
-        if equip_index >= len(lines):
-            raise ZombieBlockError("Missing equipment line for an invader troop")
-        prefix, newline = _equipment_line(lines, equip_index)
-        tokens = lines[equip_index].strip().split()
+        equip = lines[equip_index]
+        tokens = equip.strip().split()
+        if len(tokens) % 2:
+            raise ZombieBlockError("Malformed equipment line")
         pairs = [tokens[i:i + 2] for i in range(0, len(tokens), 2)]
-        if any(pair[0] == str(shield) for pair in pairs):
-            changed.append(tokens[0] if tokens else str(troop))
-            continue
         for pair in pairs:
-            if pair[0] == UNUSED_PAIR:
-                pair[0] = str(shield)
+            if pair[0] in removed_text:
+                pair[0] = UNUSED_PAIR
                 pair[1] = "0"
-                break
-        else:
-            raise ZombieBlockError("No unused equipment pair for an invader troop")
-        flat = [token for pair in pairs for token in pair]
-        lines[equip_index] = prefix + " ".join(flat) + newline
-        # Shield proficiency: every invader record carries shield skill 0 in the
-        # original data (E's decode: six 32-bit skill words, 4 bits per skill,
-        # skill index 26 = shield). Raise the nibble to Tough-Zombie level (5).
-        # header, equipment, attributes, proficiencies, then the skill words
-        skills_index = equip_index + 3
-        if skills_index >= len(lines):
-            raise ZombieBlockError("Missing skill line for an invader troop")
-        skill_line = lines[skills_index]
-        skill_prefix = skill_line[:len(skill_line) - len(skill_line.lstrip())]
-        skill_newline = ("\r\n" if skill_line.endswith("\r\n")
-                         else ("\n" if skill_line.endswith("\n") else ""))
+        if mode == "cosmetic-half" and (troop - INVADER_RANGE[0]) % 2 == 0:
+            for pair in pairs:
+                if pair[0] == UNUSED_PAIR:
+                    pair[0] = str(practice)
+                    pair[1] = "0"
+                    cosmetic.append(troop)
+                    break
+        prefix = equip[:len(equip) - len(equip.lstrip())]
+        newline = "\r\n" if equip.endswith("\r\n") else ("\n" if equip.endswith("\n") else "")
+        new_equip = prefix + " ".join(token for pair in pairs for token in pair) + newline
+        if new_equip != equip:
+            lines[equip_index] = new_equip
+            changed.add(troop)
+        skill_line = lines[index + 4]
         words = skill_line.split()
         if len(words) != 6:
             raise ZombieBlockError("Unexpected compiled skill-word line")
-        words = [int(word) for word in words]
-        current = (words[SKILL_WORD] & SKILL_MASK) >> SHIELD_SHIFT
-        if current < SHIELD_SKILL:
-            words[SKILL_WORD] = ((words[SKILL_WORD] & ~SKILL_MASK)
-                                 | (SHIELD_SKILL << SHIELD_SHIFT))
-            lines[skills_index] = (skill_prefix
-                                   + " ".join(map(str, words)) + skill_newline)
-            skill_changes.append(stripped.split()[0])
-        changed.append(stripped.split()[0])
-    if len(changed) != INVADER_RANGE[1] - INVADER_RANGE[0]:
-        raise ZombieBlockError("Not every invader troop received the shield")
+        values = [int(word) for word in words]
+        current = (values[SKILL_WORD] & SKILL_MASK) >> SHIELD_SHIFT
+        if current != 0:
+            values[SKILL_WORD] &= ~SKILL_MASK
+            skill_prefix = skill_line[:len(skill_line) - len(skill_line.lstrip())]
+            skill_newline = ("\r\n" if skill_line.endswith("\r\n")
+                             else ("\n" if skill_line.endswith("\n") else ""))
+            lines[index + 4] = (skill_prefix + " ".join(map(str, values))
+                                + skill_newline)
+            changed.add(troop)
+    # Post-patch gate.
+    troop = -1
+    gate = {"wooden_shield": 0, "shield_skill_positive": 0, "cosmetic_mismatch": 0}
+    for index, raw in enumerate(lines):
+        if not raw.strip().startswith("trp_"):
+            continue
+        troop += 1
+        if not INVADER_RANGE[0] <= troop < INVADER_RANGE[1]:
+            continue
+        pairs = lines[index + 1].strip().split()
+        item_pairs = {pairs[i] for i in range(0, len(pairs), 2)}
+        if str(wooden) in item_pairs:
+            gate["wooden_shield"] += 1
+        if mode == "stock" and item_pairs & removed_text:
+            gate["cosmetic_mismatch"] += 1
+        if mode == "cosmetic-half":
+            expected = (troop - INVADER_RANGE[0]) % 2 == 0
+            if (str(practice) in item_pairs) != expected:
+                gate["cosmetic_mismatch"] += 1
+        words = [int(word) for word in lines[index + 4].split()]
+        if ((words[SKILL_WORD] & SKILL_MASK) >> SHIELD_SHIFT) > 0:
+            gate["shield_skill_positive"] += 1
+    if any(gate.values()):
+        raise ZombieBlockError(f"Shield policy gate failed: {gate}")
+    changed_text = "".join(lines)
     receipt = {
+        "schema": "zombieee.zombie-shield-policy.v1",
         "applied": True,
-        "shield_item": SHIELD_ITEM,
-        "shield_item_id": shield,
-        "troop_range": list(INVADER_RANGE),
-        "troops": changed,
+        "mode": mode,
+        "removed_shield_items": list(REMOVED_SHIELDS),
+        "shield_skill": 0,
+        "cosmetic_troops": cosmetic,
+        "changed_troops": sorted(changed),
         "changed_count": len(changed),
-        "shield_skill": SHIELD_SKILL,
-        "shield_skill_troops": skill_changes,
+        "wooden_shield_troops": [],
+        "gate": "passed",
         "runtime_verified": False,
-        "warning": "Static equipment addition only; the sealed WSE2 run must confirm "
-                   "the engine equips the shield and block behaviour.",
+        "warning": "Stock removes all invader shields; cosmetic-half is a visual "
+                   "practice shield with shield skill 0 (no block). D must confirm "
+                   "no block in-game.",
+        "sha256_before": hashlib.sha256(original).hexdigest(),
+        "sha256_after": hashlib.sha256(changed_text.encode("utf-8")).hexdigest(),
     }
-    return "".join(lines), receipt
-
-
-def apply_module(module: Path) -> dict:
-    module = Path(module)
-    path = module / "troops.txt"
-    original = path.read_bytes()
-    text = original.decode("utf-8")
-    changed, receipt = patch_text(text, module)
-    receipt = dict(receipt)
-    receipt["sha256_before"] = hashlib.sha256(original).hexdigest()
-    receipt["sha256_after"] = hashlib.sha256(changed.encode("utf-8")).hexdigest()
-    path.write_bytes(changed.encode("utf-8"))
+    path.write_bytes(changed_text.encode("utf-8"))
     return receipt
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--module", type=Path, required=True)
+    parser.add_argument("--mode", choices=("stock", "cosmetic-half"), default="stock")
     parser.add_argument("--apply", action="store_true")
     args = parser.parse_args()
     try:
-        if args.apply:
-            receipt = apply_module(args.module)
-        else:
-            text = (args.module / "troops.txt").read_text(encoding="utf-8")
-            _, receipt = patch_text(text, args.module)
-            receipt = dict(receipt, dry_run=True)
+        if not args.apply:
+            raise ZombieBlockError("use --apply against an extracted module")
+        print(json.dumps(apply_module(args.module, args.mode), indent=2))
     except (OSError, ValueError, ZombieBlockError) as exc:
         print(json.dumps({"applied": False,
                           "error": type(exc).__name__ + ": " + str(exc)}))
         return 2
-    print(json.dumps(receipt, indent=2))
-    return 0 if receipt.get("applied") else 2
+    return 0
 
 
 if __name__ == "__main__":

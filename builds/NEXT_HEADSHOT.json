@@ -1,0 +1,41 @@
+{
+  "schema": "zombieee.nextplay.v1",
+  "name": "NEXT_HEADSHOT",
+  "source": "agent/a-nextplay",
+  "package": "private://NEXT_HEADSHOT/ZOMBIEEE_Remaster",
+  "acceptance": "none",
+  "runtime_verified": false,
+  "package_tree_sha256": "48ad70fe05d54d2c3f1a1b0128d626e41bfc92bf56149d71ef10442d27ade1f9",
+  "file_sha256": {
+    "mission_templates.txt": "95282d3d84eb8b60ccd5afc3466376739c7f5d689efc7e275b961ccd57a7117a",
+    "troops.txt": "9b23284acb4506596b2c7df993cdcf5017dc69cfd45160e95c4c177d9a2ca7a7",
+    "item_kinds1.txt": "3ae702ff1362b8cd4be316523e2323b7303ae3b0718f0d5d9bee57ffe6284316"
+  },
+  "receipt": {
+    "zombie_block": {
+      "mode": "cosmetic-half",
+      "gate": "passed",
+      "shield_skill": 0,
+      "cosmetic_troops": [
+        894,
+        896,
+        898,
+        900,
+        902,
+        904,
+        906,
+        908,
+        910
+      ],
+      "wooden_shield_troops": []
+    },
+    "zombie_head_armor": {
+      "mode": "removed",
+      "removed_pairs": 21,
+      "remaining_head_armor_pairs": 0
+    }
+  },
+  "notes": [
+    "Package identity is package_tree_sha256 + per-file hashes; mission_templates is identical across shield/headshot variants, troops.txt differs."
+  ]
+}

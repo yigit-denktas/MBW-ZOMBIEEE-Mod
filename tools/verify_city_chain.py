@@ -43,7 +43,7 @@ def sha(path: Path) -> str:
     return h.hexdigest()
 
 
-def stage_source(original: Path, dest: Path) -> None:
+def stage_source(original: Path, dest: Path, speed_loop: bool = False) -> None:
     (dest / "SceneObj").mkdir(parents=True)
     for name in CORE_INPUTS:
         shutil.copy2(original / name, dest / name)
@@ -99,7 +99,8 @@ def mission_check(stage: Path, original: Path, expected: int) -> dict:
     return result
 
 
-def verify(original: Path, archive: Path | None = None) -> dict:
+def verify(original: Path, archive: Path | None = None,
+           native_speed_loop: bool = False) -> dict:
     original = Path(original)
     inputs = {name: original / name for name in CORE_INPUTS}
     inputs.update({"SceneObj/"+name: original / "SceneObj" / name for name in SCENE_NAMES})
@@ -140,7 +141,7 @@ def verify(original: Path, archive: Path | None = None) -> dict:
                 # byte-identical, not merely that the four other maps survived.
                 shutil.copytree(original, stage)
             else:
-                stage_source(original, stage)
+                stage_source(original, stage, speed_loop=native_speed_loop)
             if variant == "balanced-ai":
                 apply_loadouts(stage)
             firearm = apply_firearm_balance(stage, "default")
@@ -190,8 +191,8 @@ def verify(original: Path, archive: Path | None = None) -> dict:
                                      ("applied", "changed_count", "automatic_items",
                                       "sha256_before", "sha256_after")},
                 "zombie_block": {key: zombie[key] for key in
-                                 ("applied", "shield_item", "troops",
-                                  "sha256_before", "sha256_after")},
+                                 ("applied", "mode", "gate", "shield_skill",
+                                  "changed_count", "sha256_before", "sha256_after")},
                 "final_native_sha256": final["final_native_sha256"],
                 "global_count": len((stage / "variables.txt").read_text().splitlines()),
                 "runtime_verified": False,
@@ -215,7 +216,7 @@ def verify(original: Path, archive: Path | None = None) -> dict:
                     "passed": True,
                 }
         solo = root / "solo-assist"
-        stage_source(original, solo)
+        stage_source(original, solo, speed_loop=native_speed_loop)
         apply_firearm_balance(solo, "default")
         patch_file(solo, 4, city_only=True)
         apply_city(solo)
@@ -259,6 +260,7 @@ def main() -> int:
     p.add_argument("--original", type=Path, required=True)
     p.add_argument("--archive", type=Path)
     p.add_argument("--json", action="store_true")
+    p.add_argument("--native-speed-loop", choices=("off", "on"), default="off")
     args = p.parse_args()
     try:
         result = verify(args.original, args.archive)

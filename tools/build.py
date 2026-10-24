@@ -24,6 +24,9 @@ from all_map_defense import apply_module as apply_all_maps
 from wave_reinforcements import apply_module as apply_wave_support
 from tactical_recovery import apply_module as apply_tactical_recovery
 from bot_loadouts import apply_module as apply_balanced_ai_loadouts
+from survivor_proficiency import apply_module as apply_survivor_proficiency
+from zombie_nerf import apply_module as apply_zombie_nerf
+from zombie_head_armor import apply_module as apply_zombie_head_armor
 from firearm_balance import apply_module as apply_firearm_balance
 from zombie_block import apply_module as apply_zombie_block
 from solo_assist import apply_module as apply_solo_assist
@@ -94,7 +97,7 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
           defender_loadouts: str = "original", solo_assist: bool = False,
           private_commands: bool = False, difficulty: str = "standard",
           firearm_accuracy: str = "default",
-          zombie_bot_roster: str = "weak", zombie_block: str = "default",
+          zombie_bot_roster: str = "weak", zombie_block: str = "stock",
           defensive_line: str = "rear",
           wave_visitors: str = "slow",
           defender_reinforce: str = "default",
@@ -117,7 +120,7 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         raise ValueError("Unknown --firearm-accuracy profile")
     if zombie_bot_roster not in ("weak", "full"):
         raise ValueError("Unknown --zombie-bot-roster profile")
-    if zombie_block not in ("default", "stock"):
+    if zombie_block not in ("stock", "cosmetic-half"):
         raise ValueError("Unknown --zombie-block profile")
     if defensive_line not in ("rear", "forward", "adaptive"):
         raise ValueError("Unknown --defensive-line profile")
@@ -202,6 +205,7 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
                 source, wave_global, speed_loop=native_speed_loop == "on")
         balanced = defender_loadouts == "balanced-ai"
         loadout_report = apply_balanced_ai_loadouts(source) if balanced else None
+        proficiency_report = apply_survivor_proficiency(source) if balanced else None
         # Default build profile: automatic firearms get a modest accuracy buff;
         # single-shot firearms and every non-firearm item keep their stats.
         firearm_report = apply_firearm_balance(source, firearm_accuracy)
@@ -243,11 +247,12 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
                 raise RuntimeError("Native Zombie roster patch failed static validation")
             if defender_range and not roster_report.get("defender_candidates"):
                 raise RuntimeError("Native defender roster range has no faction-15 troops")
-            if zombie_block == "default":
-                zombie_block_report = apply_zombie_block(source)
-                if (not zombie_block_report.get("applied")
-                        or not zombie_block_report.get("troops")):
-                    raise RuntimeError("Zombie shield/block patch failed static validation")
+            zombie_block_report = apply_zombie_block(source, zombie_block)
+            if (not zombie_block_report.get("applied")
+                    or zombie_block_report.get("gate") != "passed"
+                    or zombie_block_report.get("wooden_shield_troops")
+                    or zombie_block_report.get("shield_skill") != 0):
+                raise RuntimeError("Zombie shield policy failed static validation")
         defender_report = None
         if experimental_defenders:
             defender_report = patch_file(source, experimental_defenders,
@@ -379,6 +384,7 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
             "experimental_defender_patch": defender_report,
             "defender_loadout_profile": defender_loadouts,
             "ai_only_loadout_clones": loadout_report,
+            "survivor_proficiency": proficiency_report,
             "solo_assist": solo_report,
             "private_commands": private_report,
             "difficulty": support.name,

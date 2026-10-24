@@ -321,6 +321,12 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None,
             ops.append(["1780", "2", str(pos), str(entry)])
             ops.append(["1791", "3", "0", str(group), str(pos)])
             ops.append(["1790", "3", "0", str(group), "0"])  # mordr_hold
+        # Order-scope sweep: native bots may be assigned any order sub-class
+        # 0..9, so issue fire_at_will/use_ranged to every class. This is order
+        # scope only; target selection stays engine-owned (no focus-fire claim).
+        for sub_class in range(10):
+            ops.append(["1790", "3", "0", str(sub_class), "13"])
+            ops.append(["1790", "3", "0", str(sub_class), "16"])
     else:
         # Native team-0 bots (proven engine spawn path; team-0 add_visitors
         # produced no allies in D's sealed run) are adopted into the reserved
@@ -363,6 +369,10 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None,
             ops.append(["1780", "2", str(pos), l7])         # dynamic entry position
             ops.append(["1791", "3", "0", str(group), str(pos)])
             ops.append(["1790", "3", "0", str(group), "0"])  # mordr_hold
+        # Order-scope fallback: native AI may not map its groups to 5..7.
+        # Re-issue fire discipline to the whole team sub-class 0 as well.
+        ops.append(["1790", "3", "0", "0", "13"])  # fire_at_will (everyone)
+        ops.append(["1790", "3", "0", "0", "16"])  # use_ranged (everyone)
     tokens = [token for row in ops for token in row]
     # Periodic 5 s upkeep: re-issues hold positions after dedicated round
     # resets / squad respawns and re-selects the sector on each new wave.
