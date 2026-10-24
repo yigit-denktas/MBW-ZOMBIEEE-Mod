@@ -327,6 +327,14 @@ def summarize_receipt(target: Path) -> dict:
         troops["classes"] = {
             name: dict(sorted(values.items(), key=lambda kv: (-kv[1], kv[0]))[:MAX_HIST_ENTRIES])
             for name, values in classes.items()}
+        read_unknown_values = [_bounded_int(e["fields"].get("troop_read_unknown"), minimum=0)
+                               for e in samples]
+        read_unknown_values = [value for value in read_unknown_values
+                               if value is not None]
+        troops["read_unknown"] = max(read_unknown_values) if read_unknown_values else None
+        troops["reliable"] = bool(troops["read_unknown"] in (0, None)
+                                  and hist_samples > 0
+                                  and (troops["team0"] or troops["team1"]))
         troops["roster"] = {
             "generic_observed": bool(classes["generic"]),
             "native_zombie_observed": bool(classes["native_zombie"]),
@@ -436,7 +444,33 @@ def summarize_receipt(target: Path) -> dict:
                               for e in samples) if v is not None]
         return max(values) if values else None
 
-    engagement = {"kills_team0": _max_kills(0), "kills_team1": _max_kills(1)}
+    def _measured_flag(team):
+        values = [_bounded_int(e["fields"].get(f"kills_measured_team{team}"),
+                               minimum=-1, maximum=1) for e in samples]
+        values = [value for value in values if value is not None]
+        return values[-1] if values else None
+
+    def _max_unknown(team):
+        values = [_bounded_int(e["fields"].get(f"kills_unknown_team{team}"), minimum=0)
+                  for e in samples]
+        values = [value for value in values if value is not None]
+        return max(values) if values else None
+
+    measured0, measured1 = _measured_flag(0), _measured_flag(1)
+    unknown0, unknown1 = _max_unknown(0), _max_unknown(1)
+    kills0, kills1 = _max_kills(0), _max_kills(1)
+    kills_reliable = bool(measured0 == 1 and measured1 == 1 and kills0 is not None
+                          and kills1 is not None
+                          and (unknown0 in (None, 0)) and (unknown1 in (None, 0)))
+    engagement = {
+        "kills_team0": kills0, "kills_team1": kills1,
+        "measured_team0": measured0, "measured_team1": measured1,
+        "unknown_agents_team0": unknown0, "unknown_agents_team1": unknown1,
+        "reliable": kills_reliable,
+        "note": ("kills_* are agent lifetime kill counters summed over observed "
+                 "agents, not session kills; unknown/unreliable must not be read "
+                 "as zero or as a victory claim."),
+    }
 
     def _number_pair(raw):
         if not isinstance(raw, str):
@@ -520,6 +554,10 @@ def summarize_receipt(target: Path) -> dict:
         gaps_hint.append("kill_telemetry_unavailable")
 
     gaps = list(gaps_hint)
+    if not engagement["reliable"]:
+        gaps.append("engagement_kills_unreliable")
+    if troops.get("read_unknown"):
+        gaps.append("troop_reads_unreliable")
     if round_anomaly:
         gaps.append("round_identity_unstable")
     roster_info = troops.get("roster")
@@ -629,7 +667,10 @@ def format_summary(summary: dict) -> str:
             f"moving_bots={position['moving_bots']}")
     engage = summary["engagement"]
     lines.append(f"engagement:      kills_team0={engage['kills_team0']} "
-                 f"kills_team1={engage['kills_team1']}")
+                 f"kills_team1={engage['kills_team1']} "
+                 f"reliable={engage['reliable']}")
+    lines.append("kill semantics:  lifetime kill counters summed over observed "
+                 "agents; unreliable/unknown is never zero or a victory claim")
     lines.append(f"events:          {summary['events']['zdbi_lines']} ZDB1 lines "
                  f"{summary['events']['counts']}")
     if summary["events"].get("pre_round_only"):
@@ -653,7 +694,9 @@ def format_summary(summary: dict) -> str:
                      f"truncated={troops['truncated']}")
         roster = troops.get("roster")
         if roster:
-            lines.append(f"roster:          native_zombie={roster['native_zombie_ids']} "
+            lines.append(f"troop reads:     read_unknown={troops.get('read_unknown')} "
+                     f"reliable={troops.get('reliable')}")
+        lines.append(f"roster:          native_zombie={roster['native_zombie_ids']} "
                          f"generic={roster['generic_ids']} "
                          f"defender={roster['defender_ids']} "
                          f"unknown_id_count={roster['unknown_id_count']}")

@@ -256,6 +256,31 @@ counts a raw heartbeat `round_start` only when the value is stable across
 samples, adds `rounds.identity_unstable` and the `round_identity_unstable`
 evidence gap on the anomaly, and never reports a monotonic series as rounds.
 
+### Kill and troop reads: returned lhs values, not stale registers
+
+WSE2 lhs module operations return `(intResult, intError)`; the first Lua
+argument is only a placeholder destination and `game.reg0` afterwards is
+**stale**. The v3 probe read troop/kill/group/ammo/weapon results through
+`game.reg0`, which made every agent report a single troop id in the histogram
+and produced implausible kill sums (e.g. `kills_team1 ~= 15351` for 17 bots)
+while `ai_sample.kills=-1`. This also explains the earlier "all 17 team-1
+agents share one troop id" observation: it was one stale read applied to the
+whole histogram, not 17 independent reads; the roster range conclusion
+(894..911, never 873/874) still held, but per-agent counts were unreliable.
+
+The accessor now uses the **returned value**, treats a non-zero error, a throw
+or a non-numeric result as `-1` (unknown, never 0), bounds kill counts to
+`MAX_PLAUSIBLE_KILLS=10000` and troop ids to `MAX_TROOP_ID`, and emits at most
+one bounded `probe_anomaly|kind=kill_count_out_of_range`. No partial or
+fabricated sums: one unreadable agent makes that team's `kills_teamX=-1`. The
+probe emits `kills_measured_team0/1`, `kills_unknown_team0/1` and
+`troop_read_unknown`; the summary marks `engagement.kills_*` **reliable** only
+when both teams report measured=1 with no unknown agents (otherwise it adds the
+`engagement_kills_unreliable` gap), and `troops.reliable` follows
+`troop_read_unknown`. Kill counters are agent lifetime counters summed over
+observed agents - never session kills and never a victory claim. Old bundles
+without the measurement markers are therefore labelled unreliable, not zero.
+
 ### Roster classes for sealed AI evidence
 
 The bounded `msfiles/ID_troops.py` label table now covers the documented
