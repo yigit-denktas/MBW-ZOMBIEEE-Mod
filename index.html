@@ -111,7 +111,7 @@ $('work').textContent=done.length+'/'+req.length+' · '+pct(done.length,req.leng
 $('gates').textContent=accepted.length+'/'+record.milestones.length+' · '+pct(accepted.length,record.milestones.length);
 const discovered=record.items.filter(i=>i.workOrigin==='discovered'),discoveredDone=discovered.filter(i=>i.state==='done');
 $('discovered').textContent=discoveredDone.length+'/'+discovered.length+' · '+pct(discoveredDone.length,discovered.length);
-$('source').textContent='Source: public progress/ledger.json · 2026-10-24 · main 4c56242 · 23 required City outcomes + separate discovered support tasks · gameplay acceptance still open';
+$('source').textContent='Source: public progress/ledger.json · 2026-10-24 · main 0eb9374 · first enemy wave observed on the candidate · roster/respawn defects open · gameplay acceptance still open';
 for(const m of record.milestones){const option=el('option',m.id+' — '+m.title);option.value=m.id;$('milestone').append(option);
 const card=el('section',undefined,'card');card.append(el('small',m.id+' · '+m.horizon));card.append(el('h3',m.title));const work=itemsFor(m),complete=work.filter(x=>x.state==='done');card.append(el('p',complete.length+'/'+work.length+' proposed leaves complete · '+pct(complete.length,work.length)));card.append(el('p',m.goal));const button=el('button','Show '+m.id+' items');button.addEventListener('click',()=>{$('milestone').value=m.id;render();$('work-heading').scrollIntoView();$('search').focus()});card.append(button);$('milestones').append(card)}
 ['search','milestone','status','agent','origin'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',render));
