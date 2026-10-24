@@ -217,3 +217,6 @@ This project deliberately separates **source-verified**, **observed**, **unknown
 
 
 <!-- hit-param diagnostic metadata-only source revision: d988597 -->
+
+
+<!-- adaptive visual/fields metadata-only source revision: d8a57f4 -->

@@ -250,3 +250,6 @@ work-item → PR → commit → version links are in
 
 
 <!-- hit-param diagnostic metadata-only source revision: d988597 -->
+
+
+<!-- adaptive visual/fields metadata-only source revision: d8a57f4 -->

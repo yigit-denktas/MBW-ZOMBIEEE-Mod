@@ -136,3 +136,6 @@ Source revision for the hit-param two-arg metadata-only receipt: `0d9415c`.
 
 
 Source revision for the hit-param diagnostic metadata-only receipt: `d988597`.
+
+
+Source revision for the adaptive visual/fields metadata-only receipt: `d8a57f4`.
