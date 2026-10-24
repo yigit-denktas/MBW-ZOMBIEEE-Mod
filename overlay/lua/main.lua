@@ -12,6 +12,7 @@ local MAX_HIST_LINE = 400
 local MAX_TROOP_NAME = 32
 local MAX_PLAYER_IDS = 8
 local MAX_AI_SAMPLES = 8
+local MAX_PRE_ROUND_SAMPLES = 6
 local function emit(event, details)
     print("ZDB1|" .. event .. "|version=" .. VERSION .. (details or ""))
 end
@@ -80,7 +81,7 @@ emit("recorder_capabilities",
     .. "|troop_getter=" .. binding_flag("agent_get_troop_id")
     .. "|alive_getter=" .. binding_flag("agent_is_alive")
     .. "|human_getter=" .. binding_flag("agent_is_human")
-    .. "|composition=1|engagement=1|position_summary=1"
+    .. "|composition=1|engagement=1|position_summary=1|pre_round=1"
     .. "|group_getter=" .. binding_flag("agent_get_group")
     .. "|npc_getter=" .. binding_flag("agent_is_non_player")
     .. "|position_getter=" .. binding_flag("agent_get_position")
@@ -89,6 +90,7 @@ emit("recorder_capabilities",
     .. "|kills_getter=" .. binding_flag("agent_get_kill_count"))
 local mission_seen = false
 local heartbeat_count = 0
+local pre_round_samples = 0
 local previous_wave = nil
 local previous_mode = nil
 local previous_commands = {}
@@ -522,8 +524,32 @@ local function emit_ai_samples(world, role, wave, tick)
             .. "|kills=" .. (sample.kills or -1) .. "|wave=" .. wave)
     end
 end
+-- The dedicated server does not start a round with no connected player, and
+-- mission time appears paused in the waiting-for-players state: the 1 s entry
+-- trigger is the only probe trigger observed to run before round start, while
+-- the 15 s heartbeat never becomes due. Sample the pre-round state from that
+-- proven trigger (bounded), so a pure no-client run still carries composition,
+-- engagement and positions in mission_enter/pre_round_sample instead of only
+-- engine-log text.
+local function pre_round_snapshot(world, role, wave)
+    if pre_round_samples >= MAX_PRE_ROUND_SAMPLES then return end
+    local ready = global_int("g_multiplayer_ready_for_spawning_agent")
+    local round_start = global_int("g_round_start_time")
+    if ready > 0 and round_start > 0 then return end
+    pre_round_samples = pre_round_samples + 1
+    emit("pre_round_sample", "|count=" .. pre_round_samples .. "|role=" .. role
+        .. "|ready_for_spawn=" .. ready .. "|round_start=" .. round_start
+        .. "|agents=" .. (world and world.ok and world.total or -1)
+        .. "|team0=" .. (world and world.ok and world.team0 or -1)
+        .. "|team1=" .. (world and world.ok and world.team1 or -1)
+        .. "|template=" .. current_mission() .. state_fields(world))
+    emit_ai_samples(world, role, wave, pre_round_samples)
+end
 local function first_entry()
-    if mission_seen then return false end
+    if mission_seen then
+        pre_round_snapshot(sample_world(), resolve_role(), global_int("wave_number"))
+        return false
+    end
     mission_seen = true
     local world = sample_world()
     local role = resolve_role()

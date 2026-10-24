@@ -27,6 +27,14 @@ MAX_HIST_ENTRIES = 16
 MAX_LIFECYCLE = 32
 MAX_ROUNDS = 32
 TEXT_SUFFIXES = (".txt", ".log", ".jsonl", ".out")
+# Roster classes for sealed AI evidence. Classification is by ID range:
+# generic faction-default placeholders (873/874), the native Zombie block
+# A's patch scans (894..911), appended defender clones (981..984) and the
+# documented survivor/mercenary troops. Ids outside these stay unknown.
+ROSTER_GENERIC = frozenset({873, 874})
+ROSTER_NATIVE_ZOMBIE = frozenset(range(894, 912))
+ROSTER_DEFENDER = frozenset(range(981, 985))
+ROSTER_SURVIVOR = frozenset({875, 876, 877, 878, 32, 33})
 TEXT_NAME_HINTS = ("stdout", "stderr")
 LIFECYCLE_KINDS = ("player_joined", "player_died", "player_respawned",
                    "player_left", "round_started", "wave_started")
@@ -225,8 +233,9 @@ def summarize_receipt(target: Path) -> dict:
 
     heartbeats = [e for e in events if e["event"] == "heartbeat"]
     entries = [e for e in events if e["event"] == "mission_enter"]
+    pre_round = [e for e in events if e["event"] == "pre_round_sample"]
     capability = next((e for e in events if e["event"] == "recorder_capabilities"), None)
-    samples = entries + heartbeats
+    samples = entries + heartbeats + pre_round
 
     def latest_field(key):
         for event in reversed(samples):
@@ -243,6 +252,8 @@ def summarize_receipt(target: Path) -> dict:
         "game_type": _bounded_int(latest_field("game_type"), minimum=0),
         "ready_for_spawn": _bounded_int(latest_field("ready_for_spawn"), minimum=0),
         "template": latest_field("template"),
+        "pre_round_samples": len(pre_round),
+        "pre_round_only": bool(pre_round) and not heartbeats,
         "sampling_interval_s": _bounded_int(
             capability["fields"].get("sampling_interval_s")) if capability else None,
         "troop_map": _bounded_int(
@@ -295,6 +306,39 @@ def summarize_receipt(target: Path) -> dict:
             "truncated": truncated + over,
             "samples": hist_samples,
         }
+        combined = {}
+        for key in ("team0", "team1"):
+            for troop, count in (troops[key] or {}).items():
+                combined[troop] = combined.get(troop, 0) + count
+        classes = {"generic": {}, "native_zombie": {}, "defender": {},
+                   "survivor": {}, "unknown": {}}
+        for troop, count in combined.items():
+            if troop in ROSTER_GENERIC:
+                bucket = "generic"
+            elif troop in ROSTER_NATIVE_ZOMBIE:
+                bucket = "native_zombie"
+            elif troop in ROSTER_DEFENDER:
+                bucket = "defender"
+            elif troop in ROSTER_SURVIVOR:
+                bucket = "survivor"
+            else:
+                bucket = "unknown"
+            classes[bucket][troop] = classes[bucket].get(troop, 0) + count
+        troops["classes"] = {
+            name: dict(sorted(values.items(), key=lambda kv: (-kv[1], kv[0]))[:MAX_HIST_ENTRIES])
+            for name, values in classes.items()}
+        troops["roster"] = {
+            "generic_observed": bool(classes["generic"]),
+            "native_zombie_observed": bool(classes["native_zombie"]),
+            "defender_observed": bool(classes["defender"]),
+            "unknown_id_count": len(classes["unknown"]),
+            "native_zombie_ids": sorted(classes["native_zombie"]),
+            "generic_ids": sorted(classes["generic"]),
+            "defender_ids": sorted(classes["defender"]),
+        }
+    else:
+        troops["classes"] = None
+        troops["roster"] = None
     waves = sorted({v for v in (
         _bounded_int(e["fields"].get("wave"), minimum=0) for e in events
         if e["event"] in ("heartbeat", "wave_change", "mission_enter", "wave_started")) if v is not None})
@@ -453,7 +497,8 @@ def summarize_receipt(target: Path) -> dict:
         event_counts[kind] = event_counts.get(kind, 0) + 1
     bounded_counts = dict(sorted(event_counts.items(), key=lambda kv: (-kv[1], kv[0]))[:24])
     event_section = {"zdbi_lines": len(events), "zdbi_sealed": bool(events),
-                     "counts": bounded_counts}
+                     "counts": bounded_counts,
+                     "pre_round_only": bool(pre_round) and not heartbeats}
 
     if no_player is None:
         gaps_hint = ["player_presence_unknown"]
@@ -465,6 +510,9 @@ def summarize_receipt(target: Path) -> dict:
         gaps_hint.append("kill_telemetry_unavailable")
 
     gaps = list(gaps_hint)
+    roster_info = troops.get("roster")
+    if roster_info is not None and not roster_info["native_zombie_observed"]:
+        gaps.append("native_zombie_roster_not_observed")
     if not events:
         gaps.append("zdbi_stream_not_sealed")
     if composition["mode"] in ("unknown", "unknown_no_agents_observed"):
@@ -571,6 +619,10 @@ def format_summary(summary: dict) -> str:
                  f"kills_team1={engage['kills_team1']}")
     lines.append(f"events:          {summary['events']['zdbi_lines']} ZDB1 lines "
                  f"{summary['events']['counts']}")
+    if summary["events"].get("pre_round_only"):
+        lines.append("pre-round:       no 15 s heartbeat reached mission time; "
+                     "composition/positions come from bounded pre-round samples "
+                     "(server waiting for players; wave evidence still needs a round)")
     troops = summary["troops"]
     if troops["team1"] or troops["team0"]:
         names = troops["names"] or {}
@@ -586,6 +638,12 @@ def format_summary(summary: dict) -> str:
         lines.append(f"troops team1:    {label(troops['team1'], 'team1')}")
         lines.append(f"troop bounds:    unknown_ids={troops['unknown_ids']} "
                      f"truncated={troops['truncated']}")
+        roster = troops.get("roster")
+        if roster:
+            lines.append(f"roster:          native_zombie={roster['native_zombie_ids']} "
+                         f"generic={roster['generic_ids']} "
+                         f"defender={roster['defender_ids']} "
+                         f"unknown_id_count={roster['unknown_id_count']}")
     else:
         lines.append("troops:          unavailable (histogram not sealed)")
     lines.append(f"waves:           observed={summary['waves']['observed']} "

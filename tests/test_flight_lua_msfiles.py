@@ -206,23 +206,24 @@ class LuaOperationMetadataTests(unittest.TestCase):
         id_file = ROOT / "overlay" / "lua" / "msfiles" / "ID_troops.py"
         self.assertTrue(id_file.is_file())
         constants, _lists = parse_header(id_file.read_text(encoding="utf-8"))
-        documented = {
-            "trp_invader_multiplayer_ai", "trp_invaderb_multiplayer_ai",
-            "trp_mercenary_horseman", "trp_mercenary_cavalry",
-            "trp_invader1_multiplayer_ai",
-            "trp_invader2_multiplayer_ai", "trp_invader3_multiplayer_ai",
-            "trp_invader4_multiplayer_ai", "trp_invader5_multiplayer_ai",
-            "trp_invader6_multiplayer_ai", "trp_invader7_multiplayer_ai",
-            "trp_invader8_multiplayer_ai", "trp_swadian_crossbowman_multiplayer",
-            "trp_swadian_sniper_multiplayer", "trp_swadian_infantry_multiplayer",
-            "trp_swadian_man_at_arms_multiplayer",
-        }
-        self.assertEqual(set(constants), documented)
-        self.assertEqual(len(set(constants.values())), len(constants))
+        values = list(constants.values())
+        self.assertLessEqual(len(constants), 32)  # bounded label table
+        self.assertEqual(len(set(values)), len(values), "duplicate troop id label")
         for name, opcode in constants.items():
-            self.assertIsInstance(opcode, int)
+            self.assertIsInstance(opcode, int, name)
             self.assertGreaterEqual(opcode, 0)
             self.assertLess(opcode, 1000, name)
+        # A's native_roster_patch scans invader IDs 894..911 (end-exclusive 912).
+        self.assertEqual({v for v in values if 894 <= v <= 911}, set(range(894, 912)))
+        # Defender clones appended by the remaster patch.
+        self.assertEqual({v for v in values if 981 <= v <= 984}, {981, 982, 983, 984})
+        for defender in ("trp_zdr_commando_bot", "trp_zdr_sniper_bot",
+                         "trp_zdr_scout_bot", "trp_zdr_lumberjack_bot"):
+            self.assertIn(defender, constants)
+        for generic in ("trp_invader_multiplayer_ai", "trp_invaderb_multiplayer_ai"):
+            self.assertIn(generic, constants)
+        self.assertEqual(constants["trp_invader_multiplayer_ai"], 873)
+        self.assertEqual(constants["trp_invaderb_multiplayer_ai"], 874)
 
     def test_v2_lifecycle_events_are_explicit(self):
         self.assertIn("|lifecycle=1", self.main)
@@ -316,6 +317,19 @@ class LuaOperationMetadataTests(unittest.TestCase):
                       self.main)
         self.assertIn("if not supports_kills then result.kills[0], result.kills[1] = -1, -1 end",
                       self.main)
+
+
+    def test_pre_round_sampling_is_bounded_on_the_proven_entry_trigger(self):
+        # No-client servers never start a round; the 1 s entry trigger is the
+        # only probe trigger observed to run, so it carries bounded pre-round
+        # samples (<=6) instead of relying on the unreached 15 s heartbeat.
+        self.assertIn("MAX_PRE_ROUND_SAMPLES = 6", self.main)
+        self.assertIn("|pre_round=1", self.main)
+        self.assertIn('emit("pre_round_sample"', self.main)
+        self.assertIn("local function pre_round_snapshot", self.main)
+        self.assertLess(self.main.index("local function pre_round_snapshot"),
+                        self.main.index("local function first_entry"))
+        self.assertIn("pre_round_snapshot(sample_world(), resolve_role()", self.main)
 
 if __name__ == "__main__":
     unittest.main()

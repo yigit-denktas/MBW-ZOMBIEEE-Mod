@@ -361,5 +361,73 @@ class ReceiptSummaryTests(unittest.TestCase):
         self.assertIsNone(summary["teams"]["bots_team0"])
         self.assertIsNone(summary["teams"]["bots_team1"])
 
+
+    def test_roster_classification_separates_generic_native_and_defender(self):
+        lines = [
+            "ZDB1|heartbeat|count=1|role=server|team0=8|team1=41|wave=1"
+            "|game_type=7|ready_for_spawn=1|troops_team0=981:4,877:4"
+            "|troops_team1=873:32,894:9,897:5,700:2"
+            "|troop_names_team1=894:trp_invader1_multiplayer_ai"
+            "|troop_names_team0=981:trp_zdr_commando_bot",
+        ]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        classes = summary["troops"]["classes"]
+        self.assertEqual(classes["generic"], {873: 32})
+        self.assertEqual(classes["native_zombie"], {894: 9, 897: 5})
+        self.assertEqual(classes["defender"], {981: 4})
+        self.assertEqual(classes["survivor"], {877: 4})
+        self.assertEqual(classes["unknown"], {700: 2})
+        roster = summary["troops"]["roster"]
+        self.assertTrue(roster["native_zombie_observed"])
+        self.assertTrue(roster["generic_observed"])
+        self.assertTrue(roster["defender_observed"])
+        self.assertEqual(roster["unknown_id_count"], 1)
+        self.assertNotIn("native_zombie_roster_not_observed", summary["evidence_gaps"])
+        text = format_summary(summary)
+        self.assertIn("roster:", text)
+
+    def test_missing_native_zombie_roster_is_flagged(self):
+        lines = ["ZDB1|heartbeat|count=1|role=server|team0=1|team1=41|wave=1"
+                 "|troops_team1=873:32"]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        self.assertFalse(summary["troops"]["roster"]["native_zombie_observed"])
+        self.assertIn("native_zombie_roster_not_observed", summary["evidence_gaps"])
+    def test_pre_round_only_bundle_reports_composition_without_heartbeats(self):
+        # No-client dedicated server: mission triggers pause in the waiting state,
+        # so the only samples are mission_enter plus bounded pre_round_sample.
+        lines = [
+            "ZDB1|recorder_capabilities|opmeta=1|sampling_interval_s=15|pre_round=1",
+            "ZDB1|mission_enter|role=server|template=mst_multiplayer_iv|agents=29"
+            "|team0=4|team1=25|wave=0|game_type=7|ready_for_spawn=0"
+            "|players_team0=0|players_team1=0|humans_team0=4|humans_team1=25"
+            "|bot_agents_team0=4|bot_agents_team1=25|horses_team0=0|horses_team1=0"
+            "|no_player=1|alive_team0=4|alive_team1=25|kills_team0=0|kills_team1=0"
+            "|pos_team0=10.0:20.0|pos_team1=30.0:40.0"
+            "|bbox_team0=9.0:19.0:11.0:21.0|bbox_team1=29.0:39.0:31.0:41.0"
+            "|pos_sampled_team0=4|pos_sampled_team1=8",
+            "ZDB1|pre_round_sample|count=1|role=server|ready_for_spawn=0|round_start=0"
+            "|agents=29|team0=4|team1=25|players_team0=0|players_team1=0"
+            "|bot_agents_team0=4|bot_agents_team1=25|horses_team0=0|horses_team1=0"
+            "|no_player=1|alive_team0=4|alive_team1=25|kills_team1=2"
+            "|pos_team1=31.0:41.0|bbox_team1=29.0:39.0:33.0:43.0|pos_sampled_team1=8",
+            "ZDB1|ai_sample|role=server|tick=1|team=1|id=5|x=31.0|y=41.0|kills=2|wave=0",
+            "ZDB1|ai_sample|role=server|tick=1|team=1|id=5|x=32.0|y=42.0|kills=2|wave=0",
+        ]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        self.assertIs(summary["no_player"], True)
+        self.assertEqual(summary["teams"]["max_team1"], 25)
+        self.assertEqual(summary["teams"]["bots_team1"], 25)
+        self.assertEqual(summary["teams"]["alive_team1"], 25)
+        self.assertEqual(summary["positions"]["team1"]["centroid"], {"x": 31.0, "y": 41.0})
+        self.assertEqual(summary["engagement"]["kills_team1"], 2)
+        self.assertEqual(summary["probe"]["pre_round_samples"], 1)
+        self.assertTrue(summary["events"]["pre_round_only"])
+        self.assertTrue(summary["probe"]["pre_round_only"])
+        self.assertIn("no_probe_heartbeats", summary["evidence_gaps"])
+        self.assertNotIn("zdbi_stream_not_sealed", summary["evidence_gaps"])
+        self.assertNotIn("team_composition_unknown", summary["evidence_gaps"])
+        text = format_summary(summary)
+        self.assertIn("pre-round:", text)
+
 if __name__ == "__main__":
     unittest.main()
