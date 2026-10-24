@@ -224,6 +224,61 @@ class LaunchDefenderProfileTests(unittest.TestCase):
                 self._plan(tmp, team0_bots='4')
 
 
+class LaunchEnemyProfileTests(unittest.TestCase):
+    """Enemy staging for the live wave/balance regression; loopback/seal intact."""
+
+    def _plan(self, tmp, **kwargs):
+        fixture = GameFixture(tmp)
+        return build_launch_plan(discovery_report=fixture.report,
+                                 evidence_root=fixture.evidence,
+                                 installed_status=INSTALLED_OK, **kwargs)
+
+    def test_generic_is_the_unchanged_default(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            plan = self._plan(tmp)
+            self.assertEqual(plan['enemy_profile'], 'generic')
+            self.assertEqual(plan['team2_bots'], 32)
+            self.assertIn('set_bot_count 2 32', plan['rotation'])
+            self.assertIn('set_bot_count 1 4', plan['rotation'])
+
+    def test_weak_wave1_stages_a_small_enemy_count(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            plan = self._plan(tmp, enemy_profile='weak-wave1')
+            self.assertEqual(plan['enemy_profile'], 'weak-wave1')
+            self.assertEqual(plan['team2_bots'], 8)
+            self.assertIn('set_bot_count 2 8', plan['rotation'])
+            self.assertIn('set_bot_count 1 4', plan['rotation'])
+            self.assertTrue(validate_rotation(plan['rotation'],
+                                              enemy_profile='weak-wave1'))
+
+    def test_native_only_emits_zero_generic_team2(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            plan = self._plan(tmp, enemy_profile='native-only')
+            self.assertTrue(plan['ok'], plan['blockers'])
+            self.assertEqual(plan['enemy_profile'], 'native-only')
+            self.assertEqual(plan['team2_bots'], 0)
+            self.assertIn('set_bot_count 2 0', plan['rotation'])
+            self.assertIn('set_bot_count 1 4', plan['rotation'])
+            self.assertIn('set_defender_spawn_count 0', plan['rotation'])
+            self.assertTrue(validate_rotation(plan['rotation'],
+                                              enemy_profile='native-only'))
+            self.assertEqual(plan['client_join_address'], '127.0.0.1:7240')
+
+    def test_explicit_team2_override_and_invalid_combinations(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            plan = self._plan(tmp, enemy_profile='weak-wave1', team2_bots=2)
+            self.assertEqual(plan['team2_bots'], 2)
+            self.assertIn('set_bot_count 2 2', plan['rotation'])
+            with self.assertRaises(LaunchError):
+                self._plan(tmp, enemy_profile='native-only', team2_bots=2)
+            with self.assertRaises(LaunchError):
+                self._plan(tmp, enemy_profile='unknown')
+            with self.assertRaises(LaunchError):
+                self._plan(tmp, team2_bots=-1)
+            with self.assertRaises(LaunchError):
+                self._plan(tmp, team2_bots=600)
+
+
 class LaunchPathTests(unittest.TestCase):
     def test_rotation_config_and_argv_are_private_and_loopback(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -468,13 +523,14 @@ def no_bind_runner(argv, **kwargs):
 
 class Harness:
     def __init__(self, tmp, *, recorder_kwargs=None, waiters=None,
-                 host_events=None, client_exit_after=3, host_on_start=None):
+                 host_events=None, client_exit_after=3, host_on_start=None,
+                 plan_kwargs=None):
         self.fixture = GameFixture(tmp)
         self.events = []
         self.plan = build_launch_plan(
             discovery_report=self.fixture.report,
             evidence_root=self.fixture.evidence,
-            installed_status=INSTALLED_OK)
+            installed_status=INSTALLED_OK, **(plan_kwargs or {}))
         assert self.plan['ok'], self.plan['blockers']
         self.session = Session(route='dedicated', endpoint='127.0.0.1',
                                timeout=900, client_exit_ends_session=True)
@@ -532,6 +588,24 @@ def write_join_markers(child):
         'ZDB1|heartbeat|count=1|role=server|game_type=7\n'
         'ZDB1|mission_enter|role=server|template=multiplayer_iv\n',
         encoding='utf-8')
+
+
+class CityLauncherEnemyProfileTests(unittest.TestCase):
+    def test_native_only_launch_writes_zero_team2_and_still_seals(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            harness = Harness(tmp, host_on_start=write_join_markers,
+                              plan_kwargs={'enemy_profile': 'native-only'})
+            launcher = harness.launcher()
+            receipt = launcher.run()
+            self.assertEqual(receipt['status'], 'stopped', receipt.get('error'))
+            self.assertEqual(receipt['enemy_profile'], 'native-only')
+            self.assertEqual(receipt['team2_bots'], 0)
+            self.assertEqual(receipt['team0_bots'], 4)
+            self.assertTrue(receipt['host_bound_loopback'])
+            self.assertTrue(receipt['evidence']['verified'])
+            rotation_text = launcher.paths.rotation_path.read_text(encoding='utf-8')
+            self.assertIn('set_bot_count 2 0', rotation_text)
+            self.assertIn('set_bot_count 1 4', rotation_text)
 
 
 class CityLauncherSuccessTests(unittest.TestCase):

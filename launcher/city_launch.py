@@ -44,8 +44,9 @@ from .engines import plan_engines
 from .install import (MODULE_NAME, CITY_BUILD_FLAGS, execute_install,
                       plan_install, restore_backup, verify_built_module)
 from .recorder import PassiveRecorder, atomic_write_json, is_redirected
-from .rotation import (DEFAULT_TEAM1_BOTS, DEFENDER_SQUAD_BOTS, build_rotation,
-                      rotation_sha256, validate_rotation)
+from .rotation import (DEFAULT_ENEMY_PROFILE, DEFAULT_TEAM1_BOTS,
+                      DEFENDER_SQUAD_BOTS, ENEMY_PROFILE_BOTS, ENEMY_PROFILES,
+                      build_rotation, rotation_sha256, validate_rotation)
 from .runtime import (ENDPOINT, JOIN_MARKERS, MISSION_MARKERS, Waiter,
                       contains_marker, host_bound_loopback, is_loopback_endpoint)
 from .solo import Session
@@ -235,7 +236,8 @@ def build_launch_plan(*, discovery_report, evidence_root, archive=None,
                       rebuild=False, allow_install=True, repo_root=None,
                       process_checker=None, installed_status=None,
                       archive_resolver=None, settings=None,
-                      team0_bots=None, stock_rotation=False):
+                      team0_bots=None, stock_rotation=False,
+                      enemy_profile=DEFAULT_ENEMY_PROFILE, team2_bots=None):
     """Compose the full read-only launch plan; no writes or process starts."""
     repo_root = Path(repo_root) if repo_root is not None else Path(__file__).resolve().parents[1]
     evidence_root = Path(evidence_root).expanduser().absolute()
@@ -305,15 +307,25 @@ def build_launch_plan(*, discovery_report, evidence_root, archive=None,
     if (type(team0_bots) is not int or isinstance(team0_bots, bool)
             or not 0 <= team0_bots <= 200):
         raise LaunchError('team0_bots must be an integer in [0, 200]')
+    if enemy_profile not in ENEMY_PROFILES:
+        raise LaunchError('enemy_profile must be one of '
+                          + ', '.join(ENEMY_PROFILES))
+    if team2_bots is None:
+        team2_bots = ENEMY_PROFILE_BOTS[enemy_profile]
+    if (type(team2_bots) is not int or isinstance(team2_bots, bool)
+            or not 0 <= team2_bots <= 500):
+        raise LaunchError('team2_bots must be an integer in [0, 500]')
     try:
-        rotation = build_rotation(team1_bots=team0_bots)
+        rotation = build_rotation(team1_bots=team0_bots,
+                                  team2_bots=team2_bots,
+                                  enemy_profile=enemy_profile)
     except ValueError as exc:
         raise LaunchError('rotation refused: ' + str(exc)) from exc
     rotation_profile = ('stock' if team0_bots == DEFAULT_TEAM1_BOTS
                         else 'defender-squad'
                         if team0_bots == DEFENDER_SQUAD_BOTS
                         else 'custom-team0')
-    if not validate_rotation(rotation):
+    if not validate_rotation(rotation, enemy_profile=enemy_profile):
         raise LaunchError('rotation contract self-check failed')
     if not is_loopback_endpoint(ENDPOINT):
         raise LaunchError('non-loopback endpoint refused')
@@ -357,6 +369,8 @@ def build_launch_plan(*, discovery_report, evidence_root, archive=None,
         'rotation': rotation,
         'team0_bots': team0_bots,
         'rotation_profile': rotation_profile,
+        'enemy_profile': enemy_profile,
+        'team2_bots': team2_bots,
         'rotation_sha256': rotation_sha256(rotation),
         'client_join_address': ENDPOINT,
         'client_argv_suffix': ['--module', MODULE_NAME, '--address', ENDPOINT,
@@ -424,9 +438,9 @@ class LaunchPaths:
         self.launch_receipt = self.launch_dir / 'launch-receipt.json'
         self.summary_path = self.launch_dir / 'summary.json'
 
-    def prepare(self, *, rotation_lines):
+    def prepare(self, *, rotation_lines, enemy_profile=None):
         try:
-            valid = validate_rotation(rotation_lines)
+            valid = validate_rotation(rotation_lines, enemy_profile=enemy_profile)
         except (TypeError, ValueError) as exc:
             raise LaunchError('rotation failed validation before write: '
                               + str(exc)) from exc
@@ -539,6 +553,8 @@ class CityLauncher:
             'rotation_sha256': plan.get('rotation_sha256'),
             'team0_bots': plan.get('team0_bots'),
             'rotation_profile': plan.get('rotation_profile'),
+            'enemy_profile': plan.get('enemy_profile'),
+            'team2_bots': plan.get('team2_bots'),
             'host_bound_loopback': None,
             'join_observed': None,
             'mission_observed': None,
@@ -587,7 +603,8 @@ class CityLauncher:
                                  ('dedicated', engine['dedicated_executable'])):
             if not isinstance(executable, str) or not Path(executable).is_file():
                 raise LaunchError('WSE2 ' + role + ' executable disappeared')
-        self.paths.prepare(rotation_lines=self.plan['rotation'])
+        self.paths.prepare(rotation_lines=self.plan['rotation'],
+                           enemy_profile=self.plan.get('enemy_profile'))
         host, client = session_commands(
             dedicated_executable=engine['dedicated_executable'],
             client_executable=engine['client_executable'],
@@ -920,6 +937,8 @@ def _print_plan(plan):
     lines.append('  rotation: ' + (str(rotation)[:16] + '...' if rotation else 'none'))
     lines.append('  allies  : team-0 bots=%s (%s)'
                  % (plan.get('team0_bots'), plan.get('rotation_profile')))
+    lines.append('  enemies : team-2 bots=%s (%s)'
+                 % (plan.get('team2_bots'), plan.get('enemy_profile')))
     for blocker in plan.get('blockers') or []:
         lines.append('  blocker : ' + blocker)
     for warning in plan.get('warnings') or []:
@@ -977,7 +996,9 @@ def _build_plan_from_args(args, *, allow_install):
         rebuild=getattr(args, 'rebuild', False), allow_install=allow_install,
         settings=_parse_settings(args),
         team0_bots=getattr(args, 'team0_bots', None),
-        stock_rotation=getattr(args, 'stock_rotation', False))
+        stock_rotation=getattr(args, 'stock_rotation', False),
+        enemy_profile=getattr(args, 'enemy_profile', DEFAULT_ENEMY_PROFILE),
+        team2_bots=getattr(args, 'team2_bots', None))
 
 
 def _run_install_if_needed(plan):
@@ -1136,6 +1157,12 @@ def build_parser():
                              'City default 4, stock 0)')
     common.add_argument('--stock-rotation', action='store_true',
                         help='emit the stock rotation with zero allied defenders')
+    common.add_argument('--enemy-profile', choices=ENEMY_PROFILES,
+                        default=DEFAULT_ENEMY_PROFILE,
+                        help='team-2 enemy staging for live balance runs')
+    common.add_argument('--team2-bots', type=int, default=None, metavar='N',
+                        help='explicit team-2 generic bot count '
+                             '(profile default otherwise)')
     common.add_argument('--rebuild', action='store_true',
                         help='force a reversible City rebuild/install')
     timeouts = argparse.ArgumentParser(add_help=False)

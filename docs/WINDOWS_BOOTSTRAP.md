@@ -326,6 +326,16 @@ Bare invocation defaults to `play`; `play --rebuild` forces a fresh build.
    `--stock-rotation` / `--team0-bots 0` keeps the stock zero-ally rotation
    for a module built without defenders. `build_rotation()` itself keeps its
    stock default; `build_defender_rotation()` is the explicit profile.
+   Enemy staging is a separate validated option for the live wave/balance
+   regression: `--enemy-profile generic` (default, 32 team-2 generic bots),
+   `--enemy-profile weak-wave1` (a small staged wave-1 count, 8 generic
+   team-2 bots) or `--enemy-profile native-only` (`set_bot_count 2 0`: no
+   generic team-2 bots, only native wave visitors; the historical no-wave
+   failure makes this an evidence-gated experiment). `--team2-bots N`
+   overrides the count. Defender squad (`set_bot_count 1 4`), loopback bind
+   and the sealed stop are unchanged. Plan and launch receipt record
+   `enemy_profile` and `team2_bots`; e.g.
+   `python -m launcher.play_city --enemy-profile native-only --max-minutes 3 --json`.
 4. Recorder first: C's passive recorder is armed and must publish a canonical
    ready marker for this exact session/attempt/PID before any game child starts.
    The host is then started with a generated loopback-only WSE2 config
@@ -384,8 +394,13 @@ attach, join/mission markers, stop after client exit, artifact-before-stop,
 manifest/summary results, and fail-closed cleanup for bind timeout, recorder
 readiness failure, attachment rejection, recorder death and Ctrl+C. No game,
 recorder subprocess or network probe is started by tests. Latest Windows result:
-`python -B -m unittest discover -s tests -q` → **486 tests, OK, 104 skipped**
-(the interop cases run because C's recorder is present in the merged tree).
+`python -B -m unittest discover -s tests -q` → **510 tests, 1 pre-existing
+failure on base main `85b9dd5` (`tests.test_flight_lua_msfiles`
+`test_team_counts_fail_closed_to_unknown`, unrelated to the launcher),
+107 skipped**; the B launcher/C-recorder interop cases run because C's
+recorder is present in the merged tree. Launcher-only suites are green:
+`python -B -m unittest discover -s tests -p "test_windows_*.py" -q` →
+**154 tests, OK, 1 skipped**.
 
 ### Python 3.13 NUL-path regression
 
