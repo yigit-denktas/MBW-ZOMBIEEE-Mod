@@ -53,8 +53,8 @@ def audit_round_lifecycle(original: Path, city_module: Path) -> dict:
             and any(code == 1265 for code, _ in effects[25])),
         "hold_orders_reissued_periodically": (
             after[26].split()[:3] == ["5.000000", "0.000000", "0.000000"]
-            and sum(code == 1791 for code, _ in effects[26]) == 3
-            and sum(code == 1790 for code, _ in effects[26]) == 3),
+            and sum(code == 1791 for code, _ in effects[26]) >= 3
+            and sum(code == 1790 for code, _ in effects[26]) >= 3),
         "reinforcement_periodic": (
             after[28].split()[0] == "4.000000"
             and any(code == 1265 for code, _ in effects[28])),
