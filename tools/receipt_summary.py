@@ -375,6 +375,27 @@ def summarize_receipt(target: Path) -> dict:
             else:
                 bucket = "unknown"
             wave1_classes[bucket] = max(wave1_classes[bucket], count)
+    classes_by_wave = {}
+    for event in samples:
+        wave = _bounded_int(event["fields"].get("wave"), minimum=1)
+        hist = _histogram(event["fields"].get("troops_team1"))
+        if wave is None or not hist:
+            continue
+        buckets = classes_by_wave.setdefault(
+            wave, {"generic": 0, "native_zombie": 0, "defender": 0,
+                   "survivor": 0, "unknown": 0})
+        for troop, count in hist.items():
+            if troop in ROSTER_GENERIC:
+                bucket = "generic"
+            elif troop in ROSTER_NATIVE_ZOMBIE:
+                bucket = "native_zombie"
+            elif troop in ROSTER_DEFENDER:
+                bucket = "defender"
+            elif troop in ROSTER_SURVIVOR:
+                bucket = "survivor"
+            else:
+                bucket = "unknown"
+            buckets[bucket] = max(buckets[bucket], count)
     # Division (agent_get_group) telemetry: bounded per-team group histograms and
     # sampled-bot groups, so hold/sector claims have a measured field. Defender
     # divisions are 5-7 by A's contract; absence is reported, never assumed.
@@ -457,6 +478,80 @@ def summarize_receipt(target: Path) -> dict:
         values = [value for value in values if value is not None]
         return max(values) if values else None
 
+    def _latest_hist(name):
+        for event in reversed(samples):
+            raw = event["fields"].get(name)
+            if isinstance(raw, str) and raw not in ("", "none", "-1"):
+                hist = _histogram(raw)
+                if hist:
+                    return dict(sorted(hist.items(),
+                                       key=lambda kv: (-kv[1], kv[0]))[:MAX_HIST_ENTRIES])
+        return None
+
+    def _latest_orders():
+        for event in reversed(samples):
+            raw = event["fields"].get("defender_orders")
+            if not isinstance(raw, str) or raw in ("", "none", "-1"):
+                continue
+            parsed = {}
+            for chunk in raw.split(";"):
+                parts = chunk.split(":")
+                if len(parts) != 5:
+                    continue
+                try:
+                    subclass, hold_fire, movement, weapon, riding = (int(p) for p in parts)
+                except ValueError:
+                    continue
+                if subclass in (5, 6, 7, 9) and all(
+                        0 <= value <= 1000 for value in
+                        (hold_fire, movement, weapon, riding)):
+                    parsed[subclass] = {"hold_fire": hold_fire,
+                                        "movement": movement,
+                                        "weapon_usage": weapon,
+                                        "riding": riding}
+            if parsed:
+                return parsed
+        return None
+
+    def _movement_rate(event_list):
+        tracks = {}
+        for event in event_list:
+            fields = event["fields"]
+            agent = _bounded_int(fields.get("id"), minimum=1)
+            tick = _bounded_int(fields.get("tick"), minimum=0)
+            try:
+                px = float(fields.get("x"))
+                py = float(fields.get("y"))
+            except (TypeError, ValueError):
+                continue
+            if agent is None or tick is None:
+                continue
+            if not (-100000 <= px <= 100000 and -100000 <= py <= 100000):
+                continue
+            tracks.setdefault(agent, []).append((tick, px, py))
+        pairs = 0
+        total = 0.0
+        rates = []
+        for points in tracks.values():
+            points.sort(key=lambda item: item[0])
+            for first, second in zip(points, points[1:]):
+                if second[0] <= first[0]:
+                    continue
+                distance = ((second[1] - first[1]) ** 2
+                            + (second[2] - first[2]) ** 2) ** 0.5
+                if distance <= 0:
+                    continue
+                pairs += 1
+                total += distance
+                rates.append(distance / (second[0] - first[0]))
+        if not pairs:
+            return None
+        return {"agents": len(tracks), "pairs": pairs,
+                "total_distance": round(total, 2),
+                "avg_per_interval": round(sum(rates) / len(rates), 3),
+                "max_per_interval": round(max(rates), 3),
+                "units": "position-units per tick interval (ai_sample cadence)"}
+
     defender_groups_seen = {}
     for event in defender_samples:
         group = _bounded_int(event["fields"].get("group"), minimum=0, maximum=255)
@@ -506,6 +601,27 @@ def summarize_receipt(target: Path) -> dict:
     shield_values = [value for value in shield_values if value is not None]
     action_values = [_bounded_int(e["fields"].get("action"), minimum=0) for e in samples]
     action_values = [value for value in action_values if value is not None]
+    defender_movement = _movement_rate(defender_samples)
+    defender_speed_modifiers = _latest_hist("defender_speed_modifiers")
+    defender_time_multipliers = _latest_hist("defender_time_multipliers")
+    defender_action_speeds = _latest_hist("defender_action_speeds")
+    defender_orders = _latest_orders()
+    refill_counts = [_bounded_int(e["fields"].get("defenders_team0"), minimum=0)
+                     for e in events if e["event"] == "heartbeat"]
+    refill_counts = [count for count in refill_counts if count is not None]
+    defender_refill = None
+    if refill_counts:
+        decreased = False
+        refill_observed = False
+        for previous, current in zip(refill_counts, refill_counts[1:]):
+            if current < previous:
+                decreased = True
+            elif current > previous and decreased:
+                refill_observed = True
+        defender_refill = {"samples": len(refill_counts),
+                           "unique_counts": sorted(set(refill_counts)),
+                           "peak": max(refill_counts), "min": min(refill_counts),
+                           "refill_observed": refill_observed}
     defenders = {
         "observed": bool(sum(defender_divisions.values())) or bool(defender_troop_counts),
         "divisions": ({group: count for group, count in defender_divisions.items() if count}
@@ -536,6 +652,13 @@ def summarize_receipt(target: Path) -> dict:
         "deaths": defender_deaths,
         "shield": None,
         "action": None,
+        "speed_modifiers": defender_speed_modifiers,
+        "time_multipliers": defender_time_multipliers,
+        "action_speeds": defender_action_speeds,
+        "orders": defender_orders,
+        "behavior_mode": None,
+        "movement_rate": defender_movement,
+        "refill": defender_refill,
         "note": ("team-0 non-player defenders; guard_entries_reached is a bounded "
                  "distinct-coarse-position proxy, not a guard-entry identity; "
                  "hold behaviour is not asserted from samples."),
@@ -743,6 +866,10 @@ def summarize_receipt(target: Path) -> dict:
                            if _bounded_int(event["fields"].get("team"), minimum=0, maximum=1) == team),
             "distinct_bots": len(tracks),
             "moving_bots": moving if tracks else None,
+            "movement_rate": _movement_rate(
+                [event for event in ai_events
+                 if _bounded_int(event["fields"].get("team"), minimum=0,
+                                 maximum=1) == team]),
         }
 
     event_counts = {}
@@ -766,6 +893,15 @@ def summarize_receipt(target: Path) -> dict:
     gaps = list(gaps_hint)
     if defender_samples and not defenders["weapon_mode_observed"]:
         gaps.append("weapon_mode_unobserved")
+    if (defenders["movement_rate"] is None
+            and positions["team0"]["movement_rate"] is None
+            and positions["team1"]["movement_rate"] is None):
+        gaps.append("movement_rate_unavailable")
+    if defenders["speed_modifiers"] is None and defenders["time_multipliers"] is None:
+        gaps.append("speed_readback_unavailable")
+    if defender_samples and defenders["orders"] is None:
+        gaps.append("defender_orders_unavailable")
+    gaps.append("behavior_mode_unavailable")
     if teams["mounted_team1"] is None:
         gaps.append("mounted_telemetry_unavailable")
     if not shield_values:
@@ -843,7 +979,9 @@ def summarize_receipt(target: Path) -> dict:
         "waves": {"observed": waves, "max": waves[-1] if waves else None,
                   "multiple_observed": len([w for w in waves if w >= 1]) >= 2,
                   "wave1": {"observed": wave1_observed,
-                            "team1_classes": wave1_classes if wave1_observed else None}},
+                            "team1_classes": wave1_classes if wave1_observed else None},
+                  "classes_by_wave": (dict(sorted(classes_by_wave.items()))
+                                      or None)},
         "rounds": {"round_starts": rounds[:MAX_ROUNDS],
                    "count": len(rounds),
                    "multiple_observed": len(rounds) >= 2,
