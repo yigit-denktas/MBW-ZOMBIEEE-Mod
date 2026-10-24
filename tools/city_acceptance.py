@@ -11,7 +11,7 @@ import json
 from pathlib import Path
 from patch_defenders import mission_bounds
 from city_defense import SCENE_BASE, LOCAL0, scene_index
-from faction_log_guard_prefix import original_prefix_ok
+from native_wave_patch import patch_mission_text as native_wave_patch_text
 from wave_reinforcements import LOCAL_BASE
 from trace_calls import read_mission_calls
 
@@ -72,13 +72,30 @@ def audit_city(module: Path, original: Path) -> dict:
                 "Original source invasion must have 25 triggers")
         require("city_trigger_count", after == CITY_TRIGGERS,
                 "Expected 31 native City tactical triggers")
-        prefix_ok = original_prefix_ok(actual, baseline)
+        prefix_ok = actual[:25] == baseline[:25]
+        if not prefix_ok:
+            # The City native wave patch changes exactly triggers 14/15:
+            # trigger 14's wave table/invalid writes and trigger 15's appended
+            # native team-1 speed loop. Rebuild the expected prefix from the
+            # untouched original with the same deterministic patch.
+            variables = (original / "variables.txt").read_text(encoding="utf-8").splitlines()
+            wave_global = None
+            if "wave_number" in variables:
+                wave_global = 144115188075855872 + variables.index("wave_number")
+            original_text = (original / "mission_templates.txt").read_text(encoding="utf-8")
+            expected = []
+            for speed_loop in (False, True):
+                expected_text, _ = native_wave_patch_text(
+                    original_text, wave_global, speed_loop=speed_loop)
+                elines = expected_text.splitlines(keepends=True)
+                ep, ec, ee = mission_bounds(elines)
+                expected.append([line.rstrip("\r\n") for line in elines[ep + 1:ee]])
+            prefix_ok = any(actual[:25] == candidate[:25] for candidate in expected)
         require("original_trigger_prefix", prefix_ok,
                 "Original invasion trigger contents were modified")
         if actual[:25] != baseline[:25]:
-            require("original_trigger_14_log_guard",
-                    original_prefix_ok(actual, baseline),
-                    "Only the authorised trigger-14 invalid-faction log guard may differ")
+            require("city_native_wave_patch", prefix_ok,
+                    "Only the authorised City native wave patch may change triggers 14/15")
         city = SCENE_BASE + scene_index(module / "scenes.txt")
         require("scenes_table_untouched",
                 (module / "scenes.txt").read_bytes() ==

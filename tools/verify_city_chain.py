@@ -13,8 +13,8 @@ import tempfile
 from pathlib import Path
 
 from archive_audit import inspect_original_archive
-from faction_log_guard_prefix import original_prefix_ok
-from faction_log_guard import apply_module as apply_faction_log_guard
+from native_wave_patch import patch_mission_text as native_wave_patch_text
+from native_wave_patch import apply_module as apply_native_wave_patch
 from city_acceptance import audit_city
 from final_city_gate import audit_final_city_controls
 from patch_defenders import (mission_bounds, patch_file, index_troops,
@@ -43,13 +43,37 @@ def sha(path: Path) -> str:
     return h.hexdigest()
 
 
-def stage_source(original: Path, dest: Path) -> None:
+def stage_source(original: Path, dest: Path, speed_loop: bool = False) -> None:
     (dest / "SceneObj").mkdir(parents=True)
     for name in CORE_INPUTS:
         shutil.copy2(original / name, dest / name)
     for name in SCENE_NAMES:
         shutil.copy2(original / "SceneObj" / name, dest / "SceneObj" / name)
-    apply_faction_log_guard(dest)
+    variables = (original / "variables.txt").read_text(encoding="utf-8").splitlines()
+    wave_global = (144115188075855872 + variables.index("wave_number")
+                   if "wave_number" in variables else None)
+    apply_native_wave_patch(dest, wave_global, speed_loop=speed_loop)
+
+
+def _prefix_matches_patched_original(stage: Path, original: Path,
+                                     actual_rows, baseline_rows) -> bool:
+    actual = [v.rstrip("\r\n") for v in actual_rows]
+    untouched = [v.rstrip("\r\n") for v in baseline_rows]
+    if actual == untouched:
+        return True
+    variables = (original / "variables.txt").read_text(encoding="utf-8").splitlines()
+    wave_global = (144115188075855872 + variables.index("wave_number")
+                   if "wave_number" in variables else None)
+    original_text = (original / "mission_templates.txt").read_text(encoding="utf-8")
+    for speed_loop in (False, True):
+        expected_text, _ = native_wave_patch_text(
+            original_text, wave_global, speed_loop=speed_loop)
+        elines = expected_text.splitlines(keepends=True)
+        ep, ec, ee = mission_bounds(elines)
+        expected = [line.rstrip("\r\n") for line in elines[ep + 1:ep + 26]]
+        if actual[:25] == expected[:25]:
+            return True
+    return False
 
 
 def mission_check(stage: Path, original: Path, expected: int) -> dict:
@@ -64,10 +88,9 @@ def mission_check(stage: Path, original: Path, expected: int) -> dict:
         "expected": expected, "count": count,
         "native_stream_complete": len(decoded) == count,
         "original_25_triggers_unchanged": (
-            src_count == 25 and
-            original_prefix_ok(
-                [v.rstrip("\r\n") for v in lines[idx+1:idx+26]],
-                [v.rstrip("\r\n") for v in baseline[src_idx+1:src_idx+26]])),
+            src_count == 25 and _prefix_matches_patched_original(
+                stage, original, lines[idx+1:idx+26],
+                baseline[src_idx+1:src_idx+26])),
         "deferred_scenes_unchanged": all(
             sha(stage / "SceneObj" / name) == sha(original / "SceneObj" / name)
             for name in SCENE_NAMES if not name.endswith("_4.sco")),
@@ -79,7 +102,8 @@ def mission_check(stage: Path, original: Path, expected: int) -> dict:
     return result
 
 
-def verify(original: Path, archive: Path | None = None) -> dict:
+def verify(original: Path, archive: Path | None = None,
+           native_speed_loop: bool = False) -> dict:
     original = Path(original)
     inputs = {name: original / name for name in CORE_INPUTS}
     inputs.update({"SceneObj/"+name: original / "SceneObj" / name for name in SCENE_NAMES})
@@ -120,7 +144,7 @@ def verify(original: Path, archive: Path | None = None) -> dict:
                 # byte-identical, not merely that the four other maps survived.
                 shutil.copytree(original, stage)
             else:
-                stage_source(original, stage)
+                stage_source(original, stage, speed_loop=native_speed_loop)
             if variant == "balanced-ai":
                 apply_loadouts(stage)
             firearm = apply_firearm_balance(stage, "default")
@@ -195,7 +219,7 @@ def verify(original: Path, archive: Path | None = None) -> dict:
                     "passed": True,
                 }
         solo = root / "solo-assist"
-        stage_source(original, solo)
+        stage_source(original, solo, speed_loop=native_speed_loop)
         apply_firearm_balance(solo, "default")
         patch_file(solo, 4, city_only=True)
         apply_city(solo)
@@ -239,6 +263,7 @@ def main() -> int:
     p.add_argument("--original", type=Path, required=True)
     p.add_argument("--archive", type=Path)
     p.add_argument("--json", action="store_true")
+    p.add_argument("--native-speed-loop", choices=("off", "on"), default="off")
     args = p.parse_args()
     try:
         result = verify(args.original, args.archive)

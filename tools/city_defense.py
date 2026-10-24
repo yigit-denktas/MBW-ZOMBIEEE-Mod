@@ -86,8 +86,8 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None,
         l12, l13, l14 = (str(LOCAL0 + n) for n in (12, 13, 14))
         ops.append(["2133", "2", l12, str(ZOMBIE_SPEED_BASE)])
         if wave_global is not None:
-            ops.append(["2123", "3", l13, str(wave_global),
-                        str(ZOMBIE_SPEED_PER_WAVE)])  # store_mul
+            ops.append(["2122", "3", l13, str(wave_global),
+                        str(ZOMBIE_SPEED_PER_WAVE)])  # store_mul (2122)
             ops.append(["2120", "3", l12, l12, l13])  # + wave bonus
             ops.append(["4", "0"])                    # cap at 100
             ops.append(["32", "2", l12, "100"])
