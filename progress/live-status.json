@@ -1,8 +1,8 @@
 {
-  "updated": "2026-10-24T17:35:00+02:00",
-  "phase": "Tracker sync / probe gate",
-  "build": "Fixed adaptive probe installed (DF21AE88, backup …172142).",
-  "now": "Derived heatmap GIF is live; raw captures removed from Pages (404). Fixed run has heartbeats/adaptive/class/hp but hit params invalid and screenshots faction-only. probe-health gate misses attempts-without-samples.",
-  "next": "C fixes hit decode + probe-health failure; D adds join assertion and reruns; then adaptive A/B and defender_target 8-vs-4 pair. Held branches not merged.",
+  "updated": "2026-10-24T17:45:00+02:00",
+  "phase": "P0 review -> playable build",
+  "build": "Known-good f57c800 installed; heatmap/adaptive probe parked after reseal.",
+  "now": "review-b2 accepted P0 9b97e15 (2 P2s: add_visitors group_no premise; verifier speed-on gap). A fixing P2s/rebase. D reseal pending. No new telemetry branches.",
+  "next": "A push P2 fixes; Lead installs play build; D 10-min survivor POV; visible blockers only. No acceptance.",
   "acceptance": false
 }
