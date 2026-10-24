@@ -408,7 +408,10 @@ The probe adds a 1 s `adaptive_tick` trigger:
 - Each snapshot samples **all alive non-player agents**, bounded by
   `zdr_adaptive_max_agents` (default 128) and emits `adaptive_sample`
   (reason active/idle) or `adaptive_event` (reason hit/death/wave_transition/
-  mode_change) with agent/team/troop/class/division/hp/x/y/alive/wave/mode/tick.
+  mode_change) with agent/team/troop/class/division/hp/x/y/alive/wave/mode/tick
+  plus weapon/ammo/attack_action/accuracy/reload/weapon_mode for ranged/cadence
+  analysis. Adaptive output is **server-role only** (`adaptive_server_only=1`)
+  so client screenshots are not covered by console spam.
 - Config (globals; defaults): `zdr_adaptive_active_ms=1000`,
   `zdr_adaptive_idle_ms=5000`, `zdr_adaptive_max_events=50000`,
   `zdr_adaptive_max_agents=128`. Heartbeat exposes `adaptive_ticks`,
@@ -439,6 +442,9 @@ Summary `firearms.team0/1` now adds, from bounded ai/combat samples:
   centroid; `charge_ratio`; unknown when no positions/enemy centroid.
 - gaps: `time_to_first_shot_unavailable`, `time_to_first_shot_tick_units_no_ts`,
   `charge_backward_movement_unavailable`.
+- summary consumes both `ai_sample`/`combat_sample` and `adaptive_sample`/
+  `adaptive_event`; reports `sample_sources`, `shot_intervals_ms`, and
+  `agents_fired_ratio` (sampler-limited coverage, never inferred as missing AI).
 
 This is inferred from ammo/position deltas, not an engine shot event; probe-relative
 time only; no acceptance claim. Task-82 build `buildranged` needs no new probe

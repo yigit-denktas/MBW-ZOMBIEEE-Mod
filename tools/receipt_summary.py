@@ -1025,12 +1025,16 @@ def summarize_receipt(target: Path) -> dict:
         # Per-agent bounded samples: tick/ts/position/ammo/attack action/weapon.
         series = {}
         weapon_modes = {}
+        sample_sources = {}
         # Per-tick team centroids for charge/backward projection.
         coord_groups = {}
         for event in events:
-            if event["event"] not in ("ai_sample", "combat_sample"):
+            if event["event"] not in ("ai_sample", "combat_sample",
+                                      "adaptive_sample", "adaptive_event"):
                 continue
             fields = event["fields"]
+            sample_source = event["event"]
+            sample_sources[sample_source] = sample_sources.get(sample_source, 0) + 1
             sample_team = _bounded_int(fields.get("team"))
             if sample_team not in (0, 1):
                 continue
@@ -1087,6 +1091,7 @@ def summarize_receipt(target: Path) -> dict:
         shots = burn = reloads = samples = 0
         agents_with_shots = 0
         intervals = []
+        intervals_ms = []
         kills_delta = 0
         attack_actions = {}
         weapon_ids = {}
@@ -1102,7 +1107,8 @@ def summarize_receipt(target: Path) -> dict:
         charge_distance = backward_distance = 0.0
         charge_samples = backward_samples = 0
         for points in series.values():
-            points.sort(key=lambda item: item[0])
+            points.sort(key=lambda item: (item[8] if item[8] is not None
+                                           else item[0] * 1000, item[0]))
             previous_tick = None
             agent_shots = 0
             previous_action = None
@@ -1178,6 +1184,8 @@ def summarize_receipt(target: Path) -> dict:
                         shot_timestamps.append(second[8])
                     if previous_tick is not None:
                         intervals.append(second[0] - previous_tick)
+                    if first[8] is not None and second[8] is not None:
+                        intervals_ms.append(second[8] - first[8])
                     previous_tick = second[0]
                 elif second[1] > first[1]:
                     reloads += 1
@@ -1218,6 +1226,13 @@ def summarize_receipt(target: Path) -> dict:
                  "max": max(intervals)} if intervals else None),
             "shots_per_minute": (round(shots_per_minute, 3)
                                  if shots_per_minute is not None else None),
+            "shot_intervals_ms": (
+                {"count": len(intervals_ms), "min": min(intervals_ms),
+                 "avg": round(sum(intervals_ms) / len(intervals_ms), 3),
+                 "max": max(intervals_ms)} if intervals_ms else None),
+            "sample_sources": sample_sources or None,
+            "agents_fired_ratio": (round(agents_with_shots / len(series), 3)
+                                   if series else None),
             "kills_delta_observed": kills_delta,
             "shot_to_kill_ratio": (round(shots / kills_delta, 3)
                                    if kills_delta > 0 else None),

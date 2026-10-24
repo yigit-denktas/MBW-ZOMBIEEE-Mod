@@ -947,5 +947,30 @@ class ReceiptSummaryTests(unittest.TestCase):
             self.assertGreater(fire["movement"]["charge_samples"], 0)
             self.assertGreater(fire["movement"]["backward_samples"], 0)
 
+
+    def test_adaptive_samples_feed_ranged_cadence_and_coverage(self):
+        lines = [
+            "ZDB1|heartbeat|count=1|role=server|team0=1|team1=1|wave=1|ts_ms=1000",
+            "ZDB1|ai_sample|role=server|tick=1|ts_ms=1000|team=0|id=1|troop=981"
+            "|weapon=7|ammo=10|alive=1|weapon_mode=ranged|attack_action=2|x=10|y=10|wave=1",
+            "ZDB1|adaptive_sample|reason=active|tick=2|ts_ms=2000|team=0|id=1"
+            "|troop=981|class=1|division=5|hp=90|weapon=7|ammo=8|attack_action=2"
+            "|weapon_mode=ranged|alive=1|x=11|y=10|wave=1|mode=0",
+            "ZDB1|adaptive_sample|reason=active|tick=3|ts_ms=3000|team=0|id=1"
+            "|troop=981|class=1|division=5|hp=80|weapon=7|ammo=6|attack_action=2"
+            "|weapon_mode=ranged|alive=1|x=12|y=10|wave=1|mode=0",
+        ]
+        with tempfile.TemporaryDirectory() as td:
+            session = seal(Path(td), {"host_stdout.log": "\n".join(lines)})
+            summary = summarize_receipt(session)
+            fire = summary["firearms"]["team0"]
+            self.assertEqual(fire["sample_sources"]["adaptive_sample"], 2)
+            self.assertEqual(fire["shots_observed"], 4)
+            self.assertEqual(fire["time_to_first_shot"]["unit"], "ms")
+            self.assertEqual(fire["time_to_first_shot"]["min"], 1000)
+            self.assertEqual(fire["shot_intervals_ms"]["count"], 2)
+            self.assertEqual(fire["shot_intervals_ms"]["min"], 1000)
+            self.assertEqual(fire["agents_fired_ratio"], 1.0)
+
 if __name__ == "__main__":
     unittest.main()
