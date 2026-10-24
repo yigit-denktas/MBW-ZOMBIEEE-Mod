@@ -30,3 +30,6 @@ Generated from the authoritative `progress/ledger.json` on the current source sn
 | ZOM-DISC-41 | Agent D — sealed validation; owner retains acceptance | task-38 validation queue | done | ZOM-DISC-34, ZOM-DISC-35 | ZOM-QA-02 | Supports QA-02; wave-2 gate still unobserved. |
 | ZOM-DISC-42 | Agent D — sealed validation; owner retains acceptance | task-42 validation queue | active | ZOM-DISC-40, ZOM-DISC-41 | ZOM-QA-02 | Final validation gate before standoff can be judged; supports QA-02. |
 | ZOM-DISC-43 | Lead — UI/tracker integration | owner Pages/dependency-map feedback | done | — | ZOM-REC-03 | Supports REC-03 progress-view validation; no required credit. |
+| ZOM-DISC-44 | Agent C — telemetry; Agent A implementation | task-42 sealed validation | active | ZOM-DISC-42 | ZOM-OBS-01 | Unblocks proof for speed/hold; without it those claims stay config-only. |
+| ZOM-DISC-45 | Agent D — sealed validation; owner retains acceptance | task-42 sealed validation | active | ZOM-DISC-42 | ZOM-QA-02 | Supports QA-02 and WAVE-01; without it standoff/balance remain partially unproven. |
+| ZOM-DISC-46 | Agent A — AI/balance; Agent D validation | task-42 sealed validation/owner balance feedback | active | ZOM-DISC-40, ZOM-DISC-42 | ZOM-WAVE-01 | Blocks WAVE-01 acceptance; depends on standoff validation and telemetry. |
