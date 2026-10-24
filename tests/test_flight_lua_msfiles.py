@@ -477,5 +477,18 @@ class LuaOperationMetadataTests(unittest.TestCase):
         self.assertIn("faction_get_slot = 522", header_text())
         self.assertIn("store_current_scene = 2211", header_text())
 
+
+    def test_task55_faction_slot_uses_raw_id_and_no_spam_guard(self):
+        # WSE2 Lua expects the raw faction id (16); the encoded module operand
+        # (432345564227567632) produced "Invalid Faction ID: -2147483648" spam in
+        # trigger 31/32 condition callbacks.
+        self.assertIn("local FACTION_INVADER = 16", self.main)
+        self.assertNotIn("432345564227567632", self.main)
+        self.assertIn("faction < 0 or faction > MAX_FACTION_ID", self.main)
+        self.assertIn("if wave_slot_read_enabled then", self.main)
+        self.assertIn("local wave_slot_read_enabled = false", self.main)
+        self.assertIn('role == "server"', self.main)
+        self.assertIn('current_mission() == "mst_multiplayer_iv"', self.main)
+
 if __name__ == "__main__":
     unittest.main()

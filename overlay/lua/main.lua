@@ -18,7 +18,11 @@ local MAX_TROOP_ID = 100000
 -- Native constant bases shared by the mod's generated ops; used only to decode
 -- faction-slot troop references in read-only telemetry.
 local TROOP_BASE = 360287970189639680
-local FACTION_INVADER = 432345564227567632
+-- WSE2's Lua binding expects the RAW faction id (16), not the encoded module
+-- operand; the encoded value produced "Invalid Faction ID: -2147483648"
+-- spam in trigger 31/32 Lua condition callbacks. Never pass it here.
+local FACTION_INVADER = 16
+local MAX_FACTION_ID = 63
 local WAVE_SLOT_PROBES = {200, 221, 231, 241, 245}
 -- Native defender roster appended by A's patch: 981..984. Used as a bounded
 -- fallback when native bots are not in divisions 5-7.
@@ -188,6 +192,11 @@ local function read_lhs_value(name, ...)
     return decode_lhs_returns(ok, first, second, third)
 end
 local function read_faction_slot(faction, slot)
+    -- No fake/encoded operands: WSE2 Lua takes a raw faction id.
+    if type(faction) ~= "number" or faction < 0 or faction > MAX_FACTION_ID then
+        return -1
+    end
+    if type(slot) ~= "number" or slot < 0 or slot > 255 then return -1 end
     return read_lhs_value("faction_get_slot", faction, slot)
 end
 local function read_current_scene()
@@ -214,6 +223,9 @@ local group_convention = nil  -- nil until detectable; then "direct" or "unknown
 -- Group reads are attempted only once a full round is running (safe, valid
 -- agent ids, periodic cadence), never from the pre-round/entry trigger.
 local group_read_enabled = false
+-- Faction-slot/scene readback is server+City only and heartbeat-only: it calls
+-- engine ops from a Lua callback, so never probe it pre-round or on a client.
+local wave_slot_read_enabled = false
 local group_capability_emitted = false
 local function emit_group_capability(value)
     if group_capability_emitted then return end
@@ -734,13 +746,18 @@ local function sample_world()
         -- Faction-slot readback (A's P0): the City trigger rewrites wave-table
         -- slots 200..244 to troop 894; read a few probes plus a control slot to
         -- distinguish "trigger wrote" from "engine kept original/wave values".
-        local slot_parts = {}
-        for _, slot in ipairs(WAVE_SLOT_PROBES) do
-            local value = read_faction_slot(FACTION_INVADER, slot)
-            slot_parts[#slot_parts + 1] = slot .. ":" .. decode_troop_slot(value)
+        -- Server+City-only and heartbeat-only: never call faction ops from the
+        -- entry/pre-round condition callback (that produced error spam on a
+        -- client/pre-round path), and never pass an encoded faction operand.
+        if wave_slot_read_enabled then
+            local slot_parts = {}
+            for _, slot in ipairs(WAVE_SLOT_PROBES) do
+                local value = read_faction_slot(FACTION_INVADER, slot)
+                slot_parts[#slot_parts + 1] = slot .. ":" .. decode_troop_slot(value)
+            end
+            result.wave_slots_text = table.concat(slot_parts, ",")
+            result.current_scene = read_current_scene()
         end
-        result.wave_slots_text = table.concat(slot_parts, ",")
-        result.current_scene = read_current_scene()
         result.horse_ids_text1 = id_list_text(result.horse_ids[1])
         return result
     end)
@@ -1097,8 +1114,12 @@ local function heartbeat()
         if not group_read_enabled and prior_round_start > 0 and prior_ready > 0 then
             group_read_enabled = true
         end
-        local world = sample_world()
         local role = resolve_role()
+        if not wave_slot_read_enabled and role == "server"
+            and current_mission() == "mst_multiplayer_iv" then
+            wave_slot_read_enabled = true
+        end
+        local world = sample_world()
         local wave, mode = global_int("wave_number"), global_int("zdr_defence_mode")
         if role == "server" and world.ok then
             local death_round = global_int("g_round_start_time")
