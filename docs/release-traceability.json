@@ -6,7 +6,7 @@
   "acceptance": "none",
   "runtime_verified": false,
   "observed_on": "2026-10-24",
-  "source_revision": "4848ee2245ea78d6c19cd39875f6b7154a22b8ef",
+  "source_revision": "08a9546827fbae6adf0b8fa35bcb8d843723cad8",
   "version_sources": {
     "version": "VERSION",
     "changelog": "CHANGELOG.md#030-beta1-2026-10-24",
@@ -523,7 +523,7 @@
     "published": false
   },
   "source_revision_exception": {
-    "reason": "unfrozen P0 probe fix metadata-only head revision; Lead syncs final release metadata",
+    "reason": "owner-authorized telemetry hardening branch metadata-only head revision; Lead syncs final release metadata",
     "changed_paths": [
       "docs/release-traceability.json",
       "CHANGELOG.md",
