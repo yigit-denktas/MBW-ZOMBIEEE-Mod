@@ -60,13 +60,13 @@ class RotationContractTests(unittest.TestCase):
         stock = build_rotation()
         defender = build_defender_rotation()
         self.assertEqual(stock[7], 'set_bot_count 1 0')
-        self.assertEqual(defender[7], 'set_bot_count 1 4')
+        self.assertEqual(defender[7], 'set_bot_count 1 8')
         self.assertEqual(defender[8], 'set_bot_count 2 32')
         self.assertIn('set_defender_spawn_count 0', defender)
         self.assertTrue(validate_rotation(defender))
         self.assertEqual(DEFAULT_TEAM1_BOTS, 0)
-        self.assertEqual(DEFENDER_SQUAD_BOTS, 4)
-        self.assertEqual(defender, build_rotation(team1_bots=4))
+        self.assertEqual(DEFENDER_SQUAD_BOTS, 8)
+        self.assertEqual(defender, build_rotation(team1_bots=8))
         self.assertNotEqual(rotation_sha256(stock), rotation_sha256(defender))
 
     def test_defender_squad_flag_validates_conflicts(self):
@@ -108,11 +108,11 @@ class RotationContractTests(unittest.TestCase):
 
     def test_defender_and_enemy_profiles_compose(self):
         lines = build_rotation(defender_squad=True, enemy_profile='weak-wave1')
-        self.assertEqual(lines[7], 'set_bot_count 1 4')
+        self.assertEqual(lines[7], 'set_bot_count 1 8')
         self.assertEqual(lines[8], 'set_bot_count 2 8')
         self.assertTrue(validate_rotation(lines, enemy_profile='weak-wave1'))
         native = build_rotation(defender_squad=True, enemy_profile='native-only')
-        self.assertEqual(native[7], 'set_bot_count 1 4')
+        self.assertEqual(native[7], 'set_bot_count 1 8')
         self.assertEqual(native[8], 'set_bot_count 2 0')
 
     def test_roster_caveat_is_explicit(self):

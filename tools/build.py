@@ -17,7 +17,8 @@ from doctor import inspect_module
 from preflight import report_for_module
 from patch_defenders import patch_file, index_troops, TROOP_BASE, SURVIVOR_CLASSES
 from native_roster_patch import GLOBAL_BASE, apply_module as apply_native_roster
-from city_defense import apply_module as apply_city_defense
+from city_defense import (GUARD_ENTRIES, REAR_HOLD_ENTRIES,
+                          apply_module as apply_city_defense)
 from all_map_defense import apply_module as apply_all_maps
 from wave_reinforcements import apply_module as apply_wave_support
 from tactical_recovery import apply_module as apply_tactical_recovery
@@ -92,7 +93,8 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
           defender_loadouts: str = "original", solo_assist: bool = False,
           private_commands: bool = False, difficulty: str = "standard",
           firearm_accuracy: str = "default",
-          zombie_bot_roster: str = "weak", zombie_block: str = "default") -> dict:
+          zombie_bot_roster: str = "weak", zombie_block: str = "default",
+          defensive_line: str = "rear") -> dict:
     support = profile(difficulty)
     if difficulty != "standard" and not wave_reinforcements:
         raise ValueError("Nonstandard difficulty needs --wave-reinforcements")
@@ -110,6 +112,8 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         raise ValueError("Unknown --zombie-bot-roster profile")
     if zombie_block not in ("default", "stock"):
         raise ValueError("Unknown --zombie-block profile")
+    if defensive_line not in ("rear", "forward"):
+        raise ValueError("Unknown --defensive-line profile")
     if defender_loadouts != "original" and not experimental_defenders:
         raise ValueError("AI-only loadouts require experimental defenders")
     if tactical_recovery and not wave_reinforcements:
@@ -224,7 +228,8 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
                 raise RuntimeError("Experimental defender patch failed post-apply diagnostics")
         city_report = None
         if city_guardposts:
-            city_report = apply_city_defense(source)
+            city_report = apply_city_defense(
+                source, REAR_HOLD_ENTRIES if defensive_line == "rear" else GUARD_ENTRIES)
             updated = report_for_module(source)
             if not updated["ok"] or updated["mission"]["triggers"] != 27:
                 raise RuntimeError("City defence failed static post-apply validation")
@@ -399,13 +404,14 @@ def main():
     parser.add_argument("--firearm-accuracy", choices=("default", "stock"), default="default", help="Default build profile buffs automatic firearm accuracy (+5..10 pts); stock keeps original stats")
     parser.add_argument("--zombie-bot-roster", choices=("weak", "full"), default="weak", help="City generic invader bots: weak 894..897 only or full native 894..911 roster")
     parser.add_argument("--zombie-block", choices=("default", "stock"), default="default", help="Give City invader troops a shield for block capability; stock keeps original equipment")
+    parser.add_argument("--defensive-line", choices=("rear", "forward"), default="rear", help="City defender hold line: rear/spawn line (default) or the old forward guard sectors")
     args = parser.parse_args()
     try:
         print(json.dumps(build(args.archive, args.out, args.replace, args.experimental_defenders,
                          args.city_guardposts, args.all_map_defenses, args.wave_reinforcements,
                          args.tactical_recovery, args.defender_loadouts, args.solo_assist,
                          args.private_commands, args.difficulty, args.firearm_accuracy,
-                         args.zombie_bot_roster, args.zombie_block), indent=2))
+                         args.zombie_bot_roster, args.zombie_block, args.defensive_line), indent=2))
     except (RuntimeError, FileNotFoundError, FileExistsError, ValueError, subprocess.CalledProcessError) as exc:
         print(f"Build refused: {exc}", file=sys.stderr)
         raise SystemExit(2)

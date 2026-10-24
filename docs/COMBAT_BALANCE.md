@@ -93,3 +93,14 @@ No gameplay validation is claimed; D/Lead validate in a sealed run.
   other troops unchanged; `stock` disables. Runtime block behaviour needs D's sealed
   validation. No acceptance claim; 0/23 outcomes unchanged.
 
+## Defensive rear line + larger squad (2026-10-24 follow-up)
+
+- City defender hold orders now default to the **rear/spawn entries 0/1**
+  (`REAR_HOLD_ENTRIES`), static every 5 s, with no scripted destination and no
+  forward sector rotation; `--defensive-line forward` restores the old 2/3/4
+  guard sectors. Receipt records `hold_entries` / `defensive_line`.
+- Launcher defender squad default is **8** native team-0 bots (native refill keeps
+  bodies up); build still appends clone troops 981..984. Player-facing combat
+  validation (defenders firing, holding, KD) remains D's sealed evidence; no
+  acceptance claim.
+

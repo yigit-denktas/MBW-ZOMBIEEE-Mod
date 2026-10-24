@@ -10,7 +10,8 @@ from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 from patch_defenders import PatchError, index_troops, patch_text, mission_bounds
-from city_defense import apply_module, orders_trigger, patch_orders, scene_index
+from city_defense import (REAR_HOLD_ENTRIES, apply_module, orders_trigger,
+                          patch_orders, scene_index)
 from scene_tactics import SceneError, decode_scene, plan_city, apply_city_overlay
 
 ORIGINAL = Path(os.environ.get("ZOMBIEEE_ORIGINAL_MODULE", "/mnt/data/zombie04_inspect/ZOMBIEEE"))
@@ -128,6 +129,23 @@ class CityDefenseTests(unittest.TestCase):
         # periodicity and City-only conditions stay intact
         self.assertEqual(orders[:3], ["5.000000", "0.000000", "0.000000"])
         self.assertEqual(orders[3], "3")
+
+    def test_rear_defensive_line_holds_spawn_entries(self):
+        wave_global = 144115188075855872 + 1209
+        orders = orders_trigger(0, wave_global, REAR_HOLD_ENTRIES).split()
+        self.assertEqual(orders.count("1780"), 3)
+        self.assertEqual(orders.count("1791"), 3)
+        self.assertEqual(orders.count("1790"), 3)
+        self.assertNotIn("1730", orders)
+        entries = []
+        for index, token in enumerate(orders):
+            if token == "1780" and index + 3 < len(orders):
+                entries.append(orders[index + 3])
+        self.assertEqual(entries, ["0", "1", "0"])
+        self.assertTrue(all(entry in ("0", "1") for entry in entries))
+        self.assertNotIn("2", entries)
+        # The defensive-line variant is static: no forward sector entry math.
+        self.assertNotIn("2121", orders)
 
     def test_original_triggers_still_untouched(self):
         before = (self.module / "mission_templates.txt").read_bytes().decode("utf-8")

@@ -152,3 +152,12 @@ While actual B boot results remained unposted, A fixed a **false-positive diagno
 - Build receipt + chain verification include both profiles (`troops.txt` intentional
   City change). Offline 514 tests OK/7 skips; no gameplay acceptance; D validates.
 
+## Defensive rear line follow-up (task-30 balance)
+
+- `tools/city_defense.py`: default City hold = rear/spawn entries (0,1,0), static
+  every 5 s, no scripted destination/forward rotation; `--defensive-line forward`
+  keeps old sectors; receipt records hold entries.
+- `launcher/rotation.py`: defender squad 4 → 8 native team-0 bots (native refill).
+- Tests cover rear entries/no-1730/no-parity; D validates positions/KD with
+  C telemetry; no acceptance.
+

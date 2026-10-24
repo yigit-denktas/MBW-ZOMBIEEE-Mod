@@ -39,7 +39,7 @@ DEFAULT_TEAM1_BOTS = 0
 # A's merged roster patch maps faction 15 + ``g_multiplayer_game_type==7``
 # bots to the 981..984 survivor troops; ``set_bot_count 1 4`` is the switch
 # that spawns the native team-0 allied squad (1-based rotation team 1).
-DEFENDER_SQUAD_BOTS = 4
+DEFENDER_SQUAD_BOTS = 8
 DEFAULT_TEAM2_BOTS = 32
 # Enemy rotation profiles for the live wave/balance regression:
 # generic      - current default, a mixed 32-bot team-2 roster
