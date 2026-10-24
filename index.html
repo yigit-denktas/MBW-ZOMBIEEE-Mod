@@ -164,7 +164,7 @@ function depDrawEdges(nodes){
 function renderDependencyMap(){
  const lanes=$('dep-lanes'),summary=$('dep-summary');if(!record||!lanes)return;
  const req=record.items.filter(i=>i.required);
- const disc=record.items.filter(i=>i.workOrigin==='discovered'&&/^ZOM-DISC-(2[89]|3[0-9])$/.test(i.id));
+ const disc=record.items.filter(i=>i.workOrigin==='discovered'&&/^ZOM-DISC-(2[89]|3[0-9]|4[0-3])$/.test(i.id));
  let nodes=req.concat(disc);
  if(depFrontierOnly){nodes=nodes.filter(i=>i.required?i.state!=='done':['active','review','ready','blocked'].includes(i.state));}
  lanes.replaceChildren();
@@ -195,7 +195,7 @@ $('work').textContent=done.length+'/'+req.length+' · '+pct(done.length,req.leng
 $('gates').textContent=accepted.length+'/'+record.milestones.length+' · '+pct(accepted.length,record.milestones.length);
 const discovered=record.items.filter(i=>i.workOrigin==='discovered'),discoveredDone=discovered.filter(i=>i.state==='done');
 $('discovered').textContent=discoveredDone.length+'/'+discovered.length+' · '+pct(discoveredDone.length,discovered.length);
-$('source').textContent='Source: progress/ledger.json · 2026-10-24 · v0.2.0 · main · single tracker in main · dependency graph on this page · required City outcomes 8/23 · discovered work 39 · milestones 0/5 · no City acceptance';
+$('source').textContent='Source: progress/ledger.json · 2026-10-24 · v0.2.0 · main · single tracker in main · dependency graph on this page · required City outcomes 8/23 · discovered work 43 · milestones 0/5 · no City acceptance';
 for(const m of record.milestones){const option=el('option',m.id+' — '+m.title);option.value=m.id;$('milestone').append(option);
 const card=el('section',undefined,'card');card.append(el('small',m.id+' · '+m.horizon));card.append(el('h3',m.title));const work=itemsFor(m),complete=work.filter(x=>x.state==='done');card.append(el('p',complete.length+'/'+work.length+' proposed leaves complete · '+pct(complete.length,work.length)));card.append(el('p',m.goal));const button=el('button','Show '+m.id+' items');button.addEventListener('click',()=>{$('milestone').value=m.id;render();$('work-heading').scrollIntoView();$('search').focus()});card.append(button);$('milestones').append(card)}
 ['search','milestone','status','origin'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',render));
