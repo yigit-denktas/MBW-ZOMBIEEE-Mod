@@ -2789,7 +2789,7 @@
       "owner": "Agent A — implementation; Agent D validating",
       "priority": "P0",
       "criterion": "Native wave slots 200..244 are rewritten to 894, and sealed runs show no Fast/Tank/mounted/ranged visitors.",
-      "note": "D wave1 classes {native_zombie:17}, troops {894:17}; wave max 1 in 3-min run; wave-2 pending.",
+      "note": "D wave1 classes {native_zombie:17}, troops {894:17}; wave max 1 in 3-min run; wave-2 pending. | D 600s wave2: 896 leaked (894:10,896:7); gating incomplete for later waves.",
       "deferReason": "Supplemental wave-balance support work; not part of the required denominator.",
       "implementationLane": "A",
       "workOrigin": "discovered",
@@ -3425,6 +3425,42 @@
       "originReason": "Owner required independent review of assets/release claims.",
       "discoveredDuring": "owner consolidation request",
       "graphImpact": "Blocks release/asset acceptance until reviewer signs off."
+    },
+    {
+      "id": "ZOM-DISC-53",
+      "title": "Stop Fast Zombie 896 leaking into wave 2",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "active",
+      "sourceState": "D 600s run: wave2 troops 894:10,896:7",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-34"
+      ],
+      "evidence": [
+        {
+          "kind": "sealed-evidence",
+          "source": "_zom-d-profiles/local/session/play-city",
+          "observedOn": "2026-10-24",
+          "acceptance": "observed-wave2"
+        }
+      ],
+      "completionBasis": "Bug recorded; gating fix pending",
+      "kind": "work-item",
+      "owner": "Agent A — gating; Agent D validation",
+      "priority": "P0",
+      "criterion": "Wave-2+ visitor troop histograms contain no 896/898/901/907/908/911; only the intended slow Zombie family.",
+      "note": "D 600s run: `troops_team1=894:10,896:7`; task-43 waves.classes_by_wave[2] exposes it. Task-34 slot rewrite incomplete for later waves.",
+      "deferReason": "Supplemental gating/balance support; not part of the required denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "bug-fix",
+      "supportsOutcomeId": "ZOM-WAVE-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Wave-2 Fast Zombie leak found in D's longer sealed run.",
+      "discoveredDuring": "D 600s wave-2 validation",
+      "graphImpact": "Blocks WAVE-01 balance; depends on task-34 visitor gating."
     }
   ],
   "warnings": [
