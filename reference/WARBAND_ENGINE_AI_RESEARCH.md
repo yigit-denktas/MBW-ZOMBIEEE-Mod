@@ -144,9 +144,10 @@ Therefore:
 2. Re-issue adoption on the same cadence as the orders, because the engine/other scripts may reassign divisions (Native itself has `script_agent_fix_division` at `module_scripts.py:73544` precisely to correct engine-applied divisions on agents).
 3. Read back with `agent_get_division` (and `agent_get_class`) and verify with `agent_get_simple_behavior` before assuming orders reach the agent.
 4. Issue `team_give_order(team, division, order)` / `team_set_order_position(team, division, pos)` to those divisions only.
-5. **Do not** pass leader/group ids as `sub_class`, and **do not** pass 5–7 as the `group` argument of `add_visitors_to_current_scene` in multiplayer: the Native MP call passes the **leader player id** there. Passing a formation slot is a type error that can explain visitors not spawning. Inspect the original trigger operands before changing any visitor call.
+5. **Do not** pass leader/group ids as `sub_class`, and **do not** pass 5–7 as the `group` argument of `add_visitors_to_current_scene` in multiplayer: the Native MP call passes the **leader player id** there. Passing a formation slot is a type error.
+6. **Known current-builder defect (A, 2026-10-24):** `tools/wave_reinforcements.py` currently passes formation 5/6/7 as the 5th (`group`) argument of `add_visitors_to_current_scene`. This matches D's earlier observation that native team-0 bots spawn but team-0 `add_visitors` do not. A is correcting it; **do not claim visitor spawning works until it is rebuilt and re-sealed**.
 
-**Experiment gate:** whether the engine retains a scripted division change for MP bots, and whether orders to division 5/6/7 actually steer them, is **unverified**; §10 gives the decisive tests.
+**Experiment gate:** division adoption is **still unproven**. A's build re-applies `agent_set_division` (1783)/`agent_set_group` (1766) to 5/6/7 every 5 s, yet D/C readbacks show no addressable 5–7 order effect. Whether the engine retains a scripted division change for MP bots, and whether orders to division 5/6/7 actually steer them, is **unverified**; the division round-trip in §10 is the decisive test.
 
 ---
 
@@ -190,7 +191,7 @@ Warband's battlefield morale/rout is **not engine-opaque in single-player**: Nat
 For our multiplayer invasion mission:
 
 - The ZOMBIEEE City template's 25 native triggers are the invasion wave/round controller (S9); **no Native field-battle courage trigger is part of that chain** per A's audit. Therefore zombie "retreat" from the Native morale script is not expected — but this is a static claim and must be observed. **[unverified at runtime]**
-- Nevertheless, the engine ops exist, and another script/mod could call them. Our no-retreat rule remains: never issue `mordr_retreat` to team 1, never let a configured rout trigger run for team 1, and if `agent_is_routed` is ever observed on team 1, the corrective op is `agent_stop_running_away` (mutating; test-mode only).
+- Nevertheless, the engine ops exist, and another script/mod could call them. **The engine may also route agents through paths that are not visible in the module scripts** (A's audit adds this caveat); do not claim "rout is impossible". The honest formulation is: no Native courage trigger is part of the City chain (static), and we will observe `agent_is_routed`/movement rather than infer. Our no-retreat rule remains: never issue `mordr_retreat` or a fallback order to team 1, never let a configured rout trigger run for team 1, and if `agent_is_routed` is ever observed on team 1, the corrective op is `agent_stop_running_away` (mutating; test-mode only).
 - For survivors, Bannerlord-style morale shock is unnecessary: our intended "fall back to anchor" is a movement order to a rear position, not a rout. Adding courage/rout to survivors would create exactly the unrecoverable loop the owner wants to avoid.
 
 ---
@@ -224,6 +225,7 @@ Consequences:
 
 - Bots are spawned through the multiplayer spawn path: leader lookup → troop selection → `add_visitors_to_current_scene(entry, troop, count, team, group)` (S2 §4.2). The bot's `group` argument is its leader/owner player id.
 - `$g_multiplayer_num_bots_team_1/2` are the server bot-count globals (S2 `module_scripts.py:13712-13860`); `ready_for_spawning_agent` gates spawn.
+- **Current-builder caveat:** our `tools/wave_reinforcements.py` passes a formation slot (5/6/7) as the `group` argument of `add_visitors_to_current_scene`; the Native MP path passes a leader player id there. This is a likely cause of the earlier team-0 visitor-spawn failure and is being corrected by A (§4.4).
 - `set_bot_count` is **not a native opcode** — it is a server/launcher command used by our rotation (`reference/CITY_DEDICATED_BOT_CONFIG_FINDING_2026-10-24.md`), which changes those globals/engine config. Do not look for it in `header_operations.py`.
 - The Native `multiplayer_server_manage_bots` trigger (3 s) re-validates bot leaders; this is why a bot's "group" can change over time, and why a leader/owner id is not a stable formation address.
 
@@ -231,7 +233,7 @@ Consequences:
 
 - `ti_on_agent_spawn` (-25): per-agent spawn event (payload via `store_trigger_param_1` = agent).
 - `ti_on_agent_killed_or_wounded` (-26): death/wound event (dead agent, killer, wounded flag).
-- `ti_on_order_issued` (-71): order event; the OSP thread uses trigger param 1 = order, param 2 = agent (S7). It is present in 1.174-era headers (S1), absent from 2015 headers (S3); exact support on our pinned WSE2 build must be tested. **[unverified]**
+- `ti_on_order_issued` (-71): order event; the OSP thread uses trigger param 1 = order, param 2 = agent (S7). It is present in the Veehats 1.174-era header commit cited here (S1) but absent from the 2015 header (S3), and **A reports it is not in the pinned project header/docs**. Treat it as capability-probe-only: do not rely on it, and do not add a trigger using it without first verifying the constant resolves on the pinned build. **[unverified]**
 
 These are the Warband analogue of Bannerlord's `MissionBehavior` callbacks, and are the cleanest way for C to obtain **wave/arrival events** and **order-reachability evidence** without polling.
 
@@ -309,13 +311,14 @@ All write experiments are **test-mode only**, not evidence runs. Read-only probe
 
 ### A — behaviour/build
 
-1. **Division adoption round-trip:** on the 5 s City order trigger, for each team-0 non-player bot set `agent_set_division(agent, 5/6/7)` by role, then read `agent_get_division` back and apply the role's `team_give_order` + `team_set_order_position`. Success = division persists over ≥2 samples and the agent's movement/`agent_get_simple_behavior` changes. If the engine resets division, reapply per tick and record the reset cadence.
-2. **Order addressability matrix:** for sub-class values 0..9, issue `mordr_hold` and `mordr_charge` and record which agents/divisions move and what `agent_get_simple_behavior` reports. This establishes the actual mapping between class, division and orders on the pinned runtime.
-3. **Zombie no-retreat audit:** read `agent_get_simple_behavior` and `agent_is_routed` for team-1 samples; never issue `mordr_retreat`/`mordr_stand_ground` to team 1; if routed is ever observed, test `agent_stop_running_away` plus `agent_ai_set_aggressiveness` as a corrective. Report whether the native courage trigger is even present in the built template (static check).
-4. **Speed application:** keep `agent_set_speed_modifier` movement-only (55 + 5·wave target band 55–65%); verify by effective displacement, and treat the speed getter as suspect until the task-55 discrepancy is explained.
-5. **Wave state owner:** one module owner for PREP/SPAWN/ACTIVE/CLEARED/INTERMISSION with globals; wave-end predicate includes alive team 1 and the spawn/visitor gate; emit arrival counts on transition; test `add_visitors` with the **leader/group argument corrected** (not 5–7).
-6. **Behaviour pin:** WSE2 `agent_ai_set_simple_behavior` with a bounded guarantee on team-1 samples; read back and confirm it survives native re-planning; ensure `agent_force_rethink` is not undoing it.
-7. **Order-issued logging trigger:** append a minimal `ti_on_order_issued` trigger (server-only, bounded) that records order/agent; verify it fires and that its payload matches the order issued. If unsupported, fall back to division readback.
+1. **`add_visitors` argument fix (first, because it invalidates earlier visitor conclusions):** change the 5th argument from formation 5/6/7 to the multiplayer leader-id/`-1` path, then verify visitor spawn and where the visitor lands. Do not treat earlier "add_visitors never spawns" results as final until this is rebuilt and re-sealed.
+2. **Division adoption round-trip:** on the 5 s City order trigger, for each team-0 non-player bot set `agent_set_division(agent, 5/6/7)` by role, then read `agent_get_division` back and apply the role's `team_give_order` + `team_set_order_position`. Success = division persists over ≥2 samples and the agent's movement/`agent_get_simple_behavior` changes. If the engine resets division, reapply per tick and record the reset cadence.
+3. **Order addressability matrix:** for sub-class values 0..9, issue `mordr_hold` and `mordr_charge` and record which agents/divisions move and what `agent_get_simple_behavior` reports. This establishes the actual mapping between class, division and orders on the pinned runtime.
+4. **Zombie no-retreat audit:** read `agent_get_simple_behavior` and `agent_is_routed` for team-1 samples; never issue `mordr_retreat`/`mordr_stand_ground` to team 1; if routed is ever observed, test `agent_stop_running_away` plus `agent_ai_set_aggressiveness` as a corrective. Report whether the native courage trigger is even present in the built template (static check).
+5. **Speed application:** keep `agent_set_speed_modifier` movement-only (55 + 5·wave target band 55–65%); verify by effective displacement, and treat the speed getter as suspect until the task-55 discrepancy is explained.
+6. **Wave state owner:** one module owner for PREP/SPAWN/ACTIVE/CLEARED/INTERMISSION with globals; wave-end predicate includes alive team 1 and the spawn/visitor gate; emit arrival counts on transition; test `add_visitors` with the **leader/group argument corrected** (not 5–7).
+7. **Behaviour pin:** WSE2 `agent_ai_set_simple_behavior` with a bounded guarantee on team-1 samples; read back and confirm it survives native re-planning; ensure `agent_force_rethink` is not undoing it.
+7. **Order-issued logging trigger (capability-gated):** A reports `ti_on_order_issued` is not in the pinned header/docs, while it exists in the Veehats header commit cited here. Probe the constant first; only if it resolves, append a minimal server-only bounded trigger and verify payload. Otherwise rely on division/order readbacks and positions.
 
 ### C — telemetry/summary
 
@@ -346,7 +349,7 @@ All write experiments are **test-mode only**, not evidence runs. Read-only probe
 4. **`add_visitors` team/group semantics in our WSE2 build**: Native code passes a leader id; the engine's validation and default group when omitted are **[unverified]**.
 5. **Native courage trigger presence in the built ZOMBIEEE template**: project audit says the 25-trigger chain is the invasion controller, but a static confirmation (and a runtime `agent_is_routed` sample) is still needed.
 6. **Exact native version for later ops** (`agent_ai_get_num_cached_enemies`/`cached_enemy`, `ti_on_order_issued`): present in 1.174-era headers, absent from 2015 headers; exact patch introduction **[unverified]**.
-7. **`ti_on_order_issued` payload semantics and support under WSE2**: community-documented (trigger param 1 = order, param 2 = agent), not officially documented; test.
+7. **`ti_on_order_issued` payload semantics and support under WSE2**: community-documented (trigger param 1 = order, param 2 = agent), not officially documented; it is present in the Veehats header commit but A reports it absent from the pinned project header/docs — capability probe only.
 8. **Alarm semantics**: the header exposes get/set but not what "alarmed" changes in AI decisions; **[unverified]**.
 9. **Native tactic layer active in our template**: S5 quotes it active in Native, S2 has it commented out; per-template check required.
 10. **Trigger minimum interval / evaluation order**: header documents intervals but not the engine floor or ordering guarantees; **[unverified]**.
@@ -361,5 +364,10 @@ All write experiments are **test-mode only**, not evidence runs. Read-only probe
 - Suggested use: A folds §4.4, §5.4, §9 corrections and §10-A into the task-53/54 behavior contract and the wave-state work; C folds §5, §6.4 and §10-C into telemetry (new readbacks change the "unavailable" assumptions); D uses §10-D as the next sealed matrix.
 - Cross-review requested from **C or A**; their findings will be recorded here before the task is closed.
 - The four project documents named in §9 should eventually be updated by their owners to reflect the group-id correction and the new readbacks; H lane does not edit them.
+
+### Review record
+
+- **agent-a, 2026-10-24, against `24c03af`: APPROVE with corrections**, all applied in this revision: (a) division adoption remains explicitly unproven (A re-applies `agent_set_division`/`agent_set_group` but readbacks show no 5–7 order effect); (b) `tools/wave_reinforcements.py` passing 5/6/7 as the `add_visitors` group argument is documented as a current-builder defect and the likely cause of missing team-0 visitors (A correcting; no spawn claim until re-sealed); (c) `ti_on_order_issued` demoted to capability-probe-only because A reports it absent from the pinned header/docs; (d) morale/rout caveat strengthened: the engine may route agents outside the module-script path, so the honest test is observed `agent_is_routed` plus absence of retreat/fallback orders, not "rout is impossible"; (e) A's experiment order applied — `add_visitors` first, then division round-trip, order-addressability, zombie no-retreat audit.
+- **agent-c**: review requested; findings will be appended before the task is closed.
 
 *End of research document.*
