@@ -97,3 +97,6 @@ runtime or telemetry artifact and neither affects `runtime_verified`:
 4. `included_prs` is covered by the union of work-item PRs and `support_prs`.
 5. Historical release facts are corrected through sourced amendments, never
    silently retargeted.
+
+
+Source revision for the task-65 branch metadata-only receipt: `1374abd`.

@@ -211,3 +211,6 @@ work-item → PR → commit → version links are in
 
 ### Not shipped
 - No tested runtime build, allied bot positions, admin cheats or measured performance improvements.
+
+
+<!-- task-65 branch metadata-only source revision: 1374abd -->
