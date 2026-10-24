@@ -120,7 +120,7 @@ emit("recorder_capabilities",
     .. "|division_getter=" .. binding_flag("agent_get_division")
     .. "|hp_getter=" .. binding_flag("store_agent_hit_points")
     .. "|adaptive_sampling=1|adaptive_active_ms=1000|adaptive_idle_ms=5000"
-    .. "|adaptive_max_events=50000|adaptive_max_agents=128"
+    .. "|adaptive_max_events=50000|adaptive_max_agents=128|adaptive_server_only=1"
     .. "|speed_modifier_getter=" .. binding_flag("agent_get_speed_modifier")
     .. "|time_multiplier_getter=" .. binding_flag("agent_get_time_speed_multiplier")
     .. "|action_speed_getter=" .. binding_flag("agent_get_action_speed_modifier")
@@ -1384,6 +1384,14 @@ local function emit_adaptive_agent(agent, reason, wave, mode, interval)
     local agent_class = read_agent_number("agent_get_class", agent)
     local division = read_agent_number("agent_get_division", agent)
     local hp = read_agent_number("store_agent_hit_points", agent, 1)
+    local weapon = read_agent_number("agent_get_wielded_item", agent, 0)
+    local ammo = read_agent_number("agent_get_ammo", agent, 0)
+    local attack_action = read_agent_number("agent_get_attack_action", agent)
+    local accuracy = read_agent_number("agent_get_accuracy_modifier", agent)
+    local reload = read_agent_number("agent_get_reload_speed_modifier", agent)
+    local weapon_mode = "unknown"
+    if ammo > 0 then weapon_mode = "ranged"
+    elseif ammo == 0 and weapon >= 0 then weapon_mode = "melee" end
     local x = math.floor(point.x * 10 + 0.5) / 10
     local y = math.floor(point.y * 10 + 0.5) / 10
     local event = reason == "hit" or reason == "death"
@@ -1394,6 +1402,11 @@ local function emit_adaptive_agent(agent, reason, wave, mode, interval)
         .. "|team=" .. team .. "|troop=" .. troop
         .. "|class=" .. agent_class .. "|division=" .. division
         .. "|hp=" .. hp .. "|x=" .. x .. "|y=" .. y
+        .. "|weapon=" .. weapon .. "|ammo=" .. ammo
+        .. "|attack_action=" .. attack_action
+        .. "|accuracy_modifier=" .. accuracy
+        .. "|reload_speed_modifier=" .. reload
+        .. "|weapon_mode=" .. weapon_mode
         .. "|alive=1|wave=" .. wave .. "|mode=" .. mode
         .. "|interval_ms=" .. interval)
     if event then adaptive_events = adaptive_events + 1
@@ -1448,6 +1461,8 @@ emit_adaptive_death = function(agent, wave, mode)
     end
 end
 local function adaptive_tick()
+    -- Visual/client seals: never print adaptive samples on a client console.
+    if resolve_role() ~= "server" then return true end
     adaptive_ticks = adaptive_ticks + 1
     local interval, active, wave, mode, now, max_events, max_agents =
         adaptive_state()

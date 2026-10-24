@@ -567,6 +567,8 @@ class LuaOperationMetadataTests(unittest.TestCase):
                       "adaptive_active_ms=1000", "adaptive_idle_ms=5000",
                       "adaptive_max_events=50000", "adaptive_max_agents=128",
                       "adaptive_sample", "adaptive_event", "hit_attempts",
+                      "adaptive_server_only=1", "|weapon_mode=",
+                      "|ammo=", "|attack_action=",
                       "hit_param_invalid", "adaptive_active_ticks"):
             self.assertIn(token, self.main)
 
