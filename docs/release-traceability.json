@@ -6,7 +6,7 @@
   "acceptance": "none",
   "runtime_verified": false,
   "observed_on": "2026-10-24",
-  "source_revision": "9a177113391f3e51d6f22cc6ef2212bf06ee770d",
+  "source_revision": "efafa2ee9344f826acd972a14eb8b193274248ca",
   "version_sources": {
     "version": "VERSION",
     "changelog": "CHANGELOG.md#030-beta1-2026-10-24",
@@ -199,7 +199,9 @@
       "prs": [],
       "commits": [
         "f0c3e68",
-        "fdb642f"
+        "fdb642f",
+        "14896fb",
+        "2535c56"
       ]
     },
     {
@@ -213,7 +215,9 @@
       "prs": [],
       "commits": [
         "941ed5b",
-        "0884b64"
+        "0884b64",
+        "14896fb",
+        "2535c56"
       ]
     },
     {
@@ -228,7 +232,9 @@
       "commits": [
         "0884b64",
         "332560a",
-        "63ba0ee"
+        "63ba0ee",
+        "14896fb",
+        "2535c56"
       ]
     },
     {
@@ -330,7 +336,7 @@
       "acceptance": "none",
       "runtime_verified": false,
       "published": false,
-      "release_notes": "Consolidation pre-release candidate; the 0.3.0 milestone remains reserved for verified allied survivor/class/loadout acceptance (docs/ROADMAP.md).",
+      "release_notes": "Consolidation pre-release candidate; the 0.3.0 milestone remains reserved for verified allied survivor/class/loadout acceptance (docs/ROADMAP.md). Metadata-only refresh: candidate source revision now points at current main; task-45/46 fix commits linked; no behavior/version change.",
       "included_prs": [
         7,
         11,
@@ -358,7 +364,9 @@
         "406dfead302662101a11206d3ea6e265bf374521",
         "03c6c2dd7d3f7f1cb15fcf64c51e6df5a67f85e3",
         "8e7849b2e32cf95cafacd24ba3535c1679a5edc9",
-        "57f56ea3bc4645d320475be2737ba2066e0e38d2"
+        "57f56ea3bc4645d320475be2737ba2066e0e38d2",
+        "14896fb",
+        "2535c56"
       ],
       "support_prs": [
         {
