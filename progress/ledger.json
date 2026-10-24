@@ -4162,6 +4162,35 @@
       "originReason": "Community-pattern research requested by owner.",
       "discoveredDuring": "owner web-research directive",
       "graphImpact": "Improves reproducibility of evidence runs."
+    },
+    {
+      "id": "ZOM-DISC-74",
+      "title": "AI movement heatmaps + round-development spatial analysis",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "active",
+      "sourceState": "E/C assigned; seed from sealed positions",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-70"
+      ],
+      "evidence": [],
+      "completionBasis": "Pending tool/report",
+      "kind": "work-item",
+      "owner": "Agent E — environment/analysis; C tooling; D runs; A interpretation",
+      "priority": "P1",
+      "criterion": "Reusable 2D occupancy/flow/health/morale analysis per round/wave with defensive posts/blockers and explicit gaps.",
+      "note": "Owner request: see how AI behaves spatially as round develops; over/under movement, health, morale; reusable for future maps.",
+      "deferReason": "Supplemental spatial analysis; not denominator.",
+      "implementationLane": "E",
+      "workOrigin": "discovered",
+      "workType": "analysis",
+      "supportsOutcomeId": "ZOM-AI-03",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner requested AI movement heatmaps.",
+      "discoveredDuring": "owner directive 2026-10-24",
+      "graphImpact": "Feeds map/formation/balance decisions."
     }
   ],
   "warnings": [
