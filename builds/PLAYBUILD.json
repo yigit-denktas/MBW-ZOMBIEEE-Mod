@@ -1,22 +1,32 @@
 {
   "schema": "zombieee.playbuild.v1",
-  "name": "PLAYBUILD task-89",
+  "name": "PLAYBUILD task-89 cosmetic-half",
   "source_branch": "agent/a-nextplay",
-  "package": "C:\\Users\\yigit\\AppData\\Local\\Temp\\zombieee-a\\nextplay\\ZOMBIEEE_Remaster",
-  "manifest": "builds/NEXTPLAY.json",
-  "module_sha256": "4e90e0460934acaf8c1751d0142effd0304c61d0be7e0d9c764d1992424f358b",
-  "receipt_sha256": "24b7612694a715370597796df589f322c17e04d8aa04685d3385195b817862e3",
+  "package": "C:\\Users\\yigit\\AppData\\Local\\Temp\\zombieee-a\\nextplay-cosmetic\\ZOMBIEEE_Remaster",
+  "manifest": "builds/NEXT_COSMETIC.json",
+  "module_sha256": "95282d3d84eb8b60ccd5afc3466376739c7f5d689efc7e275b961ccd57a7117a",
+  "receipt_sha256": "8bf0aaa05c63f87f35058320202324a8b35882fa7530ac75ad6cdcc9094f26e0",
   "shield_policy": {
-    "mode": "stock",
+    "mode": "cosmetic-half",
     "gate": "passed",
     "shield_skill": 0,
     "wooden_shield_troops": [],
-    "cosmetic_troops": []
+    "cosmetic_troops": [
+      894,
+      896,
+      898,
+      900,
+      902,
+      904,
+      906,
+      908,
+      910
+    ]
   },
   "accuracy_modifiers": 100,
   "ammo_refill": "agent_refill_ammo every 5s for team0 AI",
   "notes": [
-    "stock shield policy default: zero shields, shield skill 0; cosmetic-half available separately",
+    "cosmetic-half verified: wooden_shield_troops empty, shield_skill 0, 9 alternate cosmetic troops",
     "no acceptance"
   ],
   "runtime_verified": false
