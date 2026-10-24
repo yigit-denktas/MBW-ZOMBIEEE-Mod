@@ -43,7 +43,8 @@ from .discovery import discover, known_locations
 from .engines import plan_engines
 from .install import (MODULE_NAME, CITY_BUILD_FLAGS, execute_install,
                       running_game_processes,
-                      plan_install, restore_backup, verify_built_module)
+                      plan_install, restore_backup, verify_built_module,
+                      validate_module_name)
 from .recorder import PassiveRecorder, atomic_write_json, is_redirected
 from .rotation import (DEFAULT_ENEMY_PROFILE, DEFAULT_TEAM1_BOTS,
                       DEFENDER_SQUAD_BOTS, ENEMY_PROFILE_BOTS, ENEMY_PROFILES,
@@ -221,9 +222,11 @@ def run_archive_audit(archive, *, repo_root=None, python_executable=None,
 
 # -- launch plan --------------------------------------------------------------
 
-def installed_module_status(game_root, *, expected_source_sha256=None):
-    """Structural status of the installed City module (no writes, no launch)."""
-    module_dir = Path(game_root).expanduser().absolute() / 'Modules' / MODULE_NAME
+def installed_module_status(game_root, *, expected_source_sha256=None,
+                            module_name=MODULE_NAME):
+    """Structural status of an installed City module (no writes, no launch)."""
+    module_name = validate_module_name(module_name)
+    module_dir = Path(game_root).expanduser().absolute() / 'Modules' / module_name
     if not module_dir.is_dir():
         return {'present': False, 'ok': False, 'problems': ['module_missing']}
     status = verify_built_module(module_dir,
@@ -267,6 +270,22 @@ def build_launch_plan(*, discovery_report, evidence_root, archive=None,
     """Compose the full read-only launch plan; no writes or process starts."""
     repo_root = Path(repo_root) if repo_root is not None else Path(__file__).resolve().parents[1]
     evidence_root = Path(evidence_root).expanduser().absolute()
+    if type(lane_id) is not int or lane_id not in (1, 2):
+        raise LaunchError('lane_id must be 1 or 2')
+    if module_name is None:
+        module_name = LANE_MODULES[lane_id - 1]
+    try:
+        module_name = validate_module_name(module_name)
+    except ValueError as exc:
+        raise LaunchError('invalid module_name: ' + str(exc)) from exc
+    if port is None:
+        port = LANE_PORTS[lane_id - 1]
+    if type(port) is not int or port not in LANE_PORTS:
+        raise LaunchError('parallel lane port must be one of '
+                          + ', '.join(str(value) for value in LANE_PORTS))
+    endpoint = '127.0.0.1:' + str(port)
+    if not is_loopback_endpoint(endpoint):
+        raise LaunchError('non-loopback endpoint refused')
     settings = dict(DEFAULT_SETTINGS, **(settings or {}))
     blockers, warnings = [], []
     engines = plan_engines(discovery_report, game_root=game_root,
@@ -284,7 +303,8 @@ def build_launch_plan(*, discovery_report, evidence_root, archive=None,
         raise LaunchError('fire_mode must be one of ' + ', '.join(FIRE_MODES))
     if engines['warband_root'] is not None:
         installed = (installed_status if installed_status is not None
-                     else installed_module_status(engines['warband_root']))
+                     else installed_module_status(
+                         engines['warband_root'], module_name=module_name))
         install_needed = rebuild or not installed.get('ok', False)
         if install_needed and not allow_install:
             blockers.append('install_required_but_disabled')
@@ -377,7 +397,7 @@ def build_launch_plan(*, discovery_report, evidence_root, archive=None,
                         else 'custom-team0')
     if not validate_rotation(rotation, enemy_profile=enemy_profile):
         raise LaunchError('rotation contract self-check failed')
-    if not is_loopback_endpoint(ENDPOINT):
+    if not is_loopback_endpoint(endpoint):
         raise LaunchError('non-loopback endpoint refused')
     plan = {
         'schema': PLAN_SCHEMA,
@@ -388,11 +408,15 @@ def build_launch_plan(*, discovery_report, evidence_root, archive=None,
         'blockers': list(dict.fromkeys(blockers)),
         'warnings': warnings,
         'route': 'dedicated',
-        'endpoint': ENDPOINT,
+        'endpoint': endpoint,
         'loopback_only': True,
         'city': 'tbfc_invasion_4',
         'mission': 'multiplayer_iv',
-        'module_name': MODULE_NAME,
+        'module_name': module_name,
+        'lane_id': lane_id,
+        'lane_port': port,
+        'parallel_lane_supported': PARALLEL_LANES_SUPPORTED,
+        'parallel_lane_runtime_verified': PARALLEL_LANES_RUNTIME_VERIFIED,
         'engine': {
             'warband_root': engines['warband_root'],
             'client_executable': (engines['client'] or {}).get('executable'),
@@ -428,11 +452,11 @@ def build_launch_plan(*, discovery_report, evidence_root, archive=None,
         'fire_mode_manual_switch_supported': False,
         'fire_mode_semantics': FIRE_MODE_SEMANTICS,
         'rotation_sha256': rotation_sha256(rotation),
-        'client_join_address': ENDPOINT,
-        'client_argv_suffix': ['--module', MODULE_NAME, '--address', ENDPOINT,
+        'client_join_address': endpoint,
+        'client_argv_suffix': ['--module', module_name, '--address', endpoint,
                                '--no-intro'],
         'host_argv_suffix': ['--config-path', '<server-config.ini>',
-                             '-r', '<rotation.txt>', '--module', MODULE_NAME],
+                             '-r', '<rotation.txt>', '--module', module_name],
         'server_config_loopback': True,
         'custom_city_flags': list(launch_city_flags),
         'settings': settings,
@@ -456,28 +480,32 @@ def server_config_text(*, host_log_name, port=7240):
         raise ValueError('host_log_name must be a non-empty string')
     if '/' in host_log_name or '\\' in host_log_name or host_log_name in ('.', '..'):
         raise ValueError('host_log_name must be a plain file name')
-    if type(port) is not int or port != 7240:
-        raise ValueError('only the validated loopback port 7240 is supported')
+    if type(port) is not int or port not in LANE_PORTS:
+        raise ValueError('only validated loopback lane ports are supported: '
+                         + ', '.join(str(value) for value in LANE_PORTS))
     return SERVER_CONFIG_TEMPLATE.format(log_name=host_log_name,
                                          port=port, host='127.0.0.1')
 
 
 def session_commands(*, dedicated_executable, client_executable, config_path,
-                     rotation_path):
+                     rotation_path, module_name=MODULE_NAME,
+                     endpoint=ENDPOINT):
     """Exact owned argv for the dedicated host and the auto-joined client."""
-    if not is_loopback_endpoint(ENDPOINT):
+    module_name = validate_module_name(module_name)
+    if not is_loopback_endpoint(endpoint):
         raise LaunchError('non-loopback endpoint refused')
     host = [str(dedicated_executable), '--config-path', str(config_path),
-            '-r', str(rotation_path), '--module', MODULE_NAME]
-    client = [str(client_executable), '--module', MODULE_NAME,
-              '--address', ENDPOINT, '--no-intro']
+            '-r', str(rotation_path), '--module', module_name]
+    client = [str(client_executable), '--module', module_name,
+              '--address', endpoint, '--no-intro']
     return host, client
 
 
 class LaunchPaths:
     """Fresh private paths for one launch attempt (created by ``prepare``)."""
 
-    def __init__(self, *, evidence_root, game_root, session_id):
+    def __init__(self, *, evidence_root, game_root, session_id,
+                 module_name=MODULE_NAME, port=7240):
         if not isinstance(session_id, str) or not session_id or len(session_id) > 64:
             raise ValueError('invalid session id')
         if any(character not in '0123456789abcdef' for character in session_id):
@@ -485,6 +513,10 @@ class LaunchPaths:
         self.evidence_root = Path(evidence_root).expanduser().absolute()
         self.game_root = Path(game_root).expanduser().absolute()
         self.session_id = session_id
+        self.module_name = validate_module_name(module_name)
+        if type(port) is not int or port not in LANE_PORTS:
+            raise ValueError('unsupported lane port')
+        self.port = port
         self.launch_root = self.evidence_root / 'launches'
         self.launch_dir = self.launch_root / session_id
         self.flight_root = self.evidence_root / 'flights'
@@ -512,7 +544,8 @@ class LaunchPaths:
         payload = ('\n'.join(rotation_lines) + '\n').encode('utf-8')
         self.rotation_path.write_bytes(payload)
         self.config_path.write_text(
-            server_config_text(host_log_name=self.host_log.name), encoding='utf-8')
+            server_config_text(host_log_name=self.host_log.name,
+                               port=self.port), encoding='utf-8')
         return self
 
 
@@ -551,7 +584,10 @@ class CityLauncher:
                           else Path(__file__).resolve().parents[1])
         self.paths = LaunchPaths(evidence_root=plan['evidence_root'],
                                  game_root=plan['engine']['warband_root'],
-                                 session_id=session.session_id)
+                                 session_id=session.session_id,
+                                 module_name=plan.get('module_name', MODULE_NAME),
+                                 port=plan.get('lane_port',
+                                              int(str(plan['endpoint']).rsplit(':', 1)[1])))
         self.recorder = None
         self.host = None
         self.client = None
@@ -673,7 +709,9 @@ class CityLauncher:
             dedicated_executable=engine['dedicated_executable'],
             client_executable=engine['client_executable'],
             config_path=self.paths.config_path,
-            rotation_path=self.paths.rotation_path)
+            rotation_path=self.paths.rotation_path,
+            module_name=self.plan['module_name'],
+            endpoint=self.plan['endpoint'])
         self.host_argv, self.client_argv = host, client
         self.host_stdout = self.paths.host_stdout
         self.client_stdout = self.paths.client_stdout
@@ -722,9 +760,10 @@ class CityLauncher:
             raise LaunchError('host exited during startup')
         if not self.waiter.until(
                 lambda: host_bound_loopback(self.host.pid,
+                                            endpoint=self.plan['endpoint'],
                                             runner=self.netstat_runner),
                 self.settings['host_ready_timeout']):
-            raise LaunchError('host did not bind loopback ' + ENDPOINT)
+            raise LaunchError('host did not bind loopback ' + self.plan['endpoint'])
         self.host_bound_seen = True
         actions = self._session_event('host_ready', recorder_alive=True)
         if actions != ['start:client']:
@@ -1092,7 +1131,8 @@ def _run_install_if_needed(plan):
         pass
     installed = installed_module_status(
         plan['engine']['warband_root'],
-        expected_source_sha256=install_plan.get('expected_source_sha256'))
+        expected_source_sha256=install_plan.get('expected_source_sha256'),
+        module_name=plan.get('module_name', MODULE_NAME))
     if not installed.get('ok'):
         raise LaunchError('installed module failed post-install verification')
     plan['install']['installed'] = installed
@@ -1465,6 +1505,10 @@ def build_parser():
                              'City default 8, stock 0)')
     common.add_argument('--stock-rotation', action='store_true',
                         help='emit the stock rotation with zero allied defenders')
+    common.add_argument('--lane', type=int, choices=(1, 2), default=1,
+                        help='parallel lane: 1 = ZOMBIEEE_Remaster:7240, '
+                             '2 = ZOMBIEEE_Remaster_lane2:7241 (runtime '
+                             'concurrency unverified)')
     common.add_argument('--enemy-profile', choices=ENEMY_PROFILES,
                         default=DEFAULT_ENEMY_PROFILE,
                         help='team-2 enemy staging for live balance runs')

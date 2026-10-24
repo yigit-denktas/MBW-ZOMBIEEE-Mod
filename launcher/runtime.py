@@ -69,11 +69,13 @@ def loopback_addresses(*, runner=None, timeout=15):
     return rows
 
 
-def host_bound_loopback(pid, *, runner=None, timeout=15):
+def host_bound_loopback(pid, *, endpoint=None, runner=None, timeout=15):
     """True when the supplied owned PID has an exact loopback listener row."""
     if type(pid) is not int or pid <= 0:
         return False
-    target = LOOPBACK_HOST + ':' + str(LOOPBACK_PORT)
+    target = endpoint or (LOOPBACK_HOST + ':' + str(LOOPBACK_PORT))
+    if not is_loopback_endpoint(target):
+        return False
     return any(address == target and owner == pid
                for address, owner in loopback_addresses(runner=runner, timeout=timeout))
 

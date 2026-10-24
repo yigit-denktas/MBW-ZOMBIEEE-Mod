@@ -516,7 +516,7 @@ class LaunchPathTests(unittest.TestCase):
                       server_config_text(host_log_name='session.log'))
         for kwargs in ({'host_log_name': 'a/b.log'}, {'host_log_name': 'a\\b.log'},
                        {'host_log_name': ''}, {'host_log_name': 'x', 'port': 0},
-                       {'host_log_name': 'x', 'port': 7241}):
+                       {'host_log_name': 'x', 'port': 7242}):
             with self.subTest(kwargs=kwargs), self.assertRaises(ValueError):
                 server_config_text(**kwargs)
 
