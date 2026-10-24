@@ -71,6 +71,9 @@ work-item → PR → commit → version links are in
 - Original trigger-14 invalid-faction log guard (`985fee7`/merge `509f16a`,
   ZOM-DISC-60) is included; implementation-only, sustained-runtime acceptance
   pending.
+### Known issue (under investigation)
+- **P0 native-wave build:** slots/speed verified at wave 1, but a run crashed with `EXCEPTION_ACCESS_VIOLATION` in `mbAgent::updateWalkingEffects`; known-good `f57c800` restored. Triage/bisect tracked in issue #50 and `ZOM-DISC-69`; no acceptance.
+
 ### Still not accepted
 - City required outcomes **0/23**, milestones **0/5**, `runtime_verified=false`.
 - Native defender **spawn** is proven, but division 5–7 adoption / stable hold /
