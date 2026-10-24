@@ -95,6 +95,10 @@ local previous_wave = nil
 local previous_mode = nil
 local previous_commands = {}
 local previous_round_start = nil
+local previous_round_ended = nil
+local round_increase_count = 0
+local round_first_start = nil
+local round_anomaly_emitted = false
 local previous_alive_players = {}
 local player_seen = false
 local player_pending = false
@@ -128,11 +132,19 @@ local function is_human(agent)
     return nil
 end
 -- Reads a bounded agent world position through pos register 90 (never a
--- human player position: only non-player bots are sampled).
+-- human player position: only non-player bots are sampled). The whole
+-- position-object access is inside guarded_call: a WSE2 pos userdata can throw
+-- on field access and must not abort the entire world sample.
 local function agent_position(agent)
     return guarded_call(function()
         game.agent_get_position(90, agent)
-        return game.preg[90]
+        local position = game.preg[90]
+        if type(position) ~= "table" or type(position.o) ~= "table" then
+            return nil
+        end
+        local x, y = tonumber(position.o.x), tonumber(position.o.y)
+        if x == nil or y == nil then return nil end
+        return { x = x, y = y }
     end, nil)
 end
 local function is_alive(agent)
@@ -187,12 +199,21 @@ local function sample_world()
         local result = { ok = true, total = 0, team0 = 0, team1 = 0,
                          measured = true, troop_measured = supports_troop,
                          human_measured = supports_human, npc_measured = supports_npc,
-                         humans = {0, 0}, bots = {0, 0}, horses = {0, 0},
-                         alive = {0, 0}, kills = {0, 0}, ai_samples = {},
-                         pos_count = {0, 0}, pos_sum = {{0, 0}, {0, 0}},
-                         pos_min = {{nil, nil}, {nil, nil}},
-                         pos_max = {{nil, nil}, {nil, nil}},
-                         pos_text = {"", ""}, bbox_text = {"", ""},
+                         -- Team ids are 0/1, so every per-team table must be
+                         -- explicitly 0-based: a Lua literal {a, b} only creates
+                         -- indices 1/2 and would leave team 0 nil.
+                         humans = {[0] = 0, [1] = 0},
+                         bots = {[0] = 0, [1] = 0},
+                         horses = {[0] = 0, [1] = 0},
+                         alive = {[0] = 0, [1] = 0},
+                         kills = {[0] = 0, [1] = 0},
+                         ai_samples = {},
+                         pos_count = {[0] = 0, [1] = 0},
+                         pos_sum = {[0] = {0, 0}, [1] = {0, 0}},
+                         pos_min = {[0] = {nil, nil}, [1] = {nil, nil}},
+                         pos_max = {[0] = {nil, nil}, [1] = {nil, nil}},
+                         pos_text = {[0] = "", [1] = ""},
+                         bbox_text = {[0] = "", [1] = ""},
                          hist0 = {}, hist1 = {}, players = {}, player_count = 0 }
         local n = 0
         for agent in game.agentsIt() do
@@ -259,12 +280,11 @@ local function sample_world()
                     and #result.ai_samples < MAX_AI_SAMPLES
                     and is_human(agent) == true and is_npc(agent)
                     and is_alive(agent) == true then
-                    local position = agent_position(agent)
-                    if position and position.o then
-                        local x, y = tonumber(position.o.x), tonumber(position.o.y)
+                    local point = agent_position(agent)
+                    if point then
+                        local x = math.floor(point.x * 10 + 0.5) / 10
+                        local y = math.floor(point.y * 10 + 0.5) / 10
                         if x and y then
-                            x = math.floor(x * 10 + 0.5) / 10
-                            y = math.floor(y * 10 + 0.5) / 10
                             result.pos_count[side] = result.pos_count[side] + 1
                             result.pos_sum[side][1] = result.pos_sum[side][1] + x
                             result.pos_sum[side][2] = result.pos_sum[side][2] + y
@@ -333,7 +353,11 @@ local function sample_world()
         result.troop_truncated = x0 + x1
         return result
     end)
-    if not ok then return { ok = false } end
+    if not ok then
+        local message = tostring(world):gsub("[^%w_%-%.: ]", "_"):sub(1, 96)
+        emit("probe_failed", "|kind=sample_world|error=" .. message)
+        return { ok = false }
+    end
     return world
 end
 -- WSE2 SDK supports game.gvar.NAME and reads variables.txt at startup.
@@ -377,8 +401,8 @@ local function state_fields(world)
             .. "|troops_truncated=" .. world.troop_truncated
             .. "|humans_team0=" .. world.humans[0]
             .. "|humans_team1=" .. world.humans[1]
-            .. "|players_team0=" .. world.humans[0] - math.max(world.bots[0], 0)
-            .. "|players_team1=" .. world.humans[1] - math.max(world.bots[1], 0)
+            .. "|players_team0=" .. (world.humans[0] - math.max(world.bots[0], 0))
+            .. "|players_team1=" .. (world.humans[1] - math.max(world.bots[1], 0))
             .. "|bot_agents_team0=" .. world.bots[0]
             .. "|bot_agents_team1=" .. world.bots[1]
             .. "|horses_team0=" .. world.horses[0]
@@ -479,18 +503,12 @@ local function sample_defenders(tick, mode, wave)
                         .. "|kills=" .. kills .. "|ammo=" .. ammo .. "|weapon=" .. weapon)
                 end
                 if type(game.agent_get_position) == "function" then
-                    local position = guarded_call(function()
-                        game.agent_get_position(90, agent)
-                        return game.preg[90]
-                    end, nil)
-                    if position and position.o then
-                        local x, y = tonumber(position.o.x), tonumber(position.o.y)
-                        if x and y then
-                            emit("agent_sample", "|tick=" .. tick .. "|id=" .. agent
-                                .. "|group=" .. group .. "|mode=" .. mode
-                                .. "|x=" .. math.floor(x * 10 + 0.5) / 10
-                                .. "|y=" .. math.floor(y * 10 + 0.5) / 10)
-                        end
+                    local point = agent_position(agent)
+                    if point then
+                        emit("agent_sample", "|tick=" .. tick .. "|id=" .. agent
+                            .. "|group=" .. group .. "|mode=" .. mode
+                            .. "|x=" .. math.floor(point.x * 10 + 0.5) / 10
+                            .. "|y=" .. math.floor(point.y * 10 + 0.5) / 10)
                     end
                 end
                 seen = seen + 1
@@ -561,6 +579,7 @@ local function first_entry()
          "|team0=" .. (world.ok and world.team0 or -1) ..
          "|team1=" .. (world.ok and world.team1 or -1) .. state_fields(world))
     previous_round_start = round_start
+    previous_round_ended = global_int("g_round_ended")
     if round_start >= 0 then
         emit("round_started", "|observed=entry_observation"
             .. lifecycle_fields(role, wave, world))
@@ -606,11 +625,39 @@ local function heartbeat()
                 end
                 previous_wave = wave
             end
-            if round_start >= 0 and previous_round_start ~= nil
-                and round_start ~= previous_round_start then
-                emit("round_started", "|observed=round_identity_change"
+            -- Round identity: g_round_start_time is the mission time at round
+            -- start. A real new round resets it (clock_reset) or follows an
+            -- observed round end (round_end_transition). A monotonically
+            -- increasing value (observed 15/30/45 on an idle-client build) is
+            -- NOT a round identity: emitting round_started for every increase
+            -- produced false events, so it is reported once as a bounded
+            -- probe_anomaly instead.
+            local round_ended = global_int("g_round_ended")
+            local clock_reset = previous_round_start ~= nil
+                and previous_round_start >= 0 and round_start >= 0
+                and round_start < previous_round_start
+            local round_restart = previous_round_ended == 1 and round_ended == 0
+            if clock_reset or round_restart then
+                emit("round_started", "|observed="
+                    .. (clock_reset and "round_clock_reset" or "round_end_transition")
                     .. lifecycle_fields("server", wave, world))
+                round_increase_count = 0
+                round_first_start = nil
+            elseif previous_round_start ~= nil and round_start >= 0
+                and round_start > previous_round_start then
+                round_increase_count = round_increase_count + 1
+                if round_first_start == nil then round_first_start = previous_round_start end
+                if round_increase_count >= 2 and not round_anomaly_emitted then
+                    round_anomaly_emitted = true
+                    emit("probe_anomaly", "|kind=round_start_monotonic|first="
+                        .. round_first_start .. "|last=" .. round_start
+                        .. "|samples=" .. (round_increase_count + 1))
+                end
+            else
+                round_increase_count = 0
+                round_first_start = nil
             end
+            previous_round_ended = round_ended
             if mode >= 0 and mode ~= previous_mode then
                 emit("tactical_change", "|wave=" .. wave .. "|mode=" .. mode
                      .. "|tick=" .. heartbeat_count)

@@ -342,9 +342,19 @@ def summarize_receipt(target: Path) -> dict:
     waves = sorted({v for v in (
         _bounded_int(e["fields"].get("wave"), minimum=0) for e in events
         if e["event"] in ("heartbeat", "wave_change", "mission_enter", "wave_started")) if v is not None})
-    rounds = sorted({v for v in (
-        _bounded_int(e["fields"].get("round_start"), minimum=0) for e in events
-        if e["event"] in ("heartbeat", "mission_enter", "round_started")) if v is not None})
+    # Round identity must not be inflated by a monotonically increasing
+    # g_round_start_time: count a raw heartbeat/entry value only when it is
+    # stable across samples, and always keep explicit round_started events.
+    round_counts = {}
+    for value in (_bounded_int(e["fields"].get("round_start"), minimum=0)
+                  for e in events if e["event"] in ("heartbeat", "mission_enter")):
+        if value is not None:
+            round_counts[value] = round_counts.get(value, 0) + 1
+    event_rounds = {v for v in (_bounded_int(e["fields"].get("round_start"), minimum=0)
+                                for e in events if e["event"] == "round_started")
+                    if v is not None}
+    rounds = sorted({v for v, count in round_counts.items() if count >= 2} | event_rounds)
+    round_anomaly = any(e["event"] == "probe_anomaly" for e in events)
     error_scan = _classify_errors(artifacts)
     lifecycle = _lifecycle(events)
     poll_failures = sum(1 for e in events if e["event"] == "log_unavailable")
@@ -510,6 +520,8 @@ def summarize_receipt(target: Path) -> dict:
         gaps_hint.append("kill_telemetry_unavailable")
 
     gaps = list(gaps_hint)
+    if round_anomaly:
+        gaps.append("round_identity_unstable")
     roster_info = troops.get("roster")
     if roster_info is not None and not roster_info["native_zombie_observed"]:
         gaps.append("native_zombie_roster_not_observed")
@@ -559,7 +571,8 @@ def summarize_receipt(target: Path) -> dict:
                   "multiple_observed": len([w for w in waves if w >= 1]) >= 2},
         "rounds": {"round_starts": rounds[:MAX_ROUNDS],
                    "count": len(rounds),
-                   "multiple_observed": len(rounds) >= 2},
+                   "multiple_observed": len(rounds) >= 2,
+                   "identity_unstable": round_anomaly},
         "lifecycle": lifecycle,
         "engine_errors": error_scan,
         "evidence_gaps": [gap for gap in gaps if gap],

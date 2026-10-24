@@ -223,6 +223,39 @@ derived from `ai_sample` displacement), `engagement.{kills_team0,kills_team1}`
 flag, bounded event-type counts). `player_*` lifecycle events remain
 observed-only and are reported as absent, not zero, in playerless mode.
 
+### Probe runtime hardening (v3 hotfix)
+
+Two runtime bugs in the v3 composition code were caught by live evidence and
+fixed with real-Lua-semantics tests:
+
+* **Team-indexed tables must be 0-based.** A Lua literal `{0, 0}` creates only
+  indices 1 and 2, so `humans[0] + bots[0]` threw `attempt to perform
+  arithmetic on a nil value` and the whole `sample_world()` returned
+  `ok=false` (every composition/position/kill field `-1` on all heartbeats).
+  All per-team tables are now declared `{[0] = ..., [1] = ...}`.
+* **Parenthesise arithmetic before concatenation.** `a .. b - c` parses as
+  `(a .. b) - c`; `players_team0/1` now use
+  `(world.humans[0] - math.max(world.bots[0], 0))`.
+* Position-object field access is entirely inside `guarded_call` (a WSE2 pos
+  userdata can throw on field access), and a failed `sample_world` now emits a
+  bounded `probe_failed|kind=sample_world|error=...` instead of silently
+  returning all `-1`.
+
+`tests/test_flight_lua_semantics.py` executes the exact constructor/arithmetic
+constructs on the bundled Lua 5.1-ABI interpreter (skipped when the local dll
+is absent) and asserts the source keeps the verified forms.
+
+**Round identity:** `g_round_start_time` is the mission time at round start,
+but on an idle-client build it was observed increasing by ~15 s per heartbeat
+(15, 30, 45, ...). Emitting `round_started` for every change produced false
+events, so the probe now emits it only for a real transition: a clock reset
+(`round_start` decreased) or an observed round-end transition
+(`g_round_ended` 1 -> 0). A monotonic increase is reported **once** as
+`probe_anomaly|kind=round_start_monotonic`, never as a round. The summary
+counts a raw heartbeat `round_start` only when the value is stable across
+samples, adds `rounds.identity_unstable` and the `round_identity_unstable`
+evidence gap on the anomaly, and never reports a monotonic series as rounds.
+
 ### Roster classes for sealed AI evidence
 
 The bounded `msfiles/ID_troops.py` label table now covers the documented
