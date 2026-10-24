@@ -31,8 +31,9 @@ movement metrics do not merge cross-team teleports. Both are reported; do not co
 Older bundles (task45/task55) lack build/probe SHA, formation mode, seed or
 spectator/overview flag, and health/HP/class/valid division. **task76** carries
 mission/scripts SHA, probe head/reported SHA, map/template, survivor-idle perspective,
-8/8 bot config, frames count and probe-health ok — but still has **no formation_mode,
-seed, entry ids or round-end**, and only wave 1. All samples are sparse 15 s cadence, no
+8/8 bot config and frames count — but still has **no formation_mode,
+seed, entry ids or round-end**, only wave 1, and its hit gate now **fails** under the
+stricter probe-health (§2.1). All samples are sparse 15 s cadence, no
 collision/navmesh/oracle. `run_metadata_partial`, `missing_class`, `missing_division`,
 `missing_health`, `no_ts_ms_probe_relative` are explicit where C's exporter reports them.
 
@@ -75,12 +76,20 @@ python -m tools.telemetry_studio probe-health <sealed-bundle> --json
 | --- | --- | --- | --- |
 | task45-wave2 | **warn** (`ok=true`) | 42 | hit counters absent (old probe); `SCRIPT ERROR x4` |
 | task55-p0 | **warn** (`ok=true`) | 41 | hit counters absent; no critical error family |
-| **task76-heatmap-hit** | **ok** | **14** | adaptive active; hit 0 attempts/296 (broken, not heatmap blocker); no critical errors |
+| **task76-heatmap-hit** | **fail** (hit gate only) | **14** | `hit_trigger` fail: attempts=296/events=0/invalid=296; adaptive/positions/heartbeat checks pass |
 | D partial pre-round | **fail** (`ok=false`) | 0 | `no_heartbeat_events`; trigger registered but heartbeat path not emitting |
+
+**Gate update (C `agent/c-probe-doctor` @ `6ec039b`):** the doctor now fails on
+`hit_attempts>0` with `hit_events=0` / `hit_param_invalid>0` / zero hit samples. task76's
+older "ok" was from the previous doctor and is **superseded**: its spatial/heatmap fields
+are usable, but hit attribution is not. D's new probe
+(`agent/c-adaptive-sampling` @ `ce9d98e`, two-arg trigger-param decode) is pending
+install/reseal.
 
 Gate rule: **zero heartbeats ⇒ stop, do not treat as heatmap evidence**. Warnings
 (old-probe hit counters, script errors) are recorded and must be carried into the run
-gaps; a `fail` is never converted into a pass by this analysis.
+gaps; a hit/trigger `fail` blocks hit/attribution claims even when the spatial input is
+otherwise usable, and a `fail` is never converted into a pass by this analysis.
 
 ## 3. Initial observations (bounded)
 
@@ -142,10 +151,12 @@ installed probe. The later task76 run below is the first heartbeat-bearing basel
 
 ### 3.3 task76 full baseline (heartbeat-bearing; not A/B)
 
-D's sealed task76 bundle passes `probe-health` (**ok**, 14 heartbeats, adaptive active, no
-critical errors) and exports **229 points / 14 heartbeats / 20 unique IDs / 28 team
-tracks**, waves 0-1, class+division+HP sampled for all 28 tracks, conditions **160
-outnumbered / 61 even / 8 unknown**, no fallback condition.
+D's sealed task76 bundle **fails the stricter `probe-health` hit gate** (C head
+`6ec039b`: attempts=296 / events=0 / invalid=296 / zero samples) while its
+heartbeat/adaptive/position checks pass; it exports **229 points / 14 heartbeats / 20
+unique IDs / 28 team tracks**, waves 0-1, class+division+HP sampled for all 28 tracks,
+conditions **160 outnumbered / 61 even / 8 unknown**, no fallback condition. Spatial
+input is usable; hit/attribution claims are not.
 
 Run metadata (from `heatmap_run_metadata_task76.json`, sanitized into
 `spatial_task76/spatial_summary.json`): mission SHA `df21ae88…`, scripts SHA `b6a7cdde…`,

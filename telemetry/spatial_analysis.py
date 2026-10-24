@@ -16,10 +16,10 @@ Missing health/class/division/build/probe/seed/spectator fields stay explicit
 gaps, not zeros.
 
 Pre-analysis gate: run C's `probe-health <bundle> --json`
-(`agent/c-probe-doctor` @ c7d58a0 or later) before this tool. It catches
-registered-but-zero-heartbeat / missing-counter bundles that still export
-points; this tool does not duplicate that check and will happily render a
-non-evidence partial unless the caller gates it.
+(`agent/c-probe-doctor` @ 6ec039b or later) before this tool. It catches
+registered-but-zero-heartbeat / missing-counter / hit-param-invalid bundles that
+still export points; this tool does not duplicate that check and will happily
+render a non-evidence partial unless the caller gates it.
 """
 from __future__ import annotations
 
