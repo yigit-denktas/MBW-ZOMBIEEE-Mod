@@ -398,6 +398,16 @@ return true); heartbeat exposes `hit_attempts`, `hit_events`,
 `hit_param_invalid` to distinguish “never fired” from “fired with invalid
 params”.
 
+### Probe health doctor (regression guard)
+
+`python -m tools.telemetry_studio probe-health <bundle> --json` checks the
+sealed stream before analysis: manifest, trigger registrations/failures,
+base/hit/adaptive capabilities, heartbeat presence and counters, critical
+engine-error families, and an event/log budget estimate. Needed because a
+probe can register a trigger yet throw every heartbeat (zero samples) or
+register `ti_on_agent_hit` yet never emit hits; those failures must surface
+before heatmap/balance/acceptance work. Missing data is a gap, not a pass.
+
 ### Heatmap-ready ZDB1 input (task-74)
 
 `tools/telemetry_studio/heatmap_input.py` exports `zombieee.heatmap-input.v1`

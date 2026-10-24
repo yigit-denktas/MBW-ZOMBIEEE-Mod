@@ -76,6 +76,7 @@ OPS = {
 # operations, so they have no opcode and no operation class.
 LUA_API = frozenset({
     "addTrigger", "removeTrigger", "getNumTriggers", "getNumTemplates",
+    "store_trigger_param",
     "getCurTemplateId", "getCurTemplateNo", "getTemplateId", "agentsIt",
     "gvar", "reg0", "preg", "sreg", "const", "op",
 })

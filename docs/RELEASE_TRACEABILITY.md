@@ -127,3 +127,9 @@ Source revision for the task-71 hit-trigger metadata-only receipt: `1845906`.
 
 
 Source revision for the heatmap heartbeat nil-fix metadata-only receipt: `9a23857`.
+
+
+Source revision for the probe-health metadata-only receipt: `5b5725f`.
+
+
+Source revision for the hit-param gate metadata-only receipt: `177c4e5`.

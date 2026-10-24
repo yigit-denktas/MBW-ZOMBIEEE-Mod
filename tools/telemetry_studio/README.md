@@ -34,6 +34,7 @@ python -m tools.telemetry_studio report <baseline> [candidate] --out receipt.md 
 python -m tools.telemetry_studio balance <run1> [run2 ...] \
     [--params params.json] [--out balance.md] [--json]
 python -m tools.telemetry_studio heatmap-export <bundle> [--out points.json]
+python -m tools.telemetry_studio probe-health <bundle> [--json]
 python -m tools.telemetry_studio loop <baseline> [candidate] \
     --hypothesis "..." --next "..." [--decision pending|keep|discard] \
     [--out-dir telemetry/iterations] [--state state.json] [--module DIR]
@@ -89,6 +90,16 @@ say `unsealed_bundle`.
 No parameter metadata or fewer than two variants produces explicit
 `parameter_metadata_missing` / `insufficient_runs_for_ranked_recommendations`
 rather than a guessed recommendation.
+
+## Probe health / doctor
+
+`probe-health` checks the sealed stream itself before analysis: manifest,
+required trigger registrations (`entry`, `heartbeat`; optional hit/adaptive),
+probe failures, base capabilities, heartbeat presence, hit/adaptive counter
+visibility, critical engine-error families, and an event/log budget estimate.
+This catches recorder regressions such as “heartbeat throws every 15 s so no
+samples exist” or “trigger registered but hit samples = 0”. It never invents a
+pass; missing fields are explicit gaps.
 
 ## Fresh-loop runner
 

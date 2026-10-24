@@ -208,3 +208,9 @@ This project deliberately separates **source-verified**, **observed**, **unknown
 
 
 <!-- heatmap heartbeat nil-fix metadata-only source revision: 9a23857 -->
+
+
+<!-- probe-health metadata-only source revision: 5b5725f -->
+
+
+<!-- hit-param gate metadata-only source revision: 177c4e5 -->
