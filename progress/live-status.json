@@ -1,8 +1,8 @@
 ﻿{
-  "updated": "2026-10-24T17:00:00+02:00",
-  "phase": "Spectator recon running",
-  "build": "Hardening probe 45fd819 on known-good f57c800 mission.",
-  "now": "D is running spectator-recon with screenshots at 30s/60s. Earlier hardening attempt collided with shared log and failed safely.",
-  "next": "D reviews shots + hit/ts/round evidence; then E/F/G batch decisions. No acceptance.",
+  "updated": "2026-10-24T17:18:00+02:00",
+  "phase": "Probe bug reset",
+  "build": "Known-good f57c800 restored.",
+  "now": "Heatmap/hit probe concat bug: hit_param_invalid nil -> zero heartbeats. Broken probes parked; C fixing nil init/robust heartbeat.",
+  "next": "Install fixed SHA, then adaptive 15s-vs-1s A/B + hit seal with spectator screenshots. No acceptance.",
   "acceptance": false
 }
