@@ -1,7 +1,7 @@
 # Release traceability — ZOMBIEEE Remaster
 
 Observed candidate: **`0.3.0-beta.1`** (pre-release), source revision
-`05d9c4d2a2981007b411f754053734bba5ee2f34`, 2026-10-24.
+`50bd07e40e15a3c81328ad9258fc7b01655d0e99`, 2026-10-24.
 Machine-readable source: [`release-traceability.json`](release-traceability.json).
 
 This file links each work item to the pull requests/commits that implement it
