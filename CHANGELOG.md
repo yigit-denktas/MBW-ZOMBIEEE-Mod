@@ -2,11 +2,12 @@
 
 Uses [Semantic Versioning](https://semver.org/) for the remaster, not the historical original.
 
-## [0.3.0-rc.1] - 2026-10-24
+## [0.3.0-beta.1] - 2026-10-24
 
 **Pre-release candidate — not released, not accepted.** This consolidates the
-UI/launcher/telemetry/AI work merged since 0.2.0 into a SemVer pre-release
-candidate at source revision `52171ec`. The `0.3.0` milestone remains reserved
+UI/launcher/telemetry/AI work merged since 0.2.0 into the SemVer pre-release
+candidate **`0.3.0-beta.1`** (a beta, not an RC: 0.3.0 milestone acceptance is
+still active) at source revision `9a17711`. The `0.3.0` milestone remains reserved
 for verified allied survivor/class/loadout acceptance ([docs/ROADMAP.md](docs/ROADMAP.md));
 work-item → PR → commit → version links are in
 [docs/RELEASE_TRACEABILITY.md](docs/RELEASE_TRACEABILITY.md) and
@@ -23,10 +24,12 @@ work-item → PR → commit → version links are in
 - **Delivery gate:** read-only release checks for required files, VERSION/
   traceability links, tracked-binary/path/secret hygiene and installed-module
   structure (candidate-checks-only) — [PR #28](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/28).
-- **AI standoff/hold/fire and wave staging:** native-group hold/fire orders,
-  slow Zombie 894 wave-visitor gating, 8-defender squad with `spawn_agent`
-  refill, ammo-gated ranged standoff — commits `ec34e3b`/`f0c3e68` (task-38),
-  `c0b9a36`/`0884b64` (task-34), `8676eaa`/`fdb642f` (task-42).
+- **AI standoff/hold/fire and wave staging (implemented; runtime acceptance
+  pending):** native-group hold/fire orders, slow Zombie 894 wave-visitor
+  gating, 8-defender squad with `spawn_agent` refill, ammo-gated ranged
+  standoff — commits `ec34e3b`/`f0c3e68` (task-38), `c0b9a36`/`0884b64`
+  (task-34), `8676eaa`/`fdb642f` (task-42). Division/hold adoption remains
+  unobserved.
 - **Telemetry:** team-1 speed/order/ammo-transition readbacks and combat fields —
   commits `9c39889`/`156dfb0` (task-41), `c72de64`/`a3ed506` (task-43).
 - **Release metadata:** this pre-release candidate, CHANGELOG and work-item/PR/
@@ -35,6 +38,16 @@ work-item → PR → commit → version links are in
   [PR #27](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/27).
 - **Tracker/Pages dependency graph and consolidation** — [PR #7](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/7), record commits.
 
+- **Free-asset licence catalogue + icon/currency mapping contract (docs/definitions
+  only, no binaries):** verified-licence source catalogue, Warband integration
+  constraints and adopt/adapt/avoid decisions (`reference/FREE_ASSET_SOURCES.md`),
+  kill-feed/HUD icon mapping for melee/bow/crossbow/firearm/zombie/money-USD
+  (`docs/ICON_MAPPING.md`), definitions-only `configs/ui_icon_map.json`;
+  independent licence review by Agent E, **no legal clearance or acceptance** —
+  [PR #31](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/31) `85b9c0b`,
+  merged `8b38f7d`.
+  Native Warband/ZOMBIEEE assets have no recorded redistribution right and are
+  not bundled.
 ### Changed
 - Launcher City default rotation now requests the native team-0 defender squad
   (`set_bot_count 1 8`) with enemy profiles `generic`/`weak-wave1`/`native-only`

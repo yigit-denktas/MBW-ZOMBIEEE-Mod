@@ -5,6 +5,7 @@ prove the release gate fails closed on missing/mismatched links.
 """
 import copy
 import json
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -14,7 +15,7 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 from launcher.release_gate import build_release_gate  # noqa: E402
 
-VERSION = '0.3.0-rc.1'
+VERSION = '0.3.0-beta.1'
 WORK_ITEM = {
     'id': 'ZOM-WIN-02', 'title': 'fixture', 'lane': 'B', 'state': 'active',
     'acceptance': 'none', 'release': VERSION, 'summary': 'fixture',
@@ -30,7 +31,7 @@ BASE_TRACE = {
     'work_items': [WORK_ITEM],
     'releases': [{
         'version': VERSION, 'state': 'candidate',
-        'changelog': 'CHANGELOG.md#030-rc1-2026-10-24',
+        'changelog': 'CHANGELOG.md#030-beta1-2026-10-24',
         'acceptance': 'none', 'runtime_verified': False, 'published': False,
         'included_prs': [28],
     }],
@@ -95,7 +96,7 @@ class RepositoryTraceabilityTests(unittest.TestCase):
         self.assertIn(self.version, readme)
         self.assertIn('RELEASE_TRACEABILITY', readme)
         roadmap = (REPO / 'docs/ROADMAP.md').read_text(encoding='utf-8')
-        self.assertIn('0.3.0-rc.1', roadmap)
+        self.assertIn('0.3.0-beta.1', roadmap)
         self.assertIn('does not award', roadmap)
         # Every non-blocked work item links a PR and/or commit; blocked explains.
         ids = set()
@@ -131,10 +132,22 @@ class RepositoryTraceabilityTests(unittest.TestCase):
         self.assertEqual(set(release['included_prs']) - work_prs - support, set())
         self.assertRegex(self.trace['source_revision'], r'^[0-9a-f]{40}$')
         support = {entry['id']: entry for entry in self.trace['support_artifacts']}
-        self.assertEqual(set(support), {'C-TASK-35', 'C-TASK-48'})
+        self.assertEqual(set(support), {'C-TASK-35', 'C-TASK-48', 'G-TASK-49'})
+        self.assertIs(support['G-TASK-49']['merged'], True)
+        self.assertIn('merged', support['G-TASK-49']['state'])
+        self.assertEqual(support['G-TASK-49']['merge_commit'],
+                         '8b38f7deed9711e36d11ab005eb8e8b269dc525d')
+        self.assertEqual(support['G-TASK-49']['pr']['number'], 31)
+        self.assertIn('no binaries', support['G-TASK-49']['summary'])
         self.assertIn('NOT a runtime/telemetry artifact',
                       support['C-TASK-48']['summary'])
-        self.assertEqual(support['C-TASK-48']['pending_commit'], '50fa25b')
+        self.assertIs(support['C-TASK-48']['merged'], True)
+        self.assertEqual(support['C-TASK-48']['merge_commit'],
+                         '7bf941cd2dbcdca95e68a3c31652ce5c7870147d')
+        self.assertIn('50fa25b', support['C-TASK-48']['commits'])
+        self.assertEqual(self.trace['version_decision']['candidate'], self.version)
+        self.assertIn('0.3.0 milestone', self.trace['version_decision']['milestone_awarded'])
+        self.assertEqual(self.trace['version_decision']['owner_approval'], 'pending')
         self.assertEqual(self.trace['reviews'][0]['reviewer'], 'Agent E')
         self.assertEqual(self.trace['reviews'][0]['acceptance'], 'none')
         self.assertTrue((REPO / self.trace['reviews'][0]['record']).is_file())
@@ -150,6 +163,9 @@ class RepositoryTraceabilityTests(unittest.TestCase):
         self.assertIn('absent', gate['checks']['repo_license_status']['note'])
         self.assertIn('absent', gate['checks']['third_party_notices_status']['note'])
         self.assertIn('license_file_absent', gate['warnings'])
+        self.assertEqual(gate['traceability']['ancestry_status'], 'checked')
+        self.assertTrue(gate['checks']['traceability_ancestry']['ok'])
+        self.assertGreaterEqual(gate['traceability']['ancestry_commits'], 20)
 
 
 class GateFailClosedTests(unittest.TestCase):
@@ -236,8 +252,69 @@ class GateFailClosedTests(unittest.TestCase):
             gate = build_release_gate(root=tmp, tracked_files=tracked)
             self.assertNotIn('no_personal_local_paths', gate['blockers'])
 
+    def test_git_ancestry_fails_closed_on_stale_link(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tracked = build_fixture_repo(tmp)
+            subprocess.run(['git', '-C', tmp, 'init'], check=True,
+                           capture_output=True, text=True)
+            subprocess.run(['git', '-C', tmp, 'config', 'user.email',
+                            'fixture@example.invalid'], check=True,
+                           capture_output=True, text=True)
+            subprocess.run(['git', '-C', tmp, 'config', 'user.name',
+                            'fixture'], check=True, capture_output=True,
+                           text=True)
+            subprocess.run(['git', '-C', tmp, 'add', '-A'], check=True,
+                           capture_output=True, text=True)
+            subprocess.run(['git', '-C', tmp, 'commit', '-m', 'fixture'],
+                           check=True, capture_output=True, text=True)
+            head = subprocess.run(
+                ['git', '-C', tmp, 'rev-parse', 'HEAD'], check=True,
+                capture_output=True, text=True).stdout.strip()
+            trace_path = Path(tmp) / 'docs/release-traceability.json'
+            trace = json.loads(trace_path.read_text(encoding='utf-8'))
+            trace['source_revision'] = head
+            trace['work_items'][0]['commits'] = ['f' * 40]
+            trace_path.write_text(json.dumps(trace), encoding='utf-8')
+            gate = build_release_gate(root=tmp, tracked_files=tracked)
+            self.assertIn('traceability_ancestry', gate['blockers'])
+            self.assertTrue(gate['traceability']['ancestry_status'], 'failed')
+
+    def test_pending_asset_artifact_is_not_claimed_as_shipped(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tracked = build_fixture_repo(tmp)
+            trace_path = Path(tmp) / 'docs/release-traceability.json'
+            trace = json.loads(trace_path.read_text(encoding='utf-8'))
+            trace['support_artifacts'] = [{
+                'id': 'G-TASK-49', 'kind': 'docs-definitions-only',
+                'state': 'pending-merge', 'merged': False,
+                'summary': 'docs-only fixture, no binaries',
+                'commits': ['85b9c0b'], 'merge_commit': None}]
+            trace_path.write_text(json.dumps(trace), encoding='utf-8')
+            gate = build_release_gate(root=tmp, tracked_files=tracked)
+            self.assertNotIn('traceability_ancestry', gate['blockers'])
+            self.assertIn('unavailable', gate['checks']['traceability_ancestry']['note'])
+
+    def test_docs_credits_is_accepted_as_notice_alternative(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tracked = build_fixture_repo(tmp)
+            credits = Path(tmp) / 'docs/CREDITS.md'
+            credits.write_text('third-party credits register\n', encoding='utf-8')
+            tracked.append('docs/CREDITS.md')
+            gate = build_release_gate(root=tmp, tracked_files=tracked)
+            self.assertIn('present',
+                          gate['checks']['third_party_notices_status']['note'])
+
+    def test_ancestry_unavailable_is_a_warning_not_a_false_pass(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tracked = build_fixture_repo(tmp)
+            gate = build_release_gate(root=tmp, tracked_files=tracked)
+            self.assertTrue(gate['checks']['traceability_ancestry']['ok'])
+            self.assertIn('unavailable', gate['checks']['traceability_ancestry']['note'])
+            self.assertTrue(any(item.startswith('git_ancestry_unavailable')
+                                for item in gate['warnings']))
+
     def test_semver_candidate_and_malformed_versions(self):
-        for version in ('0.3.0-rc.1', '0.3.0', '0.3.0-rc.2+build.5'):
+        for version in ('0.3.0-beta.1', '0.3.0', '0.3.0-rc.2+build.5'):
             with tempfile.TemporaryDirectory() as tmp:
                 tracked = build_fixture_repo(tmp, version=version)
                 gate = build_release_gate(root=tmp, tracked_files=tracked)

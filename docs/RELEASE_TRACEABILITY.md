@@ -1,7 +1,7 @@
 # Release traceability — ZOMBIEEE Remaster
 
-Observed candidate: **`0.3.0-rc.1`** (pre-release), source revision
-`1c27514a8738fa88b88a6fdecf5be9442e082369`, 2026-10-24.
+Observed candidate: **`0.3.0-beta.1`** (pre-release), source revision
+`9a177113391f3e51d6f22cc6ef2212bf06ee770d`, 2026-10-24.
 Machine-readable source: [`release-traceability.json`](release-traceability.json).
 
 This file links each work item to the pull requests/commits that implement it
@@ -13,7 +13,7 @@ the `0.3.0` milestone is not awarded (see [ROADMAP.md](ROADMAP.md)).
 
 `VERSION` uses Semantic Versioning for the remaster. The next milestone,
 `0.3.0`, is reserved for *verified* allied survivor/class/loadout acceptance, so
-the current consolidation is published as **`0.3.0-rc.1`** (SemVer pre-release).
+the current consolidation is published as **`0.3.0-beta.1`** (SemVer pre-release).
 It is a candidate only: no tag, GitHub release, publication or deployment is
 claimed by this revision. Historical `0.2.0` and earlier entries are unchanged.
 
@@ -21,22 +21,22 @@ claimed by this revision. Historical `0.2.0` and earlier entries are unchanged.
 
 | Work item | Lane | Ledger state | PRs | Representative commits | Candidate |
 | --- | --- | --- | --- | --- | --- |
-| ZOM-WIN-02 install/repair/rollback/uninstall | B | active | #11, #19, #28 | `579b446` | 0.3.0-rc.1 |
-| ZOM-WIN-03 desktop launcher/settings | B | backlog | #28 | `579b446` | 0.3.0-rc.1 |
-| ZOM-SOLO-02 one-click join | B | done | #19, #20, #21 | `dad2b08` | 0.3.0-rc.1 |
-| ZOM-DISC-23 rotation/enemy profiles | B | done | #20, #21 | `c86df95`, `c301f22` | 0.3.0-rc.1 |
-| ZOM-DISC-24 host stdout sealing | B | done | #17 | `d1011e2` | 0.3.0-rc.1 |
-| ZOM-DISC-25 troop histogram/events | C | done | #12 | `a29fabf` | 0.3.0-rc.1 |
-| ZOM-DISC-26 summary CLI | C | done | #12 | `a29fabf`, `d1011e2` | 0.3.0-rc.1 |
-| ZOM-AI-01 native allied spawn | A | done | — | `3950f44`, `a6b5fe9` | 0.3.0-rc.1 |
-| ZOM-AI-02 ranged combat | A | active | — | `f0c3e68`, `fdb642f` | 0.3.0-rc.1 |
-| ZOM-AI-03 guarded positions | A | active | — | `941ed5b`, `0884b64` | 0.3.0-rc.1 |
-| ZOM-WAVE-01 wave balance | A | active | — | `0884b64`, `332560a`, `63ba0ee` | 0.3.0-rc.1 |
-| ZOM-DISC-28 native defender hold contract | A | active | — | `3950f44`, `941ed5b`, `8676eaa` | 0.3.0-rc.1 |
-| ZOM-LEGAL-01 rights/credits | E | backlog | #18, #27 | `8d542f5` | 0.3.0-rc.1 |
-| ZOM-REL-01 release candidate | B | backlog | #28 | `579b446` | 0.3.0-rc.1 |
-| ZOM-REC-03 tracker/Pages views | A | backlog | #7 | `52171ec` | 0.3.0-rc.1 |
-| ZOM-QA-02 sustained solo test | D | blocked | — | — (runtime evidence missing) | 0.3.0-rc.1 |
+| ZOM-WIN-02 install/repair/rollback/uninstall | B | active | #11, #19, #28 | `579b446` | 0.3.0-beta.1 |
+| ZOM-WIN-03 desktop launcher/settings | B | backlog | #28 | `579b446` | 0.3.0-beta.1 |
+| ZOM-SOLO-02 one-click join | B | done | #19, #20, #21 | `dad2b08` | 0.3.0-beta.1 |
+| ZOM-DISC-23 rotation/enemy profiles | B | done | #20, #21 | `c86df95`, `c301f22` | 0.3.0-beta.1 |
+| ZOM-DISC-24 host stdout sealing | B | done | #17 | `d1011e2` | 0.3.0-beta.1 |
+| ZOM-DISC-25 troop histogram/events | C | done | #12 | `a29fabf` | 0.3.0-beta.1 |
+| ZOM-DISC-26 summary CLI | C | done | #12 | `a29fabf`, `d1011e2` | 0.3.0-beta.1 |
+| ZOM-AI-01 native allied spawn | A | done | — | `3950f44`, `a6b5fe9` | 0.3.0-beta.1 |
+| ZOM-AI-02 ranged combat | A | active | — | `f0c3e68`, `fdb642f` | 0.3.0-beta.1 |
+| ZOM-AI-03 guarded positions | A | active | — | `941ed5b`, `0884b64` | 0.3.0-beta.1 |
+| ZOM-WAVE-01 wave balance | A | active | — | `0884b64`, `332560a`, `63ba0ee` | 0.3.0-beta.1 |
+| ZOM-DISC-28 native defender hold contract | A | active | — | `3950f44`, `941ed5b`, `8676eaa` | 0.3.0-beta.1 |
+| ZOM-LEGAL-01 rights/credits | E | backlog | #18, #27 | `8d542f5` | 0.3.0-beta.1 |
+| ZOM-REL-01 release candidate | B | backlog | #28 | `579b446` | 0.3.0-beta.1 |
+| ZOM-REC-03 tracker/Pages views | A | backlog | #7 | `52171ec` | 0.3.0-beta.1 |
+| ZOM-QA-02 sustained solo test | D | blocked | — | — (runtime evidence missing) | 0.3.0-beta.1 |
 
 Tooling PRs that support the candidate without owning a ledger leaf are listed as
 `support_prs` in the JSON: #23 (launcher defender-count docs), #25 (no-launch
@@ -56,7 +56,8 @@ runtime or telemetry artifact and neither affects `runtime_verified`:
 | Artifact | Commits | Merge | Note |
 | --- | --- | --- | --- |
 | C-TASK-35 Warband AI modding research | `6d47146`, `a777039` | `4ba24e2` | Docs-only evidence context. |
-| C-TASK-48 modder diagnostics research | `f74c0c2`, `12b8f91` | `148f7f3` | Docs-only; **not** a runtime/telemetry artifact. Final E pass (`50fa25b`, branch `agent/c-task48-final-amend`) is pending and not included. |
+| C-TASK-48 modder diagnostics research | `f74c0c2`, `12b8f91`, `c0c3034`, `50fa25b` | merged at `7bf941c` | Docs-only; **not** a runtime/telemetry artifact; path-hygiene pass included. |
+| G-TASK-49 free-asset catalogue/icon mapping | `85b9c0b` (PR #31) | merged at `8b38f7d` | Docs/definitions only, no binaries; independent E licence review; **no legal clearance, acceptance or playable-release claim**. |
 
 ## Gaps and review status
 

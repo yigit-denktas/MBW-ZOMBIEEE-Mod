@@ -19,9 +19,10 @@ Historical source: ZOMBIEEE Beta **0.4** (2012). This does not determine remaste
 - **1.0.0:** repeatable playable solo/friends release and redistribution clearance.
 
 Patch versions are bug fixes. New milestone versions are awarded only after acceptance evidence, not after creating placeholder source.
-`0.3.0-rc.1` (2026-10-24) is a SemVer **pre-release candidate** that consolidates
-merged AI, telemetry and M2 installer/release-gate work. It does not award the
-`0.3.0` milestone; see [RELEASE_TRACEABILITY.md](RELEASE_TRACEABILITY.md).
+`0.3.0-beta.1` (2026-10-24) is a SemVer **pre-release beta candidate** that
+consolidates merged AI, telemetry and M2 installer/release-gate work. It is not
+an RC and does not award the `0.3.0` milestone (owner approval at packaging is
+pending); see [RELEASE_TRACEABILITY.md](RELEASE_TRACEABILITY.md).
 
 ## Working order
 
