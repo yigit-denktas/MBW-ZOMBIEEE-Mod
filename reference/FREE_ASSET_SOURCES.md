@@ -6,6 +6,12 @@ into, or committed to, this repository; no game launch; no runtime, visual or ac
 was observed, and the integration constraints that follow.
 **Observed:** 2026-10-24, from branch `agent/g-free-assets` (base `main` `c72de64`), owner task
 `task-49`.
+
+**Addendum (task-64, 2026-10-24):** environment/defensive-prop and survivor
+cosmetics/armour/faces/hairstyles candidates in §3.7–§3.8; reticle overlay candidates and the required
+screenshot-comparison plan in `docs/ICON_MAPPING.md` §4.6/§10. **Visual/asset validation requires
+in-game screenshots** (owner/Lead); none were captured in this docs-only task, and no native reticle
+resize is claimed.
 **Review:** independently reviewed by Agent E on 2026-10-24 (cross-review record:
 [`reference/CROSS_REVIEW_LEGAL_RELEASE_2026-10-24.md`](CROSS_REVIEW_LEGAL_RELEASE_2026-10-24.md);
 review comment on PR #31). E's findings are folded in; this is still **not** legal clearance and **not**
@@ -264,6 +270,44 @@ a mod is not redistributable just because the mod is public.
 
 ---
 
+### 3.7 Environment / defensive props (task-64 addendum)
+
+Candidates for City cover/barricades and between-wave upgrades. All must still pass the engine
+integration constraints (§2.2–§2.4) and the ownership rules (§1). **Visual validation requires in-game
+screenshots** (owner/Lead); none were taken in this docs-only pass.
+
+| ID | Source | Licence | Modify | Redistribute | Attribution | Constraints / notes | Decision |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| EP-01 | [Poly Haven models](https://polyhaven.com/models) — CC0 prop candidates from the site API (521 models): `concrete_road_barrier`, `concrete_road_barrier_02`, `modular_chainlink_fence`, `old_military_crate`, `Barrel_01`, `Barrel_02`, `barrel_03`, `plastic_crate_01..03`, `wine_barrel_01` | **CC0** (licence page verified: redistribution allowed) | Yes | Yes | Not required | Use the asset files, not preview renders/logos (ToS §4); convert FBX/OBJ→BRF, add collision mesh, check scale and navmesh fit; style/poly suitability is per-asset | **ADOPT** — first environment candidates |
+| EP-02 | [Kenney — Survival Kit](https://kenney.nl/assets/survival-kit) (80 models, CC0) | **CC0** (asset page verified) | Yes | Yes | Not required | Contents not itemised in this pass — check the pack's own license file and pick crates/barrels/sandbag-like pieces; low-poly style | **ADAPT** — style-dependent |
+| EP-03 | [ambientCG 3D assets](https://ambientcg.com/) (models/terrain, CC0) | **CC0** | Yes | Yes | Not required | General CC0 source; per-asset suitability for cover/barricade geometry must be checked | **ADAPT** — fallback |
+| EP-04 | KayKit prop/kit packs (CC0 free tiers) | **CC0** | Yes | Yes | Not required | Fantasy style; placeholders/dev only for modern City props | **ADAPT** — placeholders |
+| EP-05 | **Project-authored sandbag/barricade/crate meshes** | Our own work (owner) | Yes | Yes | Project credit | Best route for a public/clean-room build: no third-party licence, full control of collision/navmesh and scale; cost is art time | **ADOPT (preferred for public)** |
+| EP-06 | Existing City props (`spr_zombie_sandbag_wall`, barrels, `band_a`, plants, poles) | Native/original-ZOMBIEEE/third-party: **no recorded redistribution right** | No (private build reference only) | **No** (public bundle) | — | Private/local build only; public/clean-room release needs replacement or omission (`reference/LEGAL_RIGHTS_AND_CREDITS.md` R-03/R-05). The task-63 map design records the same boundary | **AVOID (bundle)** |
+
+**Collision/navmesh warning:** a barricade that changes walkable space needs a scene/navmesh update and
+D runtime validation; decorative cover that does not block pathing is the lower-risk first step.
+
+### 3.8 Survivor cosmetics / armour / faces / hairstyles (task-64 addendum)
+
+For between-wave upgrades/buying (body/face/hair/clothing/armour variants). The 2D upgrade-UI icons are
+separate from the 3D meshes; both must stay licence-clean and be screenshot-validated later.
+
+| ID | Source | Licence | Modify | Redistribute | Attribution | Constraints / notes | Decision |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| C-01 | **MakeHuman** + community assets ([Wayback 2026-08-27 capture](https://web.archive.org/web/20260827233101/http://www.makehumancommunity.org/content/license.html)) | **AGPL3 source/data; CC0 export only** under the two exact conditions: official **and unmodified** MakeHuman export **and/or** a 2D PNG/BMP/JPG | Yes | Only CC0-qualified exports | Not required for CC0 exports | Process gate per export (build/version, unmodified); bodies, face morphs, hair proxies, clothing bases; retopo/rig to Warband skeleton; AGPL §13 note if ever service-hosted | **ADAPT** — primary base library with the export-process rule |
+| C-02 | [Blender Studio — Human Base Meshes v1.4.1](https://www.blender.org/download/demo-files/) | **CC0** (bundle-scoped) | Yes | Yes | Not required | Head/body base only (no clothes/hair); CC0 applies to this bundle, not all Blender demos | **ADOPT** — head/body base |
+| C-03 | KayKit Adventurers accessories (free-tier CC0) | **CC0** | Yes | Yes | Not required | Fantasy armour/accessories; dev placeholders only for a modern survivor look | **ADAPT** — placeholders |
+| C-04 | **Project-authored modular clothing/armour/hair/faces** | Our own work (owner) | Yes | Yes | Project credit | Best for public/clean-room; matches modern setting and Warband rig; needs art time and screenshot review | **ADOPT (preferred for public)** |
+| C-05 | game-icons.net equipment/upgrade icons: `kevlar-vest` (Skoll), `trench-body-armor` (Skoll), `breastplate` (Lorc), `leather-armor` (Delapouite), `armor-upgrade` (Delapouite), `gloves` (Delapouite), `greaves` (Delapouite), `light-helm` (Delapouite), `hoodie` (Delapouite), `hair-strands` (Delapouite), `person` (Delapouite), `barricade` (Delapouite), `wooden-crate` (Delapouite) | **CC BY 3.0** | Yes | Yes | **Required** per icon: "Icons made by {author}. Available on https://game-icons.net" + licence link + changes | 2D upgrade/UI icons only (not 3D models); attribution register required; `docs/ICON_MAPPING.md` §4.6 maps the slots | **ADOPT** — upgrade UI icons |
+| C-06 | Reticle overlay candidates: **project-authored** (best) / game-icons `reticule` (Lorc) or `crosshair` (Delapouite) / Font Awesome `crosshairs` (CC BY 4.0) | CC0 (authored) / **CC BY 3.0** (game-icons) / **CC BY 4.0** (FA) | Yes | Yes | Required for CC BY (per-icon/project credit) | **Additive overlay only**; do **not** claim native reticle resize. Screenshot comparison plan in `docs/ICON_MAPPING.md` §10; no binary until cleared; owner+E approval | **ADAPT** — candidate only |
+| C-07 | Modern tactical clothing/armour CC0 source | **not verified in this pass** | — | — | — | No single CC0 modern-survivor set found; per-asset Sketchfab CC0 is a last resort (store/editorial excluded); Mixamo/Adobe asset redistribution is not cleared for a mod bundle | **OPEN** — use authored/C-01 bases meanwhile |
+
+Icon page pattern: `https://game-icons.net/1x1/<author>/<icon>.html`; all candidate C-05/C-06 icon pages
+were checked on 2026-10-24 (HTTP 200).
+
+---
+
 ## 4. Avoid list (with reasons)
 
 | Source / class | Reason |
@@ -299,6 +343,9 @@ commits yet.
 | 7 | **M-01 OGA guns (CC0) + M-02/M-03 KayKit (CC0)** | 3D placeholders for weapon/zombie tests without licence risk | Record OGA CC0 provenance; treat style as placeholder |
 | 8 | **M-04 Blender base + M-05 MakeHuman (CC0 export) + M-09 authored hair** | Body/clothing/hair pipeline with clear output terms | Document MakeHuman export process before first export |
 | 9 | **S-03 Freesound CC0/CC-BY subset** | Zombie/ambience/foley gaps | Filter CC0; if CC BY, fill the attribution template |
+| 10 | **EP-01 Poly Haven CC0 props** (`concrete_road_barrier`, crates, barrels, chainlink fence) | First licence-clean environment/cover candidates; CC0 | Pick 1–2 props, export OBJ→OpenBRF, add collision, record source/date; screenshot plan before visual claim |
+| 11 | **C-01/C-02/C-04 survivor body/cosmetic base** (MakeHuman CC0 exports + Blender base + authored) | Licence-clean bodies/faces/hair/clothing route; no modern-CC0 off-the-shelf set | Document MakeHuman export process; prototype one male/female cosmetic variant; screenshots for review |
+| 12 | **C-05/C-06 upgrade icons + reticle candidates** | Between-wave upgrade UI + additive reticle option with clear attribution | Generate attribution rows from the JSON; screenshot comparison (`docs/ICON_MAPPING.md` §10) before any visual claim |
 
 **Deliberately not in the first integration:** any 3D modern clothing/armour (gap), third-party OSP
 assets (terms unknown), native assets (no redistribution right recorded; treat as non-redistributable),
@@ -404,6 +451,11 @@ All URLs fetched 2026-10-24 unless noted.
 | cRPG mirror licence | GitHub API `repos/epuronta/cRPG-Toolkit` (HTTP 200) | `license: null`, archived repo (last push 2012-03-18) → design reference only |
 | cRPG/OSP forum threads (direct fetch) | `forums.taleworlds.com` (HTTP 403 Cloudflare) | **external-blocked**; not relied on; cite search-index URLs only |
 | Independent review (E) | Cross-review record `reference/CROSS_REVIEW_LEGAL_RELEASE_2026-10-24.md` §A + PR #31 review comment (2026-10-24) | **No blockers**; A1/A5–A13 corrections folded into this revision; no legal clearance |
+| Poly Haven model candidates | `https://api.polyhaven.com/assets?t=models` (HTTP 200) | 521 models; CC0 candidates listed for EP-01 (barriers, crates, barrels, chainlink fence) |
+| Kenney Survival Kit | `https://kenney.nl/assets/survival-kit` (HTTP 200) | CC0, 80 models; contents not itemised in this pass |
+| game-icons equipment/upgrade icons | `/tags/armor.html`, `/tags/clothing.html` + HEAD checks of candidate pages (HTTP 200) | ids/authors for armour/clothing/helmet/hair/face/crate/barricade recorded |
+| Reticle candidates | `game-icons.net/1x1/lorc/reticule.html`, `.../delapouite/crosshair.html`, Font Awesome `svgs/solid/crosshairs.svg` (HTTP 200) | Licence-cleared candidates; additive overlay only, no native-resize claim |
+| Screenshot validation | Not performed (docs-only, no game launch) | Required before any visual/asset acceptance; plan in `docs/ICON_MAPPING.md` §10 |
 | Native assets not in repo | `git ls-tree`/`git grep` on branch (`reference/`, `docs/`, `configs/`) | No `.brf/.dds/.wav/.ogg/.ttf/.png` assets added by this task |
 
 ---
@@ -420,9 +472,9 @@ All URLs fetched 2026-10-24 unless noted.
 2. **Owner/legal decision on the publication model** (`reference/LEGAL_RIGHTS_AND_CREDITS.md` §5):
    private-only vs public asset-free vs public bundle decides whether any third-party asset can ever
    be redistributed. Until then, **do not bundle**.
-3. **Modern clothing/armour gap:** find/verify a CC0 modern-survivor clothing set, or commit to
-   authored modular clothing (M-04/M-05 base + M-09 hair). Do not use fantasy placeholders in a
-   public build.
+3. **Modern clothing/armour gap (partially addressed in task-64):** §3.8 adds MakeHuman/Blender/
+   authored bases + upgrade icons, but no CC0 modern-tactical set is verified; keep authored modular
+   clothing as the default and do not use fantasy placeholders in a public build.
 4. **OSP permissions:** the original 0.4 credits (Shredzor's OSP, Arch3r, Thel, etc.) remain
    per-asset unknown; contact authors only if the owner wants to reuse them in a public artifact.
 5. **Icon production is not implemented:** the mapping is a contract only (see `docs/ICON_MAPPING.md`);
@@ -432,3 +484,7 @@ All URLs fetched 2026-10-24 unless noted.
    entry; a duplicate `[Unreleased]` section was removed from this branch to avoid a version-scheme
    conflict with PR #29 (`0.3.0-rc.1`).
 7. **No acceptance claim:** this catalogue does not accept `ZOM-LEGAL-01`, M4, or any City outcome.
+8. **Task-64 visual validation is pending screenshots:** the owner/Lead require in-game screenshots
+   for any visual/asset validation; none were captured in this docs-only task. The comparison plan is
+   `docs/ICON_MAPPING.md` §10. Reticle work stays additive (no native reticle resize claim); any new
+   prop/icon needs E review + `THIRD_PARTY_NOTICES` evidence before binaries.

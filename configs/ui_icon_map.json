@@ -12,7 +12,8 @@
     "Definitions-only proposal. No atlas, BRF, presentation, DDS or font file exists yet.",
     "No binary data is committed; icon svg/png/dds files must not be added until the licence-cleared asset PR.",
     "slot.source.primary is the intended canonical art; slot.source.fallback is used only if the primary is rejected in visual QA.",
-    "Attribution strings are generated from this file; every CC BY slot requires author + licence + page URL."
+    "Attribution strings are generated from this file; every CC BY slot requires author + licence + page URL.",
+    "task-64 addendum: environment/cover + survivor cosmetic/armour/face/hair slots and an additive reticle candidate; visual validation requires in-game screenshots (plan docs/ICON_MAPPING.md §10) and no native reticle resize is claimed."
   ],
   "atlas": {
     "runtimeFormat": "dds",
@@ -544,6 +545,258 @@
       "modification": "kept as an alternative if the typographic $ is rejected; still not a coin",
       "minPx": 16,
       "fallbackText": "$"
+    },
+    {
+      "key": "armour",
+      "label": "Armour purchase/upgrade",
+      "category": "cosmetic",
+      "source": {
+        "primary": {
+          "site": "game-icons.net",
+          "iconId": "kevlar-vest",
+          "pageUrl": "https://game-icons.net/1x1/skoll/kevlar-vest.html",
+          "author": "Skoll",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Skoll. Available on https://game-icons.net"
+        },
+        "fallback": {
+          "site": "game-icons.net",
+          "iconId": "breastplate",
+          "pageUrl": "https://game-icons.net/1x1/lorc/breastplate.html",
+          "author": "Lorc",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Lorc. Available on https://game-icons.net"
+        }
+      },
+      "modification": "crop to 64px square, threshold to white, rasterise",
+      "minPx": 16,
+      "fallbackText": "[ARMOUR]"
+    },
+    {
+      "key": "armour-upgrade",
+      "label": "Armour upgrade action",
+      "category": "cosmetic",
+      "source": {
+        "primary": {
+          "site": "game-icons.net",
+          "iconId": "armor-upgrade",
+          "pageUrl": "https://game-icons.net/1x1/delapouite/armor-upgrade.html",
+          "author": "Delapouite",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Delapouite. Available on https://game-icons.net"
+        },
+        "fallback": {
+          "site": "game-icons.net",
+          "iconId": "armor-upgrade",
+          "pageUrl": "https://game-icons.net/1x1/delapouite/armor-upgrade.html",
+          "author": "Delapouite",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Delapouite. Available on https://game-icons.net"
+        }
+      },
+      "modification": "crop to 64px square, threshold to white, rasterise",
+      "minPx": 16,
+      "fallbackText": "[UPGRADE]"
+    },
+    {
+      "key": "clothing",
+      "label": "Clothing/cosmetic purchase",
+      "category": "cosmetic",
+      "source": {
+        "primary": {
+          "site": "game-icons.net",
+          "iconId": "hoodie",
+          "pageUrl": "https://game-icons.net/1x1/delapouite/hoodie.html",
+          "author": "Delapouite",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Delapouite. Available on https://game-icons.net"
+        },
+        "fallback": {
+          "site": "game-icons.net",
+          "iconId": "person",
+          "pageUrl": "https://game-icons.net/1x1/delapouite/person.html",
+          "author": "Delapouite",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Delapouite. Available on https://game-icons.net"
+        }
+      },
+      "modification": "crop to 64px square, threshold to white, rasterise",
+      "minPx": 16,
+      "fallbackText": "[CLOTHING]"
+    },
+    {
+      "key": "helmet",
+      "label": "Helmet/hat cosmetic",
+      "category": "cosmetic",
+      "source": {
+        "primary": {
+          "site": "game-icons.net",
+          "iconId": "light-helm",
+          "pageUrl": "https://game-icons.net/1x1/delapouite/light-helm.html",
+          "author": "Delapouite",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Delapouite. Available on https://game-icons.net"
+        },
+        "fallback": {
+          "site": "game-icons.net",
+          "iconId": "breastplate",
+          "pageUrl": "https://game-icons.net/1x1/lorc/breastplate.html",
+          "author": "Lorc",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Lorc. Available on https://game-icons.net"
+        }
+      },
+      "modification": "crop to 64px square, threshold to white, rasterise",
+      "minPx": 16,
+      "fallbackText": "[HELMET]"
+    },
+    {
+      "key": "hair",
+      "label": "Hairstyle cosmetic",
+      "category": "cosmetic",
+      "source": {
+        "primary": {
+          "site": "game-icons.net",
+          "iconId": "hair-strands",
+          "pageUrl": "https://game-icons.net/1x1/delapouite/hair-strands.html",
+          "author": "Delapouite",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Delapouite. Available on https://game-icons.net"
+        },
+        "fallback": {
+          "site": "game-icons.net",
+          "iconId": "person",
+          "pageUrl": "https://game-icons.net/1x1/delapouite/person.html",
+          "author": "Delapouite",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Delapouite. Available on https://game-icons.net"
+        }
+      },
+      "modification": "crop to 64px square, threshold to white, rasterise",
+      "minPx": 16,
+      "fallbackText": "[HAIR]"
+    },
+    {
+      "key": "face",
+      "label": "Face/head cosmetic",
+      "category": "cosmetic",
+      "source": {
+        "primary": {
+          "site": "game-icons.net",
+          "iconId": "person",
+          "pageUrl": "https://game-icons.net/1x1/delapouite/person.html",
+          "author": "Delapouite",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Delapouite. Available on https://game-icons.net"
+        },
+        "fallback": {
+          "site": "game-icons.net",
+          "iconId": "person",
+          "pageUrl": "https://game-icons.net/1x1/delapouite/person.html",
+          "author": "Delapouite",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Delapouite. Available on https://game-icons.net"
+        }
+      },
+      "modification": "crop to 64px square, threshold to white, rasterise",
+      "minPx": 16,
+      "fallbackText": "[FACE]"
+    },
+    {
+      "key": "crate",
+      "label": "Supply crate cover prop",
+      "category": "environment",
+      "source": {
+        "primary": {
+          "site": "game-icons.net",
+          "iconId": "wooden-crate",
+          "pageUrl": "https://game-icons.net/1x1/delapouite/wooden-crate.html",
+          "author": "Delapouite",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Delapouite. Available on https://game-icons.net"
+        },
+        "fallback": {
+          "site": "game-icons.net",
+          "iconId": "barricade",
+          "pageUrl": "https://game-icons.net/1x1/delapouite/barricade.html",
+          "author": "Delapouite",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Delapouite. Available on https://game-icons.net"
+        }
+      },
+      "modification": "crop to 64px square, threshold to white, rasterise",
+      "minPx": 16,
+      "fallbackText": "[CRATE]"
+    },
+    {
+      "key": "barricade",
+      "label": "Barricade/cover deployment",
+      "category": "environment",
+      "source": {
+        "primary": {
+          "site": "game-icons.net",
+          "iconId": "barricade",
+          "pageUrl": "https://game-icons.net/1x1/delapouite/barricade.html",
+          "author": "Delapouite",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Delapouite. Available on https://game-icons.net"
+        },
+        "fallback": {
+          "site": "game-icons.net",
+          "iconId": "crate",
+          "pageUrl": "https://game-icons.net/1x1/delapouite/crate.html",
+          "author": "Delapouite",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Delapouite. Available on https://game-icons.net"
+        }
+      },
+      "modification": "crop to 64px square, threshold to white, rasterise",
+      "minPx": 16,
+      "fallbackText": "[COVER]"
+    },
+    {
+      "key": "reticle",
+      "label": "Reticle overlay (additive candidate; no native resize claim)",
+      "category": "reticle",
+      "source": {
+        "primary": {
+          "site": "game-icons.net",
+          "iconId": "reticule",
+          "pageUrl": "https://game-icons.net/1x1/lorc/reticule.html",
+          "author": "Lorc",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Lorc. Available on https://game-icons.net"
+        },
+        "fallback": {
+          "site": "game-icons.net",
+          "iconId": "crosshair",
+          "pageUrl": "https://game-icons.net/1x1/delapouite/crosshair.html",
+          "author": "Delapouite",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Delapouite. Available on https://game-icons.net"
+        }
+      },
+      "modification": "additive overlay texture only; never claim a native reticle resize; screenshot comparison required (docs/ICON_MAPPING.md §10)",
+      "minPx": 16,
+      "fallbackText": ""
     }
   ],
   "events": [
@@ -716,6 +969,56 @@
       "priority": 10,
       "ttlSeconds": 4,
       "tint": "negative"
+    },
+    {
+      "id": "upgrade.armour",
+      "category": "upgrade",
+      "rowTemplate": "Armour upgraded",
+      "icon": "armour",
+      "fallbackText": "[ARMOUR]",
+      "priority": 15,
+      "ttlSeconds": 5,
+      "tint": "accent"
+    },
+    {
+      "id": "upgrade.clothing",
+      "category": "upgrade",
+      "rowTemplate": "Clothing changed",
+      "icon": "clothing",
+      "fallbackText": "[CLOTHING]",
+      "priority": 15,
+      "ttlSeconds": 5,
+      "tint": "accent"
+    },
+    {
+      "id": "upgrade.helmet",
+      "category": "upgrade",
+      "rowTemplate": "Helmet changed",
+      "icon": "helmet",
+      "fallbackText": "[HELMET]",
+      "priority": 15,
+      "ttlSeconds": 5,
+      "tint": "accent"
+    },
+    {
+      "id": "upgrade.cosmetic",
+      "category": "upgrade",
+      "rowTemplate": "Cosmetic changed",
+      "icon": "hair",
+      "fallbackText": "[HAIR]",
+      "priority": 15,
+      "ttlSeconds": 5,
+      "tint": "accent"
+    },
+    {
+      "id": "defense.cover_deployed",
+      "category": "state",
+      "rowTemplate": "Cover deployed",
+      "icon": "barricade",
+      "fallbackText": "[COVER]",
+      "priority": 25,
+      "ttlSeconds": 5,
+      "tint": "neutral"
     }
   ],
   "weaponClasses": [
@@ -849,7 +1152,8 @@
     "Attribution register not generated yet.",
     "Independent licence review by Agent E completed 2026-10-24 (reference/CROSS_REVIEW_LEGAL_RELEASE_2026-10-24.md §A, PR #31 review comment); findings folded; no legal clearance or acceptance claimed.",
     "No acceptance claim for any ledger leaf, legal gate or City outcome.",
-    "No acceptance claim for any ledger leaf, legal gate or City outcome."
+    "No acceptance claim for any ledger leaf, legal gate or City outcome.",
+    "task-64 cosmetic/prop/reticle candidates: visual validation requires in-game screenshots (docs/ICON_MAPPING.md §10); none taken; no native reticle resize claimed."
   ],
   "review": {
     "reviewer": "Agent E",
@@ -858,6 +1162,21 @@
     "prComment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/31",
     "result": "no blockers; corrections folded",
     "legalClearance": false,
+    "acceptance": false
+  },
+  "taskExtensions": [
+    "task-64"
+  ],
+  "screenshotValidation": {
+    "required": true,
+    "performed": false,
+    "policy": "In-game screenshots are required for any visual/asset validation (owner/Lead); reticle work is additive overlay only, never a native resize claim; no binary until licence clearance + screenshots.",
+    "plan": "docs/ICON_MAPPING.md §10"
+  },
+  "task64Review": {
+    "reviewer": "Agent E",
+    "status": "pending",
+    "record": null,
     "acceptance": false
   }
 }
