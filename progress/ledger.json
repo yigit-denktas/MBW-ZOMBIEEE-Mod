@@ -4278,6 +4278,35 @@
       "originReason": "Owner: L4D-style super zombies; zero morale.",
       "discoveredDuring": "owner live feedback 2026-10-24",
       "graphImpact": "Shapes wave threat/priority."
+    },
+    {
+      "id": "ZOM-DISC-78",
+      "title": "Adaptive 1-5s telemetry sampling + performance budget",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "active",
+      "sourceState": "C assigned; D measurement pending",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-74"
+      ],
+      "evidence": [],
+      "completionBasis": "Pending adaptive sampler + overhead measurement",
+      "kind": "work-item",
+      "owner": "Agent C probe; D measured runs; E heatmap; A interpretation",
+      "priority": "P0",
+      "criterion": "1s active/5s idle/event sampling with bounded caps; measured log/CPU tradeoff and usable heatmap data.",
+      "note": "15s too sparse; sample all alive bounded; configurable interval; no unbounded output.",
+      "deferReason": "Supplemental telemetry density; not denominator.",
+      "implementationLane": "C",
+      "workOrigin": "discovered",
+      "workType": "diagnostics",
+      "supportsOutcomeId": "ZOM-OBS-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner: 15s too low for heatmaps.",
+      "discoveredDuring": "owner live feedback 2026-10-24",
+      "graphImpact": "Makes movement/morale analysis credible; must fit performance budget."
     }
   ],
   "warnings": [
