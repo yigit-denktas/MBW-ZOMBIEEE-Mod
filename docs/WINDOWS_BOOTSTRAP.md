@@ -353,6 +353,11 @@ files contain local paths and must stay private.
 
 ### Truth boundaries
 
+`summary.json` is C's sealed-bundle summary stored verbatim, not a launcher
+interpretation. Its `no_player` flag reflects only the latest heartbeat window;
+always read it together with the composition block (for example
+`mode=human_present`) instead of treating that single flag as player absence.
+
 All receipts keep `runtime_verified=false`, `outcome=unknown` and
 `simulation=false`; `lifecycle_outcome`/`status` describe only the launcher's own
 owned-process lifecycle (`clean_stop`, `failed`, `interrupted`). A verified
