@@ -22,6 +22,9 @@ INVADER_FACTION = FACTION_BASE + 16
 SLOW_ZOMBIE = 894
 WAVE_TABLE_SLOTS = tuple(range(200, 245))
 DEFAULT_DEFENDER_TARGET = 8
+ZOMBIE_SPEED_BASE = 70             # percent, wave 0/1
+ZOMBIE_SPEED_PER_WAVE = 5          # +5% per wave, capped at 100
+HOLD_FIRE_ORDERS = (0, 12, 13, 16)  # hold, hold_fire, fire_at_will, use_ranged_weapons
 defender_reinforce_supported = True
 DIVISIONS = (5, 6, 7)
 GUARD_ENTRIES = (2, 3, 4)
@@ -41,7 +44,9 @@ def scene_index(path: Path, name="scn_tbfc_invasion_4") -> int:
 def orders_trigger(scene_idx: int, wave_global: int | None = None,
                    hold_entries: tuple[int, ...] = GUARD_ENTRIES,
                    wave_visitors: str = "slow",
-                   defender_target: int = DEFAULT_DEFENDER_TARGET) -> str:
+                   defender_target: int = DEFAULT_DEFENDER_TARGET,
+                   zombie_speed: bool = True,
+                   defender_orders: bool = True) -> str:
     """City hold-order trigger body.
 
     With ``wave_global`` provided, each wave rotates the three sector posts by
@@ -64,6 +69,26 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None,
         for slot in WAVE_TABLE_SLOTS:
             ops.append(["502", "3", str(INVADER_FACTION), str(slot),
                         str(TROOP_BASE + SLOW_ZOMBIE)])
+    if zombie_speed:
+        # City-only zombie pace: native per-agent speed modifier, no gear or
+        # global mission time speed. 70% at wave 0/1, +5% per wave, capped 100%.
+        l12, l13, l14 = (str(LOCAL0 + n) for n in (12, 13, 14))
+        ops.append(["2133", "2", l12, str(ZOMBIE_SPEED_BASE)])
+        if wave_global is not None:
+            ops.append(["2123", "3", l13, str(wave_global),
+                        str(ZOMBIE_SPEED_PER_WAVE)])  # store_mul
+            ops.append(["2120", "3", l12, l12, l13])  # + wave bonus
+            ops.append(["4", "0"])                    # cap at 100
+            ops.append(["32", "2", l12, "100"])
+            ops.append(["2133", "2", l12, "100"])
+            ops.append(["3", "0"])
+        ops.append(["12", "1", l13])                  # try_for_agents
+        ops.append(["1702", "1", l13])                # alive
+        ops.append(["1707", "1", l13])                # non-player
+        ops.append(["1770", "2", l14, l13])           # team
+        ops.append(["31", "2", l14, "1"])             # team 1
+        ops.append(["2093", "2", l13, l12])           # agent_set_speed_modifier
+        ops.append(["3", "0"])                        # try_end
     if wave_global is None:
         for group, entry in zip(DIVISIONS, hold_entries):
             ops.append(["1780", "2", str(pos), str(entry)])
@@ -84,6 +109,13 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None,
         ops.append(["2120", "3", l3, l3, "5"])             # division 5..7
         ops.append(["1783", "2", l1, l3])                  # agent_set_division
         ops.append(["1766", "2", l1, l3])                  # agent_set_group
+        if defender_orders:
+            l4 = str(LOCAL0 + 4)
+            ops.append(["1765", "2", l4, l1])              # agent_get_group (native)
+            ops.append(["1780", "2", str(pos), "0"])       # rear entry position
+            ops.append(["1791", "3", "0", l4, str(pos)])   # team_set_order_position
+            for order in HOLD_FIRE_ORDERS:
+                ops.append(["1790", "3", "0", l4, str(order)])
         ops.append(["2120", "3", l0, l0, "1"])             # count += 1
         ops.append(["3", "0"])                             # try_end
         if defender_target:
@@ -157,7 +189,9 @@ def patch_orders(original: str, scene_idx: int,
                  wave_global: int | None = None,
                  hold_entries: tuple[int, ...] = GUARD_ENTRIES,
                  wave_visitors: str = "slow",
-                 defender_target: int = DEFAULT_DEFENDER_TARGET) -> str:
+                 defender_target: int = DEFAULT_DEFENDER_TARGET,
+                 zombie_speed: bool = True,
+                 defender_orders: bool = True) -> str:
     lines = original.splitlines(keepends=True)
     count_line, count, insert_at = mission_bounds(lines)
     if count != 26:
@@ -192,7 +226,8 @@ def patch_orders(original: str, scene_idx: int,
     lines[insert_at - 1] = " ".join(tokens) + newline
     lines[count_line] = "27" + newline
     lines.insert(insert_at, orders_trigger(scene_idx, wave_global, hold_entries,
-                                            wave_visitors, defender_target) + newline)
+                                            wave_visitors, defender_target,
+                                            zombie_speed, defender_orders) + newline)
     updated = "".join(lines)
     if mission_bounds(updated.splitlines(keepends=True))[1] != 27:
         raise PatchError("Invalid tactical trigger count")
@@ -201,7 +236,9 @@ def patch_orders(original: str, scene_idx: int,
 
 def apply_module(module: Path, hold_entries: tuple[int, ...] = REAR_HOLD_ENTRIES,
                  wave_visitors: str = "slow",
-                 defender_target: int = DEFAULT_DEFENDER_TARGET) -> dict:
+                 defender_target: int = DEFAULT_DEFENDER_TARGET,
+                 zombie_speed: bool = True,
+                 defender_orders: bool = True) -> dict:
     module = Path(module)
     scene_path = module / "SceneObj" / "scn_tbfc_invasion_4.sco"
     mission_path = module / "mission_templates.txt"
@@ -218,7 +255,8 @@ def apply_module(module: Path, hold_entries: tuple[int, ...] = REAR_HOLD_ENTRIES
         wave_global = 144115188075855872 + variables.index("wave_number")
     changed_scene = apply_city_overlay(original_scene, plan)
     changed_mission = patch_orders(original_mission, idx, wave_global, hold_entries,
-                                    wave_visitors, defender_target)
+                                    wave_visitors, defender_target,
+                                    zombie_speed, defender_orders)
     if len(decode_scene(changed_scene)["objects"]) != len(decode_scene(original_scene)["objects"]) + 3:
         raise PatchError("Scene overlay failed binary roundtrip")
     # All validations happen before writes. On a mission-write failure, restore the SCO.
@@ -235,6 +273,8 @@ def apply_module(module: Path, hold_entries: tuple[int, ...] = REAR_HOLD_ENTRIES
             "invasion_triggers": 27,
             "engine_verified": False,
             "wave_sector_rotation": True,
+            "zombie_speed": zombie_speed,
+            "defender_orders": defender_orders,
             "wave_visitors": wave_visitors,
             "defender_target": defender_target,
             "defender_reinforce": defender_target > 0,
