@@ -235,3 +235,6 @@ This project deliberately separates **source-verified**, **observed**, **unknown
 
 
 <!-- task-72 spatial metadata-only source revision: 6a1f653 -->
+
+
+<!-- task-72 review fixes metadata-only source revision: 0325ea6 -->

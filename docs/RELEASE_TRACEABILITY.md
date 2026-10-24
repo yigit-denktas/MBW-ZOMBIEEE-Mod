@@ -154,3 +154,6 @@ Source revision for the adaptive parser/brief metadata-only receipt: `b54124c`.
 
 
 Source revision for the task-72 spatial metadata-only receipt: `6a1f653`.
+
+
+Source revision for the task-72 review fixes metadata-only receipt: `0325ea6`.

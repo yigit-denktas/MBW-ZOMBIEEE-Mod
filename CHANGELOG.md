@@ -268,3 +268,6 @@ work-item → PR → commit → version links are in
 
 
 <!-- task-72 spatial metadata-only source revision: 6a1f653 -->
+
+
+<!-- task-72 review fixes metadata-only source revision: 0325ea6 -->
