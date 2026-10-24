@@ -103,3 +103,9 @@ While actual B boot results remained unposted, A fixed a **false-positive diagno
 - 	actical_recovery now tops up missing private survivors every 3 s on the active round (cap = experimental defenders) and City hold orders are re-issued every 5 s, fixing the one-shot -20 spawn being cleared before/at dedicated round reset.
 - Offline: branch suite 389 tests OK/4 skips; erify_city_chain passes; real City build yields 31 triggers, static/final gates accepted, roster candidates 894..911. Engine validation pending a sealed AI-vs-AI run.
 
+## Task-17 survivor hold/sector rotation (branch `agent/a-survivor-hold`)
+
+- City hold trigger now re-issues hold every 5 s and rotates each division's guard sector by one step per original `wave_number` parity using native arithmetic on the original global; dynamic entry = `2 + ((division-5 + wave%2) % 3)`.
+- Compatible with Motomataru-style `formation destination + mordr_hold` contract without copying code/assets (module lacks the custom formation script); Brainy Bots page 403 (not inspected); mbmodwiki confirms faction `_multiplayer_ai` troop mechanism already used by the roster patch.
+- Zombies intentionally remain simple native aggressive seekers; no kiting/flanking code. Behavior contract: `reference/CITY_SURVIVOR_AI_BEHAVIOR_CONTRACT_2026-10-24.md`. Offline tests + chain verification pass; D validates positions via telemetry.
+

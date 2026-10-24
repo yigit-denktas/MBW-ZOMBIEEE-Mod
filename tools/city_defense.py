@@ -28,23 +28,45 @@ def scene_index(path: Path, name="scn_tbfc_invasion_4") -> int:
     return ids.index(name)
 
 
-def orders_trigger(scene_idx: int) -> str:
-    # Conditions: server, store_current_scene(local0), equal(local0, City).
+def orders_trigger(scene_idx: int, wave_global: int | None = None) -> str:
+    """City hold-order trigger body.
+
+    With ``wave_global`` provided, each wave rotates the three sector posts by
+    one step per division using the original ``wave_number`` global (dynamic
+    entry numbers 2..4), so the squad re-uses adjacent map sectors instead of
+    standing in one spot forever while still holding. Without it (unit tests),
+    the original fixed assignments are emitted.
+    """
     conditions = ["417", "0", "2211", "1", str(LOCAL0),
                   "31", "2", str(LOCAL0), str(SCENE_BASE + scene_idx)]
-    operations = []
-    for group, entry in zip(DIVISIONS, GUARD_ENTRIES):
-        pos = POS_BASE + 120
-        operations += ["1780", "2", str(pos), str(entry)]  # entry_point_get_position
-        operations += ["1791", "3", "0", str(group), str(pos)]  # team_set_order_position
-        operations += ["1790", "3", "0", str(group), "0"]  # team_give_order: mordr_hold
+    pos = POS_BASE + 120
+    ops = []
+    if wave_global is None:
+        for group, entry in zip(DIVISIONS, GUARD_ENTRIES):
+            ops.append(["1780", "2", str(pos), str(entry)])
+            ops.append(["1791", "3", "0", str(group), str(pos)])
+            ops.append(["1790", "3", "0", str(group), "0"])
+    else:
+        # l1 = wave_number % 2; per division: entry = 2 + ((division-5 + l1) % 3)
+        l1, l2, l3 = (str(LOCAL0 + n) for n in (1, 2, 3))
+        ops.append(["2119", "3", l1, str(wave_global), "2"])  # store_mod parity
+        for group in DIVISIONS:
+            ops.append(["2121", "3", l2, str(group), "5"])  # division - 5
+            ops.append(["2120", "3", l3, l2, l1])           # + parity
+            ops.append(["2119", "3", l3, l3, "3"])          # % 3 sectors
+            ops.append(["2120", "3", l3, l3, "2"])          # + first guard entry
+            ops.append(["1780", "2", str(pos), l3])         # dynamic entry position
+            ops.append(["1791", "3", "0", str(group), str(pos)])
+            ops.append(["1790", "3", "0", str(group), "0"])  # mordr_hold
+    tokens = [token for row in ops for token in row]
     # Periodic 5 s upkeep: re-issues hold positions after dedicated round
-    # resets / squad respawns (the initial one-shot order did not survive them).
+    # resets / squad respawns and re-selects the sector on each new wave.
     return " ".join(["5.000000", "0.000000", "0.000000",
-                     "3", *conditions, "9", *operations])
+                     "3", *conditions, str(len(ops)), *tokens])
 
 
-def patch_orders(original: str, scene_idx: int) -> str:
+def patch_orders(original: str, scene_idx: int,
+                 wave_global: int | None = None) -> str:
     lines = original.splitlines(keepends=True)
     count_line, count, insert_at = mission_bounds(lines)
     if count != 26:
@@ -78,7 +100,7 @@ def patch_orders(original: str, scene_idx: int) -> str:
     newline = "\r\n" if "\r\n" in original else "\n"
     lines[insert_at - 1] = " ".join(tokens) + newline
     lines[count_line] = "27" + newline
-    lines.insert(insert_at, orders_trigger(scene_idx) + newline)
+    lines.insert(insert_at, orders_trigger(scene_idx, wave_global) + newline)
     updated = "".join(lines)
     if mission_bounds(updated.splitlines(keepends=True))[1] != 27:
         raise PatchError("Invalid tactical trigger count")
@@ -93,8 +115,15 @@ def apply_module(module: Path) -> dict:
     original_mission = mission_path.read_bytes().decode("utf-8")
     plan = plan_city(original_scene)
     idx = scene_index(module / "scenes.txt")
+    wave_global = None
+    variables_path = module / "variables.txt"
+    if variables_path.is_file():
+        variables = variables_path.read_text(encoding="utf-8").splitlines()
+        if "wave_number" not in variables:
+            raise PatchError("Original wave_number global missing for sector rotation")
+        wave_global = 144115188075855872 + variables.index("wave_number")
     changed_scene = apply_city_overlay(original_scene, plan)
-    changed_mission = patch_orders(original_mission, idx)
+    changed_mission = patch_orders(original_mission, idx, wave_global)
     if len(decode_scene(changed_scene)["objects"]) != len(decode_scene(original_scene)["objects"]) + 3:
         raise PatchError("Scene overlay failed binary roundtrip")
     # All validations happen before writes. On a mission-write failure, restore the SCO.
@@ -110,7 +139,9 @@ def apply_module(module: Path) -> dict:
             "updated_city_scene_objects": len(decode_scene(changed_scene)["objects"]),
             "invasion_triggers": 27,
             "engine_verified": False,
-            "warning": "Navmesh-derived posts; movement, fire and runtime LOS unverified."}
+            "wave_sector_rotation": True,
+            "warning": "Navmesh-derived posts; movement, fire and runtime LOS unverified.\n"
+                       "Sectors rotate once per original wave_number parity; D validates positions."}
 
 
 def main():
