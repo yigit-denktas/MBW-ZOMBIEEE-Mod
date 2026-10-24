@@ -96,7 +96,7 @@ C has pushed implementation updates for log head/tail and path checks, but compa
 
 ### Hands-off runtime evidence and defender/firearm fixes — 2026-10-24
 
-- Main `2fef70d` (canonical build `a6b5fe9`); merged suite 486 OK/7 skips with the documented pre-existing NUL-flake caveat (fixed by F, not reported as stably green).
+- Main `24ed22f` (canonical build `a6b5fe9`); merged suite 493 OK/7 skips with the documented pre-existing NUL-flake caveat (fixed by F, not reported as stably green).
 - Sealed evidence: native Zombies 894..911 reliable; native team-0 defenders 981..984 (bots_team0=4, player+4; spawn proven, division adoption/hold unproven); both-team positions; sealed host ZDB1 stdout; one-command play_city lifecycle passed (runtime_verified=false).
 - Kill/troop accessor fix (C 9756b14) makes engagement/troop fields reliable; legacy unreliable sums labelled rather than zeroed.
 - Still open: wave 2+/completion, survivor sector-hold correctness over time, firearm combat feel, legal redistribution, all release gates. Required City outcomes **0/23**, milestones **0/5**.
