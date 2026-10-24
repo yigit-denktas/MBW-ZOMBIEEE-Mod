@@ -26,20 +26,22 @@
     "retainedItems": 53,
     "requiredOutcomes": 23,
     "discovered": 30,
-    "discoveredDone": 29,
+    "discoveredDone": 28,
     "discoveredInReview": 0,
-    "discoveredActive": 0,
-    "discoveredFraction": "29/30",
+    "discoveredActive": 1,
+    "discoveredFraction": "28/30",
     "requiredFraction": "0/23",
     "milestonesAccepted": "0/5",
     "discoveredBacklog": 1
   },
-  "rationale": "D's sealed hands-off runs plus A/C/F fixes produce bounded evidence: native Zombie roster (894..911), native team-0 defender squad (981..984 with division adoption), sealed host ZDB1 stdout, kill/troop reliability fix, one-command play_city live pass, and a default firearm accuracy profile. These are support leaves; wave 2+, survivor sector hold verification, combat feel and all release gates remain unaccepted.",
+  "rationale": "D's sealed hands-off runs prove the native Zombie roster (894..911) and the native team-0 defender spawn (981..984), sealed host ZDB1 stdout, reliable kill/troop reads and a passed play_city lifecycle. Defender division 5-7 adoption/hold-sector rotation and wave>=2 are NOT observed, so ZOM-DISC-28 stays active. All support leaves; required City outcomes remain 0/23 and milestones 0/5.",
   "evidence": [
     "local/session/ai-evidence-20261024-final-idle-canon",
     "local/session/ai-evidence-20261024-035921-canon-noclient",
     "local/session/ai-evidence-final-defenders",
     "_zom-d-build/local/session/play-city/flights/3ee9b881e6e047ca913b69ef82ba14b0",
-    "_zom-d-build/local/session/play-city/flights/b340e92225c14949b762a6a631bfd2ae"
+    "_zom-d-build/local/session/play-city/flights/b340e92225c14949b762a6a631bfd2ae",
+    "local/session/ai-evidence-final-noclient-defenders",
+    "_zom-d-build/local/session/play-city/launches/b340e92225c14949b762a6a631bfd2ae"
   ]
 }
