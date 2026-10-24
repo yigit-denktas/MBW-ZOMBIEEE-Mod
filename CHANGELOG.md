@@ -2,6 +2,58 @@
 
 Uses [Semantic Versioning](https://semver.org/) for the remaster, not the historical original.
 
+## [0.3.0-rc.1] - 2026-10-24
+
+**Pre-release candidate — not released, not accepted.** This consolidates the
+UI/launcher/telemetry/AI work merged since 0.2.0 into a SemVer pre-release
+candidate at source revision `52171ec`. The `0.3.0` milestone remains reserved
+for verified allied survivor/class/loadout acceptance ([docs/ROADMAP.md](docs/ROADMAP.md));
+work-item → PR → commit → version links are in
+[docs/RELEASE_TRACEABILITY.md](docs/RELEASE_TRACEABILITY.md) and
+[docs/release-traceability.json](docs/release-traceability.json).
+
+### Added
+- **One-command launcher maintenance (M2):** per-file ownership receipts plus
+  read-only `verify`, `repair` from a verified build, and quarantine-first
+  `uninstall` (no game data deleted by default; modified/unrecognised files
+  preserved) — [PR #28](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/28), `579b446`.
+- **Desktop surface/settings:** control panel (Play Solo/settings/logs/repair/uninstall/release),
+  private schema-validated settings and an inspectable desktop shortcut spec —
+  [PR #28](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/28).
+- **Delivery gate:** read-only release checks for required files, VERSION/
+  traceability links, tracked-binary/path/secret hygiene and installed-module
+  structure (candidate-checks-only) — [PR #28](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/28).
+- **AI standoff/hold/fire and wave staging:** native-group hold/fire orders,
+  slow Zombie 894 wave-visitor gating, 8-defender squad with `spawn_agent`
+  refill, ammo-gated ranged standoff — commits `ec34e3b`/`f0c3e68` (task-38),
+  `c0b9a36`/`0884b64` (task-34), `8676eaa`/`fdb642f` (task-42).
+- **Telemetry:** team-1 speed/order/ammo-transition readbacks and combat fields —
+  commits `9c39889`/`156dfb0` (task-41), `c72de64`/`a3ed506` (task-43).
+- **Release metadata:** this pre-release candidate, CHANGELOG and work-item/PR/
+  version traceability record.
+- **Legal/rights dossier:** cited rights, credits and redistribution open risks —
+  [PR #27](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/27).
+- **Tracker/Pages dependency graph and consolidation** — [PR #7](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/7), record commits.
+
+### Changed
+- Launcher City default rotation now requests the native team-0 defender squad
+  (`set_bot_count 1 8`) with enemy profiles `generic`/`weak-wave1`/`native-only`
+  and a `--team0-bots`/`--team2-bots` override — [PRs #20/#21](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/21), `c86df95`, `c301f22`.
+- `VERSION` is now a SemVer **pre-release** candidate; `release-check` accepts
+  pre-release SemVer and requires traceability links.
+
+### Still not accepted
+- City required outcomes **0/23**, milestones **0/5**, `runtime_verified=false`.
+- Native defender **spawn** is proven, but division 5–7 adoption / stable hold /
+  guard-entry identity remains **unobserved** (candidate-only wording); wave
+  2+/completion, defender KD balance (task-45/46 pending), combat feel and
+  sustained solo testing remain open.
+- The historical `0.2.0` entries above are preserved without retroactive PR
+  links; post-0.2.0 links live in this candidate section and the traceability
+  record.
+- Redistribution/legal clearance, accessibility review, packaging/signing and
+  owner acceptance remain open. No tag, GitHub release or deployment is claimed.
+
 ## [0.2.0] - 2026-10-24
 
 ### Added

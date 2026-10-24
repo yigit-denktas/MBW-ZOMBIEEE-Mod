@@ -29,9 +29,18 @@ from .install import MODULE_NAME, verify_built_module
 SCHEMA = 'zombieee.release-gate.v1'
 MAX_TRACKED_FILES = 20000
 MAX_SCAN_BYTES = 256 * 1024
-VERSION_RE = re.compile(r'\d+\.\d+\.\d+\Z')
+VERSION_RE = re.compile(
+    r'^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)'
+    r'(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$')
+TRACEABILITY_REL = 'docs/release-traceability.json'
+TRACEABILITY_SCHEMA = 'zombieee.release-traceability.v1'
+WORK_ITEM_RE = re.compile(r'ZOM-[A-Z]+-\d+\Z')
+HEX_COMMIT_RE = re.compile(r'[0-9a-fA-F]{7,40}\Z')
 REQUIRED_FILES = {
     'VERSION': 'release version',
+    'CHANGELOG.md': 'release history',
+    'docs/RELEASE_TRACEABILITY.md': 'work-item to PR/commit/version links',
+    'docs/release-traceability.json': 'machine-readable traceability record',
     'README.md': 'user-facing readme',
     'docs/WINDOWS_BOOTSTRAP.md': 'Windows install/launch instructions',
     'docs/PROVENANCE.md': 'provenance and attribution',
@@ -39,6 +48,9 @@ REQUIRED_FILES = {
     'launcher/control_panel.py': 'desktop launcher surface',
     'launcher/install.py': 'reversible installer',
     'launcher/maintenance.py': 'repair and quarantine uninstall surface',
+    'reference/LEGAL_RIGHTS_AND_CREDITS.md': 'rights/credits legal dossier',
+    'reference/CROSS_REVIEW_LEGAL_RELEASE_2026-10-24.md':
+        'independent release/legal cross-review record',
     'installer/manifest.py': 'install planner',
     'tools/build.py': 'Agent A builder',
     'tools/archive_audit.py': 'pinned archive audit',
@@ -49,12 +61,37 @@ REQUIRED_COMMAND_TOKENS = (
     'archive_audit',
 )
 FORBIDDEN_EXTENSIONS = ('.rar', '.zip', '.7z', '.exe', '.dll', '.log')
-PERSONAL_PATH_RE = re.compile(r'[A-Za-z]:\\Users\\[^\\\s"|\']+')
+# Path/token privacy scan covers every tracked text file except these exact
+# files, whose purpose is to document or detect private paths (no prefix-level
+# allowlist that could hide a new leak in a whole directory).
+SCAN_EXEMPT_FILES = {
+    'docs/PROVENANCE.md': 'documents private-path policy',
+    'progress/publishing-review.md': 'privacy review notes',
+    'reference/CROSS_REVIEW_LEGAL_RELEASE_2026-10-24.md':
+        'independent privacy review record',
+    'site/index.html': 'static tracker page with placeholder path text',
+    'telemetry/privacy.py': 'privacy redaction implementation',
+    'tests/test_diagnostics.py': 'privacy fixture paths',
+    'tests/test_flight_recorder.py': 'privacy fixture paths',
+    'tools/diagnostics.py': 'privacy redaction implementation',
+    'launcher/release_gate.py': 'privacy scanner source (regex literals)',
+    'reference/MODDER_DIAGNOSTICS_RESEARCH.md':
+        'diagnostics research quoting log-path policy examples',
+    'tests/test_windows_release_traceability.py':
+        'privacy-scanner regression fixtures (intentional leak strings)',
+}
+PERSONAL_PATH_RES = (
+    re.compile(r'[A-Za-z]:\\Users\\[^\\\s"|\']+'),
+    re.compile(r'[A-Za-z]:/Users/[^\s"\'<>]+'),
+    re.compile(r'/(?:home|Users)/[^\s"\'<>]+'),
+    re.compile(r'\\\\[A-Za-z0-9._-]+\\[^\\\s"|\']+'),
+    re.compile(r'file://(?:/[A-Za-z]:)?/[^\s"\'<>]+'),
+)
 SECRET_RE = re.compile(
     r"(BEGIN [A-Z ]*PRIVATE KEY|\bghp_[A-Za-z0-9]{20,}"
     r"|\bgithub_pat_[A-Za-z0-9_]{20,}|\bAKIA[0-9A-Z]{16}"
-    r"|\bsk-[A-Za-z0-9]{20,})")
-SCAN_ALLOWLIST_PREFIXES = ('tests/', 'reference/')
+    r"|\bsk-[A-Za-z0-9]{20,}|\bxox[bap]-[A-Za-z0-9-]{10,}"
+    r"|\bglpat-[A-Za-z0-9_-]{20,}|\bAIza[0-9A-Za-z_-]{30,})")
 
 
 class ReleaseGateError(RuntimeError):
@@ -86,6 +123,136 @@ def _read_bounded(path):
             return stream.read(MAX_SCAN_BYTES).decode('utf-8', errors='replace')
     except OSError:
         return ''
+
+
+def _valid_pr(entry, number):
+    if not isinstance(entry, dict):
+        return False
+    if type(entry.get('number')) is not int or entry.get('number') != number:
+        return False
+    url = entry.get('url')
+    if not isinstance(url, str) or not url.startswith(
+            'https://github.com/') or ('/pull/' + str(number)) not in url:
+        return False
+    commit = entry.get('merge_commit')
+    return isinstance(commit, str) and bool(HEX_COMMIT_RE.fullmatch(commit))
+
+
+def _traceability_checks(root, version_text, check):
+    """Validate VERSION <-> CHANGELOG <-> work-item/PR/commit traceability."""
+    summary = {'schema': None, 'work_items': 0, 'linked_prs': 0,
+               'included_prs': 0, 'gaps': 0, 'candidate_version': None}
+    data = {}
+    try:
+        data = json.loads(_read_bounded(root / TRACEABILITY_REL))
+    except (OSError, ValueError, TypeError):
+        data = {}
+    if not isinstance(data, dict):
+        data = {}
+    summary['schema'] = data.get('schema')
+    summary['candidate_version'] = data.get('candidate_version')
+    check('traceability_schema', data.get('schema') == TRACEABILITY_SCHEMA,
+          'schema=' + str(data.get('schema')))
+    check('traceability_version', data.get('candidate_version') == version_text,
+          'record=%s VERSION=%s' % (data.get('candidate_version'), version_text))
+    check('traceability_state',
+          data.get('release_state') == 'candidate'
+          and data.get('acceptance') == 'none'
+          and data.get('runtime_verified') is False,
+          'state=%s acceptance=%s runtime_verified=%s'
+          % (data.get('release_state'), data.get('acceptance'),
+             data.get('runtime_verified')))
+
+    items = data.get('work_items')
+    items = items if isinstance(items, list) else []
+    summary['work_items'] = len(items)
+    ids, work_prs, link_problems = set(), set(), []
+    for entry in items:
+        if not isinstance(entry, dict):
+            link_problems.append('non_object_work_item')
+            continue
+        item_id = entry.get('id')
+        if not isinstance(item_id, str) or not WORK_ITEM_RE.fullmatch(item_id):
+            link_problems.append('invalid_work_item_id:' + str(item_id)[:40])
+            continue
+        if item_id in ids:
+            link_problems.append('duplicate_work_item:' + item_id)
+        ids.add(item_id)
+        if entry.get('acceptance') != 'none':
+            link_problems.append('work_item_claims_acceptance:' + item_id)
+        if entry.get('release') != version_text:
+            link_problems.append('work_item_release_mismatch:' + item_id)
+        prs = entry.get('prs') if isinstance(entry.get('prs'), list) else []
+        for pr in prs:
+            number = pr.get('number') if isinstance(pr, dict) else None
+            if not _valid_pr(pr, number):
+                link_problems.append('invalid_pr:' + item_id)
+            else:
+                work_prs.add(number)
+        commits = entry.get('commits') if isinstance(entry.get('commits'), list) else []
+        valid_commits = [value for value in commits
+                         if isinstance(value, str) and HEX_COMMIT_RE.fullmatch(value)]
+        if len(valid_commits) != len(commits):
+            link_problems.append('invalid_commit:' + item_id)
+        blocked = entry.get('state') == 'blocked'
+        if blocked:
+            if not isinstance(entry.get('blocker'), str) or not entry.get('blocker'):
+                link_problems.append('blocked_item_without_reason:' + item_id)
+        elif not prs and not valid_commits:
+            link_problems.append('work_item_without_link:' + item_id)
+    check('traceability_work_items', not link_problems,
+          'problems=' + ','.join(link_problems[:12]) if link_problems
+          else '%d work items linked' % len(ids))
+
+    releases = data.get('releases')
+    releases = releases if isinstance(releases, list) else []
+    match = next((entry for entry in releases if isinstance(entry, dict)
+                  and entry.get('version') == version_text), None)
+    release_problems = []
+    included = set()
+    changelog_text = _read_bounded(root / 'CHANGELOG.md')
+    check('changelog_current', ('## [' + version_text + ']') in changelog_text,
+          'heading=## [%s]' % version_text)
+    if match is None:
+        release_problems.append('release_entry_missing')
+    else:
+        if match.get('state') != 'candidate':
+            release_problems.append('release_state_not_candidate')
+        if match.get('acceptance') != 'none':
+            release_problems.append('release_claims_acceptance')
+        if match.get('runtime_verified') is not False:
+            release_problems.append('release_runtime_verified_not_false')
+        if match.get('published') is not False:
+            release_problems.append('release_claims_publication')
+        changelog_link = match.get('changelog')
+        if (not isinstance(changelog_link, str)
+                or 'CHANGELOG.md' not in changelog_link):
+            release_problems.append('release_changelog_link_invalid')
+        values = match.get('included_prs')
+        values = values if isinstance(values, list) else []
+        if not values or any(type(value) is not int for value in values):
+            release_problems.append('included_prs_invalid')
+        included = {value for value in values if type(value) is int}
+        support = match.get('support_prs')
+        support = support if isinstance(support, list) else []
+        for entry in support:
+            if isinstance(entry, dict) and type(entry.get('number')) is int:
+                work_prs.add(entry['number'])
+        missing = sorted(included - work_prs)
+        if missing:
+            release_problems.append('included_prs_without_work_item:' +
+                                    ','.join(str(value) for value in missing[:8]))
+    summary['linked_prs'] = len(work_prs)
+    summary['included_prs'] = len(included)
+    check('traceability_release_links', not release_problems,
+          'problems=' + ','.join(release_problems[:12]) if release_problems
+          else '%d included PRs linked' % len(included))
+    gaps = data.get('gaps')
+    gaps = gaps if isinstance(gaps, list) else []
+    summary['gaps'] = len(gaps)
+    check('traceability_gaps', bool(gaps) and all(isinstance(item, str) for item in gaps),
+          '%d gaps recorded' % len(gaps))
+    return summary
 
 
 def build_release_gate(*, root=None, game_root=None, tracked_files=None,
@@ -122,6 +289,7 @@ def build_release_gate(*, root=None, game_root=None, tracked_files=None,
                       if token not in instructions]
     check('reproducible_commands', not missing_tokens,
           'missing=' + ','.join(missing_tokens) if missing_tokens else 'documented')
+    traceability = _traceability_checks(root, version_text, check)
 
     if tracked_files is None:
         try:
@@ -137,14 +305,14 @@ def build_release_gate(*, root=None, game_root=None, tracked_files=None,
     scanned = 0
     personal_hits, secret_hits = [], []
     for name in tracked_files:
-        if name.startswith(SCAN_ALLOWLIST_PREFIXES):
+        if name in SCAN_EXEMPT_FILES:
             continue
         path = root / name
         if not path.is_file():
             continue
         text = _read_bounded(path)
         scanned += 1
-        if PERSONAL_PATH_RE.search(text):
+        if any(pattern.search(text) for pattern in PERSONAL_PATH_RES):
             personal_hits.append(name)
         if SECRET_RE.search(text):
             secret_hits.append(name)
@@ -170,6 +338,22 @@ def build_release_gate(*, root=None, game_root=None, tracked_files=None,
             warnings.append('installed_module_not_found')
     else:
         warnings.append('installed_module_not_provided')
+    license_present = (root / 'LICENSE').is_file()
+    notices_present = ((root / 'THIRD_PARTY_NOTICES.md').is_file()
+                       or (root / 'NOTICE').is_file())
+    checks['repo_license_status'] = {
+        'ok': True,
+        'note': ('present' if license_present else
+                 'absent — owner decision/open risk; reported, not silently passing')}
+    checks['third_party_notices_status'] = {
+        'ok': True,
+        'note': ('present' if notices_present else
+                 'absent — attribution is tracked in the legal dossier; '
+                 'owner decision/open risk')}
+    if not license_present:
+        warnings.append('license_file_absent')
+    if not notices_present:
+        warnings.append('third_party_notices_absent')
     if module is not None and version_text:
         try:
             import json as _json
@@ -193,6 +377,7 @@ def build_release_gate(*, root=None, game_root=None, tracked_files=None,
         'warnings': warnings,
         'checks': checks,
         'version': version_text or None,
+        'traceability': traceability,
         'remaster_module': ({'ok': module.get('ok'),
                              'module_sha256': module.get('module_sha256'),
                              'file_count': module.get('file_count'),
