@@ -2,6 +2,13 @@
 
 Uses [Semantic Versioning](https://semver.org/) for the remaster, not the historical original.
 
+## [0.3.0-beta.1] — consolidated source save point (2026-10-24)
+
+- Consolidated reviewed C/G/H work; 634 tests OK, release gate 0; tag `save/0.3.0-beta.1-consolidated-2026-10-24`.
+- Froze 18 branch tips as `archive/2026-10-24/*` tags before cleanup; manifest in `archive/2026-10-24/branches.json`.
+- Added granular cards for privacy/gate, parser caveat, spatial consumer, A packaging, parallel lanes, consolidation.
+- `runtime_verified=false`, acceptance none; fire-volume/parallel-lane runtime remain unproven.
+
 ## [0.3.0-beta.1] - 2026-10-24
 
 **Pre-release candidate — not released, not accepted.** This consolidates the

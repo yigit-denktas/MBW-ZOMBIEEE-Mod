@@ -1,0 +1,92 @@
+﻿[
+    {
+        "branch":  "agent/a-firepower",
+        "sha":  "3b9fbb77fbd0564c9c71d4c0ee774715fd3a9787",
+        "tag":  "archive/2026-10-24/agent/a-firepower"
+    },
+    {
+        "branch":  "agent/a-formation-p0",
+        "sha":  "abc6e51d3fe197a6654933b8e29de1d98b6b658e",
+        "tag":  "archive/2026-10-24/agent/a-formation-p0"
+    },
+    {
+        "branch":  "agent/a-heatmap-interpretation",
+        "sha":  "e2068cf8a4a2baacfec72771ef289502ea9bb703",
+        "tag":  "archive/2026-10-24/agent/a-heatmap-interpretation"
+    },
+    {
+        "branch":  "agent/a-nextplay",
+        "sha":  "50cc201174dc91b5621d3687ab47d853e2e45780",
+        "tag":  "archive/2026-10-24/agent/a-nextplay"
+    },
+    {
+        "branch":  "agent/a-p0-fix",
+        "sha":  "e90763d68238ea5c5d62d77b38c0860e2ca5de6f",
+        "tag":  "archive/2026-10-24/agent/a-p0-fix"
+    },
+    {
+        "branch":  "agent/a-p0-native-wave",
+        "sha":  "9b97e15a32e999caa6733011a625fba3afd4d5ca",
+        "tag":  "archive/2026-10-24/agent/a-p0-native-wave"
+    },
+    {
+        "branch":  "agent/a-privacy-paths",
+        "sha":  "e3ef30ca047a4d7be3a0d905a435acc9d22f64d1",
+        "tag":  "archive/2026-10-24/agent/a-privacy-paths"
+    },
+    {
+        "branch":  "agent/a-ranged-fix",
+        "sha":  "ce600ee9172c0efa1cafaf49c93a7cf5dc9756d9",
+        "tag":  "archive/2026-10-24/agent/a-ranged-fix"
+    },
+    {
+        "branch":  "agent/e-bot-balance-analysis",
+        "sha":  "053b3d5a188d211a5e6ca88d83801a0babe97634",
+        "tag":  "archive/2026-10-24/agent/e-bot-balance-analysis"
+    },
+    {
+        "branch":  "agent/e-crash50-triage",
+        "sha":  "cfad55ded10e4789c174965f9db1035b91cb62ec",
+        "tag":  "archive/2026-10-24/agent/e-crash50-triage"
+    },
+    {
+        "branch":  "agent/e-spatial-heatmaps",
+        "sha":  "79f798e7658e855ceffbe1e7d899d16385989201",
+        "tag":  "archive/2026-10-24/agent/e-spatial-heatmaps"
+    },
+    {
+        "branch":  "agent/f-fire-mode",
+        "sha":  "3b089d019a5ce981e3ee74d9dcbce93b234a4f04",
+        "tag":  "archive/2026-10-24/agent/f-fire-mode"
+    },
+    {
+        "branch":  "agent/f-gate-escaped-paths",
+        "sha":  "ccb67984f89c8158dcad0641bfacc1dcf0ebaccf",
+        "tag":  "archive/2026-10-24/agent/f-gate-escaped-paths"
+    },
+    {
+        "branch":  "agent/f-parallel-lanes",
+        "sha":  "733610d9caba566716e78920f4c790be5af31eac",
+        "tag":  "archive/2026-10-24/agent/f-parallel-lanes"
+    },
+    {
+        "branch":  "agent/f-replay-comparison-skeleton",
+        "sha":  "89abb6c92f5daefa068dc1da94dd3a4d60ab743c",
+        "tag":  "archive/2026-10-24/agent/f-replay-comparison-skeleton"
+    },
+    {
+        "branch":  "agent/f-task73-wse2-gate-plan",
+        "sha":  "6e0f455b7fa4017ad45eb219549d3c05b7076155",
+        "tag":  "archive/2026-10-24/agent/f-task73-wse2-gate-plan"
+    },
+    {
+        "branch":  "agent/g-asset-batch2",
+        "sha":  "5fa8affad4e624b9ca3fbf9f6eb0b2203d38af6b",
+        "tag":  "archive/2026-10-24/agent/g-asset-batch2"
+    },
+    {
+        "branch":  "wip-mass-merge",
+        "sha":  "7916a74",
+        "tag":  "archive/2026-10-24/wip-7916a74"
+    }
+]
