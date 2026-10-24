@@ -156,7 +156,7 @@ The bands overlap deliberately (real fights compress distances). The point is **
 ### 6.2 Feasible proxies for priority
 
 - **F-now:** class loadout/weapon choice and position (sniper rear with LOS to the main approach; scout lateral; lumberjack close) — these shape *which* enemies each class meets first, without selecting targets.
-- **F-now:** kill attribution by class × victim troop (`kills_by_class_team0[troop]`) so D can test whether P0 enemies actually die early; this is measurement, not control.
+- **Feasible now:** per-class kill counts (`kills_team0_by_class`). **Not feasible now:** class × victim-troop attribution (no hit/victim event in ZDB1) — needed to prove whether P0 enemies die early, so list it as a proposed field (engine/native event or A hook), not as current telemetry.
 - **B-engine:** explicit "focus the Tank" target assignment, target marking, per-agent priority list, look-target as a proxy (`agent_set_look_target_agent` 1713 affects look direction only; its combat effect is unverified and not designed here).
 - **F-build experiments:** armour-piercing/multi-target WSE2 toggles (§4) as *capability* improvements, still not target selection.
 
@@ -221,12 +221,12 @@ The engine only lets a spawn choose a troop record; it does not let a script add
 
 ### C — telemetry
 
-1. **Class map:** troop id → class (981–984) in heartbeat/ai_sample; aggregate per class.
-2. **Range/engagement evidence:** distance from each survivor to nearest enemy (or anchor) at shot/first damage/kill; per-class histogram; label the measurement point explicitly.
-3. **Kill attribution by class × victim troop id** (`kills_team0_by_class`, `victim_troops`), so P0/P1/P2 prioritisation can be tested rather than assumed.
-4. **Fire/weapon evidence:** weapon, ammo, `agent_get_simple_behavior`, `agent_get_attack_action`, `agent_ai_set_can_weapon_switch` state where readable; `agent_is_routed` per class.
-5. **Fallback/regroup events** per class and mode dwell; `hold_behavior_observed` stays false until positions/behaviour show it.
-6. **Upgrade evidence:** tier spawned per class, refill series, heal/ammo refill events; gaps as `tier_source_unknown` when A has not exposed them.
+1. **Class map:** troop id → class (981–984) is **feasible now** from heartbeat `troops_team0`/`troop_names_team0` and `ai_sample.troop`; per-class aggregates (agents, weapons/ammo, kills lower bound, positions) are telemetry-side. No A global is needed **if** the build pins those IDs — record the build receipt/pin as the source and treat unknown IDs as unknown.
+2. **Range/engagement evidence:** **only a sample-tick proxy is feasible now** — nearest sampled enemy/anchor distance at the 15 s heartbeat sample; exact shot/first-damage/kill points are not available, and ammo decreases are observed only between samples. Label the measurement point explicitly; never claim shot-time distance.
+3. **Kill attribution:** `kills_team0_by_class` is feasible now; **class × victim-troop attribution is NOT feasible now** — ZDB1 has per-agent kills only and no victim-troop/hit event. List `kills_team0_by_class × victim_troop` as a **proposed field** requiring an engine/native event or A hook, not current telemetry. P0/P1 prioritisation cannot be tested with current data alone.
+4. **Fire/weapon evidence:** weapon, ammo and `agent_get_attack_action` (1763) are **feasible now** (attack_action in C's task-60 branch). `agent_get_simple_behavior` (1738) and `agent_is_routed` (1699) are native readbacks but are **currently not read** — each needs an msfiles lhs/can_fail declaration plus a capability flag before claiming availability. `agent_ai_set_can_weapon_switch` state is readback-limited; do not assume it is observable.
+5. **Fallback/regroup events:** no direct telemetry today — only order/state proxies and mode dwell are available; `hold_behavior_observed` stays false until positions/behaviour show it.
+6. **Upgrade evidence:** tier spawned per class needs A globals/build receipt; refill series and heal/ammo events are available as current telemetry; record `tier_source_unknown` when A has not exposed the tier source.
 
 ### D — sealed validation
 
@@ -247,17 +247,17 @@ The engine only lets a spawn choose a troop record; it does not let a script add
 | Class-specific speed via 2093 (team 0) | **F-now** (op exists; class mapping F-build; D-observable only after re-seal; no conflict with team-1 wave-speed loop) |
 | Fire-at-will/hold/keep-rifle orders | **F-now** (already in build) |
 | Class-specific fire cadence/mode | **B-engine** (no per-agent fire-mode op; launcher fire-mode is global, task-68) |
-| Range bands as placement | **F-now/F-build** |
+| Range bands as placement | **F-now/F-build**; C measurement is a **15 s sample-tick proxy**, not shot-time |
 | Dynamic range keeping/kiting | **B-engine** |
 | Target responsibility/priority enforcement | **B-engine** (no target setter) |
-| Kill attribution by class × victim | **F-build** telemetry (C) |
+| Kill attribution | per-class kills **feasible now**; class × victim troop **B-engine/proposed** (no victim/hit event) |
 | Melee last-resort gate | **F-now** (per-agent gate exists; class-conditioned variant F-build) |
 | Fallback/regroup thresholds (counts/positions/ammo/HP only — no target/strength getter) | **F-build**; order reach **B-unproven** |
 | Regroup/rearm/heal between waves | **F-now** ops; runtime unverified |
 | Tier clones + wave-based selection | **F-build** (owner approval, troop records, tests, receipt) |
 | Mid-mission armour/weapon purchase | **B-engine** |
 | WSE2 multihit/piercing/crush-through | **F-now experiment** per-agent mutation; not baseline |
-| Zombie non-retreat / survivor non-rout | **F-build observation + D**; engine-rout caveat (task-61) |
+| Zombie non-retreat / survivor non-rout | **F-build observation + D**; engine-rout caveat (task-61); `agent_is_routed` needs msfiles declaration + capability flag before use |
 
 ---
 
@@ -281,6 +281,7 @@ The engine only lets a spawn choose a troop record; it does not let a script add
 - This document is design input only; it changes no build, loadout, trigger, scene or asset. No acceptance is claimed.
 - A implements §9-A in the City-only layer; C implements §9-C fields with capability flags; D runs §9-D sealed. Owner approval is required for new tier troop records or any scene/defence-line change.
 - **A, 2026-10-24 (against `f1ba5c5`): consistent with build, corrections applied:** reserve slot 8 marked **B-unproven/blocked** (baseline is division 5 rear element); class speed on team 0 confirmed feasible/F-now and non-conflicting with the team-1-only native wave-speed loop, observable after re-seal; `agent_set_accuracy_modifier` (2092) explicitly stated to stack/override the global automatic-accuracy profile; fallback thresholds limited to counts/positions/ammo/HP (**no target/strength getter**) with order reach B-unproven; refill/heal ops 1728/1721 confirmed native; tier clones explicitly owner-approved separately; multihit/piercing separate builds only.
-- C and D were sent the telemetry/validation asks; any later findings should be appended here. No unresolved A blocker.
+- **C, 2026-10-24 (against `f1ba5c5`/`30b9697`): feasible as listed, with corrections applied here:** (a) class map/per-class aggregates and weapon/attack_action are feasible now without A globals if the build pins 981–984; (b) range/engagement is only a 15 s sample-tick proxy, not shot-time or kill-time distance; (c) `kills_team0_by_class` is feasible but class × victim-troop attribution is **not** feasible now and is listed as a proposed field; (d) `agent_get_simple_behavior`/`agent_is_routed` are native but **not currently read** and need msfiles lhs/can_fail declarations + capability flags; fallback/regroup events and tier sourcing are proxies/A-dependent; (e) no acceptance claim. No unresolved C blocker.
+- D was sent the validation asks; any later findings should be appended here.
 
 *End of document.*
