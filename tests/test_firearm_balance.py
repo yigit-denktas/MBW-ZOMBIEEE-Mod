@@ -53,7 +53,7 @@ class SyntheticFirearmBalanceTests(unittest.TestCase):
             self.assertIn(tokens[0], AUTO)
         for item in report["changed"]:
             self.assertEqual(item["delta"], accuracy_delta(item["before"]))
-            self.assertTrue(5 <= item["delta"] <= 10)
+            self.assertTrue(10 <= item["delta"] <= 20)
 
     def test_guards_and_other_items_unchanged(self):
         text = make_table()

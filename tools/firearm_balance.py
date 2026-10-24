@@ -8,8 +8,8 @@ derived from that mask anchored on ``itm_m16a2`` and ``itm_mp5`` instead of a
 hand-maintained name list. Single-shot firearms (bolt-action rifle, break-action
 shotgun, pistols) keep their original accuracy.
 
-Accuracy delta: ``old + clamp(round(old * 0.10), 5, 10)`` - about +8..+10 points
-on the pinned 80..97 range. Only the built module is patched; the original RAR
+Accuracy delta: ``old + clamp(round(old * 0.15), 10, 20)`` - about +10..+20 points
+on the pinned 80..97 range (tighter reticle/spread). Only the built module is patched; the original RAR
 and every other item/faction/troop/mission file are untouched.
 """
 from __future__ import annotations
@@ -23,8 +23,8 @@ AUTO_ANCHORS = ("itm_m16a2", "itm_mp5")
 SINGLE_SHOT_GUARD = ("itm_remington_model_700", "itm_browning_cynergy",
                      "itm_beretta_92fs", "itm_sw_5904")
 MIN_AUTO_GROUP = 8
-ACCURACY_MIN_DELTA = 5
-ACCURACY_MAX_DELTA = 10
+ACCURACY_MIN_DELTA = 10
+ACCURACY_MAX_DELTA = 20
 
 
 class FirearmPatchError(ValueError):
@@ -84,7 +84,7 @@ def automatic_group(items: list[tuple[int, list[str], int]]) -> dict[str, int]:
 def accuracy_delta(value: int) -> int:
     if value <= 0:
         raise FirearmPatchError("Automatic firearm has non-positive accuracy")
-    return max(ACCURACY_MIN_DELTA, min(ACCURACY_MAX_DELTA, round(value * 0.10)))
+    return max(ACCURACY_MIN_DELTA, min(ACCURACY_MAX_DELTA, round(value * 0.15)))
 
 
 def patch_text(text: str, profile: str = "default") -> tuple[str, dict]:

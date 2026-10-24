@@ -27,6 +27,13 @@ WINS_SLOT = 248          # invader faction slot: completed rounds (bounded)
 ROUND_SLOT = 249         # invader faction slot: previous g_round_ended
 MISSION_SLOT = 250       # invader faction slot: previous round-start clock
 ZOMBIE_SPEED_BASE = 55             # wave 0 55%; wave 1 = 60% (+5/wave)
+# City survivor fire modes. AI cycles single -> burst -> auto by wave
+# (mode = wave_number % 3); each mode trades accuracy vs reload speed.
+FIRE_MODES = (
+    {"name": "single", "accuracy": 150, "reload": 120},
+    {"name": "burst", "accuracy": 135, "reload": 145},
+    {"name": "auto", "accuracy": 115, "reload": 165},
+)
 ZOMBIE_SPEED_PER_WAVE = 5          # +5% per wave, capped at 100
 HOLD_FIRE_ORDERS = (0, 13, 16)  # hold, fire_at_will, use_ranged_weapons (never suppress fire)
 defender_reinforce_supported = True
@@ -143,6 +150,28 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None,
             ops.append(["3343", "2", l1, "0"])              # keep ranged weapon
             ops.append(["3", "0"])                          # try_end
             ops.append(["3314", "3", l1, "0", "6"])         # WSE2 hold behavior
+            # WSE2 fire-mode modifiers: faster cadence + tighter aim. The AI
+            # picks single/burst/auto from the wave index; same target as the
+            # native accuracy field, but applied per agent so it works with the
+            # 2012 crossbow-style firearms. Preserve ammo/loadout.
+            l6 = str(LOCAL0 + 6)
+            if wave_global is not None:
+                ops.append(["2119", "3", l6, str(wave_global), "3"])
+                ops.append(["4", "0"])                  # try_begin
+                ops.append(["31", "2", l6, "0"])
+                ops.append(["2092", "2", l1, str(FIRE_MODES[0]["accuracy"])])
+                ops.append(["2094", "2", l1, str(FIRE_MODES[0]["reload"])])
+                ops.append(["5", "0"])                  # else_try
+                ops.append(["31", "2", l6, "1"])
+                ops.append(["2092", "2", l1, str(FIRE_MODES[1]["accuracy"])])
+                ops.append(["2094", "2", l1, str(FIRE_MODES[1]["reload"])])
+                ops.append(["5", "0"])                  # else_try
+                ops.append(["2092", "2", l1, str(FIRE_MODES[2]["accuracy"])])
+                ops.append(["2094", "2", l1, str(FIRE_MODES[2]["reload"])])
+                ops.append(["3", "0"])                  # try_end
+            else:
+                ops.append(["2092", "2", l1, str(FIRE_MODES[1]["accuracy"])])
+                ops.append(["2094", "2", l1, str(FIRE_MODES[1]["reload"])])
         ops.append(["2120", "3", l0, l0, "1"])             # count += 1
         ops.append(["3", "0"])                             # try_end
         if defender_target:
@@ -366,6 +395,10 @@ def apply_module(module: Path, hold_entries: tuple[int, ...] = REAR_HOLD_ENTRIES
             "zombie_speed": zombie_speed,
             "defender_standoff": defender_orders,
             "explosive_gating": "not_applicable_ai_loadouts_have_no_bombs",
+            "fire_modes": [mode["name"] for mode in FIRE_MODES],
+            "fire_mode_policy": "ai_wave_mod3_single_burst_auto",
+            "accuracy_modifier_percent": [mode["accuracy"] for mode in FIRE_MODES],
+            "reload_speed_modifier_percent": [mode["reload"] for mode in FIRE_MODES],
             "defender_orders": defender_orders,
             "wave_visitors": wave_visitors,
             "defender_target": defender_target,
