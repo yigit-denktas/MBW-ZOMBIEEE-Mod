@@ -276,4 +276,76 @@ RBM and TacticalWarfareAI both implement the screen successfully — but through
 - **D**: run the A/B stance and screen-offset comparisons from §9; no visual/behaviour acceptance before sealed evidence.
 - Cross-review welcome from A/C/D; findings should be appended here rather than silently assumed.
 
+
+---
+
+## 12. Three-minute quick-test lanes (triage checklist)
+
+**Purpose:** give A/C/D a short, repeatable triage loop for the stance rules in §8–§9. **Not acceptance.** A lane is 3 minutes of sealed observation; each metric is classified **PASS / FAIL / UNKNOWN** with explicit sample minimums. UNKNOWN is never PASS, and no lane result authorizes a release claim. Thresholds below are **provisional heuristics** for triage; D calibrates them from the first lane batch.
+
+### 12.1 Lane layout (four 3-minute lanes)
+
+| Lane | 3-minute focus | Start condition | What it answers |
+| --- | --- | --- | --- |
+| **A — Join + stance** | mission start, survivor spawn, post positions | fresh server join; no human input after join | Did the mission start, did team-0 bots spawn, are they near their posts and in addressable divisions? |
+| **B — Fire + reload** | first contact to minute 3 | enemies within 60 m observed | Do ranged survivors shoot soon and keep firing, or do they stand/charge with a loaded gun? |
+| **C — No-chase + fallback** | pressure near the post/anchor | enemies reach ≤20 m of anchor, or team-0 alive ≤2 | Do survivors stay at posts, or drift/charge? Does fallback trigger? |
+| **D — Screen + assist/special** | mixed melee/ranged and special near post | a melee-class survivor within 12 m of an enemy, or a special within 40 m of a post | Is the ranged line behind the melee screen? Is the lane active? Did a special get engaged? |
+
+Each lane is independent; do not stack more than one hypothesis-change per lane (baseline vs one stance flag).
+
+### 12.2 Metrics, thresholds, and evidence
+
+**Sample minimums:** a metric needs at least **10 position samples** or **5 fire samples** in the lane; otherwise UNKNOWN. With 15 s heartbeat sampling this is usually insufficient — task-76's adaptive 1 s sampling is strongly recommended for lanes. All "distance" values are scene units (project convention).
+
+| # | Metric | How measured (C/D) | PASS (triage) | FAIL (triage) | If unreadable |
+| --- | --- | --- | --- | --- | --- |
+| J1 | Mission/round started | `mission_started` / template / round-start fields | mission is `mst_multiplayer_iv` by 30 s | no mission by 60 s | UNKNOWN |
+| J2 | Survivor spawn | team-0 non-player count / troop histogram | ≥1 team-0 bot by 60 s, ≥4 by 120 s | 0 team-0 bots at 120 s | UNKNOWN |
+| J3 | Enemy presence | team-1 count / wave fields | ≥1 team-1 bot by 120 s | 0 team-1 at 180 s | UNKNOWN |
+| P1 | Survivor post distance | sampled survivor positions vs assigned post (division or troop class) | ≥60% samples ≤25 m of post, ≤20% >35 m | <40% samples ≤25 m, or ≥40% >35 m | UNKNOWN |
+| P2 | Division/order readback | `agent_get_division`, `team_get_movement_order` if readable | ≥1 division in 5–7 per class, movement order = hold/stand_ground | order readable and not hold/stand_ground | UNKNOWN (do not fail on unreadable) |
+| P3 | Hold stability | successive position deltas while held | median centroid speed <1 m/s between samples, no >5 m drift per 10 s | sustained drift >5 m/10 s while held | UNKNOWN if sampling too sparse |
+| F1 | Time to first shot | first ranged attack-action / ammo drop after enemy ≤60 m | ≤15 s | >30 s with ammo >0 | UNKNOWN if no contact |
+| F2 | Fire rate | ranged attack-action or ammo-drop events per minute | ≥3 events/min while enemy ≤60 m | 0 events in minute 2–3 with enemy ≤60 m | UNKNOWN |
+| F3 | Reload observed | `agent_get_attack_action` = reloading between shots | observed ≥1 reload | never reloads but ammo drops (suspicious) | UNKNOWN |
+| F4 | Premature melee switch | weapon/simple-behaviour state while ammo >0 | ranged weapon retained while ammo >0 | melee weapon with ammo >0 and enemy >10 m | UNKNOWN |
+| C1 | Out-of-post / charge event | position >35 m from post for ≥3 consecutive samples, or centroid >20 m away | ≤1 event/lane, no agent >40 m | ≥2 events, or any agent >50 m for ≥3 samples | UNKNOWN if <10 samples |
+| C2 | Charge order issued | build receipt / order readback | no `mordr_charge` to team 0 in the lane | charge configured/issued to team 0 | UNKNOWN |
+| C3 | Fallback response | pressure trigger → centroid/E0 distance change within 15 s | moves ≥5 m toward E0 after trigger | no movement after trigger | UNKNOWN if trigger not observed |
+| S1 | Screen geometry | class centroids vs enemy bearing | ranged classes ≥5 m behind melee class for ≥60% samples | ranged in front for ≥60% samples | UNKNOWN if no melee class or no enemy |
+| S2 | Lane-active proxy (assist) | ranged fire event while a melee-class survivor is within 12 m of an enemy | ≥1 event (lane-active only) | 0 events with melee contact | UNKNOWN; **targeting always UNKNOWN** |
+| X1 | Special engagement | special troop within 40 m of post → team-0 agents within 10 m | ≥2 melee agents within 10 m within 15 s, or ranged fire events >0 | no engagement for >45 s | UNKNOWN if no special |
+| X2 | Crossbow/reload behaviour | time-to-first-shot, shots/min, reload, weapon switch (task-83) | F1 ≤15 s and no premature melee switch | F1 >30 s or melee switch with ammo | UNKNOWN |
+
+**Deliberately absent:** per-class target attribution, "assist/focus" targeting, and rout state. Warband has no target setter (task-61/87); `agent_is_routed` has no verified getter (task-67 D). Those must be reported **UNKNOWN**, never PASS.
+
+### 12.3 Classification rules
+
+- **PASS** only when the metric has ≥ minimum samples and meets the pass condition.
+- **FAIL** when the fail condition is met with sufficient samples.
+- **UNKNOWN** when the field is unreadable, samples are below minimum, or no trigger occurred. UNKNOWN is not a pass and blocks a lane PASS.
+- **Lane overall:** PASS only if J1/J2, C1, F2 and all applicable P/S metrics are PASS (not UNKNOWN). Any FAIL → lane FAIL. Otherwise lane UNKNOWN.
+- These are triage outcomes for A/C follow-up, **not** acceptance evidence; do not put a lane PASS into the ledger as an accepted outcome.
+
+### 12.4 Lane protocol
+
+1. **Preflight:** record build SHA/receipt (class-matrix/stance flags), run `python -m tools.telemetry_studio probe-health <bundle> --json` (task-78), confirm probe capabilities, start recorder, note rotation/seed.
+2. **Run:** start a 3:00 timer; no human gameplay input after join; record exact start/stop; one stance change max (baseline vs variant).
+3. **Seal:** stop cleanly, seal the bundle, run the summary/diagnostics; produce a lane JSON with each metric + evidence path + PASS/FAIL/UNKNOWN.
+4. **Triage:** FAIL/UNKNOWN becomes an A/C follow-up item with the missing field named; never "retry until pass".
+5. **No acceptance:** no release, ledger or Pages claim from a lane; D owns the sealed evidence and the threshold calibration after the first batch.
+
+### 12.5 Instrumentation asks
+
+- **A:** stance trigger active (hold+position, re-issue 5 s; `stand_closer`; `stand_ground` only as halt corrective), class→division mapping, no per-agent scripted destination, no charge order to team 0, receipt fields for stance/class mode; expose a lane mode if needed.
+- **C:** 1 s adaptive sampling for lanes (task-76), ranged metrics `time_to_first_shot`, `shots_per_minute`, weapon/attack-action/ammo, positions, division/order readback, per-class presence, explicit unknowns; lane summary emits PASS/FAIL/UNKNOWN + gaps (reuse task-88/task-78 work).
+- **D:** 3-minute lane runner (join → timer → seal), four lanes in §12.1, baseline vs one stance change, threshold calibration after first batch; no acceptance.
+
+### 12.6 Non-claims
+
+- Thresholds are provisional triage heuristics, not engine truth or acceptance criteria.
+- The lane cannot prove target priority/focus fire, assist attribution or rout; those stay UNKNOWN.
+- A lane PASS does not certify "survivors hold posts" or "assist works"; it only means the observed triage metrics passed in that sealed window.
+
 *End of research document.*
