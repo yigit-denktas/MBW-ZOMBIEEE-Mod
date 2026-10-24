@@ -37,3 +37,16 @@ behaviour.
   `Invalid Faction ID`, `Illegal lvalue`) to avoid double counting log copies.
 - Static inspection is text-only over the installed module; runtime Lua triggers
   (opcode 5113) are added by the overlay and never appear in `mission_templates.txt`.
+
+## Spatial/heatmap analysis (task-72)
+
+`telemetry/spatial_analysis.py` consumes `zombieee.heatmap-input.v1` and writes
+`spatial-analysis.json`, `SPATIAL_ANALYSIS.md`, and simple per-team/wave SVG
+grids: occupancy/flow, round panels, cohesion, movement classes, situation
+panels (outnumbered/advantage/even from heartbeats), chokepoint *candidates*,
+health/class coverage and gaps. It is descriptive only; chokepoints are
+occupancy candidates, UNKNOWN never passes, and there is no visual/acceptance
+claim.
+
+CLI:
+`python telemetry/spatial_analysis.py --input points.json --out-dir telemetry/spatial_out`
