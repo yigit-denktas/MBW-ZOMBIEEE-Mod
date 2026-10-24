@@ -6,7 +6,7 @@
   "acceptance": "none",
   "runtime_verified": false,
   "observed_on": "2026-10-24",
-  "source_revision": "c170ebff4ae5d4daa8d140145b9faba0c81ad185",
+  "source_revision": "b54124cabb0125ed60b05f19e8f4371951a51455",
   "version_sources": {
     "version": "VERSION",
     "changelog": "CHANGELOG.md#030-beta1-2026-10-24",
@@ -523,7 +523,7 @@
     "published": false
   },
   "source_revision_exception": {
-    "reason": "build-receipt refill-off context; metadata-only head revision",
+    "reason": "adaptive agent-id parser/brief summary; metadata-only head revision",
     "changed_paths": [
       "docs/release-traceability.json",
       "CHANGELOG.md",

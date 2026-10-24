@@ -262,3 +262,6 @@ work-item → PR → commit → version links are in
 
 
 <!-- refill-off context metadata-only source revision: c170ebf -->
+
+
+<!-- adaptive parser/brief metadata-only source revision: b54124c -->

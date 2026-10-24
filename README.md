@@ -229,3 +229,6 @@ This project deliberately separates **source-verified**, **observed**, **unknown
 
 
 <!-- refill-off context metadata-only source revision: c170ebf -->
+
+
+<!-- adaptive parser/brief metadata-only source revision: b54124c -->

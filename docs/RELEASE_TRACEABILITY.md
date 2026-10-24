@@ -148,3 +148,6 @@ Source revision for the shot proxy metadata-only receipt: `9e4342c`.
 
 
 Source revision for the refill-off context metadata-only receipt: `c170ebf`.
+
+
+Source revision for the adaptive parser/brief metadata-only receipt: `b54124c`.
