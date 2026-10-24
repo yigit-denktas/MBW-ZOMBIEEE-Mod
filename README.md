@@ -2,9 +2,9 @@
 
 A private, City-first compatibility rebuild of the 2012 **ZOMBIEEE (Invasion) Beta 0.4** multiplayer mod for *Mount & Blade: Warband* â€” built from a legally owned original archive, instrumented with a local flight recorder, and documented without overclaiming.
 
-> **Status: not accepted as a playable release.** Runtime evidence now exists â€” native Zombie roster, native allied defenders, hands-off AI-vs-AI combat, wave 2 in a defender-heavy variant, and a live-validated `play_city` path â€” but the City release still sits at **0/23 required outcomes / 0/5 accepted milestones** with `runtime_verified=false`. Division/hold behavior, wave 3+/completion, combat feel, redistribution and public release gates remain open. Do not treat any build here as an accepted release.
+> **Status: not accepted as a playable release.** Runtime evidence now exists â€” native Zombie roster, native allied defenders, hands-off AI-vs-AI combat, wave 2 in a defender-heavy variant, and a live-validated `play_city` path â€” but the City release still sits at **8/23 required outcomes done / 0/5 accepted milestones** with `runtime_verified=false`. Division/hold behavior, wave 3+/completion, combat feel, redistribution and public release gates remain open. Do not treat any build here as an accepted release.
 
-**Current project version:** `0.3.0-rc.1` (pre-release consolidation candidate; **not release-accepted**). See [CHANGELOG.md](CHANGELOG.md) and [docs/RELEASE_TRACEABILITY.md](docs/RELEASE_TRACEABILITY.md).
+**Current project version:** `0.3.0-beta.1` (pre-release beta candidate; **not release-accepted**). See [CHANGELOG.md](CHANGELOG.md) and [docs/RELEASE_TRACEABILITY.md](docs/RELEASE_TRACEABILITY.md).
 
 <!-- project-record:start -->
 [![ZOMBIEEE Remaster · current required scope](./progress.svg)](https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/)
@@ -16,11 +16,11 @@ A private, City-first compatibility rebuild of the 2012 **ZOMBIEEE (Invasion) Be
 
 [Interactive roadmap](https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/) · Source file: `progress/ledger.json` (content-addressed file snapshot).
 
-Observed 2026-10-24 against `a41d645b`.
+Observed 2026-10-24 against `e360671d`.
 <!-- project-record:end -->
 
 *The generated progress block above is a derived view observed at `c49cd3b9`; it is
-stale for the `0.3.0-rc.1` candidate. Publisher regeneration is pending, so this
+stale for the `0.3.0-beta.1` candidate. Publisher regeneration is pending, so this
 candidate does not claim a fresh observation (see
 [docs/RELEASE_TRACEABILITY.md](docs/RELEASE_TRACEABILITY.md)).*
 
@@ -109,7 +109,7 @@ py -3 -m unittest discover -s tests -v
 
 Tests are offline and require **no game launch**. Set `ZOMBIEEE_ORIGINAL_MODULE` and `ZOMBIEEE_ORIGINAL_ARCHIVE` to your private extracted module and original RAR to enable the original-asset source tests; without them those tests skip explicitly rather than pass by default. There is **no CI** by owner choice.
 
-Latest recorded run (2026-10-24, Windows 11, Python 3.11.9, rebased on `main` `3a9b859`): **583 tests, OK, 112 skipped**. Original-asset source tests skip unless `ZOMBIEEE_ORIGINAL_MODULE`/`ZOMBIEEE_ORIGINAL_ARCHIVE` are set; the earlier embedded-NUL Windows discovery bug is fixed and covered by regression tests. The release gate verifies recorded metadata only; test counts are not release acceptance.
+Latest recorded run (2026-10-24, Windows 11, Python 3.11.9, rebased on `main` `efafa2e`): **588 tests, OK, 113 skipped**. Original-asset source tests skip unless `ZOMBIEEE_ORIGINAL_MODULE`/`ZOMBIEEE_ORIGINAL_ARCHIVE` are set; the earlier embedded-NUL Windows discovery bug is fixed and covered by regression tests. The release gate verifies recorded metadata only; test counts are not release acceptance.
 
 ## Run (target path â€” unverified)
 
@@ -128,18 +128,18 @@ See [docs/MANUAL_TESTS.md](docs/MANUAL_TESTS.md) and [docs/INTEGRATED_CITY_ACCEP
 - **Public static tracker** (GitHub Pages, documented as observed in the tracker): <https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/>
 - **Integrated City acceptance ledger** (14 gates G00â€“G13, evidence classes and strict semantics): [docs/INTEGRATED_CITY_ACCEPTANCE_2026-10-24.md](docs/INTEGRATED_CITY_ACCEPTANCE_2026-10-24.md)
 - **Diagnostics, recorder and sealed receipts:** [docs/DIAGNOSTICS.md](docs/DIAGNOSTICS.md), [docs/CITY_INCIDENT_V1.md](docs/CITY_INCIDENT_V1.md)
-- **Ownership, permission and archive provenance:** [docs/PROVENANCE.md](docs/PROVENANCE.md), [reference/ARCHIVE.txt](reference/ARCHIVE.txt), and the legal/rights dossier [reference/LEGAL_RIGHTS_AND_CREDITS.md](reference/LEGAL_RIGHTS_AND_CREDITS.md) (owner-attested permission; **redistribution not cleared**). Independent cross-review: [reference/CROSS_REVIEW_LEGAL_RELEASE_2026-10-24.md](reference/CROSS_REVIEW_LEGAL_RELEASE_2026-10-24.md). `LICENSE`/`THIRD_PARTY_NOTICES.md` are absent (owner decision/open risk); `release-check` reports that absence rather than silently passing it.
+- **Ownership, permission and archive provenance:** [docs/PROVENANCE.md](docs/PROVENANCE.md), [reference/ARCHIVE.txt](reference/ARCHIVE.txt), and the legal/rights dossier [reference/LEGAL_RIGHTS_AND_CREDITS.md](reference/LEGAL_RIGHTS_AND_CREDITS.md) (owner-attested permission; **redistribution not cleared**). Independent cross-review: [reference/CROSS_REVIEW_LEGAL_RELEASE_2026-10-24.md](reference/CROSS_REVIEW_LEGAL_RELEASE_2026-10-24.md). `LICENSE`/`THIRD_PARTY_NOTICES.md` (or `docs/CREDITS.md`) are absent (owner decision/open risk); `release-check` reports that absence rather than silently passing it.
 - **Open work:** [#5](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/5) attribution/legal, [#6](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6) final-session evidence, [#8](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/8)/[#9](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/9) Windows launcher, [#13](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/13)/[#14](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/14) roster/rotation, [#15](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/15) recorder read race. (`#16` sealing is closed; the live sealed-attempt gate is still open.)
 
 **Evidence bundles never enter Git.** `local/`, `evidence/`, `*.rar`, `*.exe`, `*.dll`, `Modules/` and logs are ignored. The public repository contains tooling, documentation and tests only â€” no game assets, executables, serial keys, session logs or personal paths.
 
 ## Current status â€” 2026-10-24
 
-- **Release reality:** City required outcomes **0/23**, accepted milestones **0/5**, `runtime_verified=false`. Every "done" item in the ledger is bounded support work, not release acceptance.
+- **Release reality:** City required outcomes **8/23 done**, accepted milestones **0/5**, `runtime_verified=false`. Every "done" item in the ledger is bounded support work, not release acceptance.
 - **Observed (unsealed, Lead-reported)** on merged main `4c56242` with C's corrected probe: dedicated host loopback-only `127.0.0.1:7240`, `role=server`, `game_type=7`, `ready_for_spawn=1`; `set_bot_count 2 32` produced `team1=41`, `wave=1`. This is a candidate observation, not acceptance.
 - **Open defects:** stable squad hold/guard-entry identity (division 5-7 adoption unobservable); wave 3+/completion and stock-squad wave 2; combat feel with the firearm profile; legal redistribution/public release gates. Native Zombie roster, native defenders, wave 2 in the defender-heavy variant and sealed ZDB1/play_city evidence are demonstrated but are not release acceptance.
 - **Known original quirk:** repeated engine `SCRIPT ERROR: Invalid Faction ID: -1` is decoded as four trailing `faction_set_slot(-1, 200, â€¦)` writes in the 2012 mission (trigger 14), byte-identical to the pinned original prefix. It is non-fatal and not proven causal; no gameplay patch is authorized.
-- **Version:** project version `0.3.0-rc.1` is a SemVer **pre-release consolidation candidate** (AI standoff/refill and wave staging, telemetry, M2 installer/desktop/release gates, legal dossier, tracker consolidation). It is not a milestone award: the `0.3.0` Native defender **spawn** is proven; division/hold adoption remains unobserved (candidate-only wording). The `0.3.0` milestone remains reserved for verified allied survivor/class/loadout acceptance, and City release acceptance remains **0/23 required outcomes / 0/5 milestones**. Work-item → PR → version links: [docs/RELEASE_TRACEABILITY.md](docs/RELEASE_TRACEABILITY.md). See [CHANGELOG.md](CHANGELOG.md), [docs/ROADMAP.md](docs/ROADMAP.md), [docs/ENGINE.md](docs/ENGINE.md).
+- **Version:** project version `0.3.0-beta.1` is a SemVer **pre-release beta candidate** (AI standoff/refill and wave staging — implemented, runtime acceptance pending; telemetry, M2 installer/desktop/release gates, legal dossier, tracker consolidation). It is not a milestone award: the `0.3.0` Native defender **spawn** is proven; division/hold adoption remains unobserved (candidate-only wording). The `0.3.0` milestone remains reserved for verified allied survivor/class/loadout acceptance, and City release acceptance remains **0/23 required outcomes / 0/5 milestones**. Work-item → PR → version links: [docs/RELEASE_TRACEABILITY.md](docs/RELEASE_TRACEABILITY.md). See [CHANGELOG.md](CHANGELOG.md), [docs/ROADMAP.md](docs/ROADMAP.md), [docs/ENGINE.md](docs/ENGINE.md).
 
 ## Attribution and permission
 
