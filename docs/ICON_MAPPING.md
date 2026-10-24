@@ -279,3 +279,7 @@ no game launch was performed for it.
 
 **Non-claims:** no screenshots exist for this document, no visual acceptance is implied, and no
 binary asset may be committed before licence clearance + this comparison.
+
+The project-authored reticle/overlay concept (geometry, variants A/B/C, candidate licences, reticle-
+specific measurements) is [`reference/RETICLE_OVERLAY_CONCEPT.md`](../reference/RETICLE_OVERLAY_CONCEPT.md);
+it is the subject of this validation gate and contains no binary or visual claim.

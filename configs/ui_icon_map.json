@@ -13,7 +13,8 @@
     "No binary data is committed; icon svg/png/dds files must not be added until the licence-cleared asset PR.",
     "slot.source.primary is the intended canonical art; slot.source.fallback is used only if the primary is rejected in visual QA.",
     "Attribution strings are generated from this file; every CC BY slot requires author + licence + page URL.",
-    "task-64 addendum: environment/cover + survivor cosmetic/armour/face/hair slots and an additive reticle candidate; visual validation requires in-game screenshots (plan docs/ICON_MAPPING.md §10) and no native reticle resize is claimed."
+    "task-64 addendum: environment/cover + survivor cosmetic/armour/face/hair slots and an additive reticle candidate; visual validation requires in-game screenshots (plan docs/ICON_MAPPING.md §10) and no native reticle resize is claimed.",
+    "Project-authored reticle/overlay concept: reference/RETICLE_OVERLAY_CONCEPT.md (variants A/B/C; additive overlay only; no native resize claim; screenshots by D required)."
   ],
   "atlas": {
     "runtimeFormat": "dds",
@@ -1178,5 +1179,11 @@
     "status": "pending",
     "record": null,
     "acceptance": false
-  }
+  },
+  "reticleConcept": "reference/RETICLE_OVERLAY_CONCEPT.md",
+  "reticleVariants": [
+    "A (classic cross)",
+    "B (tick/chevron)",
+    "C (ring+dot)"
+  ]
 }
