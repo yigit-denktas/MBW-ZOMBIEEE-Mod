@@ -265,3 +265,6 @@ work-item → PR → commit → version links are in
 
 
 <!-- adaptive parser/brief metadata-only source revision: b54124c -->
+
+
+<!-- task-72 spatial metadata-only source revision: 6a1f653 -->

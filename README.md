@@ -232,3 +232,6 @@ This project deliberately separates **source-verified**, **observed**, **unknown
 
 
 <!-- adaptive parser/brief metadata-only source revision: b54124c -->
+
+
+<!-- task-72 spatial metadata-only source revision: 6a1f653 -->

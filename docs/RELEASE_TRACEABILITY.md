@@ -151,3 +151,6 @@ Source revision for the refill-off context metadata-only receipt: `c170ebf`.
 
 
 Source revision for the adaptive parser/brief metadata-only receipt: `b54124c`.
+
+
+Source revision for the task-72 spatial metadata-only receipt: `6a1f653`.
