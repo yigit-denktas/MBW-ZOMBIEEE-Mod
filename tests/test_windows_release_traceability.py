@@ -133,8 +133,10 @@ class RepositoryTraceabilityTests(unittest.TestCase):
         self.assertRegex(self.trace['source_revision'], r'^[0-9a-f]{40}$')
         support = {entry['id']: entry for entry in self.trace['support_artifacts']}
         self.assertEqual(set(support), {'C-TASK-35', 'C-TASK-48', 'G-TASK-49'})
-        self.assertIs(support['G-TASK-49']['merged'], False)
-        self.assertIn('pending', support['G-TASK-49']['state'])
+        self.assertIs(support['G-TASK-49']['merged'], True)
+        self.assertIn('merged', support['G-TASK-49']['state'])
+        self.assertEqual(support['G-TASK-49']['merge_commit'],
+                         '8b38f7deed9711e36d11ab005eb8e8b269dc525d')
         self.assertEqual(support['G-TASK-49']['pr']['number'], 31)
         self.assertIn('no binaries', support['G-TASK-49']['summary'])
         self.assertIn('NOT a runtime/telemetry artifact',

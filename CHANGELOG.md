@@ -44,7 +44,8 @@ work-item → PR → commit → version links are in
   kill-feed/HUD icon mapping for melee/bow/crossbow/firearm/zombie/money-USD
   (`docs/ICON_MAPPING.md`), definitions-only `configs/ui_icon_map.json`;
   independent licence review by Agent E, **no legal clearance or acceptance** —
-  [PR #31](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/31), `85b9c0b`.
+  [PR #31](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/31) `85b9c0b`,
+  merged `8b38f7d`.
   Native Warband/ZOMBIEEE assets have no recorded redistribution right and are
   not bundled.
 ### Changed

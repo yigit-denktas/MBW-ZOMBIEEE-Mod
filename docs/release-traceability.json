@@ -6,7 +6,7 @@
   "acceptance": "none",
   "runtime_verified": false,
   "observed_on": "2026-10-24",
-  "source_revision": "9b9fb2da7c0af01e019efd88c0634339e1cd4821",
+  "source_revision": "755c7b9a679a871158c3fb06867c13d0e4d7f2de",
   "version_sources": {
     "version": "VERSION",
     "changelog": "CHANGELOG.md#030-beta1-2026-10-24",
@@ -344,7 +344,8 @@
         25,
         26,
         27,
-        28
+        28,
+        31
       ],
       "included_commits": [
         "52171ec6203d404084ad82a72495d0caa388cb1b",
@@ -371,12 +372,10 @@
         {
           "number": 26,
           "reason": "matrix summary-schema alignment"
-        }
-      ],
-      "pending_prs": [
+        },
         {
           "number": 31,
-          "reason": "G free-asset catalogue docs/definitions; pending merge"
+          "reason": "G free-asset catalogue/icon mapping (docs/definitions only, merged)"
         }
       ]
     }
@@ -390,7 +389,7 @@
     "Generated README progress block is a derived view observed at `c49cd3b9` and is stale for the 0.3.0-beta.1 candidate; publisher regeneration is pending (E finding C2).",
     "Repository LICENSE / THIRD_PARTY_NOTICES.md are absent (owner decision/open risk); absence is reported by the release gate rather than silently passing (E finding C6).",
     "E review finding 1 (version label): beta.1 is a pre-release candidate and does not award 0.3.0; owner approval at packaging is still pending.",
-    "G PR #31 free-asset catalogue/icon mapping is pending merge; docs/definitions only, no binaries, no legal clearance or acceptance."
+    "G free-asset catalogue is merged at `8b38f7d` but remains docs/definitions only (no binaries, no legal clearance, no playable-release claim)."
   ],
   "notes": [
     "Pre-release candidate only: source merges and a CHANGELOG heading establish neither publication nor acceptance.",
@@ -427,8 +426,8 @@
     {
       "id": "G-TASK-49",
       "kind": "docs-definitions-only",
-      "state": "pending-merge",
-      "merged": false,
+      "state": "merged-docs-only",
+      "merged": true,
       "summary": "Free-asset licence catalogue + icon/currency mapping contract (docs/definitions only, no binaries); independent E licence review; no legal clearance or acceptance.",
       "acceptance": "none",
       "pr": {
@@ -439,7 +438,7 @@
       "commits": [
         "85b9c0b"
       ],
-      "merge_commit": null
+      "merge_commit": "8b38f7deed9711e36d11ab005eb8e8b269dc525d"
     }
   ],
   "reviews": [
