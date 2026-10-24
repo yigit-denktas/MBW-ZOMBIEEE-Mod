@@ -30,7 +30,7 @@ footer{border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
 
 .graph-panel{margin:1.4rem 0}.graph-scroll{overflow:auto;border:1px solid var(--line);border-radius:12px;background:#151922;padding:1rem;max-height:72vh}.graph-scroll .mermaid{min-width:980px;text-align:center}.graph-panel .graph-note{font-size:.9rem;color:var(--muted)}.graph-panel .mermaid svg{max-width:none;height:auto}.graph-fallback{margin-top:.6rem;font-size:.85rem}
 
-.dep-section{margin:1.6rem 0;border-top:1px solid var(--line);padding-top:1rem}
+.dep-section{margin:1.6rem 0;border-top:1px solid var(--line);padding-top:1rem}.dep-section.expanded{position:fixed;inset:0;z-index:100;background:var(--bg);border:0;margin:0;padding:1rem clamp(1rem,2vw,2rem);overflow:auto;max-width:none}.dep-section.expanded .dep-map{min-height:calc(100vh - 14rem)}body.dep-expanded{overflow:hidden}
 .dep-head{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;flex-wrap:wrap}
 .dep-controls{display:flex;gap:.5rem;flex-wrap:wrap}.dep-controls button{min-height:38px;padding:.35rem .7rem;font-size:.85rem}
 .dep-map{position:relative;width:100%;max-width:100%;min-width:0;background:#151922;border:1px solid var(--line);border-radius:12px;padding:1.8rem 1.7rem 2rem;margin-top:.8rem;overflow:visible}
@@ -52,8 +52,8 @@ footer{border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
 .dep-lanes{display:grid !important;grid-template-columns:1fr !important;gap:3rem !important;width:100%;min-width:0}
 .dep-lane{display:block !important;min-height:0;padding:1.35rem 1.1rem}
 .dep-lane h3{margin:0 0 .8rem;font-size:.84rem;line-height:1.4;white-space:normal}
-.dep-row-items{display:grid;grid-template-columns:repeat(auto-fill,minmax(245px,1fr));column-gap:1.35rem;row-gap:1.15rem;align-items:stretch}
-.dep-row-items .dep-node{height:100%;min-height:84px}
+.dep-row-items{display:flex;flex-wrap:wrap;gap:1.15rem 1.35rem;align-items:stretch}
+.dep-row-items .dep-node{flex:1 1 245px;max-width:100%;height:auto;min-height:84px}
 .dep-lane:nth-child(odd){background:rgba(29,34,44,.72)}
 .dep-lane:nth-child(even){background:rgba(21,25,34,.72)}
 </style>
@@ -76,7 +76,7 @@ footer{border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
 <section aria-labelledby="roadmap-heading"><h2 id="roadmap-heading">Milestone roadmap</h2><div id="milestones" aria-live="polite"></div></section>
 <section class="dep-section" aria-labelledby="dep-heading" id="dependency-graph">
 <div class="dep-head"><div><p class="eyebrow">Execution map</p><h2 id="dep-heading">Dependencies &amp; frontier</h2><p class="muted">Every node is a real task card. Click a node to open its detail; hover to isolate its edges. Solid lines are prerequisites; dashed lines support a required outcome. The diagram is generated from the same ledger as the cards above.</p></div>
-<div class="dep-controls" role="group" aria-label="Dependency map filters"><button id="dep-frontier" aria-pressed="true">Frontier only</button><button id="dep-all" aria-pressed="false">All required + discovered</button><button id="dep-links" aria-pressed="false">Show all links</button></div></div>
+<div class="dep-controls" role="group" aria-label="Dependency map filters"><button id="dep-frontier" aria-pressed="true">Frontier only</button><button id="dep-all" aria-pressed="false">All required + discovered</button><button id="dep-links" aria-pressed="false">Show all links</button><button id="dep-expand" aria-pressed="false">Expand map</button></div></div>
 <div class="dep-legend" aria-label="Legend"><span><i></i> prerequisite on hover</span><span><i class="support"></i> supports required outcome on hover</span><span><b style="background:#5bbf86"></b>done</span><span><b style="background:#e6b85c"></b>active</span><span><b style="background:#e67b70"></b>blocked</span><span><b style="background:#7e8fc7"></b>required gate</span></div>
 <div class="dep-scroll" tabindex="0"><div class="dep-map" id="dep-map"><svg class="dep-edges" id="dep-edges" aria-hidden="true"><defs><marker id="dep-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#687381"></path></marker><marker id="dep-arrow-support" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#e67b70"></path></marker><marker id="dep-arrow-hot" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f4c29b"></path></marker></defs><g id="dep-paths"></g></svg><div class="dep-lanes" id="dep-lanes"></div></div></div>
 <p class="dep-summary" id="dep-summary" role="status"></p>
@@ -182,7 +182,7 @@ function renderDependencyMap(){
  requestAnimationFrame(()=>{depDrawEdges(nodes);const n=($('dep-edges')||{}).querySelectorAll? $('dep-edges').querySelectorAll('path').length:0;summary.textContent=summary.textContent+' · '+n+' links';});
 }
 function bindDepControls(){
- const f=$('dep-frontier'),a=$('dep-all'),l=$('dep-links');if(!f||!a||f.dataset.bound)return;f.dataset.bound='1';if(l)l.addEventListener('click',()=>{const on=$('dep-map').classList.toggle('show-links');l.setAttribute('aria-pressed',String(on));l.textContent=on?'Hide all links':'Show all links'});
+ const f=$('dep-frontier'),a=$('dep-all'),l=$('dep-links'),x=$('dep-expand');if(!f||!a||f.dataset.bound)return;f.dataset.bound='1';if(l)l.addEventListener('click',()=>{const on=$('dep-map').classList.toggle('show-links');l.setAttribute('aria-pressed',String(on));l.textContent=on?'Hide all links':'Show all links'});if(x)x.addEventListener('click',()=>{const sec=document.getElementById('dependency-graph');const on=sec.classList.toggle('expanded');document.body.classList.toggle('dep-expanded',on);x.setAttribute('aria-pressed',String(on));x.textContent=on?'Close map':'Expand map';setTimeout(renderDependencyMap,60)});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('dependency-graph').classList.contains('expanded')){x.click()}});
  f.addEventListener('click',()=>{depFrontierOnly=true;f.setAttribute('aria-pressed','true');a.setAttribute('aria-pressed','false');renderDependencyMap()});
  a.addEventListener('click',()=>{depFrontierOnly=false;a.setAttribute('aria-pressed','true');f.setAttribute('aria-pressed','false');renderDependencyMap()});
  let timer=null;window.addEventListener('resize',()=>{clearTimeout(timer);timer=setTimeout(()=>{if(record)renderDependencyMap()},140)});
