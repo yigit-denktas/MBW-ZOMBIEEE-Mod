@@ -124,3 +124,6 @@ Source revision for the task-74 heatmap metadata-only receipt: `b06f427`.
 
 
 Source revision for the task-71 hit-trigger metadata-only receipt: `1845906`.
+
+
+Source revision for the task-76 adaptive sampling metadata-only receipt: `67dd281`.

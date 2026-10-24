@@ -205,3 +205,6 @@ This project deliberately separates **source-verified**, **observed**, **unknown
 
 
 <!-- task-71 hit-trigger metadata-only source revision: 1845906 -->
+
+
+<!-- task-76 adaptive sampling metadata-only source revision: 67dd281 -->
