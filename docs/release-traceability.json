@@ -6,7 +6,7 @@
   "acceptance": "none",
   "runtime_verified": false,
   "observed_on": "2026-10-24",
-  "source_revision": "db3b3caa03cf855e1ad7e89b3422d0065a4cad8e",
+  "source_revision": "1e907eaf758fc27bb19913664c86451831005e45",
   "version_sources": {
     "version": "VERSION",
     "changelog": "CHANGELOG.md#030-beta1-2026-10-24",
@@ -510,7 +510,7 @@
       "record": "reference/CROSS_REVIEW_LEGAL_RELEASE_2026-10-24.md",
       "date": "2026-10-24",
       "scope": "release/legal/privacy claims (task-51)",
-      "status": "initial review complete; must-fix items C1\u2013C7 addressed in the task-50 branch; re-review of the pushed branch pending",
+      "status": "initial review complete; must-fix items C1–C7 addressed in the task-50 branch; re-review of the pushed branch pending",
       "acceptance": "none"
     }
   ],
