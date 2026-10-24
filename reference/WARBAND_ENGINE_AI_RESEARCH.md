@@ -300,7 +300,7 @@ WSE2 also provides a Lua instrumentation surface (S8 SDK `luaGuide.html`) used b
 
 **Corrections to earlier project assumptions**, to be folded into A/C docs:
 
-1. "Native bots are in groups 26/28/29/31" — those were agent-id echoes; real observed groups are 8..15 and still not sub-classes (§4.3).
+1. "Native bots are in groups 26/28/29/31" — those were agent-id echoes; the later `groups_team0/1=8..15` aggregates are also `id == group` echoes in that log, and the latest p0 seal reads `group=-1`; no stable group value is established, and none are order sub-classes (§4.3).
 2. "No AI behaviour getter" — `agent_get_simple_behavior` (native 1738) and `agent_is_routed` (1699) exist; telemetry can read behaviour and rout state (§5.2, §5.4).
 3. "add_visitors group = formation" — in MP the fifth argument is the leader/owner player id (§4.2/§4.4), a likely cause of our earlier visitor-spawn failure.
 
