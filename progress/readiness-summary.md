@@ -11,3 +11,5 @@ Observed source: `yigit-denktas/MBW-ZOMBIEEE-Mod@048564a526de9b36abd55874271c7b8
 **Central assessment reference:** `pending://owner-designated-private-assessment-store/yigit-denktas__MBW-ZOMBIEEE-Mod/` (placeholder, not a working URL). Detailed assessment prepared separately as `ZOMBIEEE_project_readiness_private_2026-10-23.json`; do not publish it to GitHub or Pages without privacy review.
 
 **Selected bounded remediation (proposed):** demonstrate clean Windows bootstrap, collect one WSE2 runtime baseline, validate diagnostics under an actual crash/test session, and add a protected release/rollback proof. Approval and scope effects pending.
+
+**2026-10-24 hands-off update:** main `2fef70d` / canonical build `a6b5fe9`; sealed hands-off runs verify native Zombie roster 894..911 and native team-0 defenders 981..984 with positions/tactical_change, plus a passed play_city lifecycle. Required City outcomes remain **0/23**, milestones **0/5**, `runtime_verified=false`; wave 2+/completion and release gates remain unaccepted.

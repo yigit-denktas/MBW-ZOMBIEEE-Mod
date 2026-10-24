@@ -93,3 +93,10 @@ C has pushed implementation updates for log head/tail and path checks, but compa
 - Five bug-fix upgrades as support leaves: `ZOM-DISC-22` (#15, done), `ZOM-DISC-23` (#14, active — live validated rotation/roster pending), `ZOM-DISC-24` (#16, active — sealed ZDB1 attempt pending), `ZOM-DISC-25` (#13, done — histogram+lifecycle), `ZOM-DISC-26` (#6/#16, done — receipt summary CLI). No `ZOM-DISC-27` umbrella (schema already separates support from outcomes).
 - Verified read-only: `python tools/diagnostics.py summary <attempt8>` → verified True (7 files), 4 invalid-faction-id errors, gaps include `zdbi_stream_not_sealed`, `runtime_verified=false`.
 - Required City outcomes remain **0/23**, milestones **0/5**, `runtime_verified=false`. No gameplay/wave acceptance. Next bug-fix evidence: live validated rotation/roster and a sealed ZDB1-bearing attempt.
+
+### Hands-off runtime evidence and defender/firearm fixes — 2026-10-24
+
+- Main `2fef70d` (canonical build `a6b5fe9`); merged suite 486 OK/7 skips with the documented pre-existing NUL-flake caveat (fixed by F, not reported as stably green).
+- Sealed evidence: native Zombies 894..911 reliable; native team-0 defenders 981..984 (bots_team0=4, player+4, division adoption + hold orders, tactical_change); both-team positions; sealed host ZDB1 stdout; one-command play_city lifecycle passed (runtime_verified=false).
+- Kill/troop accessor fix (C 9756b14) makes engagement/troop fields reliable; legacy unreliable sums labelled rather than zeroed.
+- Still open: wave 2+/completion, survivor sector-hold correctness over time, firearm combat feel, legal redistribution, all release gates. Required City outcomes **0/23**, milestones **0/5**.
