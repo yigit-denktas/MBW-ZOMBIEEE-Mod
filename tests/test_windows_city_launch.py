@@ -5,6 +5,8 @@ every process, clock, netstat, summary and recorder is a fixture. These tests
 prove ordering, argv, rotation emission, stop-after-client-exit, artifact sealing
 and fail-closed cleanup — never engine or gameplay behaviour.
 """
+import contextlib
+import io
 import json
 import struct
 import sys
@@ -12,6 +14,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+from unittest import mock
 
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
@@ -19,6 +22,9 @@ from launcher.city_launch import (  # noqa: E402
     CityLauncher, LaunchError, LaunchPaths, build_launch_plan, main,
     server_config_text, session_commands)
 from launcher.engines import CLIENT_NAMES, DEDICATED_NAMES  # noqa: E402
+from launcher.profile_matrix import (  # noqa: E402
+    build_profile_matrix, extract_installed_profile,
+    format_profile_matrix)
 from launcher.rotation import (  # noqa: E402
     build_defender_rotation, build_rotation, rotation_sha256,
     validate_rotation)
@@ -73,6 +79,71 @@ INSTALLED_OK = {'present': True, 'ok': True, 'module_sha256': 'a' * 64,
                 'file_count': 12, 'trigger_count': 31,
                 'map_scope': 'city-only', 'problems': [],
                 'runtime_verified': False}
+
+MATRIX_SHA = {'generic': '87c8d767ef4a282a1f0f4fe9d2e2ef8c386bb6a647a7b2e65912ed0fb42b6240',
+              'weak-wave1': 'eda8af7b4293578ac7fc1b0602e9717724ae4e5dc40e9fb9cb8d454d0251c2d3',
+              'native-only': 'fbfb3d93d0f5c9d07bf48dc17fea55a78ffcb33c14243b2603116fb11d87237e'}
+
+
+def write_installed_receipt(game_root, **overrides):
+    """Write an Agent A build receipt (+ minimal core files) for planner tests."""
+    module = Path(game_root) / 'Modules' / 'ZOMBIEEE_Remaster'
+    module.mkdir(parents=True, exist_ok=True)
+    for name in ('module.ini', 'mission_templates.txt', 'scripts.txt',
+                 'troops.txt', 'variables.txt'):
+        (module / name).write_text('fixture\n', encoding='utf-8')
+    (module / 'lua').mkdir(exist_ok=True)
+    (module / 'lua' / 'main.lua').write_text(
+        'print("ZDB1|heartbeat|count=1")\n', encoding='utf-8')
+    manifest = {
+        'source_archive_sha256': SOURCE_SHA,
+        'runtime_verified': False,
+        'archive_crc_verified': True,
+        'experimental_map_scope': 'city-only',
+        'final_trigger_count': 31,
+        'original_mission_trigger_count': 25,
+        'defender_loadout_profile': 'balanced-ai',
+        'zombie_bot_roster': 'weak',
+        'native_roster_patch': {
+            'applied': True, 'invader_troop_range': [894, 895],
+            'invader_candidates': [894],
+            'defender_troop_range': [981, 985],
+            'defender_candidates': [981, 982, 983, 984],
+        },
+        'zombie_block': None,
+        'experimental_city_guardposts': {
+            'hold_entries': [0, 1, 0], 'defensive_line': True,
+            'wave_sector_rotation': True,
+            'wave_visitors': 'slow', 'defender_target': 8,
+            'defender_reinforce': True,
+        },
+    }
+    manifest.update(overrides)
+    (module / 'ZOMBIEEE_REMASTER.json').write_text(
+        json.dumps(manifest, indent=2), encoding='utf-8')
+    return module
+
+
+def matrix_for(tmp, *, plan_kwargs=None, receipt_kwargs=None,
+               expected_zombie_block='stock', expected_hold='rear',
+               expected_wave_visitors='slow',
+               expected_defender_reinforce='default'):
+    """Build one read-only launch plan + installed receipt + matrix."""
+    fixture = GameFixture(tmp)
+    write_installed_receipt(fixture.game, **(receipt_kwargs or {}))
+    plan = build_launch_plan(
+        discovery_report=fixture.report,
+        evidence_root=fixture.evidence,
+        installed_status=INSTALLED_OK, **(plan_kwargs or {}))
+    assert plan['ok'], plan['blockers']
+    installed = extract_installed_profile(fixture.game)
+    matrix = build_profile_matrix(
+        plan, installed=installed,
+        expected_zombie_block=expected_zombie_block,
+        expected_hold=expected_hold,
+        expected_wave_visitors=expected_wave_visitors,
+        expected_defender_reinforce=expected_defender_reinforce)
+    return fixture, plan, installed, matrix
 
 
 def valid_audit(archive, **_kwargs):
@@ -807,6 +878,190 @@ class SessionExitTests(unittest.TestCase):
         self.assertIn('stop:host', actions)
         self.assertEqual(session.error, 'client_exited')
         self.assertFalse(session.client_exit_requested_stop)
+
+
+class ProfileMatrixTests(unittest.TestCase):
+    """Read-only no-launch AI/profile planner for D (8 defenders/rear/894/stock)."""
+
+    def test_default_matrix_expects_eight_defenders_rear_weak_stock(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            fixture, plan, installed, matrix = matrix_for(tmp)
+            self.assertTrue(matrix['ok'], (matrix['mismatches'], matrix['gaps']))
+            self.assertTrue(matrix['read_only'])
+            self.assertTrue(matrix['no_launch'])
+            self.assertFalse(matrix['runtime_verified'])
+            rotation = matrix['rotation']
+            self.assertEqual(rotation['team0_bots'], 8)
+            self.assertEqual(rotation['team2_bots'], 32)
+            self.assertEqual(rotation['enemy_profile'], 'generic')
+            self.assertEqual(rotation['sha256'], MATRIX_SHA['generic'])
+            self.assertEqual(rotation['sha256'], plan['rotation_sha256'])
+            expected = matrix['expected']
+            self.assertEqual(expected['defender_troop_ids'], [981, 982, 983, 984])
+            self.assertEqual(expected['wave1']['generic_troop_ids'], [894])
+            self.assertEqual(expected['wave1']['generic_roster'], 'weak')
+            self.assertEqual(expected['hold']['hold_entries'], [0, 1, 0])
+            self.assertEqual(expected['zombie_block']['installed_mode'], 'stock')
+            self.assertEqual(expected['zombie_block']['expected'], 'stock')
+            self.assertEqual(expected['wave_visitors']['installed'], 'slow')
+            self.assertEqual(expected['wave_visitors']['expected'], 'slow')
+            self.assertEqual(expected['defender_reinforce']['enabled'], True)
+            self.assertEqual(expected['defender_reinforce']['target'], 8)
+            self.assertEqual(expected['defender_reinforce']['expected_target'], 8)
+            self.assertTrue(any('wave slots 200..244' in item
+                                for item in expected['summary_checks']))
+            self.assertTrue(any('spawn_agent' in item
+                                for item in expected['summary_checks']))
+            self.assertIn('enemy_profile', expected['receipt_fields'])
+            self.assertIn('rotation_sha256', expected['receipt_fields'])
+            self.assertIn('team0_bots', expected['receipt_fields'])
+            self.assertTrue(any('894' in item for item in expected['summary_checks']))
+            self.assertEqual(matrix['mismatches'], [])
+            text = format_profile_matrix(matrix)
+            self.assertIn('Play City profile matrix: OK', text)
+            self.assertIn('team-0 bots         : 8', text)
+
+    def test_weak_wave1_requires_weak_894_roster(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            _fixture, _plan, _installed, matrix = matrix_for(
+                tmp, plan_kwargs={'enemy_profile': 'weak-wave1'})
+            self.assertTrue(matrix['ok'], matrix['mismatches'])
+            self.assertEqual(matrix['rotation']['team2_bots'], 8)
+            self.assertEqual(matrix['rotation']['sha256'], MATRIX_SHA['weak-wave1'])
+            self.assertEqual(matrix['expected']['wave1']['generic_troop_ids'], [894])
+        with tempfile.TemporaryDirectory() as tmp:
+            full = dict(
+                zombie_bot_roster='full',
+                native_roster_patch={
+                    'applied': True, 'invader_troop_range': [894, 912],
+                    'invader_candidates': list(range(894, 912)),
+                    'defender_troop_range': [981, 985],
+                    'defender_candidates': [981, 982, 983, 984],
+                })
+            _fixture, _plan, _installed, matrix = matrix_for(
+                tmp, plan_kwargs={'enemy_profile': 'weak-wave1'},
+                receipt_kwargs=full)
+            self.assertFalse(matrix['ok'])
+            fields = {item['field'] for item in matrix['mismatches']}
+            self.assertIn('zombie_bot_roster', fields)
+            self.assertEqual(matrix['expected']['wave1']['generic_troop_ids'],
+                             list(range(894, 912)))
+
+    def test_native_only_matrix_has_no_generic_team2(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            _fixture, _plan, _installed, matrix = matrix_for(
+                tmp, plan_kwargs={'enemy_profile': 'native-only'})
+            self.assertTrue(matrix['ok'], matrix['mismatches'])
+            self.assertEqual(matrix['rotation']['team2_bots'], 0)
+            self.assertEqual(matrix['rotation']['sha256'], MATRIX_SHA['native-only'])
+            self.assertEqual(matrix['expected']['wave1']['generic_bot_count'], 0)
+            self.assertIsNone(matrix['expected']['wave1']['generic_troop_ids'])
+            self.assertIn('native wave', matrix['expected']['wave1']['native_visitors'])
+
+    def test_hold_and_block_mismatches_are_flagged(self):
+        shielded = {'applied': True, 'shield_item': 'itm_wooden_shield',
+                    'shield_item_id': 100, 'troops': [894]}
+        forward = {'hold_entries': [2, 3, 4], 'defensive_line': False,
+                   'wave_sector_rotation': True, 'wave_visitors': 'slow',
+                   'defender_target': 8, 'defender_reinforce': True}
+        with tempfile.TemporaryDirectory() as tmp:
+            _fixture, _plan, _installed, matrix = matrix_for(
+                tmp, receipt_kwargs={'zombie_block': shielded,
+                                     'experimental_city_guardposts': forward})
+            self.assertFalse(matrix['ok'])
+            fields = {item['field'] for item in matrix['mismatches']}
+            self.assertIn('hold_entries', fields)
+            self.assertIn('defensive_line', fields)
+            self.assertIn('zombie_block', fields)
+            self.assertEqual(matrix['expected']['zombie_block']['installed_mode'],
+                             'default')
+            self.assertEqual(matrix['expected']['hold']['expected'], 'rear')
+        with tempfile.TemporaryDirectory() as tmp:
+            _fixture, _plan, _installed, matrix = matrix_for(
+                tmp, receipt_kwargs={'zombie_block': shielded,
+                                     'experimental_city_guardposts': forward},
+                expected_zombie_block='default', expected_hold='forward')
+            self.assertTrue(matrix['ok'], matrix['mismatches'])
+            self.assertEqual(matrix['expected']['zombie_block']['expected'],
+                             'default')
+            self.assertEqual(matrix['expected']['hold']['expected'], 'forward')
+
+    def test_wave_visitor_and_refill_mismatches_are_flagged(self):
+        original_4 = {'hold_entries': [0, 1, 0], 'defensive_line': True,
+                      'wave_sector_rotation': True, 'wave_visitors': 'original',
+                      'defender_target': 4, 'defender_reinforce': True}
+        with tempfile.TemporaryDirectory() as tmp:
+            _fixture, _plan, _installed, matrix = matrix_for(
+                tmp, receipt_kwargs={'experimental_city_guardposts': original_4})
+            self.assertFalse(matrix['ok'])
+            fields = {item['field'] for item in matrix['mismatches']}
+            self.assertIn('wave_visitors', fields)
+            self.assertIn('defender_target', fields)
+            self.assertEqual(matrix['expected']['defender_reinforce']['target'], 4)
+        stock = {'hold_entries': [0, 1, 0], 'defensive_line': True,
+                 'wave_sector_rotation': True, 'wave_visitors': 'original',
+                 'defender_target': 0, 'defender_reinforce': False}
+        with tempfile.TemporaryDirectory() as tmp:
+            _fixture, _plan, _installed, matrix = matrix_for(
+                tmp, receipt_kwargs={'experimental_city_guardposts': stock},
+                expected_wave_visitors='original',
+                expected_defender_reinforce='stock')
+            self.assertTrue(matrix['ok'], matrix['mismatches'])
+            self.assertEqual(matrix['expected']['wave_visitors']['expected'],
+                             'original')
+            self.assertEqual(matrix['expected']['defender_reinforce']['expected'],
+                             'stock')
+
+    def test_gating_receipt_fields_missing_are_gaps(self):
+        legacy = {'hold_entries': [0, 1, 0], 'defensive_line': True}
+        with tempfile.TemporaryDirectory() as tmp:
+            _fixture, _plan, _installed, matrix = matrix_for(
+                tmp, receipt_kwargs={'experimental_city_guardposts': legacy})
+            self.assertFalse(matrix['ok'])
+            self.assertIn('wave_visitors_receipt_missing', matrix['gaps'])
+            self.assertIn('defender_reinforce_receipt_missing', matrix['gaps'])
+            self.assertEqual(matrix['expected']['wave_visitors']['installed'], None)
+            self.assertEqual(matrix['expected']['defender_reinforce']['enabled'], None)
+
+    def test_missing_installed_module_is_a_gap_not_fabrication(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            fixture = GameFixture(tmp)
+            plan = build_launch_plan(
+                discovery_report=fixture.report,
+                evidence_root=fixture.evidence,
+                installed_status=INSTALLED_OK)
+            installed = extract_installed_profile(fixture.game)
+            matrix = build_profile_matrix(plan, installed=installed)
+            self.assertFalse(matrix['ok'])
+            self.assertFalse(installed['present'])
+            self.assertIn('installed_module_missing', matrix['gaps'])
+            self.assertIsNone(matrix['expected']['defender_troop_ids'])
+            self.assertIsNone(matrix['expected']['hold']['hold_entries'])
+            self.assertEqual(matrix['rotation']['sha256'], MATRIX_SHA['generic'])
+
+    def test_matrix_cli_starts_no_process_and_reports_json(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            fixture = GameFixture(tmp)
+            write_installed_receipt(fixture.game)
+            output = io.StringIO()
+            with (mock.patch('launcher.host_session.HostSession.start',
+                             side_effect=AssertionError('host started')),
+                  mock.patch('launcher.recorder.PassiveRecorder.start',
+                             side_effect=AssertionError('recorder started')),
+                  mock.patch('subprocess.Popen',
+                             side_effect=AssertionError('process spawned')),
+                  mock.patch('subprocess.run',
+                             side_effect=AssertionError('process spawned')),
+                  contextlib.redirect_stdout(output)):
+                code = main(['matrix', '--no-known-folders', '--custom-path',
+                             str(fixture.game), '--json'])
+            self.assertEqual(code, 0)
+            matrix = json.loads(output.getvalue())
+            self.assertEqual(matrix['schema'], 'zombieee.profile-matrix.v1')
+            self.assertTrue(matrix['no_launch'])
+            self.assertTrue(matrix['read_only'])
+            self.assertEqual(matrix['rotation']['sha256'], MATRIX_SHA['generic'])
+            self.assertIn('receipt_fields', matrix['expected'])
 
 
 class CliTests(unittest.TestCase):

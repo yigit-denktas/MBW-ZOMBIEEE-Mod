@@ -364,6 +364,48 @@ Private evidence defaults to `local/session/play-city/` (gitignored):
 `<game-root>/zombieee_play_<session>.log`; the launcher never deletes it. These
 files contain local paths and must stay private.
 
+### No-launch profile matrix planner (D)
+
+`python -m launcher.play_city matrix` is the read-only planner for the AI/balance
+validation loop. It starts no host, build or recorder, writes nothing, and prints
+the exact expectations D should compare with the sealed bundle:
+
+```powershell
+python -m launcher.play_city matrix
+python -m launcher.play_city matrix --enemy-profile weak-wave1
+python -m launcher.play_city matrix --enemy-profile native-only
+python -m launcher.play_city matrix --team0-bots 8 --team2-bots 8
+python -m launcher.play_city matrix --expected-zombie-block stock   # task-34 target
+python -m launcher.play_city matrix --json
+```
+
+It reports the requested team-0/team-2 counts, the exact `rotation.txt` lines and
+SHA-256 (defender=8: generic `87c8d767…b6240`, weak-wave1 `eda8af7b…1c2d3`,
+native-only `fbfb3d93…237e`), the expected wave-1 generic troop ids from the
+installed build receipt (`894` only for A's weak roster), defender troop ids
+(`981..984` for the balanced-ai clones), rear hold entries `[0, 1, 0]`, zombie
+block mode (stock vs shield patch), map scope/trigger count and the launch
+receipt fields D must assert.
+
+A's task-34 wave gating/refill receipt fields are covered too: the planner
+reports `wave_visitors` (`slow` = every native wave slot 200..244 resolves to
+the original slow Zombie 894, vs `original` 0.4 table) and the spawn_agent
+defender refill (`defender_target` must match the requested team-0 squad size;
+`defender_reinforce=false` means stock). Use `--expected-wave-visitors
+slow|original` and `--expected-defender-reinforce default|stock` to match the
+build D is validating. Mismatches between the requested profile and the
+installed build are listed explicitly (e.g. `weak-wave1` on a full-roster
+build, forward hold sectors, shield block when stock is expected, original
+wave visitors, a refill target that differs from the team-0 count); unresolved
+evidence is reported as gaps, never fabricated. Exit code is `0` only when the
+plan is runnable, the installed receipt is readable and no mismatch was found.
+
+The planner reads only `Modules/ZOMBIEEE_Remaster/ZOMBIEEE_REMASTER.json`; it does
+not build, install or launch. `--expected-zombie-block default` accepts the
+shield build and `--expected-hold forward` accepts forward sectors. Expected
+values are not runtime evidence: the sealed summary still owns positions, wave
+classes and wave completion.
+
 ### Truth boundaries
 
 `summary.json` is C's sealed-bundle summary stored verbatim, not a launcher
@@ -397,13 +439,11 @@ attach, join/mission markers, stop after client exit, artifact-before-stop,
 manifest/summary results, and fail-closed cleanup for bind timeout, recorder
 readiness failure, attachment rejection, recorder death and Ctrl+C. No game,
 recorder subprocess or network probe is started by tests. Latest Windows result:
-`python -B -m unittest discover -s tests -q` → **510 tests, 1 pre-existing
-failure on base main `85b9dd5` (`tests.test_flight_lua_msfiles`
-`test_team_counts_fail_closed_to_unknown`, unrelated to the launcher),
-107 skipped**; the B launcher/C-recorder interop cases run because C's
-recorder is present in the merged tree. Launcher-only suites are green:
+`python -B -m unittest discover -s tests -q` → **526 tests, OK, 112
+skipped**; the B launcher/C-recorder interop cases run because C's recorder
+is present in the merged tree. Launcher-only suites are green:
 `python -B -m unittest discover -s tests -p "test_windows_*.py" -q` →
-**154 tests, OK, 1 skipped**.
+**162 tests, OK, 1 skipped**.
 
 ### Python 3.13 NUL-path regression
 
