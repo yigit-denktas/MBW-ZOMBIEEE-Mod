@@ -424,6 +424,26 @@ The probe adds a 1 s `adaptive_tick` trigger:
 build/settings; compare CPU/memory/log size/event rate/heartbeat cadence and
 heatmap point density. No acceptance/visual claim.
 
+### Ranged/fire-cadence telemetry (task-82)
+
+Summary `firearms.team0/1` now adds, from bounded ai/combat samples:
+- `time_to_first_shot`: first observed ammo decrease relative to that agent's
+  first observed sample; `unit=ms` when probe `ts_ms` is present, else `ticks`;
+  min/avg/max. Not round-start latency unless the first sample is round start.
+- `shots_per_minute`: shots / first→last observed shot `ts_ms` span; unknown
+  when fewer than two timestamps exist.
+- `weapon_modes`, `attack_actions`, `attack_action_transitions`,
+  `release_actions`, `reload_actions`, `weapon_ids`, accuracy/reload modifiers.
+- `movement`: charge/backward distance and sample counts by projecting each
+  consecutive displacement onto the vector toward the enemy team's per-tick
+  centroid; `charge_ratio`; unknown when no positions/enemy centroid.
+- gaps: `time_to_first_shot_unavailable`, `time_to_first_shot_tick_units_no_ts`,
+  `charge_backward_movement_unavailable`.
+
+This is inferred from ammo/position deltas, not an engine shot event; probe-relative
+time only; no acceptance claim. Task-82 build `buildranged` needs no new probe
+fields for these summary metrics.
+
 ### Heatmap-ready ZDB1 input (task-74)
 
 `tools/telemetry_studio/heatmap_input.py` exports `zombieee.heatmap-input.v1`

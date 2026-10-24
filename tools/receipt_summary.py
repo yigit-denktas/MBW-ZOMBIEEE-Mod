@@ -1022,25 +1022,68 @@ def summarize_receipt(target: Path) -> dict:
     FIRE_MODE_ORDER = ("single", "burst", "auto")
 
     def _firearm_team(team):
+        # Per-agent bounded samples: tick/ts/position/ammo/attack action/weapon.
         series = {}
+        weapon_modes = {}
+        # Per-tick team centroids for charge/backward projection.
+        coord_groups = {}
         for event in events:
             if event["event"] not in ("ai_sample", "combat_sample"):
                 continue
             fields = event["fields"]
-            if _bounded_int(fields.get("team")) != team:
+            sample_team = _bounded_int(fields.get("team"))
+            if sample_team not in (0, 1):
                 continue
-            ammo = _bounded_int(fields.get("ammo"))
             tick = _bounded_int(fields.get("tick"), minimum=0)
             agent = _bounded_int(fields.get("id"), minimum=0)
-            if ammo is None or tick is None or agent is None:
+            if tick is None or agent is None:
                 continue
+            try:
+                x, y = float(fields.get("x")), float(fields.get("y"))
+            except (TypeError, ValueError):
+                x = y = None
+            if x is not None and y is not None:
+                coord_groups.setdefault((sample_team, tick), []).append((x, y))
+            if sample_team != team:
+                continue
+            ammo = _bounded_int(fields.get("ammo"))
+            if ammo is None:
+                continue
+            mode = fields.get("weapon_mode")
+            if mode:
+                weapon_modes[mode] = weapon_modes.get(mode, 0) + 1
             series.setdefault(agent, []).append((
                 tick, ammo, _bounded_int(fields.get("weapon")),
                 _bounded_int(fields.get("kills")),
                 _bounded_int(fields.get("attack_action")),
                 _bounded_int(fields.get("accuracy_modifier")),
                 _bounded_int(fields.get("reload_speed_modifier")),
-                _bounded_int(fields.get("wave"))))
+                _bounded_int(fields.get("wave")),
+                _bounded_int(fields.get("ts_ms")), x, y))
+        centroids = {}
+        for (sample_team, tick), rows in coord_groups.items():
+            if rows:
+                centroids[(sample_team, tick)] = (
+                    sum(row[0] for row in rows) / len(rows),
+                    sum(row[1] for row in rows) / len(rows))
+        all_centroids = {}
+        for (sample_team, _tick), pair in centroids.items():
+            all_centroids.setdefault(sample_team, []).append(pair)
+        mean_centroids = {
+            sample_team: (sum(p[0] for p in pairs) / len(pairs),
+                          sum(p[1] for p in pairs) / len(pairs))
+            for sample_team, pairs in all_centroids.items() if pairs}
+
+        def enemy_centroid(tick):
+            enemy = 1 - team
+            if (enemy, tick) in centroids:
+                return centroids[(enemy, tick)]
+            candidates = sorted((t, p) for (s, t), p in centroids.items()
+                                if s == enemy and t <= tick)
+            if candidates:
+                return candidates[-1][1]
+            return mean_centroids.get(enemy)
+
         shots = burn = reloads = samples = 0
         agents_with_shots = 0
         intervals = []
@@ -1053,13 +1096,21 @@ def summarize_receipt(target: Path) -> dict:
         fire_mode_expected = {}
         mode_match = mode_mismatch = 0
         attack_transitions = release_actions = reload_actions = 0
+        first_shot_offsets = []
+        first_shot_unit = None
+        shot_timestamps = []
+        charge_distance = backward_distance = 0.0
+        charge_samples = backward_samples = 0
         for points in series.values():
             points.sort(key=lambda item: item[0])
             previous_tick = None
             agent_shots = 0
             previous_action = None
+            first_seen_tick = points[0][0] if points else None
+            first_seen_ts = points[0][8] if points else None
+            first_shot_recorded = False
             for (tick, ammo, weapon, kills, action, accuracy,
-                 reload_value, wave_number) in points:
+                 reload_value, wave_number, ts_ms, x, y) in points:
                 samples += 1
                 if weapon is not None:
                     weapon_ids[weapon] = weapon_ids.get(weapon, 0) + 1
@@ -1092,11 +1143,39 @@ def summarize_receipt(target: Path) -> dict:
                 if first[3] is not None and second[3] is not None \
                         and second[3] >= first[3]:
                     kills_delta += second[3] - first[3]
+                # Charge/backward projection toward the enemy centroid.
+                if first[9] is not None and second[9] is not None:
+                    enemy = enemy_centroid(second[0])
+                    if enemy is not None:
+                        dx = second[9] - first[9]
+                        dy = second[10] - first[10]
+                        ex = enemy[0] - second[9]
+                        ey = enemy[1] - second[10]
+                        norm = (ex * ex + ey * ey) ** 0.5
+                        if norm > 0:
+                            projection = (dx * ex + dy * ey) / norm
+                            if projection > 0:
+                                charge_distance += projection
+                                charge_samples += 1
+                            elif projection < 0:
+                                backward_distance += -projection
+                                backward_samples += 1
                 if second[1] < first[1]:
                     fired = first[1] - second[1]
                     agent_shots += fired
                     shots += fired
                     burn += fired
+                    if not first_shot_recorded:
+                        ts = second[8]
+                        if ts is not None and first_seen_ts is not None:
+                            first_shot_offsets.append(ts - first_seen_ts)
+                            first_shot_unit = "ms"
+                        else:
+                            first_shot_offsets.append(second[0] - first_seen_tick)
+                            first_shot_unit = first_shot_unit or "ticks"
+                        first_shot_recorded = True
+                    if second[8] is not None:
+                        shot_timestamps.append(second[8])
                     if previous_tick is not None:
                         intervals.append(second[0] - previous_tick)
                     previous_tick = second[0]
@@ -1105,6 +1184,27 @@ def summarize_receipt(target: Path) -> dict:
                     previous_tick = None
             if agent_shots:
                 agents_with_shots += 1
+        shot_span = (max(shot_timestamps) - min(shot_timestamps)
+                     if len(shot_timestamps) >= 2 else None)
+        shots_per_minute = (shots / (shot_span / 60000.0)
+                            if shot_span and shot_span > 0 else None)
+        movement = {
+            "basis": "projection of movement onto vector toward enemy team centroid",
+            "charge_distance": round(charge_distance, 3),
+            "backward_distance": round(backward_distance, 3),
+            "charge_samples": charge_samples,
+            "backward_samples": backward_samples,
+            "charge_ratio": (round(charge_samples /
+                                   (charge_samples + backward_samples), 3)
+                             if (charge_samples + backward_samples) else None),
+        }
+        ranged_gaps = []
+        if not first_shot_offsets:
+            ranged_gaps.append("time_to_first_shot_unavailable")
+        if first_shot_unit == "ticks":
+            ranged_gaps.append("time_to_first_shot_tick_units_no_ts")
+        if not charge_samples and not backward_samples:
+            ranged_gaps.append("charge_backward_movement_unavailable")
         return {
             "samples": samples,
             "agents": len(series),
@@ -1116,9 +1216,19 @@ def summarize_receipt(target: Path) -> dict:
                 {"count": len(intervals), "min": min(intervals),
                  "avg": round(sum(intervals) / len(intervals), 3),
                  "max": max(intervals)} if intervals else None),
+            "shots_per_minute": (round(shots_per_minute, 3)
+                                 if shots_per_minute is not None else None),
             "kills_delta_observed": kills_delta,
             "shot_to_kill_ratio": (round(shots / kills_delta, 3)
                                    if kills_delta > 0 else None),
+            "time_to_first_shot": (
+                {"count": len(first_shot_offsets), "min": min(first_shot_offsets),
+                 "avg": round(sum(first_shot_offsets) / len(first_shot_offsets), 3),
+                 "max": max(first_shot_offsets), "unit": first_shot_unit}
+                if first_shot_offsets else None),
+            "weapon_modes": (dict(sorted(weapon_modes.items(),
+                                         key=lambda kv: (-kv[1], kv[0])))
+                             or None),
             "attack_actions": dict(sorted(attack_actions.items(),
                                           key=lambda kv: (-kv[1], kv[0]))[:12]) or None,
             "weapon_ids": dict(sorted(weapon_ids.items(),
@@ -1138,6 +1248,8 @@ def summarize_receipt(target: Path) -> dict:
             "attack_action_transitions": attack_transitions,
             "release_actions": release_actions,
             "reload_actions": reload_actions,
+            "movement": movement,
+            "ranged_gaps": ranged_gaps,
             "weapon_fire_modes": None,
             "item_accuracy_patch": None,
             "manual_fire_mode": None,
@@ -1174,6 +1286,11 @@ def summarize_receipt(target: Path) -> dict:
                  "readback; no hit/reticle/manual-mode/item-accuracy getter "
                  "exists here, so those stay unknown."),
     }
+    ranged_gaps = sorted(set(
+        (firearms_team0.get("ranged_gaps") or [])
+        + (firearms_team1.get("ranged_gaps") or [])))
+    if ranged_gaps:
+        gaps_hint = list(gaps_hint) + ranged_gaps
     if firearms_team0["samples"] or firearms_team1["samples"]:
         gaps_hint = list(gaps_hint) + ["shot_telemetry_ammo_delta_only"]
     for gap in ("aim_error_unavailable",
@@ -1538,6 +1655,9 @@ def format_summary(summary: dict) -> str:
                  f"burn={fire['team0']['ammo_burn']} reloads={fire['team0']['reloads_observed']} "
                  f"kills_delta={fire['team0']['kills_delta_observed']} "
                  f"actions={fire['team0']['attack_actions']} "
+                 f"ttfs={fire['team0']['time_to_first_shot']} "
+                 f"spm={fire['team0']['shots_per_minute']} "
+                 f"move={fire['team0']['movement']} "
                  f"accuracy={fire['team0']['accuracy_modifiers']} "
                  f"reload={fire['team0']['reload_speed_modifiers']} "
                  f"modes={fire['team0']['fire_modes_observed']} "

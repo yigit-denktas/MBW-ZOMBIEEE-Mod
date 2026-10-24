@@ -918,5 +918,34 @@ class ReceiptSummaryTests(unittest.TestCase):
             self.assertIn("mapping and in-build behavior unverified", hits["source"])
             self.assertIn("hits:", format_summary(summary))
 
+
+    def test_ranged_time_to_first_shot_cadence_and_charge(self):
+        lines = [
+            "ZDB1|heartbeat|count=1|role=server|team0=1|team1=1|wave=1|ts_ms=1000",
+            "ZDB1|ai_sample|role=server|tick=1|ts_ms=1000|team=0|id=1|troop=981"
+            "|weapon=7|ammo=10|alive=1|weapon_mode=ranged|attack_action=2|x=10|y=10|wave=1",
+            "ZDB1|ai_sample|role=server|tick=1|ts_ms=1000|team=1|id=2|troop=894"
+            "|weapon=598|ammo=0|alive=1|weapon_mode=melee|attack_action=2|x=30|y=10|wave=1",
+            "ZDB1|ai_sample|role=server|tick=2|ts_ms=2000|team=0|id=1|troop=981"
+            "|weapon=7|ammo=8|alive=1|weapon_mode=ranged|attack_action=2|x=12|y=10|wave=1",
+            "ZDB1|ai_sample|role=server|tick=2|ts_ms=2000|team=1|id=2|troop=894"
+            "|weapon=598|ammo=0|alive=1|weapon_mode=melee|attack_action=2|x=25|y=10|wave=1",
+            "ZDB1|ai_sample|role=server|tick=3|ts_ms=3000|team=0|id=1|troop=981"
+            "|weapon=7|ammo=5|alive=1|weapon_mode=ranged|attack_action=2|x=9|y=10|wave=1",
+            "ZDB1|ai_sample|role=server|tick=3|ts_ms=3000|team=1|id=2|troop=894"
+            "|weapon=598|ammo=0|alive=1|weapon_mode=melee|attack_action=2|x=20|y=10|wave=1",
+        ]
+        with tempfile.TemporaryDirectory() as td:
+            session = seal(Path(td), {"host_stdout.log": "\n".join(lines)})
+            summary = summarize_receipt(session)
+            fire = summary["firearms"]["team0"]
+            self.assertEqual(fire["shots_observed"], 5)
+            self.assertEqual(fire["time_to_first_shot"]["unit"], "ms")
+            self.assertEqual(fire["time_to_first_shot"]["min"], 1000)
+            self.assertIsNotNone(fire["weapon_modes"])
+            self.assertIn("2", fire["attack_actions"])
+            self.assertGreater(fire["movement"]["charge_samples"], 0)
+            self.assertGreater(fire["movement"]["backward_samples"], 0)
+
 if __name__ == "__main__":
     unittest.main()
