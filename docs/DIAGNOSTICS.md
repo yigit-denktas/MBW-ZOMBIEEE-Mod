@@ -377,6 +377,20 @@ D's task-42 sealed runs exposed three readback gaps, now closed:
 
 ### Task-55 P0: wave-table faction-slot and scene readback
 
+**Faction-id and error-spam guard (2026-10-24 follow-up):** WSE2 Lua's
+`faction_get_slot` expects the **raw faction id** (16 for the invader faction),
+not the encoded module operand (`432345564227567632`). Passing the encoded value
+caused repeated `SCRIPT ERROR: Invalid Faction ID: -2147483648` from the probe's
+Lua trigger condition callbacks (trigger 31/32 Conditions (Lua), opcode 522).
+The probe now (a) uses raw `FACTION_INVADER = 16`, (b) validates faction 0..63
+and slot 0..255 before any call, and (c) enables the readback only on a
+server-side `mst_multiplayer_iv` heartbeat (`wave_slot_read_enabled`), never
+from the pre-round/entry condition callback. Regression coverage:
+`tests/test_flight_lua_msfiles.py` static guards and
+`tests/test_flight_lua_semantics.py` no-call-on-invalid-operand checks.
+
+
+
 To separate "the City trigger wrote 894" from "the engine kept original/wave
 values" (DISC-59: static trigger/flags present but runtime still showed 896 and
 speed 100), the probe now reads, read-only:

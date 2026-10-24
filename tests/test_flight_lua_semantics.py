@@ -183,6 +183,25 @@ group_convention, capability_lines, calls = nil, 0, 0
 checks[#checks + 1] = tostring(read_group(7, group_fn) == 6)
 checks[#checks + 1] = tostring(group_convention == "direct")
 checks[#checks + 1] = tostring(capability_lines == 1)
+
+-- Faction-slot guard: never call a faction op with an encoded/negative operand,
+-- and never call it for an invalid slot.
+local function read_faction_slot(faction, slot, fn)
+    if type(faction) ~= "number" or faction < 0 or faction > 63 then return -1 end
+    if type(slot) ~= "number" or slot < 0 or slot > 255 then return -1 end
+    return fn(0, faction, slot)
+end
+local faction_calls = 0
+local function faction_mock(_, faction, slot)
+    faction_calls = faction_calls + 1
+    return 360287970189640574
+end
+checks[#checks + 1] = tostring(read_faction_slot(-1, 200, faction_mock) == -1)
+checks[#checks + 1] = tostring(read_faction_slot(432345564227567632, 200, faction_mock) == -1)
+checks[#checks + 1] = tostring(read_faction_slot(16, 999, faction_mock) == -1)
+checks[#checks + 1] = tostring(faction_calls == 0)
+checks[#checks + 1] = tostring(read_faction_slot(16, 200, faction_mock) == 360287970189640574)
+checks[#checks + 1] = tostring(faction_calls == 1)
 return table.concat(checks, ",")
 """
 
@@ -225,7 +244,7 @@ class RealLuaSemanticsTests(unittest.TestCase):
 
     def test_team_tables_arithmetic_and_precedence(self):
         checks = self.run_lua(SEMANTICS_SCRIPT).split(",")
-        self.assertEqual(len(checks), 30)
+        self.assertEqual(len(checks), 36)
         for index, value in enumerate(checks, 1):
             self.assertEqual(value, "true", f"Lua semantics check {index} failed")
 
