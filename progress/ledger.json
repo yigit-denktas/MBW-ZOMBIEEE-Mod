@@ -4431,6 +4431,35 @@
       "originReason": "Owner: Walking Dead slower/weaker/more numerous zombies.",
       "discoveredDuring": "owner design directive 2026-10-24",
       "graphImpact": "Defines wave balance/performance target."
+    },
+    {
+      "id": "ZOM-DISC-83",
+      "title": "Gun-armed survivor AI: stop charging, shoot sooner, raise marksmanship",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "active",
+      "sourceState": "A assigned; confirmed crossbow-type inheritance",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-62"
+      ],
+      "evidence": [],
+      "completionBasis": "Pending AI/skill fix + D play validation",
+      "kind": "work-item",
+      "owner": "Agent A AI/skills; C telemetry; D play",
+      "priority": "P0",
+      "criterion": "Gun survivors hold ranged, do not charge, time-to-first-shot/shots-per-min improve without fake damage.",
+      "note": "firearm_balance.py: 2012 module treats firearms as crossbow-type; raise crossbow/archery proficiency, fire_at_will/use_ranged, prevent scripted charge.",
+      "deferReason": "Supplemental AI/combat behavior.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "bug",
+      "supportsOutcomeId": "ZOM-AI-02",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner observed gun survivors charging/standing still.",
+      "discoveredDuring": "owner live feedback 2026-10-24",
+      "graphImpact": "Directly affects combat feel and AI effectiveness."
     }
   ],
   "warnings": [
