@@ -131,3 +131,10 @@ City balance changes:
   generic fill and zombie-block profile remain. D must re-seal to measure KD and
   wave-2 reachability; no acceptance claim.
 
+## Task-46 survivor consolidation
+
+- One melee weapon per AI survivor (itm_bowie), **double ammo** (8 cartridge stacks per clone).
+- Survivor target grows by **+1 per completed round** (faction-slot counter, base 8, cap 12) and spawn_agent refills to that target; rear hold/standoff/refill unchanged.
+- City trigger explicitly gated on Invasion game_type=7; receipt records it.
+- Task-45 balance (fire_at_will, 60%% wave-1 zombie pace, 24 generic bots) retained. D validates KD/wave-2; no acceptance.
+
