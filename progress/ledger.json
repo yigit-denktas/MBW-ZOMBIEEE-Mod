@@ -3657,6 +3657,35 @@
       "originReason": "A's P0 triage needs runtime slot/speed evidence.",
       "discoveredDuring": "task-45/46 seal triage",
       "graphImpact": "Blocks gating/speed fix strategy; must run before more patches."
+    },
+    {
+      "id": "ZOM-DISC-60",
+      "title": "Eliminate City script-error spam (trigger 3 INT_MIN faction + trigger 14 -1)",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "active",
+      "sourceState": "live client logs repeat Invalid Faction ID errors",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-53"
+      ],
+      "evidence": [],
+      "completionBasis": "Owner log-cleanup requirement; fix pending",
+      "kind": "work-item",
+      "owner": "Agent A — fix; C live-log; D validation",
+      "priority": "P0",
+      "criterion": "No Invalid Faction ID/SCRIPT ERROR spam in client or server logs for a City session; trigger-3 and trigger-14 sources guarded/fixed.",
+      "note": "Latest screenshots: Trigger [3] Conditions Lua invalid faction -2147483648 in pre-round; four original trigger-14 -1 at mission start. Logs must be clean before AI iteration.",
+      "deferReason": "Supplemental diagnostics cleanup; not part of required denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "bug-fix",
+      "supportsOutcomeId": "ZOM-OBS-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner: script errors are blocking log sessions and AI iteration.",
+      "discoveredDuring": "owner live log screenshots 2026-10-24",
+      "graphImpact": "Blocks reliable live-log diagnosis; must be clean before more telemetry conclusions."
     }
   ],
   "warnings": [
