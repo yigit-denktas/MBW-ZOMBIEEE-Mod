@@ -32,6 +32,24 @@ class NativeRosterPatchTests(unittest.TestCase):
                       if line.startswith(SCRIPT_NAME + " "))
         return header, _ops_from_body(list(map(int, lines[header + 1].split())))
 
+    def test_defender_branch_uses_faction15_survivor_range(self):
+        game_type = 144115188075855872 + 495
+        before = len(self._ops()[1])
+        report = apply_module(self.module, defender_range=(875, 879),
+                              game_type_global=game_type)
+        self.assertTrue(report["applied"])
+        self.assertEqual(report["defender_troop_range"], [875, 879])
+        self.assertEqual(report["defender_faction"], 15)
+        self.assertEqual(report["defender_candidates"], [875, 876, 877, 878])
+        for index in report["defender_candidates"]:
+            self.assertEqual(self.factions[index], 15)
+        self.assertEqual(report["operation_count_before"], before)
+        self.assertEqual(report["operation_count_after"], before + 13)
+        # Re-apply is refused after the faction-15 branch is present.
+        with self.assertRaises(RosterPatchError):
+            apply_module(self.module, defender_range=(875, 879),
+                         game_type_global=game_type)
+
     def test_invader_candidates_are_native_zombie_troops(self):
         report = apply_module(self.module)
         self.assertTrue(report["applied"])

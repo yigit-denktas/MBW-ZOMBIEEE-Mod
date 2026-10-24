@@ -120,3 +120,14 @@ While actual B boot results remained unposted, A fixed a **false-positive diagno
   original change). Offline: 412 tests OK/4 skips on branch; built module shows
   changed_count=10/untouched=674. No gameplay acceptance; D/Lead validate.
 
+## Native team-0 defender spawn fix (branch `agent/a-native-defenders`)
+
+- D's sealed run: team-1 Zombie roster works (900/901/907), but team-0
+  `add_visitors` produced no agents (`team0=1`, `bot_agents_team0=0`).
+- Fix relies on the native bot path: roster patch faction 15 + game_type 7 ->
+  defender range (981..984 balanced / 875..878 original); City order trigger
+  adopts native team-0 bots into divisions 5-7 and holds sectors; native respawn
+  covers rounds. Validation rotation must use `set_bot_count 1 4`.
+- Offline: 480 tests OK/7 skips; build receipt defender_candidates 981..984;
+  chain verification passes. Runtime proof pending D's sealed run.
+

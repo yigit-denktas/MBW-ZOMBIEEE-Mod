@@ -16,7 +16,7 @@ from pathlib import Path
 from doctor import inspect_module
 from preflight import report_for_module
 from patch_defenders import patch_file, index_troops, TROOP_BASE, SURVIVOR_CLASSES
-from native_roster_patch import apply_module as apply_native_roster
+from native_roster_patch import GLOBAL_BASE, apply_module as apply_native_roster
 from city_defense import apply_module as apply_city_defense
 from all_map_defense import apply_module as apply_all_maps
 from wave_reinforcements import apply_module as apply_wave_support
@@ -177,9 +177,28 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         city_roster_profile = city_guardposts and not all_map_defenses
         roster_report = None
         if city_roster_profile:
-            roster_report = apply_native_roster(source)
+            # City builds also use the native bot-spawn path for the allied squad
+            # (D's sealed run: native team-0 bots spawn, team-0 add_visitors do not).
+            defender_range = None
+            game_type_global = None
+            if experimental_defenders:
+                from bot_loadouts import CLONES
+                classes = CLONES if balanced else SURVIVOR_CLASSES
+                troop_ids = index_troops(source / "troops.txt")
+                ids = [troop_ids[name] for name in classes]
+                if ids != list(range(min(ids), max(ids) + 1)):
+                    raise RuntimeError("Defender troop ids are not a contiguous native-bot range")
+                defender_range = (min(ids), max(ids) + 1)
+                variables = (source / "variables.txt").read_text(encoding="utf-8").splitlines()
+                if "g_multiplayer_game_type" not in variables:
+                    raise RuntimeError("Missing g_multiplayer_game_type for defender roster")
+                game_type_global = GLOBAL_BASE + variables.index("g_multiplayer_game_type")
+            roster_report = apply_native_roster(source, defender_range=defender_range,
+                                                game_type_global=game_type_global)
             if not roster_report.get("applied") or not roster_report.get("invader_candidates"):
                 raise RuntimeError("Native Zombie roster patch failed static validation")
+            if defender_range and not roster_report.get("defender_candidates"):
+                raise RuntimeError("Native defender roster range has no faction-15 troops")
         defender_report = None
         if experimental_defenders:
             defender_report = patch_file(source, experimental_defenders,
