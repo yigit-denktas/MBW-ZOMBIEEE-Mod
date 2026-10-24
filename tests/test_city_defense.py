@@ -133,9 +133,9 @@ class CityDefenseTests(unittest.TestCase):
     def test_rear_defensive_line_holds_spawn_entries(self):
         wave_global = 144115188075855872 + 1209
         orders = orders_trigger(0, wave_global, REAR_HOLD_ENTRIES).split()
-        self.assertEqual(orders.count("1780"), 4)
-        self.assertEqual(orders.count("1791"), 3)
-        self.assertEqual(orders.count("1790"), 3)
+        self.assertEqual(orders.count("1780"), 5)  # per-agent pos + refill pos + 3 holds
+        self.assertEqual(orders.count("1791"), 4)  # per-agent group + 3 divisions
+        self.assertEqual(orders.count("1790"), 7)  # 4 hold/fire orders + 3 hold orders
         self.assertNotIn("1730", orders)
         self.assertIn("1972", orders)  # spawn_agent reinforcement
         self.assertEqual(orders.count("502"), len(range(200, 245)))
@@ -143,7 +143,7 @@ class CityDefenseTests(unittest.TestCase):
         for index, token in enumerate(orders):
             if token == "1780" and index + 3 < len(orders):
                 entries.append(orders[index + 3])
-        self.assertEqual(entries, ["0", "0", "1", "0"])
+        self.assertEqual(entries, ["0", "0", "0", "1", "0"])
         self.assertTrue(all(entry in ("0", "1") for entry in entries))
         self.assertNotIn("2", entries)
         # The defensive-line variant is static: no forward sector rotation math.
