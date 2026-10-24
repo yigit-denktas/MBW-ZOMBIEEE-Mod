@@ -161,3 +161,13 @@ While actual B boot results remained unposted, A fixed a **false-positive diagno
 - Tests cover rear entries/no-1730/no-parity; D validates positions/KD with
   C telemetry; no acceptance.
 
+## Task-42 standoff/fire discipline
+
+- Team-0 bots: ammo-gated WSE2 `agent_ai_set_can_weapon_switch` (ranged until empty,
+  melee last resort) + `agent_ai_set_simple_behavior(aisb_hold,6 s)`; no scripted
+  destination; rear hold/fire orders unchanged.
+- AI clone loadouts have no bombs/grenades: explosive gating by cluster density is
+  not applicable to AI survivors (receipt field documents this); player bombs
+  remain an equipment design decision.
+- Tests/build/chain green; D validates ammo/KD/positions; no acceptance.
+

@@ -138,6 +138,9 @@ class CityDefenseTests(unittest.TestCase):
         self.assertEqual(orders.count("1790"), 7)  # 4 hold/fire orders + 3 hold orders
         self.assertNotIn("1730", orders)
         self.assertIn("1972", orders)  # spawn_agent reinforcement
+        self.assertIn("3343", orders)  # WSE2 ranged/melee switch gate
+        self.assertIn("3314", orders)  # WSE2 hold behavior
+        self.assertIn("1727", orders)  # ammo readback for last-resort gate
         self.assertEqual(orders.count("502"), len(range(200, 245)))
         entries = []
         for index, token in enumerate(orders):
