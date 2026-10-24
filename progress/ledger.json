@@ -3012,7 +3012,7 @@
       "owner": "Agent A — implementation; Agent D validation",
       "priority": "P0",
       "criterion": "Survivors keep firearms until ammo depletion, hold formation/rear line, and only melee as last resort; no scripted-destination charge.",
-      "note": "`agent_ai_set_can_weapon_switch(0/1)` by ammo, `aisb_hold` 6 s, existing native-group hold/fire orders; no AI bombs fitted.",
+      "note": "`agent_ai_set_can_weapon_switch(0/1)` by ammo, `aisb_hold` 6 s, existing native-group hold/fire orders; no AI bombs fitted. | Sealed task-42: ranged-while-ammo and tighter rear standoff verified; melee branch unobservable due refill, KD not improved.",
       "deferReason": "Supplemental AI behavior support; not part of the required denominator.",
       "implementationLane": "A",
       "workOrigin": "discovered",
@@ -3065,7 +3065,7 @@
       "title": "Sealed task-42 standoff validation (weapon switch, positions, KD)",
       "groupId": "Quality",
       "milestoneId": "M4",
-      "state": "active",
+      "state": "done",
       "sourceState": "D rebuilding task-42 module; no seal yet",
       "required": false,
       "blocked": false,
@@ -3073,13 +3073,20 @@
         "ZOM-DISC-40",
         "ZOM-DISC-41"
       ],
-      "evidence": [],
-      "completionBasis": "Pending sealed evidence",
+      "evidence": [
+        {
+          "kind": "sealed-evidence",
+          "source": "_zom-d-profiles/local/session/play-city/launches/095d3b4a402a4677966e8a982d120035",
+          "observedOn": "2026-10-24",
+          "acceptance": "sealed-8-file-verified"
+        }
+      ],
+      "completionBasis": "Sealed task-42 validation completed; no acceptance",
       "kind": "work-item",
       "owner": "Agent D — sealed validation; owner retains acceptance",
       "priority": "P1",
       "criterion": "Sealed task-42 run shows ranged-while-ammo, no melee drift, rear/standoff positions, zombie pace and wave 894 classes.",
-      "note": "D rebuilding from c18fe75; wave-2 and behavior getter gaps remain explicit.",
+      "note": "D rebuilding from c18fe75; wave-2 and behavior getter gaps remain explicit. | Sealed 095d3b4a: ranged 72/72, ammo never zero, refill verified, rear spread x160.9-166.4/y175.2-183.5, kills4/deaths52, wave max1 (894-only); melee and wave-2 unobserved.",
       "deferReason": "Supplemental validation evidence; not part of the required denominator.",
       "implementationLane": "D",
       "workOrigin": "discovered",
@@ -3123,6 +3130,115 @@
       "originReason": "Owner rejected Mermaid and reported broken task cards.",
       "discoveredDuring": "owner Pages/dependency-map feedback",
       "graphImpact": "Supports REC-03 progress-view validation; no required credit."
+    },
+    {
+      "id": "ZOM-DISC-44",
+      "title": "Task-42 telemetry gaps: team-1 speed and native-group order readback",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "active",
+      "sourceState": "sealed task-42 run shows configured pace/orders unreadable",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-42"
+      ],
+      "evidence": [
+        {
+          "kind": "sealed-evidence",
+          "source": "_zom-d-profiles/local/session/play-city/launches/095d3b4a402a4677966e8a982d120035",
+          "observedOn": "2026-10-24",
+          "acceptance": "sealed-8-file-verified"
+        }
+      ],
+      "completionBasis": "Gap recorded; telemetry extension pending",
+      "kind": "work-item",
+      "owner": "Agent C — telemetry; Agent A implementation",
+      "priority": "P1",
+      "criterion": "Team-1 speed modifier/readback and native-group order state are observable, or explicitly bounded as unavailable.",
+      "note": "`defender_speed_modifiers=100:8` only; no team1 speed in ai_sample; defender_orders lacks native groups 26/28/29/31 and mordr codes.",
+      "deferReason": "Supplemental diagnostics support; not part of the required denominator.",
+      "implementationLane": "C",
+      "workOrigin": "discovered",
+      "workType": "diagnostics",
+      "supportsOutcomeId": "ZOM-OBS-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "D's task-42 seal could not verify the configured 70% zombie pace or native-group orders.",
+      "discoveredDuring": "task-42 sealed validation",
+      "graphImpact": "Unblocks proof for speed/hold; without it those claims stay config-only."
+    },
+    {
+      "id": "ZOM-DISC-45",
+      "title": "Task-42 limited-ammo/no-refill and wave-2 validation",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "active",
+      "sourceState": "task-42 sealed; melee branch and wave 2 unobserved",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-42"
+      ],
+      "evidence": [
+        {
+          "kind": "sealed-evidence",
+          "source": "_zom-d-profiles/local/session/play-city/launches/095d3b4a402a4677966e8a982d120035",
+          "observedOn": "2026-10-24",
+          "acceptance": "sealed-8-file-verified"
+        }
+      ],
+      "completionBasis": "Follow-up validation pending",
+      "kind": "work-item",
+      "owner": "Agent D — sealed validation; owner retains acceptance",
+      "priority": "P1",
+      "criterion": "A no-refill/limited-ammo run reaches melee-last-resort, and a longer run observes wave-2 visitor classes.",
+      "note": "Task-42: ranged 72/72, refill works, KD 4 kills/52 deaths, wave max1, 894-only; melee branch not testable while refill grants full ammo.",
+      "deferReason": "Supplemental validation; not part of the required denominator.",
+      "implementationLane": "D",
+      "workOrigin": "discovered",
+      "workType": "validation",
+      "supportsOutcomeId": "ZOM-QA-02",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Refill and 8-minute rounds prevented the melee and wave-2 branches from being observed.",
+      "discoveredDuring": "task-42 sealed validation",
+      "graphImpact": "Supports QA-02 and WAVE-01; without it standoff/balance remain partially unproven."
+    },
+    {
+      "id": "ZOM-DISC-46",
+      "title": "Balance KD and zombie pressure after standoff patch",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "active",
+      "sourceState": "sealed task-42 KD worse than task-38; wave2 unobserved",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-40",
+        "ZOM-DISC-42"
+      ],
+      "evidence": [
+        {
+          "kind": "sealed-evidence",
+          "source": "_zom-d-profiles/local/session/play-city/launches/095d3b4a402a4677966e8a982d120035",
+          "observedOn": "2026-10-24",
+          "acceptance": "sealed-8-file-verified"
+        }
+      ],
+      "completionBasis": "Implementation/research pending; no acceptance",
+      "kind": "work-item",
+      "owner": "Agent A — AI/balance; Agent D validation",
+      "priority": "P0",
+      "criterion": "Measured defender kills/deaths and wave survival improve without reverting standoff/refill behavior.",
+      "note": "Task-42: 4 defender kills vs 52 deaths (task-38 6/49); zombies still outpace defenders; wave2 never reached.",
+      "deferReason": "Supplemental balance support; not part of the required denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "balance",
+      "supportsOutcomeId": "ZOM-WAVE-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner reported heavy kill/death imbalance; sealed evidence confirms it persists.",
+      "discoveredDuring": "task-42 sealed validation/owner balance feedback",
+      "graphImpact": "Blocks WAVE-01 acceptance; depends on standoff validation and telemetry."
     }
   ],
   "warnings": [
