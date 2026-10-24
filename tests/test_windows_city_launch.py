@@ -20,7 +20,8 @@ from launcher.city_launch import (  # noqa: E402
     server_config_text, session_commands)
 from launcher.engines import CLIENT_NAMES, DEDICATED_NAMES  # noqa: E402
 from launcher.rotation import (  # noqa: E402
-    build_rotation, rotation_sha256, validate_rotation)
+    build_defender_rotation, build_rotation, rotation_sha256,
+    validate_rotation)
 from launcher.solo import Session  # noqa: E402
 
 SOURCE_SHA = 'ab' * 32
@@ -59,7 +60,7 @@ class GameFixture:
         self.root = Path(root)
         self.game = self.root / 'Warband'
         pe(self.game / 'mb_warband.exe')
-        (self.game / 'Modules').mkdir(parents=True)
+        (self.game / 'Modules').mkdir(parents=True, exist_ok=True)
         self.client = self.game / CLIENT_NAMES[0]
         self.dedicated = self.game / DEDICATED_NAMES[0]
         pe(self.client)
@@ -98,10 +99,14 @@ class LaunchPlanTests(unittest.TestCase):
             self.assertIn('installed_city_module_reused', plan['warnings'])
             self.assertEqual(plan['endpoint'], '127.0.0.1:7240')
             self.assertTrue(validate_rotation(plan['rotation']))
-            self.assertEqual(plan['rotation_sha256'],
-                             rotation_sha256(build_rotation()))
-            self.assertEqual(plan['rotation'][-1], 'start')
+            self.assertEqual(plan['team0_bots'], 4)
+            self.assertEqual(plan['rotation_profile'], 'defender-squad')
+            self.assertIn('set_bot_count 1 4', plan['rotation'])
             self.assertIn('set_bot_count 2 32', plan['rotation'])
+            self.assertIn('set_defender_spawn_count 0', plan['rotation'])
+            self.assertEqual(plan['rotation_sha256'],
+                             rotation_sha256(build_defender_rotation()))
+            self.assertEqual(plan['rotation'][-1], 'start')
             self.assertIn('set_respawn_period 5', plan['rotation'])
             self.assertIn('--address', plan['client_argv_suffix'])
             self.assertFalse(plan['runtime_verified'])
@@ -167,6 +172,56 @@ class LaunchPlanTests(unittest.TestCase):
                                      installed_status=INSTALLED_OK)
             self.assertIn('client_not_found', plan['blockers'])
             self.assertIn('dedicated_not_found', plan['blockers'])
+
+
+class LaunchDefenderProfileTests(unittest.TestCase):
+    """One-click City must request A's native team-0 allied squad (981..984)."""
+
+    def _plan(self, tmp, **kwargs):
+        fixture = GameFixture(tmp)
+        return build_launch_plan(discovery_report=fixture.report,
+                                 evidence_root=fixture.evidence,
+                                 installed_status=INSTALLED_OK, **kwargs)
+
+    def test_city_default_requests_native_defender_squad(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            plan = self._plan(tmp)
+            self.assertEqual(plan['team0_bots'], 4)
+            self.assertEqual(plan['rotation_profile'], 'defender-squad')
+            self.assertIn('set_bot_count 1 4', plan['rotation'])
+            self.assertIn('set_bot_count 2 32', plan['rotation'])
+            self.assertIn('set_defender_spawn_count 0', plan['rotation'])
+            self.assertEqual(plan['rotation'], build_defender_rotation())
+            self.assertTrue(validate_rotation(plan['rotation']))
+
+    def test_stock_rotation_remains_zero_allies(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            plan = self._plan(tmp, stock_rotation=True)
+            self.assertEqual(plan['team0_bots'], 0)
+            self.assertEqual(plan['rotation_profile'], 'stock')
+            self.assertIn('set_bot_count 1 0', plan['rotation'])
+            self.assertEqual(plan['rotation'], build_rotation())
+
+    def test_explicit_team0_bot_override_is_recorded(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            plan = self._plan(tmp, team0_bots=0)
+            self.assertEqual(plan['rotation_profile'], 'stock')
+            self.assertIn('set_bot_count 1 0', plan['rotation'])
+            plan = self._plan(tmp, team0_bots=2)
+            self.assertEqual(plan['team0_bots'], 2)
+            self.assertEqual(plan['rotation_profile'], 'custom-team0')
+            self.assertIn('set_bot_count 1 2', plan['rotation'])
+
+    def test_conflicting_or_oversized_allies_are_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaises(LaunchError):
+                self._plan(tmp, stock_rotation=True, team0_bots=2)
+            with self.assertRaises(LaunchError):
+                self._plan(tmp, team0_bots=-1)
+            with self.assertRaises(LaunchError):
+                self._plan(tmp, team0_bots=200)
+            with self.assertRaises(LaunchError):
+                self._plan(tmp, team0_bots='4')
 
 
 class LaunchPathTests(unittest.TestCase):
@@ -501,8 +556,10 @@ class CityLauncherSuccessTests(unittest.TestCase):
             self.assertFalse(receipt['simulation'])
             self.assertTrue(receipt['loopback_only'])
             self.assertEqual(receipt['endpoint'], '127.0.0.1:7240')
+            self.assertEqual(receipt['team0_bots'], 4)
+            self.assertEqual(receipt['rotation_profile'], 'defender-squad')
             self.assertEqual(receipt['rotation_sha256'],
-                             rotation_sha256(build_rotation()))
+                             rotation_sha256(build_defender_rotation()))
             self.assertTrue(receipt['host_exit_code'] is not None)
 
             order = harness.events
@@ -529,6 +586,9 @@ class CityLauncherSuccessTests(unittest.TestCase):
 
             paths = launcher.paths
             self.assertTrue(paths.rotation_path.is_file())
+            rotation_text = paths.rotation_path.read_text(encoding='utf-8')
+            self.assertIn('set_bot_count 1 4', rotation_text)
+            self.assertIn('set_bot_count 2 32', rotation_text)
             self.assertTrue(paths.config_path.is_file())
             self.assertTrue(paths.launch_receipt.is_file())
             saved = json.loads(paths.launch_receipt.read_text(encoding='utf-8'))

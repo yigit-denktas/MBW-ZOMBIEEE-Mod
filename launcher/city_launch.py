@@ -44,7 +44,8 @@ from .engines import plan_engines
 from .install import (MODULE_NAME, CITY_BUILD_FLAGS, execute_install,
                       plan_install, restore_backup, verify_built_module)
 from .recorder import PassiveRecorder, atomic_write_json, is_redirected
-from .rotation import build_rotation, rotation_sha256, validate_rotation
+from .rotation import (DEFAULT_TEAM1_BOTS, DEFENDER_SQUAD_BOTS, build_rotation,
+                      rotation_sha256, validate_rotation)
 from .runtime import (ENDPOINT, JOIN_MARKERS, MISSION_MARKERS, Waiter,
                       contains_marker, host_bound_loopback, is_loopback_endpoint)
 from .solo import Session
@@ -233,7 +234,8 @@ def build_launch_plan(*, discovery_report, evidence_root, archive=None,
                       game_root=None, client_exe=None, dedicated_exe=None,
                       rebuild=False, allow_install=True, repo_root=None,
                       process_checker=None, installed_status=None,
-                      archive_resolver=None, settings=None):
+                      archive_resolver=None, settings=None,
+                      team0_bots=None, stock_rotation=False):
     """Compose the full read-only launch plan; no writes or process starts."""
     repo_root = Path(repo_root) if repo_root is not None else Path(__file__).resolve().parents[1]
     evidence_root = Path(evidence_root).expanduser().absolute()
@@ -291,7 +293,26 @@ def build_launch_plan(*, discovery_report, evidence_root, archive=None,
         evidence_issues.append('evidence_root_redirected')
     blockers.extend(evidence_issues)
 
-    rotation = build_rotation()
+    if type(stock_rotation) is not bool:
+        raise LaunchError('stock_rotation must be a boolean')
+    if stock_rotation and team0_bots is not None and team0_bots != 0:
+        raise LaunchError('stock_rotation conflicts with explicit team0_bots')
+    if team0_bots is None:
+        # One-click City always builds/uses A's City defender profile, so the
+        # native team-0 ally squad must be requested explicitly: rotation team 1
+        # (1-based) == telemetry team 0, `set_bot_count 1 4`.
+        team0_bots = 0 if stock_rotation else DEFENDER_SQUAD_BOTS
+    if (type(team0_bots) is not int or isinstance(team0_bots, bool)
+            or not 0 <= team0_bots <= 200):
+        raise LaunchError('team0_bots must be an integer in [0, 200]')
+    try:
+        rotation = build_rotation(team1_bots=team0_bots)
+    except ValueError as exc:
+        raise LaunchError('rotation refused: ' + str(exc)) from exc
+    rotation_profile = ('stock' if team0_bots == DEFAULT_TEAM1_BOTS
+                        else 'defender-squad'
+                        if team0_bots == DEFENDER_SQUAD_BOTS
+                        else 'custom-team0')
     if not validate_rotation(rotation):
         raise LaunchError('rotation contract self-check failed')
     if not is_loopback_endpoint(ENDPOINT):
@@ -334,6 +355,8 @@ def build_launch_plan(*, discovery_report, evidence_root, archive=None,
             'receipt': None,
         },
         'rotation': rotation,
+        'team0_bots': team0_bots,
+        'rotation_profile': rotation_profile,
         'rotation_sha256': rotation_sha256(rotation),
         'client_join_address': ENDPOINT,
         'client_argv_suffix': ['--module', MODULE_NAME, '--address', ENDPOINT,
@@ -514,6 +537,8 @@ class CityLauncher:
             'evidence': None,
             'artifacts': [],
             'rotation_sha256': plan.get('rotation_sha256'),
+            'team0_bots': plan.get('team0_bots'),
+            'rotation_profile': plan.get('rotation_profile'),
             'host_bound_loopback': None,
             'join_observed': None,
             'mission_observed': None,
@@ -893,6 +918,8 @@ def _print_plan(plan):
                      % (audit.get('identity_ok'), audit.get('crc_status')))
     rotation = plan.get('rotation_sha256')
     lines.append('  rotation: ' + (str(rotation)[:16] + '...' if rotation else 'none'))
+    lines.append('  allies  : team-0 bots=%s (%s)'
+                 % (plan.get('team0_bots'), plan.get('rotation_profile')))
     for blocker in plan.get('blockers') or []:
         lines.append('  blocker : ' + blocker)
     for warning in plan.get('warnings') or []:
@@ -948,7 +975,9 @@ def _build_plan_from_args(args, *, allow_install):
         archive=args.archive, game_root=args.game_root,
         client_exe=args.client_exe, dedicated_exe=args.dedicated_exe,
         rebuild=getattr(args, 'rebuild', False), allow_install=allow_install,
-        settings=_parse_settings(args))
+        settings=_parse_settings(args),
+        team0_bots=getattr(args, 'team0_bots', None),
+        stock_rotation=getattr(args, 'stock_rotation', False))
 
 
 def _run_install_if_needed(plan):
@@ -1101,6 +1130,12 @@ def build_parser():
     common.add_argument('--custom-path', action='append',
                         help='extra discovery path (never executed)')
     common.add_argument('--json', action='store_true', help='emit JSON')
+    common.add_argument('--team0-bots', '--team1-bots', dest='team0_bots',
+                        type=int, default=None, metavar='N',
+                        help='allied team-0 bots (1-based rotation team 1; '
+                             'City default 4, stock 0)')
+    common.add_argument('--stock-rotation', action='store_true',
+                        help='emit the stock rotation with zero allied defenders')
     common.add_argument('--rebuild', action='store_true',
                         help='force a reversible City rebuild/install')
     timeouts = argparse.ArgumentParser(add_help=False)

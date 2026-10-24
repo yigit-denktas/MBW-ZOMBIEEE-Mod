@@ -6,7 +6,9 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 from launcher.rotation import (  # noqa: E402
-    ROSTER_CAVEAT, build_rotation, rotation_sha256, validate_rotation)
+    DEFAULT_TEAM1_BOTS, DEFENDER_SQUAD_BOTS, ROSTER_CAVEAT,
+    build_defender_rotation, build_rotation, rotation_sha256,
+    validate_rotation)
 
 
 class RotationContractTests(unittest.TestCase):
@@ -51,6 +53,30 @@ class RotationContractTests(unittest.TestCase):
         changed = lines[:]
         changed[-2] = 'set_player_respawn_as_bot 1'
         self.assertNotEqual(rotation_sha256(lines), rotation_sha256(changed))
+
+
+    def test_defender_squad_switches_team0_bots_only(self):
+        stock = build_rotation()
+        defender = build_defender_rotation()
+        self.assertEqual(stock[7], 'set_bot_count 1 0')
+        self.assertEqual(defender[7], 'set_bot_count 1 4')
+        self.assertEqual(defender[8], 'set_bot_count 2 32')
+        self.assertIn('set_defender_spawn_count 0', defender)
+        self.assertTrue(validate_rotation(defender))
+        self.assertEqual(DEFAULT_TEAM1_BOTS, 0)
+        self.assertEqual(DEFENDER_SQUAD_BOTS, 4)
+        self.assertEqual(defender, build_rotation(team1_bots=4))
+        self.assertNotEqual(rotation_sha256(stock), rotation_sha256(defender))
+
+    def test_defender_squad_flag_validates_conflicts(self):
+        self.assertEqual(build_rotation(defender_squad=True),
+                         build_defender_rotation())
+        for kwargs in ({'team1_bots': 2, 'defender_squad': True},
+                       {'defender_squad': 'yes'}, {'defender_squad': 1}):
+            with self.subTest(kwargs=kwargs), self.assertRaises(ValueError):
+                build_rotation(**kwargs)
+        with self.assertRaises(TypeError):
+            build_defender_rotation(team1_bots=4)
 
     def test_roster_caveat_is_explicit(self):
         self.assertIn('Crazed Civilian', ROSTER_CAVEAT)
