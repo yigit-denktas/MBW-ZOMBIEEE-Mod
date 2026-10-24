@@ -330,6 +330,12 @@ local function sample_world()
                          defender_source = -1,
                          defender_weapons = {}, defender_modes = {},
                          speed_hist = {}, time_hist = {}, action_hist = {},
+                         speed_hist_team = {[0] = {}, [1] = {}},
+                         time_hist_team = {[0] = {}, [1] = {}},
+                         action_hist_team = {[0] = {}, [1] = {}},
+                         speed_unknown_team = {[0] = 0, [1] = 0},
+                         time_unknown_team = {[0] = 0, [1] = 0},
+                         action_unknown_team = {[0] = 0, [1] = 0},
                          speed_unknown = 0, time_unknown = 0, action_unknown = 0,
                          defender_orders_text = "none",
                          defender_orders_read_unknown = 0,
@@ -385,6 +391,36 @@ local function sample_world()
                 elseif human == true and supports_npc then
                     if is_npc(agent) then
                         result.bots[side] = result.bots[side] + 1
+                        -- Task-43: team-wide speed readback so team-1 zombie
+                        -- slowdown is measurable, not only defenders.
+                        local team_speed = read_agent_number(
+                            "agent_get_speed_modifier", agent)
+                        local team_fixed = read_agent_number(
+                            "agent_get_time_speed_multiplier", agent)
+                        local team_action = read_agent_number(
+                            "agent_get_action_speed_modifier", agent)
+                        if team_speed >= 0 and team_speed <= 1000 then
+                            result.speed_hist_team[side][team_speed] =
+                                (result.speed_hist_team[side][team_speed] or 0) + 1
+                        else
+                            result.speed_unknown_team[side] =
+                                result.speed_unknown_team[side] + 1
+                        end
+                        if team_fixed >= 0 and team_fixed <= 10000 then
+                            local percent = math.floor(team_fixed / 10 + 0.5)
+                            result.time_hist_team[side][percent] =
+                                (result.time_hist_team[side][percent] or 0) + 1
+                        else
+                            result.time_unknown_team[side] =
+                                result.time_unknown_team[side] + 1
+                        end
+                        if team_action >= 0 and team_action <= 10000 then
+                            result.action_hist_team[side][team_action] =
+                                (result.action_hist_team[side][team_action] or 0) + 1
+                        else
+                            result.action_unknown_team[side] =
+                                result.action_unknown_team[side] + 1
+                        end
                         local troop = supports_troop
                             and read_agent_number("agent_get_troop_id", agent) or -1
                         local group = -1
@@ -634,7 +670,10 @@ local function sample_world()
         -- Defender team-order readback for subclasses 5-7 and everyone (9):
         -- hold_fire:movement:weapon_usage:riding, or "none" when unreadable.
         local order_parts = {}
-        for _, subclass in ipairs({5, 6, 7, 9}) do
+        -- All team-order sub-classes 0..9: native bots in groups 26/28/29/31
+        -- are outside the class range, and team_give_order only accepts
+        -- sub-class ids, so native-group orders are explicitly unavailable.
+        for subclass = 0, 9 do
             local hold_fire = read_team_order("team_get_hold_fire_order", 0, subclass)
             local movement = read_team_order("team_get_movement_order", 0, subclass)
             local weapon = read_team_order("team_get_weapon_usage_order", 0, subclass)
@@ -649,6 +688,15 @@ local function sample_world()
         end
         result.defender_orders_text = (#order_parts > 0)
             and table.concat(order_parts, ";") or "none"
+        result.speed_text_team = {
+            [0] = histogram_text(result.speed_hist_team[0]),
+            [1] = histogram_text(result.speed_hist_team[1])}
+        result.time_text_team = {
+            [0] = histogram_text(result.time_hist_team[0]),
+            [1] = histogram_text(result.time_hist_team[1])}
+        result.action_text_team = {
+            [0] = histogram_text(result.action_hist_team[0]),
+            [1] = histogram_text(result.action_hist_team[1])}
         result.horse_ids_text0 = id_list_text(result.horse_ids[0])
         result.horse_ids_text1 = id_list_text(result.horse_ids[1])
         return result
@@ -745,6 +793,15 @@ local function state_fields(world)
             .. "|action_read_unknown=" .. world.action_unknown
             .. "|defender_orders=" .. world.defender_orders_text
             .. "|defender_orders_read_unknown=" .. world.defender_orders_read_unknown
+            .. "|defender_orders_scope=team0_subclasses_0_9_native_groups_no_op"
+            .. "|speed_modifiers_team0=" .. world.speed_text_team[0]
+            .. "|speed_modifiers_team1=" .. world.speed_text_team[1]
+            .. "|time_multipliers_team0=" .. world.time_text_team[0]
+            .. "|time_multipliers_team1=" .. world.time_text_team[1]
+            .. "|action_speeds_team0=" .. world.action_text_team[0]
+            .. "|action_speeds_team1=" .. world.action_text_team[1]
+            .. "|speed_read_unknown_team0=" .. world.speed_unknown_team[0]
+            .. "|speed_read_unknown_team1=" .. world.speed_unknown_team[1]
             .. "|pos_team0=" .. world.pos_text[0]
             .. "|pos_team1=" .. world.pos_text[1]
             .. "|bbox_team0=" .. world.bbox_text[0]
@@ -772,6 +829,11 @@ local function state_fields(world)
             .. "|defender_action_speeds=-1|speed_read_unknown=-1"
             .. "|time_read_unknown=-1|action_read_unknown=-1"
             .. "|defender_orders=-1|defender_orders_read_unknown=-1"
+            .. "|defender_orders_scope=-1"
+            .. "|speed_modifiers_team0=-1|speed_modifiers_team1=-1"
+            .. "|time_multipliers_team0=-1|time_multipliers_team1=-1"
+            .. "|action_speeds_team0=-1|action_speeds_team1=-1"
+            .. "|speed_read_unknown_team0=-1|speed_read_unknown_team1=-1"
             .. "|pos_team0=-1|pos_team1=-1"
             .. "|bbox_team0=-1|bbox_team1=-1|pos_sampled_team0=-1|pos_sampled_team1=-1"
     end
@@ -909,6 +971,9 @@ local function emit_ai_samples(world, role, wave, tick)
             .. "|ammo=" .. (sample.ammo or -1)
             .. "|alive=" .. (sample.alive or 0)
             .. "|weapon_mode=" .. (sample.mode or "unknown")
+            .. "|speed=" .. (sample.speed or -1)
+            .. "|time_multiplier=" .. (sample.time_multiplier or -1)
+            .. "|action_speed=" .. (sample.action_speed or -1)
             .. "|shield=-1|action=-1"
             .. "|x=" .. sample.x .. "|y=" .. sample.y
             .. "|kills=" .. (sample.kills or -1) .. "|wave=" .. wave)

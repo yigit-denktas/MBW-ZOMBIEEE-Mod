@@ -758,5 +758,48 @@ class ReceiptSummaryTests(unittest.TestCase):
         self.assertIsNone(summary["defenders"]["orders"])
         self.assertIsNone(summary["positions"]["team0"]["movement_rate"])
 
+
+    def test_team1_speed_orders_scope_and_ammo_transition(self):
+        lines = [
+            "ZDB1|heartbeat|count=1|role=server|team0=8|team1=20|wave=2"
+            "|defenders_team0=8|troops_team1=894:20"
+            "|defender_orders_scope=team0_subclasses_0_9_native_groups_no_op"
+            "|defender_orders=0:0:0:16:0;5:0:2:0:0"
+            "|speed_modifiers_team0=100:8|speed_modifiers_team1=70:20"
+            "|time_multipliers_team0=100:8|time_multipliers_team1=70:20"
+            "|action_speeds_team0=100:8|action_speeds_team1=100:20",
+            "ZDB1|ai_sample|role=server|tick=1|team=0|id=1|group=26|troop=981"
+            "|defender=1|weapon=7|ammo=10|alive=1|weapon_mode=ranged"
+            "|speed=100|time_multiplier=1000|action_speed=100"
+            "|x=10.0|y=10.0|kills=0|wave=2",
+            "ZDB1|ai_sample|role=server|tick=2|team=0|id=1|group=26|troop=981"
+            "|defender=1|weapon=7|ammo=0|alive=1|weapon_mode=melee"
+            "|speed=100|time_multiplier=1000|action_speed=100"
+            "|x=10.2|y=10.0|kills=0|wave=2",
+        ]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        teams = summary["teams"]
+        self.assertEqual(teams["speed_modifiers_team1"], {70: 20})
+        self.assertEqual(teams["time_multipliers_team1"], {70: 20})
+        self.assertEqual(teams["action_speeds_team1"], {100: 20})
+        defenders = summary["defenders"]
+        self.assertEqual(defenders["orders_scope"],
+                         "team0_subclasses_0_9_native_groups_no_op")
+        self.assertTrue(defenders["orders_native_groups_unavailable"])
+        self.assertEqual(defenders["orders"][0],
+                         {"hold_fire": 0, "movement": 0, "weapon_usage": 16,
+                          "riding": 0})
+        self.assertTrue(defenders["ammo_transition"]["melee_after_empty_observed"])
+        self.assertEqual(defenders["ammo_transition"]["agents_empty"], 1)
+        self.assertIn("native_group_orders_unavailable", summary["evidence_gaps"])
+        self.assertNotIn("speed_readback_team1_unavailable", summary["evidence_gaps"])
+
+    def test_speed_team1_gap_when_readback_absent(self):
+        lines = ["ZDB1|heartbeat|count=1|role=server|team0=4|team1=17"
+                 "|defenders_team0=4|troops_team1=894:17"]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        self.assertIsNone(summary["teams"]["speed_modifiers_team1"])
+        self.assertIn("speed_readback_team1_unavailable", summary["evidence_gaps"])
+
 if __name__ == "__main__":
     unittest.main()

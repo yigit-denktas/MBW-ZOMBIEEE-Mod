@@ -349,6 +349,32 @@ troop-class breakdown (`generic`/`native_zombie`/`defender`/`survivor`/
 evidence without a gameplay claim. All fields are bounded; unknown remains
 unknown, never zero.
 
+### Task-43 follow-up: team-1 speed, full order scope, ammo-transition inference
+
+D's task-42 sealed runs exposed three readback gaps, now closed:
+
+- **Team-1 zombie speed was unreadable** (`defender_speed_modifiers` covered only
+  defenders, and `ai_sample` rows lacked speed keys). The probe now reads
+  `agent_get_speed_modifier` (2067), `agent_get_time_speed_multiplier` (3336)
+  and `agent_get_action_speed_modifier` (3341) for **every non-player bot**,
+  emitting per-team histograms `speed_modifiers_team0/1`,
+  `time_multipliers_team0/1`, `action_speeds_team0/1` plus unknown counters.
+  `ai_sample` now carries `speed=`, `time_multiplier=`, `action_speed=` for each
+  sampled bot, so A's 70% team-1 slowdown is verifiable from a sealed run.
+  Missing team-1 readback raises `speed_readback_team1_unavailable`.
+- **Order readback scope:** `defender_orders` now reads all team-order
+  sub-classes `0..9` (not only 5-7/9) and the heartbeat states
+  `defender_orders_scope=team0_subclasses_0_9_native_groups_no_op`. Native bots
+  observed in groups 26/28/29/31 are outside the class range;
+  `team_give_order` has no grouping-by-agent-group form, so native-group orders
+  are **exactly unavailable** and the summary raises
+  `native_group_orders_unavailable` instead of pretending to confirm them.
+- **Melee-last-resort inference:** the summary now reports
+  `defenders.ammo_transition` (`samples`, `agents`, `agents_with_ammo`,
+  `agents_empty`, `melee_after_empty_observed`) derived from per-agent
+  `ammo > 0 -> 0` transitions plus `weapon_mode=melee`. This is an inference,
+  not a direct AI-mode getter; the note records that explicitly.
+
 ### Speed / hold / wave-2 / refill telemetry (task-41)
 
 For A's task-38 speed and hold patch the probe now reads back what the engine
