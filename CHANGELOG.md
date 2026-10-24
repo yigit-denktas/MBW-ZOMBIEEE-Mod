@@ -241,3 +241,6 @@ work-item → PR → commit → version links are in
 
 
 <!-- heatmap heartbeat nil-fix metadata-only source revision: 9a23857 -->
+
+
+<!-- probe-health metadata-only source revision: 5b5725f -->
