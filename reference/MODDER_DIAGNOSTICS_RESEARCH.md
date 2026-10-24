@@ -24,7 +24,18 @@ Baseline for comparison is our own diagnostic stack: `overlay/lua/main.lua` (ZDB
 
 ### WSE2 engine-side diagnostics (the usable reuse)
 
-- **Engine log file:** stock Warband writes `rgl_log.txt` (still the canonical name; WSE2 renamed its internal `_log` to `log_rgl` in 1.1.x, and `bEditMode` messages are written there). Script errors, opcode failures and crash traces land here even when the in-game console is noisy. This is the most useful independent error stream for our sealed runs.
+- **Engine log file (install-verified by D, 2026-10-24):** the live log is
+  `D:\Program Files (x86)\Steam\steamapps\common\MountBlade Warband\rgl_log.txt`
+  (config `sLogPath=rgl_log.txt`), overwritten per launch and containing the
+  client command line and Steam init lines. The **stable** secondary artifact is
+  the rotated `…\MountBlade Warband\Logs\rgl_log_<DD.MM.YYYY_HH.MM.SS>.txt`
+  (23-27 KB each in observed runs). Dedicated runs additionally write
+  `Warband\dedicated_session_<stamp>.log` via server_config `sLogPath`; our
+  recorder already copies it into the bundle as `logs/log_01.txt`. Script errors,
+  opcode failures and crash traces land here even when the in-game console is
+  noisy. **Crash-named logs were not observed** on this install (`*crash*` absent
+  across many sessions) — treat crash files as 'only if a crash occurs', never
+  promise them.
 - **Render/simulation diagnostics:** changelog adds an on-screen overlay **and periodic log output** controlled by `bShowRenderStats`, `bShowSimulationStats`, `iRenderStatsLogInterval`, `iSimulationStatsLogInterval`. These are engine performance/stall counters, not AI state — useful to explain "probe stopped sampling" or frame hitches.
 - **Profiler:** `profiler_start` (3040), `profiler_stop` (3041), `profiler_is_recording` (3042), `profiler_mark` (3043, text marker "good for analyzing individual parts of a script"), with a timeline UI and profiler binary format. This is the right tool to measure probe overhead / script hot paths, in development, not in sealed evidence.
 - **Mission debug window:** `wse_mission_debug_window` mapped presentation (in-game debug UI). Manual inspection only; not automatable into receipt evidence.
@@ -52,7 +63,7 @@ Baseline for comparison is our own diagnostic stack: `overlay/lua/main.lua` (ZDB
 | Out-of-band server state | console getters (`get_bot_count`, `get_*`), `execute_server_console_command` | verified via build receipt/rotation instead | **Adapt optionally:** launcher-side checks; not part of C's read-only probe and not a substitute for per-agent evidence. |
 | Structured AI/combat telemetry | **none in the community** | ZDB1 is already richer: per-bot weapon/ammo/alive/weapon_mode, defender histograms, speed/time/action readback, orders 0..9, movement-rate, wave classes, refill | **Keep investing in ZDB1:** no external tool can replace it, and our gaps below are not fillable from community sources. |
 | Evidence sealing / summary | **no community equivalent** | manifest verification, fail-closed summary, capability/gap model | **Keep** (differentiator). |
-| Crash diagnosis | WSE2 crash-named logs (`rgl_log_*_crash.txt`, community reports) | `probe_failed`/`engine_errors` only | **Adopt:** collector should include crash-named log files and tails when present; classify, never silently drop. |
+| Crash diagnosis | Crash-named logs exist in community reports, but **none observed on this install (D, 2026-10-24)** | `probe_failed`/`engine_errors` only | **Adopt conditionally:** if a crash-named log appears, include its tail; do not promise crash files. |
 | Round/wave identity | no community tool | ledger + `g_round_start_time` gating, wave class counters | **Keep**; no reuse candidate exists. |
 
 ## Gap-by-gap verdict (why the gaps remain)
@@ -67,13 +78,24 @@ Baseline for comparison is our own diagnostic stack: `overlay/lua/main.lua` (ZDB
 | Probe/perf overhead | Yes, in dev: WSE2 profiler | Adapt dev-only. |
 | Kill attribution ambiguity | No community tool | Keep lifetime-counter caveat + `ammo_transition`/damage-side inference; no reuse. |
 
+## Cross-review results (D install, 2026-10-24)
+
+D verified the above against the real install without a game launch:
+
+- **Log paths confirmed:** live `rgl_log.txt`, rotated `Logs/rgl_log_<DD.MM.YYYY_HH.MM.SS>.txt` (23-27 KB each, newest observed `rgl_log_24.10.2026_13.20.54.txt`), and dedicated `Warband\dedicated_session_<stamp>.log` (already copied by our recorder as `logs/log_01.txt`). Use the **rotated/dedicated** file as the secondary artifact, not the per-launch overwritten live log.
+- **Crash logs:** none observed across many sessions on WSE2 1.1.5.4 dedicated; keep the collector's crash-file branch but document it as conditional.
+- **Stats options exist but are unverified on dedicated:** `C:\Users\yigit\Documents\Mount&Blade Warband WSE2\rgl_config.ini` contains `bShowSimulationStats=false`, `bShowRenderStats=false`, `iSimulationStatsLogInterval=10`, `iRenderStatsLogInterval=10`, plus `bLogSpeedModifiers=false`. They were not enabled on the pinned dedicated build; render stats are meaningless without a renderer, simulation stats are plausible but unproven. Recommendation: diagnostic runs only, via a throwaway config copy, never sealed evidence.
+- **Privacy-safe attach recipe:** bounded tail (last 200 lines or <=64 KB) of the dedicated session log, optionally plus the rotated `Logs/rgl_log_*` tail; scrub `7656119\d+` (SteamID), IPv4 except `127.0.0.1`, `Steam (API|achievement)` lines, and any `Input:`/chat/player-name lines. `bLogConnects`/`bLogChat`/`bLogIPs` could add names/IPs in a real multiplayer session, so redact before attaching. Our bundles currently only ship the recorder's own log; an extra scrubbed `engine_tail.log` is safe when bounded and redacted.
+- **Additional tool notes:** `bLogSpeedModifiers=false` exists in the config and may log speed-modifier changes (untested) — a possible future engine-side cross-check for speed readback, not evidence today. `Logs/rgl_log_*` rotation is a better artifact than the live file. Module-level `module_config.ini` under `Documents\Mount&Blade Warband WSE2\ZOMBIEEE_Remaster` holds per-module settings, not diagnostics. D concurs that no community tool closes the behavior/order/shield/mounted gaps.
+- **Licence/privacy:** engine logs are locally generated runtime output, not WSE2 code; attaching a scrubbed bounded tail is fine, and the WSE2 release's missing LICENSE still means link-only/no vendoring.
+
 ## Practical adoption list (no code change in this task)
 
-1. **Evidence collector:** add optional `rgl_log.txt`/`log_rgl` capture (tail + SHA-256 + crash-named files) alongside the sealed bundle; classify `SCRIPT ERROR`, `stack`, `crash` markers. Secondary evidence only — ZDB1 remains authoritative.
-2. **Diagnostic-run config:** allow a separate, clearly labelled "stats" run with `bShowSimulationStats`/`iSimulationStatsLogInterval` (and render equivalents) to explain stalls; never mix with acceptance evidence.
+1. **Evidence collector:** add optional **rotated/dedicated** engine-log capture — `Logs/rgl_log_*` and/or the dedicated session log, bounded tail (last 200 lines / <=64 KB) + SHA-256, scrubbed per the recipe above; classify `SCRIPT ERROR`, `stack`, `crash` markers. Crash files only if present (none observed). Secondary evidence only — ZDB1 remains authoritative.
+2. **Diagnostic-run config:** allow a separate, clearly labelled "stats" run with a throwaway config copy enabling `bShowSimulationStats`/`iSimulationStatsLogInterval` (and render equivalents; unverified on dedicated) to explain stalls; never mix with acceptance or sealed evidence.
 3. **Dev loop:** WSE2 Lua debugger + `profiler_mark` around probe callbacks; keep `display_message`/`print` debugging out of sealed runs (DISC-28b lesson).
 4. **Legal hygiene:** WSE2 has no shipping licence file in its release repo; keep everything link-only, do not vendor SDK/binary; FormAI/Motomataru and forum content remain third-party (permissions recorded in [`WARBAND_AI_MODDING.md`](WARBAND_AI_MODDING.md), sourced via E's pack).
-5. **Cross-review:** D should confirm on a real install which WSE2 log/stats options exist for our pinned 1.1.5.4 dedicated build, and whether crash-named log files appear in the `local/session` layout. No C game launch.
+5. **Cross-review (done):** D confirmed log paths, the rotated/dedicated artifact preference, the existence (not the dedicated efficacy) of the stats options, the absence of crash logs so far, and a privacy-safe tail recipe. Remaining open item: whether `bLogSpeedModifiers` can serve as an engine-side speed cross-check (untested). No C game launch.
 
 ## Bottom line
 
