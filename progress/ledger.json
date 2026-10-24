@@ -4125,7 +4125,7 @@
       "owner": "Lead — merge; C/F/H review",
       "priority": "P1",
       "criterion": "task65 -> ecd3f4b -> launcher echo -> hardening, one summary resolution, merged suite/gate green, one metadata sync.",
-      "note": "Branches held: c-task65 d4b9bbb, c-invalid ecd3f4b, c-echo 3a906e6, c-hardening 79e98ca, f 3b089d0, h 66c800e.",
+      "note": "Branches held: c-task65 d4b9bbb, c-invalid ecd3f4b, c-echo 3a906e6, c-hardening 79e98ca, f 3b089d0, h dd83484.",
       "deferReason": "Sequenced after P0/hardening seals.",
       "implementationLane": "Lead",
       "workOrigin": "discovered",
