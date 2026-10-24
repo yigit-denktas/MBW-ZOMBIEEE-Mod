@@ -135,7 +135,7 @@ class CityDefenseTests(unittest.TestCase):
         orders = orders_trigger(0, wave_global, REAR_HOLD_ENTRIES).split()
         self.assertEqual(orders.count("1780"), 5)  # per-agent pos + refill pos + 3 holds
         self.assertEqual(orders.count("1791"), 4)  # per-agent group + 3 divisions
-        self.assertEqual(orders.count("1790"), 7)  # 3 fire + 3 hold + 1 stand-ground order
+        self.assertEqual(orders.count("1790"), 6)  # 3 fire orders + 3 hold orders
         self.assertNotIn("1730", orders)
         self.assertIn("1972", orders)  # spawn_agent reinforcement
         self.assertIn("3343", orders)  # WSE2 ranged/melee switch gate

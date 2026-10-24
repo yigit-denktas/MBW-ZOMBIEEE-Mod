@@ -28,7 +28,7 @@ ROUND_SLOT = 249         # invader faction slot: previous g_round_ended
 MISSION_SLOT = 250       # invader faction slot: previous round-start clock
 ZOMBIE_SPEED_BASE = 50             # task-81: 50% base, +4/wave, cap 85%
 ZOMBIE_SPEED_PER_WAVE = 4          # +4% per wave, capped at 85
-HOLD_FIRE_ORDERS = (0, 11, 13, 16)  # hold, stand_ground, fire_at_will, use_ranged
+HOLD_FIRE_ORDERS = (0, 13, 16)  # hold, fire_at_will, use_ranged (no stand_ground halt)
 defender_reinforce_supported = True
 DIVISIONS = (5, 6, 7)
 GUARD_ENTRIES = (2, 3, 4)
@@ -148,7 +148,6 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None,
             ops.append(["2092", "2", l1, "100"])
             ops.append(["2094", "2", l1, "100"])
             ops.append(["1737", "2", l1, "0"])
-            ops.append(["1753", "2", l1, "0"])            # low aggressiveness: no chase
         ops.append(["2120", "3", l0, l0, "1"])             # count += 1
         ops.append(["3", "0"])                             # try_end
         if defender_target:
@@ -381,7 +380,7 @@ def apply_module(module: Path, hold_entries: tuple[int, ...] = REAR_HOLD_ENTRIES
             "firearm_class": "crossbow_type_ranged",
             "ai_accuracy_modifier": 100,
             "ai_reload_speed_modifier": 100,
-            "prevent_charge": "hold + stand_ground corrective + fire_at_will/use_ranged + no 1730 + 1737=0 + aggressiveness=0; no hard no-chase leash (H task-87), measured by positions/attack-action",
+            "prevent_charge": "hold + fire_at_will/use_ranged + no 1730 + 1737=0; no stand_ground/aggressiveness so ranged engagement is not suppressed; measured by positions/attack-action",
             "accuracy_modifier_note": "2092 readback was 100 in D seal; setter values >100 not observable, so this build claims 100 and relies on proficiency/item accuracy",
             "warning": "Navmesh-derived posts; movement, fire and runtime LOS unverified.\n"
                        "Sectors rotate once per original wave_number parity; D validates positions."}

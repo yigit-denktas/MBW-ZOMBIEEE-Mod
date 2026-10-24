@@ -5,8 +5,8 @@
   "source_base": "ce600ee (agent/a-ranged-fix / PLAYBUILD)",
   "branch": "agent/a-nextplay",
   "package": "C:\\Users\\yigit\\AppData\\Local\\Temp\\zombieee-a\\nextplay\\ZOMBIEEE_Remaster",
-  "module_sha256": "c62f0bcd0d0b6aff3959df1f753eee1dbb0f528e548d00442f24da54fd52aa88",
-  "receipt_sha256": "d73687522b6fc36b94851b0556da14d3e3799cf31a294ff1872e1574a3255c2f",
+  "module_sha256": "ef6e332c5399cc690d06b22d966632c6fbbbc146d5397785f79538cace163907",
+  "receipt_sha256": "0c15bd265c3e7c21460a0d3ac216b4f82d02af7c00a8bd672655b169dbbde23a",
   "included": [
     "task-84 hold-ground/no-chase: mordr_stand_ground(11)+hold/fire_at_will/use_ranged, no 1730, 1737=0, aggressiveness 0",
     "task-81 zombie targets: speed base 50 +4/wave cap 85; HP target 67.5% via strength (actual per-troop recorded); proficiency x0.5; wave counts x2 (1->2,8->16,1->2,1->2)",
@@ -123,6 +123,7 @@
     "zombie HP formula assumption 35+2*strength; per-troop realized ratios in receipt; armor/headshot unchanged (gap)",
     "wave count cap is engine/native-visible; no extra City spawn cap",
     "console adaptive_sample spam is C probe; must be gated server-side for clean screenshots",
-    "H task-87: mordr_stand_ground is a halt corrective, not a hard no-chase leash; hold/stand_ground/stance claims must be measured by positions/attack-action, not assumed. Ranged screen/pavise and target-focus are engine/data-blocked (no shield on clones, no target setter)."
+    "H task-87: mordr_stand_ground is a halt corrective, not a hard no-chase leash; hold/stand_ground/stance claims must be measured by positions/attack-action, not assumed. Ranged screen/pavise and target-focus are engine/data-blocked (no shield on clones, no target setter).",
+    "D seal showed 0 shots with stand_ground(11)+aggressiveness0; both removed. HOLD_FIRE_ORDERS restored to hold/fire_at_will/use_ranged; 1737=0 and no 1730 retained."
   ]
 }
