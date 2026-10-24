@@ -4307,6 +4307,35 @@
       "originReason": "Owner: 15s too low for heatmaps.",
       "discoveredDuring": "owner live feedback 2026-10-24",
       "graphImpact": "Makes movement/morale analysis credible; must fit performance budget."
+    },
+    {
+      "id": "ZOM-DISC-79",
+      "title": "Round/fight GIF replays + parameter A/B on Pages",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "active",
+      "sourceState": "Initial sample GIF live; adaptive/A-B pending",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-78"
+      ],
+      "evidence": [],
+      "completionBasis": "First sample GIF deployed; dense/A-B pending",
+      "kind": "work-item",
+      "owner": "Agent D capture; A param; C data; E/F site",
+      "priority": "P1",
+      "criterion": "Reviewable round/fight GIFs on Pages incl. baseline vs one-parameter variant with metadata and non-acceptance labels.",
+      "note": "site/replays/task71-survivor-sample.gif live; adaptive 1s and A/B placeholders.",
+      "deferReason": "Supplemental review/presentation; not denominator.",
+      "implementationLane": "D",
+      "workOrigin": "discovered",
+      "workType": "presentation",
+      "supportsOutcomeId": "ZOM-QA-02",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner: make GIFs and deploy behavior comparisons.",
+      "discoveredDuring": "owner live feedback 2026-10-24",
+      "graphImpact": "Makes behavior/parameter effects reviewable."
     }
   ],
   "warnings": [

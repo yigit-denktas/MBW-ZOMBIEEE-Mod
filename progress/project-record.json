@@ -16,7 +16,7 @@
         "observedOn": "2026-10-24",
         "updatedOn": "2026-10-24",
         "authority": "Proposed owner-review draft authored from v0.1.8 README/ROADMAP/issue inventory; no accepted baseline",
-        "previousSourceFile": "snapshots/ledger-2026-10-24-pre-density.json",
+        "previousSourceFile": "snapshots/ledger-2026-10-24-pre-replays.json",
         "snapshotHistory": [
           "scope-changes/2026-10-24-discovered-work.json",
           "scope-changes/2026-10-24-live-incident-amendment.json",
@@ -51,7 +51,8 @@
           "snapshots/ledger-2026-10-24-pre-formation-active.json",
           "snapshots/ledger-2026-10-24-pre-heatmap.json",
           "snapshots/ledger-2026-10-24-pre-morale-economy.json",
-          "snapshots/ledger-2026-10-24-pre-density.json"
+          "snapshots/ledger-2026-10-24-pre-density.json",
+          "snapshots/ledger-2026-10-24-pre-replays.json"
         ]
       },
       "presentation": {
