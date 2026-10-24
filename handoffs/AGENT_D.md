@@ -122,3 +122,21 @@ signed stop and 8-file manifest verify. Screenshots: `local/session/playcity_*_m
    unobservable fields, not zeros.
 4. No ledger acceptance; the Project Record stays authoritative and untouched
    by this handoff.
+
+
+## 7. Phase-record note (2026-10-24 12:40) - 8-defender default / final build
+
+The installed module documented in section 1 (digest bcab4e56..., installed
+12:18:07) predates 8f0d17a/332560a, so it does not contain A's rear defensive
+line or the 8-defender squad default. The final validation therefore needs a
+rebuild from merged main 332560a (module-install decision belongs to
+Lead/owner; D does not overwrite the game tree while the owner is testing).
+
+With that build, one-command City defaults to DEFENDER_SQUAD_BOTS = 8
+(set_bot_count 1 8; 8 native bots over clone troops 981-984, tunable with
+--team0-bots N). Expected rotation SHA-256 with defenders=8 (per F):
+generic 87c8d767ef4a282a1f0f4fe9d2e2ef8c386bb6a647a7b2e65912ed0fb42b6240,
+weak-wave1 eda8af7b4293578ac7fc1b0602e9717724ae4e5dc40e9fb9cb8d454d0251c2d3,
+native-only fbfb3d93d0f5c9d07bf48dc17fea55a78ffcb33c14243b2603116fb11d87237e.
+plan should print 'allies : team-0 bots=8 (defender-squad)'; the sealed
+receipt should record team0_bots=8 and the matching rotation SHA.
