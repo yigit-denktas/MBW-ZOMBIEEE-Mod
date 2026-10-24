@@ -223,6 +223,21 @@ derived from `ai_sample` displacement), `engagement.{kills_team0,kills_team1}`
 flag, bounded event-type counts). `player_*` lifecycle events remain
 observed-only and are reported as absent, not zero, in playerless mode.
 
+**Pre-round scheduling limitation (no-client runs):** with no connected player
+the dedicated server never starts a round (`g_round_start_time=0`), and mission
+time appears paused in the waiting-for-players state. Only the 1 s entry
+trigger is observed to run, while the 15 s heartbeat trigger never becomes
+due, so a pure no-client run would otherwise carry no periodic samples. The
+probe therefore emits `mission_enter` plus at most 6 bounded
+`pre_round_sample` events (same state fields, composition, engagement and
+positions) from that proven trigger, and the summary reports
+`events.pre_round_only=true` with a `pre-round:` note. This is a
+**scheduling fact, not a probe bug**: no read-only probe change can make the
+15 s mission trigger due before a round starts, and the probe does not force
+round state. Heartbeats, wave changes and per-round evidence still require a
+round (for example an idle client joining); `no_probe_heartbeats` is reported
+honestly alongside the pre-round composition samples.
+
 A module rebuild is required for a live run to emit the new fields: copy
 `overlay/lua/main.lua`, `overlay/lua/msfiles/header_operations.py` and
 `overlay/lua/msfiles/ID_troops.py` into the built module (the normal
