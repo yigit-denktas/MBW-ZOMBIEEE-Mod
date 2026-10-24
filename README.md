@@ -16,7 +16,7 @@ A private, City-first compatibility rebuild of the 2012 **ZOMBIEEE (Invasion) Be
 
 [Interactive roadmap](https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/) · Source file: `progress/ledger.json` (content-addressed file snapshot).
 
-Observed 2026-10-24 against `291c31fd`.
+Observed 2026-10-24 against `6ea8f31a`.
 <!-- project-record:end -->
 
 ## Scope

@@ -443,6 +443,12 @@
           "source": "local/session/ai-evidence-wave2c-attempt",
           "observedOn": "2026-10-24",
           "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/play-city/flights/891af9e0cf714f7cb87e64c5c99e5242",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
         }
       ],
       "completionBasis": "Bounded ZDB1 event stream sealed in an 8-file manifest with explicit unknown fields.",
@@ -712,6 +718,12 @@
           "source": "local/session/play-city",
           "observedOn": "2026-10-24",
           "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/play-city/flights/891af9e0cf714f7cb87e64c5c99e5242",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
         }
       ],
       "completionBasis": "play_city started an isolated loopback dedicated host and stopped it cleanly.",
@@ -760,6 +772,12 @@
           "source": "local/session/play-city",
           "observedOn": "2026-10-24",
           "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/play-city/flights/891af9e0cf714f7cb87e64c5c99e5242",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
         }
       ],
       "completionBasis": "play_city selected the City mission/map, auto-joined the private host, observed mission entry and shut down cleanly.",
@@ -800,6 +818,12 @@
         {
           "kind": "sealed-evidence",
           "source": "local/session/ai-evidence-disc28e-troopfallback",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/play-city/flights/891af9e0cf714f7cb87e64c5c99e5242",
           "observedOn": "2026-10-24",
           "acceptance": "bounded-sealed-evidence"
         }
@@ -1048,6 +1072,12 @@
           "source": "local/session/ai-evidence-disc28e-troopfallback",
           "observedOn": "2026-10-24",
           "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/play-city/flights/891af9e0cf714f7cb87e64c5c99e5242",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
         }
       ],
       "completionBasis": "Sealed receipt summary verifies the manifest and reports observed vs unknown outcomes and actionable gaps.",
@@ -1075,10 +1105,10 @@
       "title": "Complete sustained integrated City solo test",
       "groupId": "Quality",
       "milestoneId": "M4",
-      "state": "backlog",
+      "state": "active",
       "sourceState": "new scoped proposal; not accepted",
       "required": true,
-      "blocked": true,
+      "blocked": false,
       "dependsOn": [
         "ZOM-SOLO-02",
         "ZOM-QA-01"
@@ -1112,6 +1142,12 @@
           "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/42d4ec3",
           "observedOn": "2026-10-24",
           "acceptance": "merged-implementation"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/play-city/flights/891af9e0cf714f7cb87e64c5c99e5242",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
         }
       ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
@@ -1120,7 +1156,7 @@
       "priority": "P2",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
       "criterion": "A private City solo run completes the agreed minimum sustained wave test (proposed 10 waves), with reliable AI, no fatal failures and build-linked evidence. Other maps are not part of this gate.",
-      "note": "City-first sustained acceptance only. Optional map expansion ZOM-MAP-01 must not gate this work. Final acceptance requires wave 2+/roster/respawn evidence and sealed receipt (#13/#16). Merged tip 42d4ec3 suite 380 OK/4 skips over 3 consecutive runs with owned originals; no acceptance.",
+      "note": "City-first sustained acceptance only. Optional map expansion ZOM-MAP-01 must not gate this work. Final acceptance requires wave 2+/roster/respawn evidence and sealed receipt (#13/#16). Merged tip 42d4ec3 suite 380 OK/4 skips over 3 consecutive runs with owned originals; no acceptance. | Sealed 300 s integrated City session with one player, 4 native defenders, 32-50 native zombies, 8 rounds, kills 3/5, player death/respawn events; wave max 1, no wave completion. Evidence: local/session/play-city/flights/891af9e0cf714f7cb87e64c5c99e5242",
       "deferReason": null,
       "implementationLane": "C"
     },
