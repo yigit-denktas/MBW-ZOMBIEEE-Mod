@@ -61,8 +61,9 @@ Values are **design targets**, not observed values. Range bands are engagement d
 | **Weapon** | M16A2 auto | Remington 700 single | MP5 auto | Cynergy shotgun |
 | **Fire behavior** | fire-at-will, burst/auto as engine allows, keep ranged weapon while ammo | fire-at-will at long band, single deliberate shots; do not waste on out-of-band targets (proposal) | fire-at-will, shortest bursts; reposition between bursts | fire-at-will only when close; melee bowie allowed at ammo 0 or <10 units |
 | **Movement** | baseline 100% | 85% (deliberate, no chase) | 115% (fastest) | 95% |
+| **Speed feasibility note** | team-0 per-class `agent_set_speed_modifier` (2093) is F-now; not D-observable until re-sealed. Native wave-speed loop applies to **team 1 only**, so no conflict. | same | same | same |
 | **Build/stats** | firearms 120; medium armour | firearms 200; light/medium; no charge | firearms 120; light armour | firearms 100; heavier clothing; close combat |
-| **Formation slot** | division 5 — centre screen (post 2 / E0 frontage) | division 7 — rear overwatch (E0 rear edge / post 4 side) | division 6 — flank screen (post 3 / lateral leash) | reserve — division 5 rear element or division 8 (unverified); never first line |
+| **Formation slot** | division 5 — centre screen (post 2 / E0 frontage) | division 7 — rear overwatch (E0 rear edge / post 4 side) | division 6 — flank screen (post 3 / lateral leash) | reserve — division 5 rear element (baseline); division 8 is **B-unproven/blocked** (in the 0–9 space but adoption/orders unproven); never first line |
 | **Target responsibility** | Fast/Tough/Witchy and any special that closes | Tank/strong/shielded/mounted first, then Witchy/Steroid | Fast 896, ranged 911/912, flanking specials | mass/weak at close range; bodyguard the anchor |
 | **Fallback trigger** | ammo 0 **and** local threat high; HP < 30% | enemies < 15 units or screen collapsed; HP < 40% | first to fall back: local ratio > 1.5, HP < 50% | last to fall back; only at anchor pressure or ammo 0 |
 | **Desperation** | hold and fire to last magazine; melee only at ammo 0 | fall back, do not melee-charge | disengage and re-form at E0 | close to melee at <10 or ammo 0 |
@@ -109,6 +110,8 @@ The bands overlap deliberately (real fights compress distances). The point is **
 **Do not repeat the task-45 regression:** issuing `mordr_hold_fire` suppressed all shooting. The default order set must stay `mordr_hold` + `mordr_fire_at_will` + `mordr_use_ranged_weapons`; class fire discipline can only differ through **division-scoped** orders (needs adoption) or per-agent WSE2 toggles.
 
 **Per-agent toggles already available (WSE2):** `agent_ai_set_can_weapon_switch` 3343, `agent_ai_set_can_fight` 3344, `agent_ai_set_can_aim` 3352, `agent_ai_set_simple_behavior` 3314; native `agent_set_accuracy_modifier` 2092. None of them selects a target or enforces a range.
+
+**Accuracy interaction (A, 2026-10-24):** native `agent_set_accuracy_modifier` (2092) **stacks with or overrides** the build-level automatic-firearm accuracy profile (task-22 `+8..10` points). Treat per-class accuracy as an interaction that must be measured, not as an independent second profile; D/C must record both the item-table accuracy and the runtime modifier.
 
 **Optional experiments (not baseline):** WSE2 `agent_set_can_multihit` 3353 (shotgun vs horde), `agent_set_can_piercing` 3359 (sniper vs line), `agent_set_crush_through` 3355 (shield pressure). All are per-agent mutations, server-side, and need separate builds + D evidence; do not bundle them into the class matrix baseline.
 
@@ -166,7 +169,7 @@ The mode machine is the same for all classes (task-53), with class-conditioned t
 | Mode | Condition (per class where noted) | Action | Feasibility |
 | --- | --- | --- | --- |
 | HOLD-FIRE | default; ammo > 0 | hold at anchor/element; fire-at-will; keep ranged weapon | F-now |
-| FALLBACK | Scout first (local ratio >1.5 or HP <50%); Sniper on screen collapse/enemy <15; Commando ammo 0 + high threat or HP <30%; Lumberjack last | `mordr_fall_back` to E0/entry 0, then re-issue hold | F-build; order reach B-unproven |
+| FALLBACK | Scout first (local ratio >1.5 or HP <50%); Sniper on screen collapse/enemy <15; Commando ammo 0 + high threat or HP <30%; Lumberjack last | `mordr_fall_back` to E0/entry 0, then re-issue hold. **No target/strength getter** — thresholds can only use counts, positions, ammo and HP; no per-target threat evaluation | **F-build** threshold computation; **B-unproven** order reach |
 | REGROUP | after fallback, ≥3 survivors, local pressure below threshold | move to E0 apron, re-issue class slots after settle delay | F-build |
 | DESPERATE-MELEE | ammo 0 and enemy <10 (Lumberjack always; others only then) | allow melee switch / bowie | F-now experiment (per-agent gate); **no charge** |
 | RESUPPLY | between waves/round transition | refill ammo (`agent_refill_ammo` 1728), relative heal (`agent_set_hit_points` 1721), regroup | F-now (ops exist; runtime unverified) |
@@ -209,9 +212,9 @@ The engine only lets a spawn choose a troop record; it does not let a script add
 
 ### A — implementation
 
-1. **Class mapping in the 5 s trigger:** read `agent_get_troop_id` (1718), map 981–984 → class, assign the class division/slot (5/6/7; reserve option), and apply class speed (`agent_set_speed_modifier` 2093: commando 100, sniper 85, scout 115, lumberjack 95 — targets) and class accuracy (`agent_set_accuracy_modifier` 2092 — only if it does not fight the global accuracy profile).
+1. **Class mapping in the 5 s trigger:** read `agent_get_troop_id` (1718), map 981–984 → class, assign the class division/slot (5/6/7; reserve slot 8 is **B-unproven/blocked**, use division 5 rear element as baseline), and apply class speed (`agent_set_speed_modifier` 2093: commando 100, sniper 85, scout 115, lumberjack 95 — targets; team-0 only, no conflict with the team-1 wave-speed loop, D-observable only after re-seal). Class accuracy via `agent_set_accuracy_modifier` (2092) **interacts with / can override the global auto-accuracy profile** — do not treat them as independent; measure both.
 2. **Keep the order set fixed:** `mordr_hold` + `mordr_fire_at_will` + `mordr_use_ranged_weapons`; per-agent ammo gate (`can_weapon_switch`) stays; no `mordr_hold_fire`; no scripted destination.
-3. **Class-conditioned fallback thresholds** in the mode machine (scout first, lumberjack last); fallback uses E0/entry 0; regroup after.
+3. **Class-conditioned fallback thresholds** in the mode machine (scout first, lumberjack last) using **counts, positions, ammo and HP only — there is no target/strength getter**; fallback uses E0/entry 0; regroup after. Order reach is **B-unproven** until division adoption is proven.
 4. **Between-wave options:** (A) refill/heal/regroup now; (B) tier clones + refill tier selection as a separate build change with receipt fields; do not attempt mid-mission armour changes.
 5. **Experiment-gated only:** WSE2 multihit/piercing/crush-through for shotgun/sniper; separate build, D evidence, no baseline claim.
 6. **Record receipt fields:** class→division map, speed/accuracy modifiers per class, tier selection, fire orders, fallback thresholds, and `class_matrix_version`.
@@ -241,7 +244,7 @@ The engine only lets a spawn choose a troop record; it does not let a script add
 | --- | --- |
 | Class→loadout identity (981–984) | **F-now** (data exists) |
 | Class→division/slot mapping | **F-build**; effect **B-unproven** until adoption/readback proves |
-| Class-specific speed via 2093 | **F-now** (op exists; class mapping F-build) |
+| Class-specific speed via 2093 (team 0) | **F-now** (op exists; class mapping F-build; D-observable only after re-seal; no conflict with team-1 wave-speed loop) |
 | Fire-at-will/hold/keep-rifle orders | **F-now** (already in build) |
 | Class-specific fire cadence/mode | **B-engine** (no per-agent fire-mode op; launcher fire-mode is global, task-68) |
 | Range bands as placement | **F-now/F-build** |
@@ -249,7 +252,7 @@ The engine only lets a spawn choose a troop record; it does not let a script add
 | Target responsibility/priority enforcement | **B-engine** (no target setter) |
 | Kill attribution by class × victim | **F-build** telemetry (C) |
 | Melee last-resort gate | **F-now** (per-agent gate exists; class-conditioned variant F-build) |
-| Fallback/regroup thresholds | **F-build**; order reach **B-unproven** |
+| Fallback/regroup thresholds (counts/positions/ammo/HP only — no target/strength getter) | **F-build**; order reach **B-unproven** |
 | Regroup/rearm/heal between waves | **F-now** ops; runtime unverified |
 | Tier clones + wave-based selection | **F-build** (owner approval, troop records, tests, receipt) |
 | Mid-mission armour/weapon purchase | **B-engine** |
@@ -277,6 +280,7 @@ The engine only lets a spawn choose a troop record; it does not let a script add
 
 - This document is design input only; it changes no build, loadout, trigger, scene or asset. No acceptance is claimed.
 - A implements §9-A in the City-only layer; C implements §9-C fields with capability flags; D runs §9-D sealed. Owner approval is required for new tier troop records or any scene/defence-line change.
-- Cross-review requested from A (feasibility), C (telemetry feasibility) and D (validation matrix); findings should be recorded in this file before it is treated as settled.
+- **A, 2026-10-24 (against `f1ba5c5`): consistent with build, corrections applied:** reserve slot 8 marked **B-unproven/blocked** (baseline is division 5 rear element); class speed on team 0 confirmed feasible/F-now and non-conflicting with the team-1-only native wave-speed loop, observable after re-seal; `agent_set_accuracy_modifier` (2092) explicitly stated to stack/override the global automatic-accuracy profile; fallback thresholds limited to counts/positions/ammo/HP (**no target/strength getter**) with order reach B-unproven; refill/heal ops 1728/1721 confirmed native; tier clones explicitly owner-approved separately; multihit/piercing separate builds only.
+- C and D were sent the telemetry/validation asks; any later findings should be appended here. No unresolved A blocker.
 
 *End of document.*
