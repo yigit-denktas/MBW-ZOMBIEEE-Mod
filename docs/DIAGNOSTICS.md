@@ -375,6 +375,20 @@ D's task-42 sealed runs exposed three readback gaps, now closed:
   `ammo > 0 -> 0` transitions plus `weapon_mode=melee`. This is an inference,
   not a direct AI-mode getter; the note records that explicitly.
 
+### Invalid Group ID: 0 guard (team-order getters, client/entry path)
+
+D's speed-off run had no AV but repeated
+`SCRIPT ERROR: Invalid Group ID: 0` at Lua opcodes 1785/1786/1787 from
+`Trigger [31] Conditions (Lua)` (client/entry). Those are the
+`team_get_movement_order`/`team_get_riding_order`/`team_get_weapon_usage_order`
+reads. Fixes: `read_team_order` rejects `team` outside 0..1 and **group
+outside 1..9 before calling the op**; the readback block is gated by
+`team_order_read_enabled` (set only on a server heartbeat), so the
+client/entry path never queries team orders; group 0 is never queried and is
+counted as `skipped_invalid_group` in heartbeat/pre-round/mission-enter lines.
+Capability: `team_order_guard=1|team_order_group_range=1..9|team_order_server_only=1`.
+Tests cover the two-argument/group guards and client/entry gating.
+
 ### Invalid Agent ID: 0 crash triage (P0, trigger 32 conditions)
 
 Crash log `rgl_log_24.10.2026_15.56.05_crash.txt`: `Invalid Agent ID: 0`

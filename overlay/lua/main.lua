@@ -111,6 +111,7 @@ emit("recorder_capabilities",
     .. "|time_multiplier_getter=" .. binding_flag("agent_get_time_speed_multiplier")
     .. "|action_speed_getter=" .. binding_flag("agent_get_action_speed_modifier")
     .. "|team_order_getter=" .. binding_flag("team_get_hold_fire_order")
+    .. "|team_order_guard=1|team_order_group_range=1..9|team_order_server_only=1"
     .. "|faction_slot_getter=" .. binding_flag("faction_get_slot")
     .. "|scene_getter=" .. binding_flag("store_current_scene")
     .. "|behavior_getter=0"
@@ -181,6 +182,10 @@ end
 local function read_team_order(name, team, subclass)
     local fn = game[name]
     if type(fn) ~= "function" then return -1 end
+    -- Team getters expect a valid group/division argument; group 0 logs
+    -- "Invalid Group ID: 0" on the client/entry path, so never call it.
+    if type(team) ~= "number" or team < 0 or team > 1 then return -1 end
+    if type(subclass) ~= "number" or subclass < 1 or subclass > 9 then return -1 end
     local ok, first, second, third = pcall(function()
         return fn(0, team, subclass)
     end)
@@ -228,6 +233,9 @@ local group_convention = nil  -- nil until detectable; then "direct" or "unknown
 -- Group reads are attempted only once a full round is running (safe, valid
 -- agent ids, periodic cadence), never from the pre-round/entry trigger.
 local group_read_enabled = false
+-- Team-order getters are server-only and group 1..9 only: on client/entry
+-- there is no valid group context, and group 0 logs Invalid Group ID: 0.
+local team_order_read_enabled = false
 -- Faction-slot/scene readback is server+City only and heartbeat-only: it calls
 -- engine ops from a Lua callback, so never probe it pre-round or on a client.
 local wave_slot_read_enabled = false
@@ -380,6 +388,7 @@ local function sample_world()
                          groups0 = {}, groups1 = {},
                          group_read_unknown = 0,
                          skipped_invalid_agent = 0, skipped_dead_agent = 0,
+                         skipped_invalid_group = 0,
                          defender_count = 0,
                          defender_alive = 0,
                          defender_kills = 0,
@@ -744,20 +753,23 @@ local function sample_world()
         -- Defender team-order readback for subclasses 5-7 and everyone (9):
         -- hold_fire:movement:weapon_usage:riding, or "none" when unreadable.
         local order_parts = {}
-        -- All team-order sub-classes 0..9: native bots in groups 26/28/29/31
-        -- are outside the class range, and team_give_order only accepts
-        -- sub-class ids, so native-group orders are explicitly unavailable.
-        for subclass = 0, 9 do
-            local hold_fire = read_team_order("team_get_hold_fire_order", 0, subclass)
-            local movement = read_team_order("team_get_movement_order", 0, subclass)
-            local weapon = read_team_order("team_get_weapon_usage_order", 0, subclass)
-            local riding = read_team_order("team_get_riding_order", 0, subclass)
-            if hold_fire >= 0 or movement >= 0 or weapon >= 0 or riding >= 0 then
-                order_parts[#order_parts + 1] = subclass .. ":" .. hold_fire
-                    .. ":" .. movement .. ":" .. weapon .. ":" .. riding
-            else
-                result.defender_orders_read_unknown =
-                    result.defender_orders_read_unknown + 1
+        -- Team-order getters are server-only and groups 1..9 only. Group 0 is
+        -- not queried (engine logs Invalid Group ID: 0 on client/entry); on the
+        -- entry/client path team_order_read_enabled stays false.
+        if team_order_read_enabled then
+            result.skipped_invalid_group = 1  -- group 0 skipped by contract
+            for subclass = 1, 9 do
+                local hold_fire = read_team_order("team_get_hold_fire_order", 0, subclass)
+                local movement = read_team_order("team_get_movement_order", 0, subclass)
+                local weapon = read_team_order("team_get_weapon_usage_order", 0, subclass)
+                local riding = read_team_order("team_get_riding_order", 0, subclass)
+                if hold_fire >= 0 or movement >= 0 or weapon >= 0 or riding >= 0 then
+                    order_parts[#order_parts + 1] = subclass .. ":" .. hold_fire
+                        .. ":" .. movement .. ":" .. weapon .. ":" .. riding
+                else
+                    result.defender_orders_read_unknown =
+                        result.defender_orders_read_unknown + 1
+                end
             end
         end
         result.defender_orders_text = (#order_parts > 0)
@@ -945,6 +957,7 @@ end
 local function skip_fields(world)
     return "|skipped_invalid_agent=" .. ((world and world.ok) and (world.skipped_invalid_agent or 0) or -1)
         .. "|skipped_dead_agent=" .. ((world and world.ok) and (world.skipped_dead_agent or 0) or -1)
+        .. "|skipped_invalid_group=" .. ((world and world.ok) and (world.skipped_invalid_group or 0) or -1)
 end
 -- Explicit lifecycle events are emitted only from observed transitions:
 -- a previously alive team-0 non-player agent now dead/removed (player_died or
@@ -1162,6 +1175,9 @@ local function heartbeat()
             group_read_enabled = true
         end
         local role = resolve_role()
+        if not team_order_read_enabled and role == "server" then
+            team_order_read_enabled = true
+        end
         if not wave_slot_read_enabled and role == "server"
             and current_mission() == "mst_multiplayer_iv" then
             wave_slot_read_enabled = true

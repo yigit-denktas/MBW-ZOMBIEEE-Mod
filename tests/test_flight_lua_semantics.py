@@ -221,6 +221,23 @@ checks[#checks + 1] = tostring(valid_agent_id(0) == false)
 checks[#checks + 1] = tostring(valid_agent_id(-1) == false)
 checks[#checks + 1] = tostring(valid_agent_id("3") == false)
 checks[#checks + 1] = tostring(valid_agent_id(3) == true)
+
+-- Team-order guard: group 0 must never reach the op; groups 1..9 only.
+local team_calls = 0
+local function read_team_order(team, subclass, fn)
+    if type(team) ~= "number" or team < 0 or team > 1 then return -1 end
+    if type(subclass) ~= "number" or subclass < 1 or subclass > 9 then return -1 end
+    team_calls = team_calls + 1
+    return fn(0, team, subclass)
+end
+checks[#checks + 1] = tostring(read_team_order(0, 0, function() team_calls = team_calls + 1; return 0, 0 end) == -1)
+checks[#checks + 1] = tostring(team_calls == 0)
+local seen_team, seen_subclass
+local team_value = read_team_order(0, 5, function(destination, team, subclass)
+    seen_team, seen_subclass = team, subclass
+    return 2, 0
+end)
+checks[#checks + 1] = tostring(team_value == 2 and seen_team == 0 and seen_subclass == 5)
 return table.concat(checks, ",")
 """
 
@@ -263,7 +280,7 @@ class RealLuaSemanticsTests(unittest.TestCase):
 
     def test_team_tables_arithmetic_and_precedence(self):
         checks = self.run_lua(SEMANTICS_SCRIPT).split(",")
-        self.assertEqual(len(checks), 42)
+        self.assertEqual(len(checks), 45)
         for index, value in enumerate(checks, 1):
             self.assertEqual(value, "true", f"Lua semantics check {index} failed")
 

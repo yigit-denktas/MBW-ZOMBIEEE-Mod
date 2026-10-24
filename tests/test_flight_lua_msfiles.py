@@ -464,7 +464,7 @@ class LuaOperationMetadataTests(unittest.TestCase):
                       "|speed_modifiers_team1=", "|time_multipliers_team1=",
                       "|action_speeds_team1=",
                       "|defender_orders_scope=team0_subclasses_0_9_native_groups_no_op",
-                      "for subclass = 0, 9 do",
+                      "for subclass = 1, 9 do",
                       "speed_hist_team[side]"):
             self.assertIn(token, self.main)
 
@@ -522,6 +522,17 @@ class LuaOperationMetadataTests(unittest.TestCase):
         self.assertIn("result.skipped_dead_agent = result.skipped_dead_agent + 1", self.main)
         self.assertIn("|skipped_invalid_agent=", self.main)
         self.assertIn("|skipped_dead_agent=", self.main)
+
+
+    def test_team_order_group0_client_entry_guard(self):
+        self.assertIn("|team_order_guard=1", self.main)
+        self.assertIn("|team_order_group_range=1..9", self.main)
+        self.assertIn("|team_order_server_only=1", self.main)
+        self.assertIn("local team_order_read_enabled = false", self.main)
+        self.assertIn("if team_order_read_enabled then", self.main)
+        self.assertIn("for subclass = 1, 9 do", self.main)
+        self.assertIn("subclass < 1 or subclass > 9", self.main)
+        self.assertIn("skipped_invalid_group", self.main)
 
 if __name__ == "__main__":
     unittest.main()
