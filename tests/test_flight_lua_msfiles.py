@@ -181,12 +181,13 @@ class LuaOperationMetadataTests(unittest.TestCase):
         self.assertIn("ZDB1|event", self.main)
 
     def test_team_counts_fail_closed_to_unknown(self):
-        # agent_get_team failures must not be counted as team 0 (the live
-        # attempt-4 team0=1 can coincide with the failed call's zero result).
-        self.assertIn("game.agent_get_team(0, agent)", self.main)
-        self.assertIn("op_error", self.main)
-        self.assertIn("if not result.measured then", self.main)
+        # agent_get_team is now read through the returned-value lhs accessor
+        # (A's live team-count fix); a failed read must mark the count unknown
+        # instead of counting the agent as team 0.
+        self.assertIn('read_agent_number("agent_get_team", agent)', self.main)
+        self.assertIn("result.measured = false", self.main)
         self.assertIn("result.team0, result.team1 = -1, -1", self.main)
+        self.assertNotIn("game.agent_get_team(0, agent)", self.main)
 
     def test_v2_troop_histogram_is_bounded_and_declared(self):
         # Names come from the bounded msfiles/ID_troops.py table, never from an
@@ -418,6 +419,19 @@ class LuaOperationMetadataTests(unittest.TestCase):
         self.assertIn("kind=group_convention_unknown", self.main)
         self.assertIn("MAX_DIVISION = 255", self.main)
         self.assertIn("local group = read_group(agent)", self.main)
+
+
+    def test_combat_and_wave_telemetry_surface(self):
+        self.assertIn("|combat_v2=1", self.main)
+        for token in ("|defender_weapons=", "|defender_modes=", "|ranged_team0=",
+                      "|melee_team0=", "|defender_deaths=", "|horse_ids_team1=",
+                      "|shield_team0=", "|mounted_team1=", "|action=",
+                      "|weapon_mode=", "|weapon=", "|ammo=", "|alive=",
+                      "defender_died"):
+            self.assertIn(token, self.main)
+        self.assertIn("agent_get_wielded_item", self.main)
+        self.assertIn("agent_get_ammo", self.main)
+        self.assertIn("agent_is_alive", self.main)
 
 if __name__ == "__main__":
     unittest.main()

@@ -89,7 +89,10 @@ emit("recorder_capabilities",
     .. "|human_getter=" .. binding_flag("agent_is_human")
     .. "|composition=1|engagement=1|position_summary=1|pre_round=1"
     .. "|group_getter=" .. binding_flag("agent_get_group")
-    .. "|group_reader=direct_single_arg|group_probe=1"
+    .. "|group_reader=direct_single_arg|group_probe=1|combat_v2=1"
+    -- No verified read-only WSE2 operation exists for shield/block, mounted
+    -- identity or current action in this mod: report 0 capability, never guess.
+    .. "|shield_getter=0|mounted_getter=0|action_getter=0"
     .. "|npc_getter=" .. binding_flag("agent_is_non_player")
     .. "|position_getter=" .. binding_flag("agent_get_position")
     .. "|weapon_getter=" .. binding_flag("agent_get_wielded_item")
@@ -108,6 +111,9 @@ local round_first_start = nil
 local round_anomaly_emitted = false
 local kill_range_anomaly_emitted = false
 local previous_alive_players = {}
+local defender_deaths_total = 0
+local previous_defender_ids = {}
+local defender_death_round = nil
 local player_seen = false
 local player_pending = false
 local function current_mission()
@@ -264,6 +270,13 @@ end
 -- One bounded pass over the agent iterator collects per-team counts, the
 -- bounded troop histogram and the observed team-0 non-player agents. A failed
 -- team read makes the counts unknown (-1), never team 0.
+-- Bounded id list text (max 8 ids) for horse/defender id telemetry.
+local function id_list_text(ids)
+    if not ids or #ids == 0 then return "none" end
+    local parts = {}
+    for i = 1, math.min(#ids, 8) do parts[i] = tostring(ids[i]) end
+    return table.concat(parts, ",")
+end
 local function sample_world()
     if type(game.agentsIt) ~= "function" then return { ok = false } end
     local supports_team = type(game.agent_get_team) == "function"
@@ -295,6 +308,10 @@ local function sample_world()
                          defender_read_unknown = 0,
                          defender_groups = {},
                          defender_source = -1,
+                         defender_weapons = {}, defender_modes = {},
+                         defender_ids = {}, ranged_team0 = 0, melee_team0 = 0,
+                         weapon_read_unknown = 0,
+                         horse_ids = {[0] = {}, [1] = {}},
                          ai_samples = {},
                          pos_count = {[0] = 0, [1] = 0},
                          pos_sum = {[0] = {0, 0}, [1] = {0, 0}},
@@ -338,6 +355,9 @@ local function sample_world()
                 if supports_human then human = is_human(agent) end
                 if human == false then
                     result.horses[side] = result.horses[side] + 1
+                    if #result.horse_ids[side] < 8 then
+                        result.horse_ids[side][#result.horse_ids[side] + 1] = agent
+                    end
                 elseif human == true and supports_npc then
                     if is_npc(agent) then
                         result.bots[side] = result.bots[side] + 1
@@ -372,9 +392,32 @@ local function sample_world()
                                     result.defender_groups[group] =
                                         (result.defender_groups[group] or 0) + 1
                                 end
-                                if supports_alive and is_alive(agent) == true then
+                                local alive_flag = supports_alive and is_alive(agent) == true
+                                if alive_flag then
                                     result.defender_alive = result.defender_alive + 1
+                                    if #result.defender_ids < 16 then
+                                        result.defender_ids[#result.defender_ids + 1] = agent
+                                    end
                                 end
+                                local weapon = read_agent_number("agent_get_wielded_item", agent, 0)
+                                local ammo = read_agent_number("agent_get_ammo", agent, 0)
+                                if weapon >= 0 then
+                                    result.defender_weapons[weapon] =
+                                        (result.defender_weapons[weapon] or 0) + 1
+                                else
+                                    result.weapon_read_unknown =
+                                        result.weapon_read_unknown + 1
+                                end
+                                local weapon_mode = "unknown"
+                                if ammo > 0 then
+                                    weapon_mode = "ranged"
+                                    result.ranged_team0 = result.ranged_team0 + 1
+                                elseif ammo == 0 and weapon >= 0 then
+                                    weapon_mode = "melee"
+                                    result.melee_team0 = result.melee_team0 + 1
+                                end
+                                result.defender_modes[weapon_mode] =
+                                    (result.defender_modes[weapon_mode] or 0) + 1
                                 if supports_kills then
                                     local dk = read_agent_number("agent_get_kill_count", agent)
                                     if dk >= 0 and dk <= MAX_PLAUSIBLE_KILLS then
@@ -455,10 +498,20 @@ local function sample_world()
                                     or (group >= 5 and group <= 7)) then
                                 defender = 1
                             end
+                            local weapon = read_agent_number("agent_get_wielded_item", agent, 0)
+                            local ammo = read_agent_number("agent_get_ammo", agent, 0)
+                            local weapon_mode = "unknown"
+                            if ammo > 0 then
+                                weapon_mode = "ranged"
+                            elseif ammo == 0 and weapon >= 0 then
+                                weapon_mode = "melee"
+                            end
                             result.ai_samples[#result.ai_samples + 1] =
                                 { team = side, id = agent, x = x, y = y,
                                   kills = kills, group = group, troop = troop,
-                                  defender = defender }
+                                  defender = defender, weapon = weapon, ammo = ammo,
+                                  alive = (is_alive(agent) == true) and 1 or 0,
+                                  mode = weapon_mode }
                         end
                     end
                 end
@@ -517,6 +570,11 @@ local function sample_world()
         result.troop_truncated = x0 + x1
         result.groups_text0 = (histogram_text(result.groups0))
         result.groups_text1 = (histogram_text(result.groups1))
+        result.defender_weapons_text = (histogram_text(result.defender_weapons))
+        result.defender_modes_text = (histogram_text(result.defender_modes))
+        result.defender_ids_text = id_list_text(result.defender_ids)
+        result.horse_ids_text0 = id_list_text(result.horse_ids[0])
+        result.horse_ids_text1 = id_list_text(result.horse_ids[1])
         return result
     end)
     if not ok then
@@ -593,6 +651,16 @@ local function state_fields(world)
             .. "|defender_read_unknown=" .. world.defender_read_unknown
             .. "|defender_source=" .. tostring(world.defender_source)
             .. "|defender_groups=" .. (histogram_text(world.defender_groups))
+            .. "|defender_weapons=" .. world.defender_weapons_text
+            .. "|defender_modes=" .. world.defender_modes_text
+            .. "|ranged_team0=" .. world.ranged_team0
+            .. "|melee_team0=" .. world.melee_team0
+            .. "|defender_ids=" .. world.defender_ids_text
+            .. "|defender_deaths=" .. defender_deaths_total
+            .. "|horse_ids_team0=" .. world.horse_ids_text0
+            .. "|horse_ids_team1=" .. world.horse_ids_text1
+            .. "|shield_team0=-1|shield_team1=-1|mounted_team1=-1|action=-1"
+            .. "|weapon_read_unknown=" .. world.weapon_read_unknown
             .. "|pos_team0=" .. world.pos_text[0]
             .. "|pos_team1=" .. world.pos_text[1]
             .. "|bbox_team0=" .. world.bbox_text[0]
@@ -611,7 +679,11 @@ local function state_fields(world)
             .. "|troop_read_unknown=-1|groups_team0=-1|groups_team1=-1"
             .. "|group_read_unknown=-1|defenders_team0=-1|defender_alive_team0=-1"
             .. "|defender_kills_team0=-1|defender_read_unknown=-1"
-            .. "|defender_source=-1|defender_groups=-1"
+            .. "|defender_source=-1|defender_groups=-1|defender_weapons=-1"
+            .. "|defender_modes=-1|ranged_team0=-1|melee_team0=-1|defender_ids=-1"
+            .. "|defender_deaths=-1|horse_ids_team0=-1|horse_ids_team1=-1"
+            .. "|shield_team0=-1|shield_team1=-1|mounted_team1=-1|action=-1"
+            .. "|weapon_read_unknown=-1"
             .. "|pos_team0=-1|pos_team1=-1"
             .. "|bbox_team0=-1|bbox_team1=-1|pos_sampled_team0=-1|pos_sampled_team1=-1"
     end
@@ -687,19 +759,29 @@ local function sample_defenders(tick, mode, wave)
                 local kills = read_agent_number("agent_get_kill_count", agent)
                 local ammo = read_agent_number("agent_get_ammo", agent, 0)
                 local weapon = read_agent_number("agent_get_wielded_item", agent, 0)
+                local weapon_mode = "unknown"
+                if ammo > 0 then
+                    weapon_mode = "ranged"
+                elseif ammo == 0 and weapon >= 0 then
+                    weapon_mode = "melee"
+                end
+                local alive_flag = is_alive(agent) == true and 1 or 0
                 if kills >= 0 or ammo >= 0 or weapon >= 0 then
                     emit("combat_sample", "|tick=" .. tick .. "|id=" .. agent
                         .. "|group=" .. group .. "|troop=" .. troop
                         .. "|defender_source="
                         .. (group_defender and "group" or "troop-fallback")
                         .. "|wave=" .. wave .. "|mode=" .. mode
-                        .. "|kills=" .. kills .. "|ammo=" .. ammo .. "|weapon=" .. weapon)
+                        .. "|kills=" .. kills .. "|ammo=" .. ammo .. "|weapon=" .. weapon
+                        .. "|alive=" .. alive_flag .. "|weapon_mode=" .. weapon_mode
+                        .. "|shield=-1|action=-1")
                 end
                 if type(game.agent_get_position) == "function" then
                     local point = agent_position(agent)
                     if point then
                         emit("agent_sample", "|tick=" .. tick .. "|id=" .. agent
                             .. "|group=" .. group .. "|troop=" .. troop
+                            .. "|alive=" .. alive_flag .. "|weapon_mode=" .. weapon_mode
                             .. "|mode=" .. mode
                             .. "|x=" .. math.floor(point.x * 10 + 0.5) / 10
                             .. "|y=" .. math.floor(point.y * 10 + 0.5) / 10)
@@ -735,6 +817,11 @@ local function emit_ai_samples(world, role, wave, tick)
             .. "|id=" .. sample.id .. "|group=" .. (sample.group or -1)
             .. "|troop=" .. (sample.troop or -1)
             .. "|defender=" .. (sample.defender or 0)
+            .. "|weapon=" .. (sample.weapon or -1)
+            .. "|ammo=" .. (sample.ammo or -1)
+            .. "|alive=" .. (sample.alive or 0)
+            .. "|weapon_mode=" .. (sample.mode or "unknown")
+            .. "|shield=-1|action=-1"
             .. "|x=" .. sample.x .. "|y=" .. sample.y
             .. "|kills=" .. (sample.kills or -1) .. "|wave=" .. wave)
     end
@@ -777,6 +864,13 @@ local function first_entry()
          "|team1=" .. (world.ok and world.team1 or -1) .. state_fields(world))
     previous_round_start = round_start
     previous_round_ended = global_int("g_round_ended")
+    previous_defender_ids = {}
+    defender_death_round = round_start
+    if world.ok then
+        for _, id in ipairs(world.defender_ids or {}) do
+            previous_defender_ids[id] = true
+        end
+    end
     if round_start >= 0 then
         emit("round_started", "|observed=entry_observation"
             .. lifecycle_fields(role, wave, world))
@@ -807,6 +901,24 @@ local function heartbeat()
         local world = sample_world()
         local role = resolve_role()
         local wave, mode = global_int("wave_number"), global_int("zdr_defence_mode")
+        if role == "server" and world.ok then
+            local death_round = global_int("g_round_start_time")
+            if defender_death_round ~= death_round then
+                previous_defender_ids = {}
+                defender_death_round = death_round
+            else
+                local current = {}
+                for _, id in ipairs(world.defender_ids or {}) do current[id] = true end
+                for id in pairs(previous_defender_ids) do
+                    if not current[id] then
+                        defender_deaths_total = defender_deaths_total + 1
+                        emit("defender_died", "|id=" .. id .. "|count="
+                            .. defender_deaths_total .. "|wave=" .. wave)
+                    end
+                end
+                previous_defender_ids = current
+            end
+        end
         emit("heartbeat", "|count=" .. heartbeat_count .. "|role=" .. role
             .. "|agents=" .. (world.ok and world.total or -1)
             .. "|team0=" .. (world.ok and world.team0 or -1)

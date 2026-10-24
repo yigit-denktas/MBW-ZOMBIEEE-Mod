@@ -319,6 +319,36 @@ took effect. It never fabricates a 5-7 division, never claims hold behaviour
 (`hold_behavior_observed=false`), and keeps `defender_divisions_unobserved` /
 `defender_division_unreadable` gaps honest.
 
+### Per-bot combat, loadout and wave-class telemetry (combat v2)
+
+`ai_sample` and `combat_sample` now carry bounded per-bot combat fields for
+non-player bots: `weapon` (`agent_get_wielded_item`), `ammo`
+(`agent_get_ammo`), `alive` (`agent_is_alive`), `group`, `troop`, `kills` and a
+derived `weapon_mode` = `ranged` (ammo > 0) / `melee` (ammo == 0 with a known
+weapon) / `unknown`. Heartbeats aggregate `defender_weapons`,
+`defender_modes`, `ranged_team0`, `melee_team0`, `defender_ids` and a cumulative
+`defender_deaths` (bounded, observed alive-defender ids disappearing within the
+same round; a new round resets the baseline and does not count as deaths).
+`defender_died` events carry the observed id. The summary exposes
+`defenders.weapons`, `weapon_modes`, `weapon_mode_observed`,
+`ranged_agents_team0`, `melee_fallback_team0`, `alive_samples`, `ammo`,
+`deaths`, and `engagement.defender_kills` / `defender_deaths` so defender kills
+can be read against observed defender deaths (lifetime counters remain
+explicitly non-per-wave attribution).
+
+`shield`/block capability, current action and mounted-rider identity have no
+verified read-only WSE2 operation in this mod (capability line reports
+`shield_getter=0`, `mounted_getter=0`, `action_getter=0`): those fields stay `-1`
+and the summary raises `shield_telemetry_unavailable`,
+`action_telemetry_unavailable`, `mounted_telemetry_unavailable` instead of
+guessing. Team-1 horses are counted and their agent ids exposed as
+`horse_ids_team1` (bounded, max 8); `mounted_team1` is only reported when the
+engine exposes it. Wave-1 telemetry adds `waves.wave1` with a bounded team-1
+troop-class breakdown (`generic`/`native_zombie`/`defender`/`survivor`/
+`unknown`), so a strong native/mounted wave-1 can be proven from sealed
+evidence without a gameplay claim. All fields are bounded; unknown remains
+unknown, never zero.
+
 ### Defender block: divisions 5-7, guard entries and hold observability
 
 Beyond the per-team group histogram the probe emits team-0 defender specifics:
