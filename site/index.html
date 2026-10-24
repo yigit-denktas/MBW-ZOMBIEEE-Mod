@@ -48,6 +48,14 @@ footer{border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
 .dep-legend{display:flex;gap:1rem;flex-wrap:wrap;font-size:.8rem;color:var(--muted);margin:.7rem 0}.dep-legend i{display:inline-block;width:1.2rem;height:2px;background:#687381;vertical-align:middle;margin-right:.3rem}.dep-legend i.support{background:linear-gradient(90deg,var(--accent) 50%,transparent 50%);background-size:6px 2px}.dep-legend b{display:inline-block;width:.65rem;height:.65rem;border-radius:2px;margin-right:.3rem}
 .dep-summary{font-size:.82rem;color:var(--muted)}.dep-scroll{overflow:auto;padding-bottom:.3rem}
 @media(max-width:760px){.dep-map{min-width:900px}.dep-section{margin-left:0;margin-right:0}}
+
+.dep-lanes{display:grid !important;grid-template-columns:1fr !important;gap:.65rem !important;width:max-content;min-width:100%}
+.dep-lane{display:block !important;min-height:0;padding:.55rem .6rem}
+.dep-lane h3{margin:0 0 .45rem;font-size:.8rem;line-height:1.35;white-space:normal}
+.dep-row-items{display:grid;grid-auto-flow:column;grid-auto-columns:220px;gap:.5rem;align-items:stretch}
+.dep-row-items .dep-node{height:100%;min-height:84px}
+.dep-lane:nth-child(odd){background:rgba(29,34,44,.72)}
+.dep-lane:nth-child(even){background:rgba(21,25,34,.72)}
 </style>
 </head>
 <body>
@@ -164,9 +172,10 @@ function renderDependencyMap(){
   const lane=document.createElement('section');lane.className='dep-lane';
   const h=document.createElement('h3');const hb=document.createElement('button');hb.type='button';hb.textContent=m.id+' · '+m.title;hb.title='Filter the work list to '+m.id;hb.addEventListener('click',()=>{$('milestone').value=m.id;render();$('work-heading').scrollIntoView({behavior:'smooth',block:'start'});$('search').focus()});h.append(hb);lane.append(h);
   const list=nodes.filter(i=>i.milestoneId===m.id).sort((a,b)=>(a.required===b.required?0:a.required?-1:1)||(a.state==='active'?-1:b.state==='active'?1:0));
-  if(!list.length){const e=document.createElement('p');e.className='muted';e.textContent='No gates in this view.';lane.append(e)}
-  list.forEach(it=>lane.append(depNode(it)));
-  lanes.append(lane);
+  const row=document.createElement('div');row.className='dep-row-items';
+  if(!list.length){const e=document.createElement('p');e.className='muted';e.textContent='No gates in this view.';row.append(e)}
+  list.forEach(it=>row.append(depNode(it)));
+  lane.append(row);lanes.append(lane);
  }
  const counts=nodes.reduce((a,i)=>{a.total++;if(i.required)a.req++;if(i.state==='done')a.done++;if(i.blocked)a.blocked++;a.res[i.state]=(a.res[i.state]||0)+1;return a},{total:0,req:0,done:0,blocked:0,res:{}});
  summary.textContent=nodes.length+' nodes shown · '+counts.req+' required gates · '+counts.done+' done · '+counts.blocked+' blocked · '+(depFrontierOnly?'frontier view':'all required + new discovered work');
