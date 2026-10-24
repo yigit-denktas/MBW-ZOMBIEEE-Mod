@@ -3640,10 +3640,10 @@
       "title": "Runtime diagnostic for appended-trigger faction/speed effects",
       "groupId": "Diagnostics",
       "milestoneId": "M1",
-      "state": "done",
+      "state": "active",
       "sourceState": "C/D diagnostic pending",
       "required": false,
-      "blocked": false,
+      "blocked": true,
       "dependsOn": [
         "ZOM-DISC-34",
         "ZOM-DISC-53"
@@ -3654,14 +3654,26 @@
           "source": "_zom-d-profiles/local/session/play-city",
           "observedOn": "2026-10-24",
           "acceptance": "sealed-8-file-verified"
+        },
+        {
+          "kind": "crash-log",
+          "source": "D:\\Program Files (x86)\\Steam\\steamapps\\common\\MountBlade Warband\\Logs\\rgl_log_24.10.2026_15.56.05_crash.txt",
+          "observedOn": "2026-10-24",
+          "acceptance": "not-accepted"
+        },
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/50",
+          "observedOn": "2026-10-24",
+          "acceptance": "blocker"
         }
       ],
-      "completionBasis": "Runtime diagnostic complete; gating fix pending in separate task",
+      "completionBasis": "Slots/speed verified at wave 1 but engine crash; blocked",
       "kind": "work-item",
       "owner": "Agent C — probe; Agent D sealed run",
       "priority": "P0",
       "criterion": "Faction slots 200/221/231/241 and team1 speed readback explain whether appended trigger 26/28 writes execute/reset.",
-      "note": "A: static build matches flags but runtime 896/speed 100; need slots/speed/trigger-log evidence before more redundancy. | P0 triage: 896/speed runtime effects absent despite static trigger 26/28; await C probe rebuild + D seal; A paused gating patches. | Sealed task55-p0: scene=516, slots only 200=894 (221=898/231=895/241=896), speed=100; appended trigger 26/28 writes not applied. Logs clean.",
+      "note": "A: static build matches flags but runtime 896/speed 100; need slots/speed/trigger-log evidence before more redundancy. | P0 triage: 896/speed runtime effects absent despite static trigger 26/28; await C probe rebuild + D seal; A paused gating patches. | Sealed task55-p0: scene=516, slots only 200=894 (221=898/231=895/241=896), speed=100; appended trigger 26/28 writes not applied. Logs clean. | Crash confirmed after P0: EXCEPTION_ACCESS_VIOLATION mbAgent::updateWalkingEffects; known-good f57c800 restored; issue #50. | C triage: probe read_group called fn(agent), native 1765 is (dest,agent_id) -> agent_id=0; guard branch unfrozen for call-convention fix. AV engine-side, causality unproven; bisect trigger-15 loop.",
       "deferReason": "Supplemental diagnostic; not part of required denominator.",
       "implementationLane": "C",
       "workOrigin": "discovered",
@@ -3970,6 +3982,48 @@
       "originReason": "Owner asked to analyze bot-vs-bot rounds and suggest small balance changes.",
       "discoveredDuring": "owner live feedback 2026-10-24",
       "graphImpact": "Feeds WAVE-01/AI-02 balance; no acceptance alone."
+    },
+    {
+      "id": "ZOM-DISC-69",
+      "title": "P0 native-wave engine crash triage (mbAgent::updateWalkingEffects)",
+      "groupId": "Runtime",
+      "milestoneId": "M1",
+      "state": "active",
+      "sourceState": "A/C/E triage; D sealed",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-59"
+      ],
+      "evidence": [
+        {
+          "kind": "crash-log",
+          "source": "D:\\Program Files (x86)\\Steam\\steamapps\\common\\MountBlade Warband\\Logs\\rgl_log_24.10.2026_15.56.05_crash.txt",
+          "observedOn": "2026-10-24",
+          "acceptance": "not-accepted"
+        },
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/50",
+          "observedOn": "2026-10-24",
+          "acceptance": "blocker"
+        }
+      ],
+      "completionBasis": "Bisect speed loop/no-loop; reproduce crash; no acceptance",
+      "kind": "work-item",
+      "owner": "Agent A — behavior; C probe; D runtime; E triage",
+      "priority": "P0",
+      "criterion": "Identify whether trigger-15 per-tick speed loop or another P0 write causes engine crash; produce safe build.",
+      "note": "Slots 200/221/231/241=894 and speed 60 verified at wave1; crash after ~28s. Known-good f57c800 restored.",
+      "deferReason": "Supplemental crash triage; blocks required runtime acceptance.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "bug",
+      "supportsOutcomeId": "ZOM-AI-03",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner runtime crash on P0 build.",
+      "discoveredDuring": "owner live report 2026-10-24",
+      "graphImpact": "Blocks P0/AI acceptance; must be solved before shipping."
     }
   ],
   "warnings": [
