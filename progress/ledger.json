@@ -3715,6 +3715,36 @@
       "originReason": "Owner: too much data is being collected; build a toolkit and iterate like auto-research.",
       "discoveredDuring": "owner live feedback 2026-10-24",
       "graphImpact": "Unblocks faster AI/performance iteration and reproducible diagnostics."
+    },
+    {
+      "id": "ZOM-DISC-62",
+      "title": "Faster AI fire, tighter accuracy/reticle, single-burst-auto modes",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "active",
+      "sourceState": "owner firearm feedback; implementation pending",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-47",
+        "ZOM-DISC-54"
+      ],
+      "evidence": [],
+      "completionBasis": "Owner requirement recorded; pending",
+      "kind": "work-item",
+      "owner": "Agent A — firearms; C telemetry; D validation",
+      "priority": "P0",
+      "criterion": "AI fires faster, accuracy/reticle tighter, automatic weapons support switchable single/burst/auto modes with no fake behavior.",
+      "note": "Crosshair/target icon too wide; automatic not auto/burst; preserve ammo/loadout/balance.",
+      "deferReason": "Supplemental combat-feel work; not part of required denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "feature",
+      "supportsOutcomeId": "ZOM-AI-02",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner real-time firearm feedback.",
+      "discoveredDuring": "owner live feedback 2026-10-24",
+      "graphImpact": "Improves combat feel/AI effectiveness; depends on loadout/formation."
     }
   ],
   "warnings": [
