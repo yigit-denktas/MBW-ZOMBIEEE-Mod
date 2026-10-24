@@ -33,7 +33,7 @@ footer{border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
 .dep-section{margin:1.6rem 0;border-top:1px solid var(--line);padding-top:1rem}
 .dep-head{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;flex-wrap:wrap}
 .dep-controls{display:flex;gap:.5rem;flex-wrap:wrap}.dep-controls button{min-height:38px;padding:.35rem .7rem;font-size:.85rem}
-.dep-map{position:relative;min-width:0;background:#151922;border:1px solid var(--line);border-radius:12px;padding:1rem;margin-top:.8rem;overflow:hidden}
+.dep-map{position:relative;min-width:0;background:#151922;border:1px solid var(--line);border-radius:12px;padding:1.25rem;margin-top:.8rem;overflow:hidden}
 .dep-lanes{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.65rem;position:relative;z-index:1}
 .dep-lane{display:grid;gap:.4rem;align-content:start;min-height:60px;padding:.45rem;border:1px dashed #3a4354;border-radius:10px;background:rgba(29,34,44,.55)}
 .dep-lane h3{font-size:.78rem;line-height:1.3;letter-spacing:.04em;margin:0 0 .2rem;color:var(--muted);font-weight:750}
@@ -49,10 +49,10 @@ footer{border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
 .dep-summary{font-size:.82rem;color:var(--muted)}.dep-scroll{overflow:auto;padding-bottom:.3rem}
 @media(max-width:760px){.dep-map{min-width:900px}.dep-section{margin-left:0;margin-right:0}}
 
-.dep-lanes{display:grid !important;grid-template-columns:1fr !important;gap:.65rem !important;width:max-content;min-width:100%}
-.dep-lane{display:block !important;min-height:0;padding:.55rem .6rem}
+.dep-lanes{display:grid !important;grid-template-columns:1fr !important;gap:1.65rem !important;width:max-content;min-width:100%}
+.dep-lane{display:block !important;min-height:0;padding:.85rem .8rem}
 .dep-lane h3{margin:0 0 .45rem;font-size:.8rem;line-height:1.35;white-space:normal}
-.dep-row-items{display:grid;grid-auto-flow:column;grid-auto-columns:220px;gap:.5rem;align-items:stretch}
+.dep-row-items{display:grid;grid-auto-flow:column;grid-auto-columns:225px;gap:.7rem;align-items:stretch}
 .dep-row-items .dep-node{height:100%;min-height:84px}
 .dep-lane:nth-child(odd){background:rgba(29,34,44,.72)}
 .dep-lane:nth-child(even){background:rgba(21,25,34,.72)}
@@ -74,6 +74,14 @@ footer{border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
 <div class="stat"><strong id="readiness">L0 · provisional</strong><span>Current evidenced agent readiness; target pending</span></div><div class="stat"><strong id="discovered">Not measured</strong><span>Discovered supporting tasks completed (not release acceptance)</span></div></div>
 <p class="meta" id="source">Loading proposal…</p></section>
 <section aria-labelledby="roadmap-heading"><h2 id="roadmap-heading">Milestone roadmap</h2><div id="milestones" aria-live="polite"></div></section>
+<section class="dep-section" aria-labelledby="dep-heading" id="dependency-graph">
+<div class="dep-head"><div><p class="eyebrow">Execution map</p><h2 id="dep-heading">Dependencies &amp; frontier</h2><p class="muted">Every node is a real task card. Click a node to open its detail; hover to isolate its edges. Solid lines are prerequisites; dashed lines support a required outcome. The diagram is generated from the same ledger as the cards above.</p></div>
+<div class="dep-controls" role="group" aria-label="Dependency map filters"><button id="dep-frontier" aria-pressed="true">Frontier only</button><button id="dep-all" aria-pressed="false">All required + discovered</button></div></div>
+<div class="dep-legend" aria-label="Legend"><span><i></i> prerequisite</span><span><i class="support"></i> supports required outcome</span><span><b style="background:#5bbf86"></b>done</span><span><b style="background:#e6b85c"></b>active</span><span><b style="background:#e67b70"></b>blocked</span><span><b style="background:#7e8fc7"></b>required gate</span></div>
+<div class="dep-scroll" tabindex="0"><div class="dep-map" id="dep-map"><svg class="dep-edges" id="dep-edges" aria-hidden="true"><defs><marker id="dep-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#687381"></path></marker><marker id="dep-arrow-support" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#e67b70"></path></marker><marker id="dep-arrow-hot" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f4c29b"></path></marker></defs><g id="dep-paths"></g></svg><div class="dep-lanes" id="dep-lanes"></div></div></div>
+<p class="dep-summary" id="dep-summary" role="status"></p>
+<p class="meta"><a href="https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/main/docs/DEPENDENCY-GRAPH.md">Full graph and owner/occurred-while table</a></p>
+</section>
 <section aria-labelledby="work-heading"><h2 id="work-heading">Explore the work</h2>
 <p class="muted">Every task has one primary milestone and criterion. Discovered work is linked to its original outcome, without counting it twice toward the City release.</p>
 <p class="discovered-note"><span class="origin-dot" aria-hidden="true">●</span> <strong>Discovered task</strong> — unplanned bug fix, audit or integration work added after the original 24-task proposal.</p>
@@ -89,14 +97,6 @@ footer{border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
 </section>
 
 
-<section class="dep-section" aria-labelledby="dep-heading" id="dependency-graph">
-<div class="dep-head"><div><p class="eyebrow">Execution map</p><h2 id="dep-heading">Dependencies &amp; frontier</h2><p class="muted">Every node is a real task card. Click a node to open its detail; hover to isolate its edges. Solid lines are prerequisites; dashed lines support a required outcome. The diagram is generated from the same ledger as the cards above.</p></div>
-<div class="dep-controls" role="group" aria-label="Dependency map filters"><button id="dep-frontier" aria-pressed="true">Frontier only</button><button id="dep-all" aria-pressed="false">All required + discovered</button></div></div>
-<div class="dep-legend" aria-label="Legend"><span><i></i> prerequisite</span><span><i class="support"></i> supports required outcome</span><span><b style="background:#5bbf86"></b>done</span><span><b style="background:#e6b85c"></b>active</span><span><b style="background:#e67b70"></b>blocked</span><span><b style="background:#7e8fc7"></b>required gate</span></div>
-<div class="dep-scroll" tabindex="0"><div class="dep-map" id="dep-map"><svg class="dep-edges" id="dep-edges" aria-hidden="true"><defs><marker id="dep-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#687381"></path></marker><marker id="dep-arrow-support" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#e67b70"></path></marker><marker id="dep-arrow-hot" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f4c29b"></path></marker></defs><g id="dep-paths"></g></svg><div class="dep-lanes" id="dep-lanes"></div></div></div>
-<p class="dep-summary" id="dep-summary" role="status"></p>
-<p class="meta"><a href="https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/main/docs/DEPENDENCY-GRAPH.md">Full graph and owner/occurred-while table</a></p>
-</section>
 </main>
 <footer><p>Unpublished review preview · Original ZOMBIEEE Beta 0.4 only · No CI, no public hosting, no gameplay verification inferred from compiled scripts.</p><p>Provisional dark graphite / ember / bone theme; final brand and Pages integration require owner approval.</p></footer>
 <script>
@@ -164,7 +164,7 @@ function depDrawEdges(nodes){
 function renderDependencyMap(){
  const lanes=$('dep-lanes'),summary=$('dep-summary');if(!record||!lanes)return;
  const req=record.items.filter(i=>i.required);
- const disc=record.items.filter(i=>i.workOrigin==='discovered'&&/^ZOM-DISC-(2[89]|3[0-9]|4[0-6])$/.test(i.id));
+ const disc=record.items.filter(i=>i.workOrigin==='discovered'&&/^ZOM-DISC-(2[89]|3[0-9]|4[0-9]|5[0-2])$/.test(i.id));
  let nodes=req.concat(disc);
  if(depFrontierOnly){nodes=nodes.filter(i=>i.required?i.state!=='done':['active','review','ready','blocked'].includes(i.state));}
  lanes.replaceChildren();
@@ -195,7 +195,7 @@ $('work').textContent=done.length+'/'+req.length+' · '+pct(done.length,req.leng
 $('gates').textContent=accepted.length+'/'+record.milestones.length+' · '+pct(accepted.length,record.milestones.length);
 const discovered=record.items.filter(i=>i.workOrigin==='discovered'),discoveredDone=discovered.filter(i=>i.state==='done');
 $('discovered').textContent=discoveredDone.length+'/'+discovered.length+' · '+pct(discoveredDone.length,discovered.length);
-$('source').textContent='Source: progress/ledger.json · 2026-10-24 · v0.2.0 · main · single tracker in main · dependency graph on this page · required City outcomes 8/23 · discovered work 46 · milestones 0/5 · no City acceptance';
+$('source').textContent='Source: progress/ledger.json · 2026-10-24 · v0.2.0 · main · single tracker in main · dependency graph on this page · required City outcomes 8/23 · discovered work 52 · milestones 0/5 · no City acceptance';
 for(const m of record.milestones){const option=el('option',m.id+' — '+m.title);option.value=m.id;$('milestone').append(option);
 const card=el('section',undefined,'card');card.append(el('small',m.id+' · '+m.horizon));card.append(el('h3',m.title));const work=itemsFor(m),complete=work.filter(x=>x.state==='done');card.append(el('p',complete.length+'/'+work.length+' proposed leaves complete · '+pct(complete.length,work.length)));card.append(el('p',m.goal));const button=el('button','Show '+m.id+' items');button.addEventListener('click',()=>{$('milestone').value=m.id;render();$('work-heading').scrollIntoView();$('search').focus()});card.append(button);$('milestones').append(card)}
 ['search','milestone','status','origin'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',render));

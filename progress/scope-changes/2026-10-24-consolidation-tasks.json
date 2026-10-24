@@ -1,0 +1,18 @@
+{
+  "id": "2026-10-24-consolidation-tasks",
+  "date": "2026-10-24",
+  "reason": "Owner consolidation request: all current tasks in ledger plus review loop/asset/semver/diagnostics work.",
+  "denominatorEffect": "none",
+  "added": [
+    "ZOM-DISC-47",
+    "ZOM-DISC-48",
+    "ZOM-DISC-49",
+    "ZOM-DISC-50",
+    "ZOM-DISC-51",
+    "ZOM-DISC-52"
+  ],
+  "updated": [
+    "ZOM-DISC-44 done"
+  ],
+  "milestoneEffect": "M1/M3/M4 support only; 0/5 accepted."
+}

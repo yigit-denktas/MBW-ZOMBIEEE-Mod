@@ -33,3 +33,9 @@ Generated from the authoritative `progress/ledger.json` on the current source sn
 | ZOM-DISC-44 | Agent C — telemetry; Agent A implementation | task-42 sealed validation | active | ZOM-DISC-42 | ZOM-OBS-01 | Unblocks proof for speed/hold; without it those claims stay config-only. |
 | ZOM-DISC-45 | Agent D — sealed validation; owner retains acceptance | task-42 sealed validation | active | ZOM-DISC-42 | ZOM-QA-02 | Supports QA-02 and WAVE-01; without it standoff/balance remain partially unproven. |
 | ZOM-DISC-46 | Agent A — AI/balance; Agent D validation | task-42 sealed validation/owner balance feedback | active | ZOM-DISC-40, ZOM-DISC-42 | ZOM-WAVE-01 | Blocks WAVE-01 acceptance; depends on standoff validation and telemetry. |
+| ZOM-DISC-47 | Agent A — implementation; Agent D validation | owner consolidation after task-42 | active | ZOM-DISC-40, ZOM-DISC-46 | ZOM-AI-02 | Primary balance lever; depends on standoff and KD work. |
+| ZOM-DISC-48 | Lead — coordination; reviewers A/C/D/E/F/G | owner consolidation request | active | — | ZOM-REC-03 | Unblocks coordinated delivery; no required credit. |
+| ZOM-DISC-49 | Agent C — research; Agent D validation | owner consolidation request | active | ZOM-DISC-44 | ZOM-OBS-01 | Improves telemetry proof and validation speed. |
+| ZOM-DISC-50 | Agent F — release metadata; Agent E review | owner consolidation request | active | ZOM-DISC-37 | ZOM-REL-01 | Supports release gate; no acceptance alone. |
+| ZOM-DISC-51 | Agent G — sourcing; Agent E licence review | owner consolidation request | active | — | ZOM-LEGAL-01 | Supports legal/release and future cosmetics layer. |
+| ZOM-DISC-52 | Agent E — independent reviewer; Lead merges | owner consolidation request | active | ZOM-DISC-38, ZOM-DISC-50, ZOM-DISC-51 | ZOM-REC-03 | Blocks release/asset acceptance until reviewer signs off. |
