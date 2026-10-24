@@ -4,8 +4,8 @@
   "source_branch": "agent/a-nextplay",
   "package": "C:\\Users\\yigit\\AppData\\Local\\Temp\\zombieee-a\\nextplay\\ZOMBIEEE_Remaster",
   "manifest": "builds/NEXTPLAY.json",
-  "module_sha256": "40d131db856ef4b0e491ca816099432dc9ee9abff7bf2a54765410aa3c91cae2",
-  "receipt_sha256": "0ee358e2f86818f7f58800150b913b1a1e39a4760e0ee3d57047b2487b48cc4f",
+  "module_sha256": "4e90e0460934acaf8c1751d0142effd0304c61d0be7e0d9c764d1992424f358b",
+  "receipt_sha256": "24b7612694a715370597796df589f322c17e04d8aa04685d3385195b817862e3",
   "shield_policy": {
     "mode": "stock",
     "gate": "passed",
@@ -14,7 +14,7 @@
     "cosmetic_troops": []
   },
   "accuracy_modifiers": 100,
-  "ammo_refill": "off (ammo-burn measurement build)",
+  "ammo_refill": "agent_refill_ammo every 5s for team0 AI",
   "notes": [
     "stock shield policy default: zero shields, shield skill 0; cosmetic-half available separately",
     "no acceptance"
