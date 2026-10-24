@@ -272,6 +272,18 @@ and `defenders_sampled` (whether any `combat_sample` was sealed). Absent
 defender divisions raise `defender_divisions_unobserved`; unreadable groups
 raise `division_reads_unreliable`.
 
+**Division-getter convention (DISC-28):** `agent_get_group` (1765) is a
+condition-style lhs op in some WSE2 builds: it returns
+`(boolDidNotFail, intResult, intError)` instead of `(intResult, intError)`.
+The shared accessor now decodes both shapes, and the dedicated `read_group`
+probes the working call convention once (`(0, agent)` lhs call, then
+`(agent)` direct), caches it, validates `0..255`, and emits a single bounded
+`probe_anomaly|kind=group_unreadable` plus `probe_capability|group_convention=`
+if nothing works. If divisions genuinely cannot be read, the summary reports
+`defenders.division_source="unavailable"` with the
+`defender_division_unreadable` gap (defenders may still be observed via their
+981-984 troop ids) and never invents a division or hold claim.
+
 ### Defender block: divisions 5-7, guard entries and hold observability
 
 Beyond the per-team group histogram the probe emits team-0 defender specifics:

@@ -440,6 +440,9 @@ def summarize_receipt(target: Path) -> dict:
         "moving": sum(1 for points in defender_positions.values() if len(points) >= 2),
         "hold_samples": len(defender_samples),
         "hold_behavior_observed": False,
+        "division_source": ("agent_get_group"
+                            if (sum(defender_divisions.values()) or defender_samples)
+                            else "unavailable"),
         "note": ("team-0 non-player defenders; guard_entries_reached is a bounded "
                  "distinct-coarse-position proxy, not a guard-entry identity; "
                  "hold behaviour is not asserted from samples."),
@@ -649,6 +652,8 @@ def summarize_receipt(target: Path) -> dict:
         gaps_hint.append("kill_telemetry_unavailable")
 
     gaps = list(gaps_hint)
+    if defenders["observed"] and not defenders["divisions"]:
+        gaps.append("defender_division_unreadable")
     if not defenders["observed"]:
         gaps.append("defenders_not_observed")
     if defenders["observed"] and not defender_samples:

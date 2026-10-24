@@ -85,6 +85,7 @@ emit("recorder_capabilities",
     .. "|human_getter=" .. binding_flag("agent_is_human")
     .. "|composition=1|engagement=1|position_summary=1|pre_round=1"
     .. "|group_getter=" .. binding_flag("agent_get_group")
+    .. "|group_probe=1"
     .. "|npc_getter=" .. binding_flag("agent_is_non_player")
     .. "|position_getter=" .. binding_flag("agent_get_position")
     .. "|weapon_getter=" .. binding_flag("agent_get_wielded_item")
@@ -118,15 +119,70 @@ end
 local function read_agent_number(name, agent, extra)
     local fn = game[name]
     if type(fn) ~= "function" then return -1 end
-    local ok, value, op_error = pcall(function()
+    local ok, first, second, third = pcall(function()
         if extra ~= nil then return fn(0, agent, extra) end
         return fn(0, agent)
     end)
     if not ok then return -1 end
-    if op_error ~= nil and op_error ~= 0 then return -1 end
+    -- Plain lhs ops return (intResult, intError); can-fail-lhs ops return
+    -- (boolDidNotFail, intResult, intError). agent_get_group (1765) is
+    -- condition-style, so both shapes are accepted here.
+    local value, op_error
+    if type(first) == "boolean" then
+        value, op_error = second, third
+    else
+        value, op_error = first, second
+    end
+    if op_error ~= nil and type(op_error) == "number" and op_error ~= 0 then
+        return -1
+    end
     local number = tonumber(value)
     if number == nil then return -1 end
     return math.floor(number)
+end
+-- Dedicated division reader with convention detection: some WSE2 builds want
+-- the lhs placeholder call (0, agent), others want the plain (agent) call.
+-- The first working convention is cached; if none works, one bounded
+-- probe_anomaly is emitted and divisions stay unobservable (never guessed).
+local MAX_DIVISION = 255
+local group_convention = nil
+local function group_from_returns(ok, first, second)
+    if not ok then return -1 end
+    local value
+    if type(first) == "boolean" then value = second
+    elseif type(first) == "number" then value = first
+    else value = second end
+    if type(value) ~= "number" or value < 0 or value > MAX_DIVISION then return -1 end
+    return math.floor(value)
+end
+local function group_lhs(fn, agent)
+    local ok, first, second = pcall(function() return fn(0, agent) end)
+    return group_from_returns(ok, first, second)
+end
+local function group_direct(fn, agent)
+    local ok, first, second = pcall(function() return fn(agent) end)
+    return group_from_returns(ok, first, second)
+end
+local function read_group(agent)
+    local fn = game.agent_get_group
+    if type(fn) ~= "function" then return -1 end
+    if group_convention == nil then
+        group_convention = "unreadable"
+        local lhs_value = group_lhs(fn, agent)
+        if lhs_value >= 0 then
+            group_convention = "lhs"
+        else
+            local direct_value = group_direct(fn, agent)
+            if direct_value >= 0 then group_convention = "direct" end
+        end
+        if group_convention == "unreadable" then
+            emit("probe_anomaly", "|kind=group_unreadable|getter=1|agent=" .. agent)
+        end
+        emit("probe_capability", "|group_convention=" .. group_convention)
+    end
+    if group_convention == "lhs" then return group_lhs(fn, agent) end
+    if group_convention == "direct" then return group_direct(fn, agent) end
+    return -1
 end
 local function is_npc(agent)
     local value = guarded_call(function()
@@ -274,7 +330,7 @@ local function sample_world()
                     if is_npc(agent) then
                         result.bots[side] = result.bots[side] + 1
                         if type(game.agent_get_group) == "function" then
-                            local group = read_agent_number("agent_get_group", agent)
+                            local group = read_group(agent)
                             if group >= 0 and group <= 255 then
                                 local groups = side == 0 and result.groups0 or result.groups1
                                 groups[group] = (groups[group] or 0) + 1
@@ -358,7 +414,7 @@ local function sample_world()
                             if kills < 0 or kills > MAX_PLAUSIBLE_KILLS then kills = -1 end
                             local group = -1
                             if type(game.agent_get_group) == "function" then
-                                group = read_agent_number("agent_get_group", agent)
+                                group = read_group(agent)
                                 if group < 0 or group > 255 then group = -1 end
                             end
                             result.ai_samples[#result.ai_samples + 1] =
@@ -580,7 +636,7 @@ local function sample_defenders(tick, mode, wave)
     local ok = pcall(function()
         for agent in game.agentsIt() do
             local team = read_agent_number("agent_get_team", agent)
-            local group = read_agent_number("agent_get_group", agent)
+            local group = read_group(agent)
             if team == 0 and group >= 5 and group <= 7 and is_npc(agent) then
                 local kills = read_agent_number("agent_get_kill_count", agent)
                 local ammo = read_agent_number("agent_get_ammo", agent, 0)

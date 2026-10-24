@@ -76,6 +76,64 @@ checks[#checks + 1] = tostring(read_agent_number(function() return 7, 0 end) == 
 checks[#checks + 1] = tostring(read_agent_number(function() return 7, 1 end) == -1)
 checks[#checks + 1] = tostring(read_agent_number(function() error("boom") end) == -1)
 checks[#checks + 1] = tostring(read_agent_number(function() return nil, 0 end) == -1)
+
+-- Hybrid lhs return shapes: plain (intResult, intError) and condition-style
+-- (boolDidNotFail, intResult, intError) must both decode; failures are -1.
+local function read_lhs(fn)
+    local ok, first, second, third = pcall(fn)
+    if not ok then return -1 end
+    local value, op_error
+    if type(first) == "boolean" then value, op_error = second, third
+    else value, op_error = first, second end
+    if op_error ~= nil and type(op_error) == "number" and op_error ~= 0 then return -1 end
+    local number = tonumber(value)
+    if number == nil then return -1 end
+    return math.floor(number)
+end
+checks[#checks + 1] = tostring(read_lhs(function() return 5, 0 end) == 5)
+checks[#checks + 1] = tostring(read_lhs(function() return true, 6, 0 end) == 6)
+checks[#checks + 1] = tostring(read_lhs(function() return false, 6, 1 end) == -1)
+checks[#checks + 1] = tostring(read_lhs(function() return true, nil, 0 end) == -1)
+
+-- Convention detection for agent_get_group: try lhs call, then direct call,
+-- cache whichever returns a plausible division, else "unreadable".
+local function group_from(ok, first, second)
+    if not ok then return -1 end
+    local value
+    if type(first) == "boolean" then value = second
+    elseif type(first) == "number" then value = first
+    else value = second end
+    if type(value) ~= "number" or value < 0 or value > 255 then return -1 end
+    return math.floor(value)
+end
+local function group_lhs(fn)
+    local ok, first, second = pcall(function() return fn(0, 1) end)
+    return group_from(ok, first, second)
+end
+local function group_direct(fn)
+    local ok, first, second = pcall(function() return fn(1) end)
+    return group_from(ok, first, second)
+end
+local function detect(fn)
+    local value = group_lhs(fn)
+    if value >= 0 then return "lhs", value end
+    value = group_direct(fn)
+    if value >= 0 then return "direct", value end
+    return "unreadable", -1
+end
+local conv, value
+conv, value = detect(function(...)
+    if select("#", ...) ~= 2 then error("argc") end
+    return 5, 0
+end)
+checks[#checks + 1] = tostring(conv == "lhs" and value == 5)
+conv, value = detect(function(...)
+    if select("#", ...) ~= 1 then error("argc") end
+    return true, 7, 0
+end)
+checks[#checks + 1] = tostring(conv == "direct" and value == 7)
+conv, value = detect(function() error("unreadable") end)
+checks[#checks + 1] = tostring(conv == "unreadable" and value == -1)
 return table.concat(checks, ",")
 """
 
@@ -118,7 +176,7 @@ class RealLuaSemanticsTests(unittest.TestCase):
 
     def test_team_tables_arithmetic_and_precedence(self):
         checks = self.run_lua(SEMANTICS_SCRIPT).split(",")
-        self.assertEqual(len(checks), 13)
+        self.assertEqual(len(checks), 20)
         for index, value in enumerate(checks, 1):
             self.assertEqual(value, "true", f"Lua semantics check {index} failed")
 

@@ -362,8 +362,8 @@ class LuaOperationMetadataTests(unittest.TestCase):
         # WSE2 lhs ops return (result, error); game.reg0 is stale. Reading it
         # made every agent report one troop id and produced bogus kill sums.
         self.assertNotIn("tonumber(game.reg0)", self.main)
-        self.assertIn("local ok, value, op_error = pcall", self.main)
-        self.assertIn("if op_error ~= nil and op_error ~= 0 then return -1 end", self.main)
+        self.assertIn("local ok, first, second, third = pcall", self.main)
+        self.assertIn('if op_error ~= nil and type(op_error) == "number" and op_error ~= 0 then', self.main)
         self.assertIn("MAX_PLAUSIBLE_KILLS = 10000", self.main)
         self.assertIn("kind=kill_count_out_of_range", self.main)
         self.assertIn("result.kills_unknown[team] > 0", self.main)
@@ -375,7 +375,7 @@ class LuaOperationMetadataTests(unittest.TestCase):
         for token in ("|groups_team0=", "|groups_team1=", "|group_read_unknown=",
                       "groups0 = {}, groups1 = {}", "sample.group"):
             self.assertIn(token, self.main)
-        self.assertIn('read_agent_number("agent_get_group", agent)', self.main)
+        self.assertIn("read_group(agent)", self.main)
         # sampler stays bounded (histogram text helper caps ids/chars)
         self.assertIn("result.groups_text0 = (histogram_text(result.groups0))", self.main)
 
@@ -387,6 +387,19 @@ class LuaOperationMetadataTests(unittest.TestCase):
             self.assertIn(token, self.main)
         self.assertIn("if side == 0 and group >= 5 and group <= 7 then", self.main)
         self.assertIn("MAX_PLAUSIBLE_KILLS", self.main)
+
+
+    def test_group_reader_handles_both_lhs_return_shapes(self):
+        # agent_get_group (1765) is condition-style in some builds: accept both
+        # (intResult, intError) and (boolDidNotFail, intResult, intError), probe
+        # the working convention once, and never guess a division.
+        self.assertIn("type(first) == \"boolean\"", self.main)
+        self.assertIn("local function read_group(agent)", self.main)
+        self.assertIn("group_convention", self.main)
+        self.assertIn("|group_convention=", self.main)
+        self.assertIn("kind=group_unreadable", self.main)
+        self.assertIn("MAX_DIVISION = 255", self.main)
+        self.assertIn("local group = read_group(agent)", self.main)
 
 if __name__ == "__main__":
     unittest.main()
