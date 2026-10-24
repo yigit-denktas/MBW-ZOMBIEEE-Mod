@@ -2454,6 +2454,12 @@
           "source": "local/session/ai-evidence-disc28-groups",
           "observedOn": "2026-10-24",
           "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-evidence-disc28d-scripted",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
         }
       ],
       "completionBasis": "Not completed: spawn/roster proven, but division 5-7 adoption and guard-post hold/sector rotation are unproven; defenders cluster near spawn and no combat/agent samples exist.",
@@ -2462,7 +2468,7 @@
       "priority": "P0",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/13",
       "criterion": "Rotation set_bot_count 1 4 yields four native team-0 bots selecting 981..984; City orders adopt them into divisions 5-7 and issue hold/sector orders; movement/positions observable.",
-      "note": "Sealed idle bundle: bots_team0=4, alive_team0=5, team0 troops 981x3/982x2/983x2/984x2 with zdr names, unknown_ids=0, team1 native 894..910, engagement reliable (1/5 lifetime counters), positions moving, 8-file manifest verified. No-client bundle: no_player=true, bots_team0=4 (981/982/984), team1 8 natives. BUT no combat_sample/agent_sample events from sample_defenders; team0 stays clustered near spawn (166,182) and guard entries 2/3/4/division 5-7 holding is NOT observed. Keep active; C probe group/division capture needed. C's final telemetry merge (08605a3, main 24ed22f) adds groups_team0/1 and a defenders summary with explicit hold_behavior_observed=false and division gaps; D is rebuilding from 24ed22f to validate group 5-7 / guard positions. D's sealed group-telemetry run ai-evidence-disc28-groups (build 24ed22f) again shows defender troops 981..984 and reliable kills (4/5) but group_read_unknown=17, groups_team0/1=none and defenders.positions_sampled=0: the probe's agent_get_group (1765) read fails for every agent, so division 5-7 adoption stays unobservable; C hotfix requested.",
+      "note": "Sealed idle bundle: bots_team0=4, alive_team0=5, team0 troops 981x3/982x2/983x2/984x2 with zdr names, unknown_ids=0, team1 native 894..910, engagement reliable (1/5 lifetime counters), positions moving, 8-file manifest verified. No-client bundle: no_player=true, bots_team0=4 (981/982/984), team1 8 natives. BUT no combat_sample/agent_sample events from sample_defenders; team0 stays clustered near spawn (166,182) and guard entries 2/3/4/division 5-7 holding is NOT observed. Keep active; C probe group/division capture needed. C's final telemetry merge (08605a3, main 24ed22f) adds groups_team0/1 and a defenders summary with explicit hold_behavior_observed=false and division gaps; D is rebuilding from 24ed22f to validate group 5-7 / guard positions. D's sealed group-telemetry run ai-evidence-disc28-groups (build 24ed22f) again shows defender troops 981..984 and reliable kills (4/5) but group_read_unknown=17, groups_team0/1=none and defenders.positions_sampled=0: the probe's agent_get_group (1765) read fails for every agent, so division 5-7 adoption stays unobservable; C hotfix requested. Build a590a05 run ai-evidence-disc28d-scripted (300 s, 22 heartbeats): defenders 981..984 present every heartbeat; team0 ai_sample positions leave the spawn cluster and move 20-39 m away after the adoption ticks, so the scripted-destination fallback works. But group_convention=unknown, groups_team0/1=none, divisions.read_unknown=22, division_source=unavailable, combat_sample=0: division 5-7 assignment and guard-post hold remain unobservable/unproven. DISC-28 stays active.",
       "deferReason": null,
       "implementationLane": "A"
     },
@@ -2516,7 +2522,8 @@
     "30 non-required leaves: 28 narrowly Done, 1 active (ZOM-DISC-28 defender division/hold observation), one retained optional five-map backlog (ZOM-MAP-01); none adds release credit.",
     "Four observed Invalid Faction ID:-1 errors remain original Beta 0.4 trailing faction_set_slot writes (trigger 14/opcode 502); engine causality unproven, no gameplay patch.",
     "Final canonical sealed evidence bounds: defender SPAWN proven (bots_team0=4, troops 981..984), but division 5-7 adoption/hold-sector rotation and wave>=2 remain unobserved; do not read spawn cluster positions as guard-post holds.",
-    "Probe boundary: C's agent_get_group (1765) read fails for every agent in the sealed disc28 run (group_read_unknown=17, groups_team0/1=none), so defender division 5-7 adoption/hold rotation remains unobservable; DISC-28 stays active pending C hotfix. no_player reads the last heartbeat only; use composition.mode."
+    "Probe boundary: C's agent_get_group (1765) read fails for every agent in the sealed disc28 run (group_read_unknown=17, groups_team0/1=none), so defender division 5-7 adoption/hold rotation remains unobservable; DISC-28 stays active pending C hotfix. no_player reads the last heartbeat only; use composition.mode.",
+    "DISC-28 behavioral boundary (build a590a05, sealed ai-evidence-disc28d-scripted): defender spawn is proven and scripted-destination movement away from spawn is observed (20-39 m for several bots), but group/division reads are unknown (groups none, read_unknown=22), so division 5-7 adoption, combat_sample and hold-at-sector remain unproven; do not describe movement as holding."
   ],
   "governance": {
     "purpose": "City-first private solo Windows 11 remaster, verified flight-recorder diagnostics; four other original maps deferred until later release.",
