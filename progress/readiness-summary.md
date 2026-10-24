@@ -12,4 +12,4 @@ Observed source: `yigit-denktas/MBW-ZOMBIEEE-Mod@048564a526de9b36abd55874271c7b8
 
 **Selected bounded remediation (proposed):** demonstrate clean Windows bootstrap, collect one WSE2 runtime baseline, validate diagnostics under an actual crash/test session, and add a protected release/rollback proof. Approval and scope effects pending.
 
-**2026-10-24 hands-off update:** main `24ed22f` / canonical build `a6b5fe9`; sealed hands-off runs verify native Zombie roster 894..911 and native team-0 defenders 981..984 (spawn proven; hold/division unproven), plus a passed play_city lifecycle. Required City outcomes remain **0/23**, milestones **0/5**, `runtime_verified=false`; wave 2+/completion and release gates remain unaccepted.
+**2026-10-24 hands-off update:** main `24ed22f` / canonical build `24ed22f`; sealed hands-off runs verify native Zombie roster 894..911 and native team-0 defenders 981..984 (spawn proven; hold/division unproven), plus a passed play_city lifecycle. Required City outcomes remain **0/23**, milestones **0/5**, `runtime_verified=false`; wave 2+/completion and release gates remain unaccepted.
