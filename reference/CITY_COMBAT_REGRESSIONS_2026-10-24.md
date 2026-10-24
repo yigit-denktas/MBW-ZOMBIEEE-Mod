@@ -80,3 +80,15 @@ with `runtime_verified=false` and no acceptance claim.
   that survivors shoot the slowed wave before it reaches the line. Runtime
   distance/KD/ammo evidence is D's sealed validation; no acceptance claim.
 
+## Task-45 balance after sealed task-38/42 evidence
+
+Sealed runs showed 72/72 ranged, rear hold and refill working, but KD 4-6 kills
+vs 49-52 deaths, zombies outmoving defenders, and wave 2 never reached. Fixes:
+- remove `mordr_hold_fire` from the per-group order set (hold + fire_at_will +
+  use_ranged_weapons only) so defenders actually engage;
+- zombie speed base 70% -> **60%** at wave 0/1 (+5%/wave, cap 100%);
+- launcher generic enemy default 32 -> **24** generic bots (`DEFAULT_TEAM2_BOTS`);
+  weak-wave1/native-only profiles unchanged.
+D validates KD, wave-2 reachability (894-only) and the ammo/melee branch with a
+no-refill variant; no acceptance claim.
+

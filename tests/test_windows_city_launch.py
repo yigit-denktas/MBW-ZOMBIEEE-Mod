@@ -80,7 +80,7 @@ INSTALLED_OK = {'present': True, 'ok': True, 'module_sha256': 'a' * 64,
                 'map_scope': 'city-only', 'problems': [],
                 'runtime_verified': False}
 
-MATRIX_SHA = {'generic': '87c8d767ef4a282a1f0f4fe9d2e2ef8c386bb6a647a7b2e65912ed0fb42b6240',
+MATRIX_SHA = {'generic': 'cafa2baccc90d6089a9b5ce2dc2fc0dad403e42cc085346bf6f3f19500ef6d82',
               'weak-wave1': 'eda8af7b4293578ac7fc1b0602e9717724ae4e5dc40e9fb9cb8d454d0251c2d3',
               'native-only': 'fbfb3d93d0f5c9d07bf48dc17fea55a78ffcb33c14243b2603116fb11d87237e'}
 
@@ -173,7 +173,7 @@ class LaunchPlanTests(unittest.TestCase):
             self.assertEqual(plan['team0_bots'], 8)
             self.assertEqual(plan['rotation_profile'], 'defender-squad')
             self.assertIn('set_bot_count 1 8', plan['rotation'])
-            self.assertIn('set_bot_count 2 32', plan['rotation'])
+            self.assertIn('set_bot_count 2 24', plan['rotation'])
             self.assertIn('set_defender_spawn_count 0', plan['rotation'])
             self.assertEqual(plan['rotation_sha256'],
                              rotation_sha256(build_defender_rotation()))
@@ -260,7 +260,7 @@ class LaunchDefenderProfileTests(unittest.TestCase):
             self.assertEqual(plan['team0_bots'], 8)
             self.assertEqual(plan['rotation_profile'], 'defender-squad')
             self.assertIn('set_bot_count 1 8', plan['rotation'])
-            self.assertIn('set_bot_count 2 32', plan['rotation'])
+            self.assertIn('set_bot_count 2 24', plan['rotation'])
             self.assertIn('set_defender_spawn_count 0', plan['rotation'])
             self.assertEqual(plan['rotation'], build_defender_rotation())
             self.assertTrue(validate_rotation(plan['rotation']))
@@ -308,8 +308,8 @@ class LaunchEnemyProfileTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             plan = self._plan(tmp)
             self.assertEqual(plan['enemy_profile'], 'generic')
-            self.assertEqual(plan['team2_bots'], 32)
-            self.assertIn('set_bot_count 2 32', plan['rotation'])
+            self.assertEqual(plan['team2_bots'], 24)
+            self.assertIn('set_bot_count 2 24', plan['rotation'])
             self.assertIn('set_bot_count 1 8', plan['rotation'])
 
     def test_weak_wave1_stages_a_small_enemy_count(self):
@@ -733,7 +733,7 @@ class CityLauncherSuccessTests(unittest.TestCase):
             self.assertTrue(paths.rotation_path.is_file())
             rotation_text = paths.rotation_path.read_text(encoding='utf-8')
             self.assertIn('set_bot_count 1 8', rotation_text)
-            self.assertIn('set_bot_count 2 32', rotation_text)
+            self.assertIn('set_bot_count 2 24', rotation_text)
             self.assertTrue(paths.config_path.is_file())
             self.assertTrue(paths.launch_receipt.is_file())
             saved = json.loads(paths.launch_receipt.read_text(encoding='utf-8'))
@@ -892,7 +892,7 @@ class ProfileMatrixTests(unittest.TestCase):
             self.assertFalse(matrix['runtime_verified'])
             rotation = matrix['rotation']
             self.assertEqual(rotation['team0_bots'], 8)
-            self.assertEqual(rotation['team2_bots'], 32)
+            self.assertEqual(rotation['team2_bots'], 24)
             self.assertEqual(rotation['enemy_profile'], 'generic')
             self.assertEqual(rotation['sha256'], MATRIX_SHA['generic'])
             self.assertEqual(rotation['sha256'], plan['rotation_sha256'])

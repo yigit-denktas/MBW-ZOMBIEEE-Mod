@@ -115,3 +115,19 @@ survivors (receipt `explosive_gating=not_applicable_ai_loadouts_have_no_bombs`);
 player bomb gating remains an equipment/design decision. D validates movement,
 ammo and KD; no acceptance claim.
 
+## Task-45 KD/pressure tuning (after task-42 sealed evidence)
+
+D's sealed task-38/42 runs showed defenders ranged and rear-held but KD poor
+(6/49 and 4/52 kills/deaths), zombies outmoving them, and wave 2 never reached.
+City balance changes:
+- **Fire orders fixed:** the per-group order set no longer issues
+  `mordr_hold_fire(12)`; it issues `mordr_hold(0)`, `mordr_fire_at_will(13)` and
+  `mordr_use_ranged_weapons(16)` so the squad actually fires instead of suppressing.
+- **Incoming pressure:** native zombie pace base lowered from 70% to **60%** at
+  wave 0/1 (+5%/wave, capped 100%); launcher generic enemy profile default
+  32 -> **24** generic bots (`DEFAULT_TEAM2_BOTS`), while weak-wave1 8 and
+  native-only 0 profiles are unchanged.
+- Rear hold [0,1,0], 8 team-0 bots, spawn_agent refill, slow 894 visitors, weak 894
+  generic fill and zombie-block profile remain. D must re-seal to measure KD and
+  wave-2 reachability; no acceptance claim.
+

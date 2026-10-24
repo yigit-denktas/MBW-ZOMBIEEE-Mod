@@ -22,9 +22,9 @@ INVADER_FACTION = FACTION_BASE + 16
 SLOW_ZOMBIE = 894
 WAVE_TABLE_SLOTS = tuple(range(200, 245))
 DEFAULT_DEFENDER_TARGET = 8
-ZOMBIE_SPEED_BASE = 70             # percent, wave 0/1
+ZOMBIE_SPEED_BASE = 60             # percent, wave 0/1 (task-45 pressure tuning)
 ZOMBIE_SPEED_PER_WAVE = 5          # +5% per wave, capped at 100
-HOLD_FIRE_ORDERS = (0, 12, 13, 16)  # hold, hold_fire, fire_at_will, use_ranged_weapons
+HOLD_FIRE_ORDERS = (0, 13, 16)  # hold, fire_at_will, use_ranged_weapons (never suppress fire)
 defender_reinforce_supported = True
 DIVISIONS = (5, 6, 7)
 GUARD_ENTRIES = (2, 3, 4)
@@ -71,7 +71,7 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None,
                         str(TROOP_BASE + SLOW_ZOMBIE)])
     if zombie_speed:
         # City-only zombie pace: native per-agent speed modifier, no gear or
-        # global mission time speed. 70% at wave 0/1, +5% per wave, capped 100%.
+        # global mission time speed. 60% at wave 0/1, +5% per wave, capped 100%.
         l12, l13, l14 = (str(LOCAL0 + n) for n in (12, 13, 14))
         ops.append(["2133", "2", l12, str(ZOMBIE_SPEED_BASE)])
         if wave_global is not None:
