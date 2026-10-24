@@ -62,6 +62,8 @@ OPS = {
     "team_get_movement_order": (1785, "lhs"),
     "team_get_riding_order": (1786, "lhs"),
     "team_get_weapon_usage_order": (1787, "lhs"),
+    "faction_get_slot": (522, "lhs"),
+    "store_current_scene": (2211, "lhs"),
 }
 
 # `game.<name>` members that are WSE2 Lua API rather than module-system
@@ -463,6 +465,17 @@ class LuaOperationMetadataTests(unittest.TestCase):
                       "for subclass = 0, 9 do",
                       "speed_hist_team[side]"):
             self.assertIn(token, self.main)
+
+
+    def test_task55_faction_slot_and_scene_readback_surface(self):
+        for token in ("faction_get_slot", "store_current_scene",
+                      "|wave_faction_slots=", "|current_scene=",
+                      "|faction_slot_getter=", "|scene_getter=",
+                      "WAVE_SLOT_PROBES = {200, 221, 231, 241, 245}",
+                      "read_faction_slot(FACTION_INVADER, slot)"):
+            self.assertIn(token, self.main)
+        self.assertIn("faction_get_slot = 522", header_text())
+        self.assertIn("store_current_scene = 2211", header_text())
 
 if __name__ == "__main__":
     unittest.main()
