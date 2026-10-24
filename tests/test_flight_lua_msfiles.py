@@ -569,5 +569,20 @@ class LuaOperationMetadataTests(unittest.TestCase):
                       "hit_param_invalid", "adaptive_active_ticks"):
             self.assertIn(token, self.main)
 
+
+    def test_heartbeat_counters_declared_before_use_and_nil_safe(self):
+        heartbeat_at = self.main.index("local function heartbeat()")
+        for token in ("local hit_events = 0", "local hit_attempts = 0",
+                      "local hit_param_invalid = 0",
+                      "local adaptive_ticks = 0",
+                      "local adaptive_samples = 0",
+                      "local adaptive_events = 0",
+                      "local adaptive_skips = 0",
+                      "local adaptive_active_ticks = 0",
+                      "local adaptive_last_interval = -1"):
+            self.assertLess(self.main.index(token), heartbeat_at, token)
+        self.assertIn("(hit_param_invalid or 0)", self.main)
+        self.assertIn("(hit_attempts or 0)", self.main)
+
 if __name__ == "__main__":
     unittest.main()

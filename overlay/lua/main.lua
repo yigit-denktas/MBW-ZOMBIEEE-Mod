@@ -1198,6 +1198,18 @@ else
     emit("probe_failed", "|kind=entry")
 end
 local emit_adaptive_hit, emit_adaptive_death
+-- Forward-declare every counter used by the heartbeat string builder. Lua
+-- locals declared after a function are globals inside it; the previous layout
+-- produced "attempt to concatenate global 'hit_param_invalid' (nil)".
+local hit_events = 0
+local hit_attempts = 0
+local hit_param_invalid = 0
+local adaptive_ticks = 0
+local adaptive_samples = 0
+local adaptive_events = 0
+local adaptive_skips = 0
+local adaptive_active_ticks = 0
+local adaptive_last_interval = -1
 local function heartbeat()
     heartbeat_count = heartbeat_count + 1
     -- At most 480 periodic records (~2 h at 15 s each).
@@ -1243,14 +1255,15 @@ local function heartbeat()
             .. "|team0=" .. (world.ok and world.team0 or -1)
             .. "|team1=" .. (world.ok and world.team1 or -1)
             .. "|template=" .. current_mission() .. state_fields(world) .. skip_fields(world)
-            .. "|hit_attempts=" .. hit_attempts .. "|hit_events=" .. hit_events
-            .. "|hit_param_invalid=" .. hit_param_invalid
-            .. "|adaptive_ticks=" .. adaptive_ticks
-            .. "|adaptive_samples=" .. adaptive_samples
-            .. "|adaptive_events=" .. adaptive_events
-            .. "|adaptive_skips=" .. adaptive_skips
-            .. "|adaptive_active_ticks=" .. adaptive_active_ticks
-            .. "|adaptive_last_interval_ms=" .. adaptive_last_interval)
+            .. "|hit_attempts=" .. (hit_attempts or 0)
+            .. "|hit_events=" .. (hit_events or 0)
+            .. "|hit_param_invalid=" .. (hit_param_invalid or 0)
+            .. "|adaptive_ticks=" .. (adaptive_ticks or 0)
+            .. "|adaptive_samples=" .. (adaptive_samples or 0)
+            .. "|adaptive_events=" .. (adaptive_events or 0)
+            .. "|adaptive_skips=" .. (adaptive_skips or 0)
+            .. "|adaptive_active_ticks=" .. (adaptive_active_ticks or 0)
+            .. "|adaptive_last_interval_ms=" .. (adaptive_last_interval or -1))
         local round_start = global_int("g_round_start_time")
         if role == "server" then
             if wave >= 0 and wave ~= previous_wave then
@@ -1326,13 +1339,7 @@ local ADAPTIVE_IDLE_MS_DEFAULT = 5000
 local ADAPTIVE_MAX_EVENTS_DEFAULT = 50000
 local ADAPTIVE_MAX_AGENTS_DEFAULT = 128
 local ADAPTIVE_ACTIVE_WINDOW_MS = 5000
-local adaptive_ticks = 0
-local adaptive_samples = 0
-local adaptive_events = 0
-local adaptive_skips = 0
-local adaptive_active_ticks = 0
 local adaptive_last_clock = -1
-local adaptive_last_interval = -1
 local adaptive_last_wave = nil
 local adaptive_last_mode = nil
 local adaptive_cap_emitted = false
@@ -1463,9 +1470,6 @@ local function adaptive_tick()
     return true
 end
 
-local hit_events = 0
-local hit_attempts = 0
-local hit_param_invalid = 0
 local hit_handler_anomaly_emitted = false
 local hit_cap_emitted = false
 local MAX_HIT_EVENTS = 2000

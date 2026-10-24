@@ -238,6 +238,17 @@ local team_value = read_team_order(0, 5, function(destination, team, subclass)
     return 2, 0
 end)
 checks[#checks + 1] = tostring(team_value == 2 and seen_team == 0 and seen_subclass == 5)
+
+-- Heartbeat builder must survive nil/unknown counters (the 17:15 crash).
+local function heartbeat_counters(attempts, events, invalid)
+    return "|hit_attempts=" .. (attempts or 0)
+        .. "|hit_events=" .. (events or 0)
+        .. "|hit_param_invalid=" .. (invalid or 0)
+end
+local ok_hb, hb_nil = pcall(heartbeat_counters, nil, nil, nil)
+checks[#checks + 1] = tostring(ok_hb and hb_nil:find("hit_param_invalid=0", 1, true) ~= nil)
+local ok_hb2, hb_unknown = pcall(heartbeat_counters, unknown_a, unknown_b, unknown_c)
+checks[#checks + 1] = tostring(ok_hb2 and hb_unknown:find("hit_attempts=0", 1, true) ~= nil)
 return table.concat(checks, ",")
 """
 
@@ -280,7 +291,7 @@ class RealLuaSemanticsTests(unittest.TestCase):
 
     def test_team_tables_arithmetic_and_precedence(self):
         checks = self.run_lua(SEMANTICS_SCRIPT).split(",")
-        self.assertEqual(len(checks), 45)
+        self.assertEqual(len(checks), 47)
         for index, value in enumerate(checks, 1):
             self.assertEqual(value, "true", f"Lua semantics check {index} failed")
 
