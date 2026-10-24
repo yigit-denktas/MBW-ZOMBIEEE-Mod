@@ -208,6 +208,84 @@ def _ancestry_checks(root, data, git_runner=None):
             'checked': len(commits), 'available': True}
 
 
+METADATA_ONLY_PATHS = {
+    'CHANGELOG.md', 'README.md', 'VERSION', 'docs/ROADMAP.md',
+    'docs/RELEASE_TRACEABILITY.md', 'docs/release-traceability.json',
+    'docs/WINDOWS_BOOTSTRAP.md', 'launcher/release_gate.py',
+    'tests/test_windows_release_traceability.py',
+}
+
+
+def _git_output(root, arguments, runner=None, timeout=60):
+    if runner is None:
+        def runner(command, **kwargs):
+            return subprocess.run(command, capture_output=True, text=True,
+                                  timeout=kwargs.get('timeout', timeout),
+                                  shell=False)
+    try:
+        completed = runner(['git', '-C', str(Path(root).absolute())] + arguments,
+                           timeout=timeout)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise ReleaseGateError('git_unavailable') from exc
+    stdout = getattr(completed, 'stdout', '') or ''
+    return getattr(completed, 'returncode', 1), stdout
+
+
+def _head_revision_checks(root, data, check, git_runner=None):
+    """Fail closed when source_revision != HEAD without a metadata-only exception.
+
+    A metadata PR cannot set source_revision to its own commit (that commit does
+    not exist yet), so an explicit, documented exception is allowed only when the
+    commits between source_revision and HEAD touch release-metadata/gate files
+    exclusively. Any code/behavior commit in between fails the check.
+    """
+    source = data.get('source_revision')
+    if not isinstance(source, str) or not re.fullmatch(r'[0-9a-fA-F]{40}', source):
+        check('traceability_head_revision', False,
+              'source_revision missing or not a 40-hex revision')
+        return
+    try:
+        code, head = _git_output(root, ['rev-parse', 'HEAD'], runner=git_runner)
+    except ReleaseGateError:
+        check('traceability_head_revision', True,
+              'unavailable: git not usable in this checkout')
+        return
+    if code != 0:
+        check('traceability_head_revision', True,
+              'unavailable: not a git checkout')
+        return
+    head = head.strip()
+    if head.lower() == source.lower():
+        check('traceability_head_revision', True,
+              'source_revision == HEAD (%s)' % source)
+        return
+    exception = data.get('source_revision_exception')
+    if not isinstance(exception, dict) or not exception.get('reason'):
+        check('traceability_head_revision', False,
+              'source_revision != HEAD and no documented '
+              'source_revision_exception')
+        return
+    try:
+        code, names = _git_output(root, ['diff', '--name-only', source, 'HEAD'],
+                                  runner=git_runner)
+    except ReleaseGateError:
+        check('traceability_head_revision', True,
+              'unavailable: cannot diff source_revision..HEAD')
+        return
+    if code != 0:
+        check('traceability_head_revision', False,
+              'cannot diff source_revision..HEAD')
+        return
+    changed = [name for name in names.splitlines() if name.strip()]
+    offending = sorted(name for name in changed
+                       if name not in METADATA_ONLY_PATHS)
+    check('traceability_head_revision', not offending,
+          ('metadata-only exception documented; changed=%s'
+           % ','.join(changed[:10]) if not offending else
+           'non-metadata change(s) between source_revision and HEAD: '
+           + ','.join(offending[:10])))
+
+
 def _traceability_checks(root, version_text, check, git_runner=None):
     """Validate VERSION <-> CHANGELOG <-> work-item/PR/commit traceability."""
     summary = {'schema': None, 'work_items': 0, 'linked_prs': 0,
@@ -333,6 +411,7 @@ def _traceability_checks(root, version_text, check, git_runner=None):
               and (source in trace_md or short in trace_md),
               'source_revision=%s must appear in CHANGELOG, README and '
               'traceability doc' % source)
+        _head_revision_checks(root, data, check, git_runner=git_runner)
     ancestry = _ancestry_checks(root, data, git_runner=git_runner)
     summary['ancestry_status'] = ancestry['status']
     summary['ancestry_commits'] = ancestry['checked']

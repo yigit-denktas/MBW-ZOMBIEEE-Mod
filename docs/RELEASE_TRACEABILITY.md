@@ -1,7 +1,7 @@
 # Release traceability — ZOMBIEEE Remaster
 
 Observed candidate: **`0.3.0-beta.1`** (pre-release), source revision
-`efafa2ee9344f826acd972a14eb8b193274248ca`, 2026-10-24.
+`db3b3caa03cf855e1ad7e89b3422d0065a4cad8e`, 2026-10-24.
 Machine-readable source: [`release-traceability.json`](release-traceability.json).
 
 This file links each work item to the pull requests/commits that implement it
@@ -36,6 +36,8 @@ claimed by this revision. Historical `0.2.0` and earlier entries are unchanged.
 | ZOM-LEGAL-01 rights/credits | E | backlog | #18, #27 | `8d542f5` | 0.3.0-beta.1 |
 | ZOM-REL-01 release candidate | B | backlog | #28 | `579b446` | 0.3.0-beta.1 |
 | ZOM-REC-03 tracker/Pages views | A | backlog | #7 | `52171ec` | 0.3.0-beta.1 |
+| ZOM-DISC-59 faction-slot/scene readback | C | active | — | `1f00079`, `6489e4c`, `07c85e4` | 0.3.0-beta.1 |
+| ZOM-DISC-60 trigger 3/14 script-error guard | A | active | — | `985fee7`, `509f16a` | 0.3.0-beta.1 |
 | ZOM-QA-02 sustained solo test | D | blocked | — | — (runtime evidence missing) | 0.3.0-beta.1 |
 
 Tooling PRs that support the candidate without owning a ledger leaf are listed as
@@ -57,6 +59,7 @@ runtime or telemetry artifact and neither affects `runtime_verified`:
 | --- | --- | --- | --- |
 | C-TASK-35 Warband AI modding research | `6d47146`, `a777039` | `4ba24e2` | Docs-only evidence context. |
 | C-TASK-48 modder diagnostics research | `f74c0c2`, `12b8f91`, `c0c3034`, `50fa25b` | merged at `7bf941c` | Docs-only; **not** a runtime/telemetry artifact; path-hygiene pass included. |
+| H-TASK-58 Bannerlord AI engine research | `db39186` | merged at `d48154a` | Docs-only evidence context. |
 | G-TASK-49 free-asset catalogue/icon mapping | `85b9c0b` (PR #31) | merged at `8b38f7d` | Docs/definitions only, no binaries; independent E licence review; **no legal clearance, acceptance or playable-release claim**. |
 
 ## Gaps and review status

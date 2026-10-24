@@ -132,7 +132,9 @@ class RepositoryTraceabilityTests(unittest.TestCase):
         self.assertEqual(set(release['included_prs']) - work_prs - support, set())
         self.assertRegex(self.trace['source_revision'], r'^[0-9a-f]{40}$')
         support = {entry['id']: entry for entry in self.trace['support_artifacts']}
-        self.assertEqual(set(support), {'C-TASK-35', 'C-TASK-48', 'G-TASK-49'})
+        self.assertEqual(set(support),
+                         {'C-TASK-35', 'C-TASK-48', 'G-TASK-49',
+                          'H-TASK-58'})
         self.assertIs(support['G-TASK-49']['merged'], True)
         self.assertIn('merged', support['G-TASK-49']['state'])
         self.assertEqual(support['G-TASK-49']['merge_commit'],
@@ -312,6 +314,50 @@ class GateFailClosedTests(unittest.TestCase):
             self.assertIn('unavailable', gate['checks']['traceability_ancestry']['note'])
             self.assertTrue(any(item.startswith('git_ancestry_unavailable')
                                 for item in gate['warnings']))
+
+    def test_source_revision_head_exception_is_fail_closed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tracked = build_fixture_repo(tmp)
+            subprocess.run(['git', '-C', tmp, 'init'], check=True,
+                           capture_output=True, text=True)
+            for key, value in (('user.email', 'fixture@example.invalid'),
+                               ('user.name', 'fixture')):
+                subprocess.run(['git', '-C', tmp, 'config', key, value],
+                               check=True, capture_output=True, text=True)
+            subprocess.run(['git', '-C', tmp, 'add', '-A'], check=True,
+                           capture_output=True, text=True)
+            subprocess.run(['git', '-C', tmp, 'commit', '-m', 'base'], check=True,
+                           capture_output=True, text=True)
+            base = subprocess.run(['git', '-C', tmp, 'rev-parse', 'HEAD'],
+                                  check=True, capture_output=True,
+                                  text=True).stdout.strip()
+            trace_path = Path(tmp) / 'docs/release-traceability.json'
+            trace = json.loads(trace_path.read_text(encoding='utf-8'))
+            trace['source_revision'] = base
+            trace_path.write_text(json.dumps(trace), encoding='utf-8')
+            subprocess.run(['git', '-C', tmp, 'add', '-A'], check=True,
+                           capture_output=True, text=True)
+            subprocess.run(['git', '-C', tmp, 'commit', '-m', 'metadata'],
+                           check=True, capture_output=True, text=True)
+            gate = build_release_gate(root=tmp, tracked_files=tracked)
+            self.assertIn('traceability_head_revision', gate['blockers'])
+            trace['source_revision_exception'] = {
+                'kind': 'metadata', 'reason': 'metadata-only test branch'}
+            trace_path.write_text(json.dumps(trace), encoding='utf-8')
+            subprocess.run(['git', '-C', tmp, 'add', '-A'], check=True,
+                           capture_output=True, text=True)
+            subprocess.run(['git', '-C', tmp, 'commit', '-m', 'exception'],
+                           check=True, capture_output=True, text=True)
+            gate = build_release_gate(root=tmp, tracked_files=tracked)
+            self.assertNotIn('traceability_head_revision', gate['blockers'])
+            code_path = Path(tmp) / 'launcher/play_city.py'
+            code_path.write_text('def main():\n    return 0\n', encoding='utf-8')
+            subprocess.run(['git', '-C', tmp, 'add', '-A'], check=True,
+                           capture_output=True, text=True)
+            subprocess.run(['git', '-C', tmp, 'commit', '-m', 'code'], check=True,
+                           capture_output=True, text=True)
+            gate = build_release_gate(root=tmp, tracked_files=tracked)
+            self.assertIn('traceability_head_revision', gate['blockers'])
 
     def test_semver_candidate_and_malformed_versions(self):
         for version in ('0.3.0-beta.1', '0.3.0', '0.3.0-rc.2+build.5'):

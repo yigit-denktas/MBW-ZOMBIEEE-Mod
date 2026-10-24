@@ -6,7 +6,7 @@
   "acceptance": "none",
   "runtime_verified": false,
   "observed_on": "2026-10-24",
-  "source_revision": "efafa2ee9344f826acd972a14eb8b193274248ca",
+  "source_revision": "db3b3caa03cf855e1ad7e89b3422d0065a4cad8e",
   "version_sources": {
     "version": "VERSION",
     "changelog": "CHANGELOG.md#030-beta1-2026-10-24",
@@ -326,6 +326,38 @@
       "summary": "Blocked on sustained sealed runtime evidence; no PR or commit can substitute for it.",
       "prs": [],
       "commits": []
+    },
+    {
+      "id": "ZOM-DISC-59",
+      "title": "Runtime diagnostic for appended-trigger faction/speed effects",
+      "lane": "C",
+      "state": "active",
+      "acceptance": "none",
+      "release": "0.3.0-beta.1",
+      "summary": "P0 faction-slot/scene telemetry readback for runtime diagnostics; implementation-only, runtime isolation acceptance pending.",
+      "prs": [],
+      "commits": [
+        "1f00079",
+        "6489e4c",
+        "484ed12",
+        "f15e8a0",
+        "07c85e4",
+        "d7ec9db"
+      ]
+    },
+    {
+      "id": "ZOM-DISC-60",
+      "title": "Eliminate City script-error spam (trigger 3 INT_MIN faction + trigger 14 -1)",
+      "lane": "A",
+      "state": "active",
+      "acceptance": "none",
+      "release": "0.3.0-beta.1",
+      "summary": "Original trigger-14 invalid-faction log guard merged; implementation-only, sustained-runtime acceptance pending.",
+      "prs": [],
+      "commits": [
+        "985fee7",
+        "509f16a"
+      ]
     }
   ],
   "releases": [
@@ -366,7 +398,17 @@
         "8e7849b2e32cf95cafacd24ba3535c1679a5edc9",
         "57f56ea3bc4645d320475be2737ba2066e0e38d2",
         "14896fb",
-        "2535c56"
+        "2535c56",
+        "1f00079",
+        "6489e4c",
+        "484ed12",
+        "f15e8a0",
+        "07c85e4",
+        "d7ec9db",
+        "db39186",
+        "d48154a",
+        "985fee7",
+        "509f16a"
       ],
       "support_prs": [
         {
@@ -448,6 +490,18 @@
         "85b9c0b"
       ],
       "merge_commit": "8b38f7deed9711e36d11ab005eb8e8b269dc525d"
+    },
+    {
+      "id": "H-TASK-58",
+      "kind": "research-docs",
+      "state": "merged-docs-only",
+      "merged": true,
+      "summary": "Bannerlord engine/combat-AI design research; docs-only evidence context, not a runtime or acceptance artifact.",
+      "acceptance": "none",
+      "commits": [
+        "db39186"
+      ],
+      "merge_commit": "d48154a27cf767764e167888c7ca174798f636a3"
     }
   ],
   "reviews": [
@@ -467,5 +521,9 @@
     "rationale": "docs/ROADMAP.md reserves 0.3.0 for verified allied survivor/survivor-faction/class/loadout acceptance. E review finding 1 noted an RC implies completeness for a milestone whose acceptance is active, so the candidate is the explicit pre-release beta.1; owner may rename/approve at packaging.",
     "owner_approval": "pending",
     "published": false
+  },
+  "source_revision_exception": {
+    "kind": "metadata-and-release-gate-branch",
+    "reason": "source_revision is the main revision the candidate is built from; HEAD on the metadata PR adds only release-metadata, release-gate and its focused tests. The gate verifies every changed path is in the documented metadata-only allowlist. A second self-referential revision (set to the PR head) is impossible because that commit hash cannot contain itself."
   }
 }
