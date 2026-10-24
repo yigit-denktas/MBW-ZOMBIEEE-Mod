@@ -250,3 +250,6 @@ work-item → PR → commit → version links are in
 
 
 <!-- hit-param diagnostic metadata-only source revision: d988597 -->
+
+
+<!-- task-82 ranged telemetry metadata-only source revision: 41062a3 -->

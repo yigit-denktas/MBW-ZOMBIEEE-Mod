@@ -217,3 +217,6 @@ This project deliberately separates **source-verified**, **observed**, **unknown
 
 
 <!-- hit-param diagnostic metadata-only source revision: d988597 -->
+
+
+<!-- task-82 ranged telemetry metadata-only source revision: 41062a3 -->

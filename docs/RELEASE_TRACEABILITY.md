@@ -136,3 +136,6 @@ Source revision for the hit-param two-arg metadata-only receipt: `0d9415c`.
 
 
 Source revision for the hit-param diagnostic metadata-only receipt: `d988597`.
+
+
+Source revision for the task-82 ranged telemetry metadata-only receipt: `41062a3`.

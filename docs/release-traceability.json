@@ -6,7 +6,7 @@
   "acceptance": "none",
   "runtime_verified": false,
   "observed_on": "2026-10-24",
-  "source_revision": "d9885979908ecaf45579586b656260e49f620b9b",
+  "source_revision": "41062a3e745cbaf175eddd3582db5f0c0a8d2642",
   "version_sources": {
     "version": "VERSION",
     "changelog": "CHANGELOG.md#030-beta1-2026-10-24",
@@ -523,7 +523,7 @@
     "published": false
   },
   "source_revision_exception": {
-    "reason": "hit-param diagnostic metadata-only head revision",
+    "reason": "task-82 ranged telemetry summary; metadata-only head revision",
     "changed_paths": [
       "docs/release-traceability.json",
       "CHANGELOG.md",
