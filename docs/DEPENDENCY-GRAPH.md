@@ -41,3 +41,8 @@ Generated from the authoritative `progress/ledger.json` on the current source sn
 | ZOM-DISC-52 | Agent E — independent reviewer; Lead merges | owner consolidation request | active | ZOM-DISC-38, ZOM-DISC-50, ZOM-DISC-51 | ZOM-REC-03 | Blocks release/asset acceptance until reviewer signs off. |
 | ZOM-DISC-53 | Agent A — gating; Agent D validation | D 600s wave-2 validation | active | ZOM-DISC-34 | ZOM-WAVE-01 | Blocks WAVE-01 balance; depends on task-34 visitor gating. |
 | ZOM-DISC-54 | Agent A — AI/formation; C research; D validation | owner cohesion/formation feedback | active | ZOM-DISC-47 | ZOM-AI-03 | Blocks AI-03 hold/cohesion acceptance; depends on task-46 loadouts. |
+| ZOM-DISC-55 | Agent A — AI/balance; D validation | owner live feedback 2026-10-24 | active | ZOM-DISC-46, ZOM-DISC-47 | ZOM-WAVE-01 | Blocks WAVE-01 behavior acceptance. |
+| ZOM-DISC-56 | Agent A — wave/reinforcement; C telemetry; D validation | owner live feedback 2026-10-24 | active | ZOM-DISC-47, ZOM-DISC-54 | ZOM-WAVE-01 | Supports WAVE-01/QA-02 clarity. |
+| ZOM-DISC-57 | Agent A — troops/loadout; G assets | owner live feedback 2026-10-24 | active | ZOM-DISC-47 | ZOM-AI-03 | Visual/representation support; no required credit alone. |
+| ZOM-DISC-58 | Agent H — research; C/A review | owner live feedback 2026-10-24 | active | — | ZOM-AI-03 | Feeds long-term AI design; no runtime credit. |
+| ZOM-DISC-59 | Agent C — probe; Agent D sealed run | task-45/46 seal triage | active | ZOM-DISC-34, ZOM-DISC-53 | ZOM-OBS-01 | Blocks gating/speed fix strategy; must run before more patches. |

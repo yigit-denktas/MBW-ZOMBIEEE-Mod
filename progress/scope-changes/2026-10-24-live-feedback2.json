@@ -1,0 +1,14 @@
+{
+  "id": "2026-10-24-live-feedback2",
+  "date": "2026-10-24",
+  "reason": "Owner real-time feedback: stupid slow zombies, wave/arrival clarity, gender mix, Bannerlord research, runtime diagnostic.",
+  "denominatorEffect": "none",
+  "added": [
+    "ZOM-DISC-55",
+    "ZOM-DISC-56",
+    "ZOM-DISC-57",
+    "ZOM-DISC-58",
+    "ZOM-DISC-59"
+  ],
+  "milestoneEffect": "M1/M3 support only"
+}
