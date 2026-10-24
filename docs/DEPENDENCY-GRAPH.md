@@ -40,3 +40,4 @@ Generated from the authoritative `progress/ledger.json` on the current source sn
 | ZOM-DISC-51 | Agent G — sourcing; Agent E licence review | owner consolidation request | active | — | ZOM-LEGAL-01 | Supports legal/release and future cosmetics layer. |
 | ZOM-DISC-52 | Agent E — independent reviewer; Lead merges | owner consolidation request | active | ZOM-DISC-38, ZOM-DISC-50, ZOM-DISC-51 | ZOM-REC-03 | Blocks release/asset acceptance until reviewer signs off. |
 | ZOM-DISC-53 | Agent A — gating; Agent D validation | D 600s wave-2 validation | active | ZOM-DISC-34 | ZOM-WAVE-01 | Blocks WAVE-01 balance; depends on task-34 visitor gating. |
+| ZOM-DISC-54 | Agent A — AI/formation; C research; D validation | owner cohesion/formation feedback | active | ZOM-DISC-47 | ZOM-AI-03 | Blocks AI-03 hold/cohesion acceptance; depends on task-46 loadouts. |
