@@ -247,3 +247,6 @@ work-item → PR → commit → version links are in
 
 
 <!-- hit-param two-arg metadata-only source revision: 0d9415c -->
+
+
+<!-- hit-param diagnostic metadata-only source revision: d988597 -->

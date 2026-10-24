@@ -214,3 +214,6 @@ This project deliberately separates **source-verified**, **observed**, **unknown
 
 
 <!-- hit-param two-arg metadata-only source revision: 0d9415c -->
+
+
+<!-- hit-param diagnostic metadata-only source revision: d988597 -->
