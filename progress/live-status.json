@@ -1,8 +1,1 @@
-﻿{
-  "updated": "2026-10-24T18:58:00+02:00",
-  "phase": "Ranged volume still low",
-  "build": "Installed EF6E332C (hold+fire_at_will+use_ranged, no stand_ground).",
-  "now": "Reseal gate passes: ammo_burn 4, shots 4, 2/15 agents fired, first shot 15s; shots/min 1.6, charge ratio .683, KD 16/8; clean screenshots, no console spam.",
-  "next": "A checks order scope/ammo stacks/range; forced-engagement test. Volume must rise materially. No acceptance.",
-  "acceptance": false
-}
+﻿{"updated":"2026-10-24T19:01:00+02:00","phase":"Order-scope/ammo fix reseal","build":"Installed 4E90E046: per-division fire orders + subclass-0 fallback + refill_ammo every 5s; no stand_ground; accuracy 100.","now":"D running 10-min survivor POV reseal. Gate: fired_ratio>=0.4, shots/min>=5, first shot<30s.","next":"If still low, forced short-range forward test. No acceptance.","acceptance":false}

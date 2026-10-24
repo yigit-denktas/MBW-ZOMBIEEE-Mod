@@ -1,15 +1,15 @@
 ﻿{
   "schema": "zombieee.playbuild.v1",
-  "name": "nextplay-no-fire-fix",
+  "name": "nextplay-order-ammo-fix",
   "branch": "agent/a-nextplay",
-  "commit": "d882691",
+  "commit": "1ae0211",
   "probe": "c77363e",
-  "mission_sha256": "EF6E332C5399CC690D06B22D966632C6FBBBC146D5397785F79538CACE163907",
+  "mission_sha256": "4E90E0460934ACAF8C1751D0142EFFD0304C61D0BE7E0D9C764D1992424F358B",
   "zombie_block": "stock (no shields)",
   "firearm_class": "crossbow_type_ranged",
   "ai_accuracy_modifier": 100,
-  "features": ["hold 0 + fire_at_will 13 + use_ranged 16", "stand_ground/aggressiveness removed", "no 1730", "1737=0", "zombie speed50+4 cap85", "HP67.5%", "counts x2"],
+  "features": ["hold 0 + fire_at_will 13 + use_ranged 16 per division", "team subclass 0 fire fallback", "agent_refill_ammo 1728 every 5s", "no stand_ground/aggressiveness", "no 1730", "1737=0", "zombie speed50+4 cap85", "HP67.5%", "counts x2"],
   "excludes": ["formation abc6e51", "heroes/morale", "ammo panic", "heatmap/hit", "specials"],
-  "backup": "ZOMBIEEE_Remaster.backup-20261024-184505",
-  "acceptance": "ammo_burn>0 and first shot <30s; else isolate order/range suppression"
+  "backup": "ZOMBIEEE_Remaster.backup-20261024-190054",
+  "acceptance": "agents_fired_ratio>=0.4, shots/min>=5, first shot<30s; else forced short-range test"
 }
