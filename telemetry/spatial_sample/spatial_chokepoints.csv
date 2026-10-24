@@ -1,0 +1,2 @@
+run_id,team,cell_x,cell_y,occupancy_share,count,moving_ratio,candidate_reason
+257b29b1d9b62da9755f54bef063c0a9,0,167.5,187.5,0.159,13,0.1111111111111111,high occupancy + low movement; positional proxy only (no collision/navmesh)

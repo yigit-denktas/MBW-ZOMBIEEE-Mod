@@ -1,0 +1,2 @@
+team,cell_x,cell_y,occupancy_share,count,moving_ratio,candidate_reason
+0,167.5,187.5,0.536,15,0.0,high occupancy + low movement; positional proxy only (no collision/navmesh)
