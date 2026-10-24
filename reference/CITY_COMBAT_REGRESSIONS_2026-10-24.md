@@ -44,3 +44,22 @@ engine equips/blocks with the shield is D's sealed run.
   zombies block with shields and survive better; receipts keep
   `runtime_verified=false`.
 - No gameplay/release acceptance; required City outcomes stay 0/23, milestones 0/5.
+
+## Defensive rear line (follow-up, owner live feedback)
+
+The remaining forward movement came from the team hold orders: the old sectors
+(entries 2/3/4) sit forward of the spawn line, so `mordr_hold` still walked the
+squad into the wave even without scripted destinations. Default City builds now
+hold the **rear/spawn line** (`REAR_HOLD_ENTRIES = (0,1,0)`, survivor entries
+0/1) every 5 s with no forward sector rotation and no scripted destination.
+`--defensive-line forward` restores the old guard sectors; the build receipt
+records `experimental_city_guardposts.hold_entries` and `defensive_line`.
+
+Launcher defender squad default increased from 4 to **8** native team-0 bots
+(`DEFENDER_SQUAD_BOTS = 8`) so the line has bodies and native bot refill keeps
+replacing losses; the City build still appends four clone troop types (981..984).
+Expected D evidence: team0 centroid stays near the spawn/rear line instead of
+moving toward the enemy, defenders fire (ammo decreasing, ranged weapon modes),
+and the squad survives longer / trades better; report exact positions and KD,
+with `runtime_verified=false` and no acceptance claim.
+

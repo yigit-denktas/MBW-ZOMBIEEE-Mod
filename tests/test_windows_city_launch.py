@@ -99,9 +99,9 @@ class LaunchPlanTests(unittest.TestCase):
             self.assertIn('installed_city_module_reused', plan['warnings'])
             self.assertEqual(plan['endpoint'], '127.0.0.1:7240')
             self.assertTrue(validate_rotation(plan['rotation']))
-            self.assertEqual(plan['team0_bots'], 4)
+            self.assertEqual(plan['team0_bots'], 8)
             self.assertEqual(plan['rotation_profile'], 'defender-squad')
-            self.assertIn('set_bot_count 1 4', plan['rotation'])
+            self.assertIn('set_bot_count 1 8', plan['rotation'])
             self.assertIn('set_bot_count 2 32', plan['rotation'])
             self.assertIn('set_defender_spawn_count 0', plan['rotation'])
             self.assertEqual(plan['rotation_sha256'],
@@ -186,9 +186,9 @@ class LaunchDefenderProfileTests(unittest.TestCase):
     def test_city_default_requests_native_defender_squad(self):
         with tempfile.TemporaryDirectory() as tmp:
             plan = self._plan(tmp)
-            self.assertEqual(plan['team0_bots'], 4)
+            self.assertEqual(plan['team0_bots'], 8)
             self.assertEqual(plan['rotation_profile'], 'defender-squad')
-            self.assertIn('set_bot_count 1 4', plan['rotation'])
+            self.assertIn('set_bot_count 1 8', plan['rotation'])
             self.assertIn('set_bot_count 2 32', plan['rotation'])
             self.assertIn('set_defender_spawn_count 0', plan['rotation'])
             self.assertEqual(plan['rotation'], build_defender_rotation())
@@ -239,7 +239,7 @@ class LaunchEnemyProfileTests(unittest.TestCase):
             self.assertEqual(plan['enemy_profile'], 'generic')
             self.assertEqual(plan['team2_bots'], 32)
             self.assertIn('set_bot_count 2 32', plan['rotation'])
-            self.assertIn('set_bot_count 1 4', plan['rotation'])
+            self.assertIn('set_bot_count 1 8', plan['rotation'])
 
     def test_weak_wave1_stages_a_small_enemy_count(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -247,7 +247,7 @@ class LaunchEnemyProfileTests(unittest.TestCase):
             self.assertEqual(plan['enemy_profile'], 'weak-wave1')
             self.assertEqual(plan['team2_bots'], 8)
             self.assertIn('set_bot_count 2 8', plan['rotation'])
-            self.assertIn('set_bot_count 1 4', plan['rotation'])
+            self.assertIn('set_bot_count 1 8', plan['rotation'])
             self.assertTrue(validate_rotation(plan['rotation'],
                                               enemy_profile='weak-wave1'))
 
@@ -258,7 +258,7 @@ class LaunchEnemyProfileTests(unittest.TestCase):
             self.assertEqual(plan['enemy_profile'], 'native-only')
             self.assertEqual(plan['team2_bots'], 0)
             self.assertIn('set_bot_count 2 0', plan['rotation'])
-            self.assertIn('set_bot_count 1 4', plan['rotation'])
+            self.assertIn('set_bot_count 1 8', plan['rotation'])
             self.assertIn('set_defender_spawn_count 0', plan['rotation'])
             self.assertTrue(validate_rotation(plan['rotation'],
                                               enemy_profile='native-only'))
@@ -600,12 +600,12 @@ class CityLauncherEnemyProfileTests(unittest.TestCase):
             self.assertEqual(receipt['status'], 'stopped', receipt.get('error'))
             self.assertEqual(receipt['enemy_profile'], 'native-only')
             self.assertEqual(receipt['team2_bots'], 0)
-            self.assertEqual(receipt['team0_bots'], 4)
+            self.assertEqual(receipt['team0_bots'], 8)
             self.assertTrue(receipt['host_bound_loopback'])
             self.assertTrue(receipt['evidence']['verified'])
             rotation_text = launcher.paths.rotation_path.read_text(encoding='utf-8')
             self.assertIn('set_bot_count 2 0', rotation_text)
-            self.assertIn('set_bot_count 1 4', rotation_text)
+            self.assertIn('set_bot_count 1 8', rotation_text)
 
 
 class CityLauncherSuccessTests(unittest.TestCase):
@@ -630,7 +630,7 @@ class CityLauncherSuccessTests(unittest.TestCase):
             self.assertFalse(receipt['simulation'])
             self.assertTrue(receipt['loopback_only'])
             self.assertEqual(receipt['endpoint'], '127.0.0.1:7240')
-            self.assertEqual(receipt['team0_bots'], 4)
+            self.assertEqual(receipt['team0_bots'], 8)
             self.assertEqual(receipt['rotation_profile'], 'defender-squad')
             self.assertEqual(receipt['rotation_sha256'],
                              rotation_sha256(build_defender_rotation()))
@@ -661,7 +661,7 @@ class CityLauncherSuccessTests(unittest.TestCase):
             paths = launcher.paths
             self.assertTrue(paths.rotation_path.is_file())
             rotation_text = paths.rotation_path.read_text(encoding='utf-8')
-            self.assertIn('set_bot_count 1 4', rotation_text)
+            self.assertIn('set_bot_count 1 8', rotation_text)
             self.assertIn('set_bot_count 2 32', rotation_text)
             self.assertTrue(paths.config_path.is_file())
             self.assertTrue(paths.launch_receipt.is_file())

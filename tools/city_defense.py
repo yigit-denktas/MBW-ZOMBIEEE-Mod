@@ -18,6 +18,9 @@ POS_BASE = 216172782113783808
 LOCAL0 = 1224979098644774912
 DIVISIONS = (5, 6, 7)
 GUARD_ENTRIES = (2, 3, 4)
+# Rear/spawn-line hold: entries 0/1 are the survivor spawn points, so the squad
+# holds behind the player instead of pushing forward into the zombie wave.
+REAR_HOLD_ENTRIES = (0, 1, 0)
 
 
 def scene_index(path: Path, name="scn_tbfc_invasion_4") -> int:
@@ -28,7 +31,8 @@ def scene_index(path: Path, name="scn_tbfc_invasion_4") -> int:
     return ids.index(name)
 
 
-def orders_trigger(scene_idx: int, wave_global: int | None = None) -> str:
+def orders_trigger(scene_idx: int, wave_global: int | None = None,
+                   hold_entries: tuple[int, ...] = GUARD_ENTRIES) -> str:
     """City hold-order trigger body.
 
     With ``wave_global`` provided, each wave rotates the three sector posts by
@@ -45,10 +49,31 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None) -> str:
     pos = POS_BASE + 120
     ops = []
     if wave_global is None:
-        for group, entry in zip(DIVISIONS, GUARD_ENTRIES):
+        for group, entry in zip(DIVISIONS, hold_entries):
             ops.append(["1780", "2", str(pos), str(entry)])
             ops.append(["1791", "3", "0", str(group), str(pos)])
             ops.append(["1790", "3", "0", str(group), "0"])
+    elif tuple(hold_entries) == REAR_HOLD_ENTRIES:
+        # Defensive line: adopt native team-0 bots into divisions 5-7, then hold
+        # the rear/spawn entry positions every 5 s. No scripted destination and
+        # no forward sector rotation.
+        l0, l1, l2, l3 = (str(LOCAL0 + n) for n in (0, 1, 2, 3))
+        ops.append(["2133", "2", l0, "0"])                 # count = 0
+        ops.append(["12", "1", l1])                        # try_for_agents
+        ops.append(["1702", "1", l1])                      # agent_is_alive
+        ops.append(["1707", "1", l1])                      # non-player
+        ops.append(["1770", "2", l2, l1])                  # agent_get_team
+        ops.append(["31", "2", l2, "0"])                   # team 0
+        ops.append(["2119", "3", l3, l0, "3"])             # count % 3
+        ops.append(["2120", "3", l3, l3, "5"])             # division 5..7
+        ops.append(["1783", "2", l1, l3])                  # agent_set_division
+        ops.append(["1766", "2", l1, l3])                  # agent_set_group
+        ops.append(["2120", "3", l0, l0, "1"])             # count += 1
+        ops.append(["3", "0"])                             # try_end
+        for group, entry in zip(DIVISIONS, hold_entries):
+            ops.append(["1780", "2", str(pos), str(entry)])
+            ops.append(["1791", "3", "0", str(group), str(pos)])
+            ops.append(["1790", "3", "0", str(group), "0"])  # mordr_hold
     else:
         # Native team-0 bots (proven engine spawn path; team-0 add_visitors
         # produced no allies in D's sealed run) are adopted into the reserved
@@ -85,7 +110,8 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None) -> str:
 
 
 def patch_orders(original: str, scene_idx: int,
-                 wave_global: int | None = None) -> str:
+                 wave_global: int | None = None,
+                 hold_entries: tuple[int, ...] = GUARD_ENTRIES) -> str:
     lines = original.splitlines(keepends=True)
     count_line, count, insert_at = mission_bounds(lines)
     if count != 26:
@@ -119,14 +145,14 @@ def patch_orders(original: str, scene_idx: int,
     newline = "\r\n" if "\r\n" in original else "\n"
     lines[insert_at - 1] = " ".join(tokens) + newline
     lines[count_line] = "27" + newline
-    lines.insert(insert_at, orders_trigger(scene_idx, wave_global) + newline)
+    lines.insert(insert_at, orders_trigger(scene_idx, wave_global, hold_entries) + newline)
     updated = "".join(lines)
     if mission_bounds(updated.splitlines(keepends=True))[1] != 27:
         raise PatchError("Invalid tactical trigger count")
     return updated
 
 
-def apply_module(module: Path) -> dict:
+def apply_module(module: Path, hold_entries: tuple[int, ...] = REAR_HOLD_ENTRIES) -> dict:
     module = Path(module)
     scene_path = module / "SceneObj" / "scn_tbfc_invasion_4.sco"
     mission_path = module / "mission_templates.txt"
@@ -142,7 +168,7 @@ def apply_module(module: Path) -> dict:
             raise PatchError("Original wave_number global missing for sector rotation")
         wave_global = 144115188075855872 + variables.index("wave_number")
     changed_scene = apply_city_overlay(original_scene, plan)
-    changed_mission = patch_orders(original_mission, idx, wave_global)
+    changed_mission = patch_orders(original_mission, idx, wave_global, hold_entries)
     if len(decode_scene(changed_scene)["objects"]) != len(decode_scene(original_scene)["objects"]) + 3:
         raise PatchError("Scene overlay failed binary roundtrip")
     # All validations happen before writes. On a mission-write failure, restore the SCO.
@@ -159,6 +185,8 @@ def apply_module(module: Path) -> dict:
             "invasion_triggers": 27,
             "engine_verified": False,
             "wave_sector_rotation": True,
+            "hold_entries": list(hold_entries),
+            "defensive_line": tuple(hold_entries) == REAR_HOLD_ENTRIES,
             "warning": "Navmesh-derived posts; movement, fire and runtime LOS unverified.\n"
                        "Sectors rotate once per original wave_number parity; D validates positions."}
 
