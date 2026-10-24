@@ -3606,18 +3606,25 @@
       "title": "Bannerlord engine/combat-AI design research",
       "groupId": "Runtime",
       "milestoneId": "M1",
-      "state": "active",
+      "state": "done",
       "sourceState": "agent H researching",
       "required": false,
       "blocked": false,
       "dependsOn": [],
-      "evidence": [],
-      "completionBasis": "Research pending",
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/e80bbf4/reference/BANNERLORD_AI_ENGINE_RESEARCH.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static"
+        }
+      ],
+      "completionBasis": "Research merged and reviewed; no runtime claim",
       "kind": "work-item",
       "owner": "Agent H — research; C/A review",
       "priority": "P1",
       "criterion": "Cited research explains Bannerlord AI/engine design and identifies adapt/avoid lessons for our zombie/survivor behavior.",
-      "note": "Behavior trees, combat AI, formations, morale, spawn systems; no copied code/assets.",
+      "note": "Behavior trees, combat AI, formations, morale, spawn systems; no copied code/assets. | Bannerlord research merged; docs-only.",
       "deferReason": "Supplemental engine research; not part of required denominator.",
       "implementationLane": "H",
       "workOrigin": "discovered",
@@ -3633,7 +3640,7 @@
       "title": "Runtime diagnostic for appended-trigger faction/speed effects",
       "groupId": "Diagnostics",
       "milestoneId": "M1",
-      "state": "active",
+      "state": "done",
       "sourceState": "C/D diagnostic pending",
       "required": false,
       "blocked": false,
@@ -3641,13 +3648,20 @@
         "ZOM-DISC-34",
         "ZOM-DISC-53"
       ],
-      "evidence": [],
-      "completionBasis": "Diagnostic pending",
+      "evidence": [
+        {
+          "kind": "sealed-evidence",
+          "source": "_zom-d-profiles/local/session/play-city",
+          "observedOn": "2026-10-24",
+          "acceptance": "sealed-8-file-verified"
+        }
+      ],
+      "completionBasis": "Runtime diagnostic complete; gating fix pending in separate task",
       "kind": "work-item",
       "owner": "Agent C — probe; Agent D sealed run",
       "priority": "P0",
       "criterion": "Faction slots 200/221/231/241 and team1 speed readback explain whether appended trigger 26/28 writes execute/reset.",
-      "note": "A: static build matches flags but runtime 896/speed 100; need slots/speed/trigger-log evidence before more redundancy. | P0 triage: 896/speed runtime effects absent despite static trigger 26/28; await C probe rebuild + D seal; A paused gating patches.",
+      "note": "A: static build matches flags but runtime 896/speed 100; need slots/speed/trigger-log evidence before more redundancy. | P0 triage: 896/speed runtime effects absent despite static trigger 26/28; await C probe rebuild + D seal; A paused gating patches. | Sealed task55-p0: scene=516, slots only 200=894 (221=898/231=895/241=896), speed=100; appended trigger 26/28 writes not applied. Logs clean.",
       "deferReason": "Supplemental diagnostic; not part of required denominator.",
       "implementationLane": "C",
       "workOrigin": "discovered",
@@ -3663,20 +3677,27 @@
       "title": "Eliminate City script-error spam (trigger 3 INT_MIN faction + trigger 14 -1)",
       "groupId": "Diagnostics",
       "milestoneId": "M1",
-      "state": "active",
+      "state": "done",
       "sourceState": "live client logs repeat Invalid Faction ID errors",
       "required": false,
       "blocked": false,
       "dependsOn": [
         "ZOM-DISC-53"
       ],
-      "evidence": [],
-      "completionBasis": "Owner log-cleanup requirement; fix pending",
+      "evidence": [
+        {
+          "kind": "sealed-evidence",
+          "source": "_zom-d-profiles/local/session/play-city",
+          "observedOn": "2026-10-24",
+          "acceptance": "sealed-8-file-verified"
+        }
+      ],
+      "completionBasis": "Sealed logs clean; no acceptance",
       "kind": "work-item",
       "owner": "Agent A — fix; C live-log; D validation",
       "priority": "P0",
       "criterion": "No Invalid Faction ID/SCRIPT ERROR spam in client or server logs for a City session; trigger-3 and trigger-14 sources guarded/fixed.",
-      "note": "Latest screenshots: Trigger [3] Conditions Lua invalid faction -2147483648 in pre-round; four original trigger-14 -1 at mission start. Logs must be clean before AI iteration. | Root cause: trigger-3 INT_MIN comes from C probe passing encoded faction 432345564227567632 to faction_get_slot; fix raw id 16/pcall + server/City. Trigger-14 -1 is original trailing faction_set_slot(-1,200); A authorized City-only guard to valid invader + slot 245 with allowed-original-diff exception.",
+      "note": "Latest screenshots: Trigger [3] Conditions Lua invalid faction -2147483648 in pre-round; four original trigger-14 -1 at mission start. Logs must be clean before AI iteration. | Root cause: trigger-3 INT_MIN comes from C probe passing encoded faction 432345564227567632 to faction_get_slot; fix raw id 16/pcall + server/City. Trigger-14 -1 is original trailing faction_set_slot(-1,200); A authorized City-only guard to valid invader + slot 245 with allowed-original-diff exception. | Seal: 0 INT_MIN/opcode522/Trigger31-32/trigger14-1/SCRIPT ERROR; issue #39 closed.",
       "deferReason": "Supplemental diagnostics cleanup; not part of required denominator.",
       "implementationLane": "A",
       "workOrigin": "discovered",
@@ -3705,7 +3726,7 @@
       "owner": "Agent C — telemetry/tooling; D runs; A knobs",
       "priority": "P1",
       "criterion": "A repeatable telemetry studio ingests sealed runs, measures performance, granulates probes, and improves itself via documented auto-research iterations.",
-      "note": "Ralph-style loop; build our own modding/telemetry tooling; no invented data; ledger/PR per iteration.",
+      "note": "Ralph-style loop; build our own modding/telemetry tooling; no invented data; ledger/PR per iteration. | C telemetry studio/balance analyzer delivered on branch f30cec8 (pending rebase/merge); D bot-vs-bot pair + params.json requested.",
       "deferReason": "Supplemental diagnostics/tooling; not part of required denominator.",
       "implementationLane": "C",
       "workOrigin": "discovered",
@@ -3735,7 +3756,7 @@
       "owner": "Agent A — firearms; C telemetry; D validation",
       "priority": "P0",
       "criterion": "AI fires faster, accuracy/reticle tighter, automatic weapons support switchable single/burst/auto modes with no fake behavior.",
-      "note": "Crosshair/target icon too wide; automatic not auto/burst; preserve ammo/loadout/balance.",
+      "note": "Crosshair/target icon too wide; automatic not auto/burst; preserve ammo/loadout/balance. | A firepower branch 3b9fbb7: AI accuracy/reload profiles + pre-game fire-mode; manual in-game switch blocked by WSE2 input API (#43); reticle icon unproven.",
       "deferReason": "Supplemental combat-feel work; not part of required denominator.",
       "implementationLane": "A",
       "workOrigin": "discovered",
@@ -3751,20 +3772,27 @@
       "title": "Warband engine/combat-AI research + Bannerlord comparison",
       "groupId": "Runtime",
       "milestoneId": "M1",
-      "state": "active",
+      "state": "done",
       "sourceState": "agent H researching",
       "required": false,
       "blocked": false,
       "dependsOn": [
         "ZOM-DISC-58"
       ],
-      "evidence": [],
-      "completionBasis": "Research pending",
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/e80bbf4/reference/WARBAND_ENGINE_AI_RESEARCH.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static"
+        }
+      ],
+      "completionBasis": "Warband research approved and merged; no runtime claim",
       "kind": "work-item",
       "owner": "Agent H — research; C/A review",
       "priority": "P1",
       "criterion": "Cited Warband engine/AI/order semantics and Bannerlord comparison identify adopt/adapt/avoid and feasible experiments.",
-      "note": "Combat AI/order channels, native groups 26/28/29/31, formations/morale/waves, WSE2; docs-only.",
+      "note": "Combat AI/order channels, native groups 26/28/29/31, formations/morale/waves, WSE2; docs-only. | A/C approved; group==id correction applied; add_visitors leader-id conflict documented.",
       "deferReason": "Supplemental engine research; not part of required denominator.",
       "implementationLane": "H",
       "workOrigin": "discovered",
@@ -3780,20 +3808,27 @@
       "title": "City map spawn protection, hold/barricade and regroup design",
       "groupId": "Gameplay",
       "milestoneId": "M3",
-      "state": "active",
+      "state": "done",
       "sourceState": "owner request; E assigned",
       "required": false,
       "blocked": false,
       "dependsOn": [
         "ZOM-DISC-54"
       ],
-      "evidence": [],
-      "completionBasis": "Design pending",
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/e80bbf4/reference/CITY_MAP_DEFENSE_DESIGN.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static"
+        }
+      ],
+      "completionBasis": "Map defense design delivered; scene edits need owner approval",
       "kind": "work-item",
       "owner": "Agent E — map design; A behavior; G assets; D validation",
       "priority": "P1",
       "criterion": "City spawn/hold/barricade/fallback/regroup layout documented with coordinates and encirclement rationale.",
-      "note": "Spawn protection, multi-direction encirclement, cover/barricades; no map asset edits without approval.",
+      "note": "Spawn protection, multi-direction encirclement, cover/barricades; no map asset edits without approval. | Design merged incl G asset-policy fold; City not 360-encircled; three southern entries, north safe anchor.",
       "deferReason": "Supplemental map/environment design; not part of required denominator.",
       "implementationLane": "E",
       "workOrigin": "discovered",
@@ -3899,6 +3934,42 @@
       "originReason": "Owner asked for barricades/environment and gender/cosmetic variety.",
       "discoveredDuring": "owner live feedback 2026-10-24",
       "graphImpact": "Feeds map defense and representation."
+    },
+    {
+      "id": "ZOM-DISC-68",
+      "title": "Bot-vs-bot balance lab + parameter sensitivity recommendations",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "active",
+      "sourceState": "C analyzer delivered; D params pair pending",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-56"
+      ],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/f30cec8/telemetry/ITERATION_BALANCE_0.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static"
+        }
+      ],
+      "completionBasis": "Tool delivered; sensitivity needs D param pair/A variants",
+      "kind": "work-item",
+      "owner": "Agent C/E — analysis; D runs; A params",
+      "priority": "P1",
+      "criterion": "Autonomous bot-vs-bot matrix with round stats and ranked parameter recommendations; gaps become tasks.",
+      "note": "C balance.py; baseline 8/29 rounds, 2 team0 wipes; missing params metadata and round-end event.",
+      "deferReason": "Supplemental balance research; not part of required denominator.",
+      "implementationLane": "C",
+      "workOrigin": "discovered",
+      "workType": "research",
+      "supportsOutcomeId": "ZOM-WAVE-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner asked to analyze bot-vs-bot rounds and suggest small balance changes.",
+      "discoveredDuring": "owner live feedback 2026-10-24",
+      "graphImpact": "Feeds WAVE-01/AI-02 balance; no acceptance alone."
     }
   ],
   "warnings": [
