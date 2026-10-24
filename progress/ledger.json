@@ -4007,6 +4007,30 @@
           "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/50",
           "observedOn": "2026-10-24",
           "acceptance": "blocker"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-idle-20261024-161810-cleanoff-ecd",
+          "observedOn": "2026-10-24",
+          "acceptance": "sealed-8-file-verified"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-idle-20261024-161926-cleanon-ecd",
+          "observedOn": "2026-10-24",
+          "acceptance": "sealed-8-file-verified"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-idle-20261024-162211-fulloff-ecd",
+          "observedOn": "2026-10-24",
+          "acceptance": "sealed-8-file-verified"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-idle-20261024-162603-fullon-ecd",
+          "observedOn": "2026-10-24",
+          "acceptance": "sealed-8-file-verified"
         }
       ],
       "completionBasis": "Bisect speed loop/no-loop; reproduce crash; no acceptance",
@@ -4014,7 +4038,7 @@
       "owner": "Agent A — behavior; C probe; D runtime; E triage",
       "priority": "P0",
       "criterion": "Identify whether trigger-15 per-tick speed loop or another P0 write causes engine crash; produce safe build.",
-      "note": "Slots 200/221/231/241=894 and speed 60 verified at wave1; crash after ~28s. Known-good f57c800 restored.",
+      "note": "Slots 200/221/231/241=894 and speed 60 verified at wave1; crash after ~28s. Known-good f57c800 restored. | Four 180s bisect seals (clean/full x off/on, probe ecd3f4b): no crash, no Invalid Agent/Group, slots 894; full-on speed 60. 600s full-on running. AV not reproduced; causality open.",
       "deferReason": "Supplemental crash triage; blocks required runtime acceptance.",
       "implementationLane": "A",
       "workOrigin": "discovered",
