@@ -3482,6 +3482,35 @@
       "originReason": "Wave-2 Fast Zombie leak found in D's longer sealed run.",
       "discoveredDuring": "D 600s wave-2 validation",
       "graphImpact": "Blocks WAVE-01 balance; depends on task-34 visitor gating."
+    },
+    {
+      "id": "ZOM-DISC-54",
+      "title": "Survivor formation cohesion + adaptive outnumbered behavior",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "active",
+      "sourceState": "owner behavior requirement; implementation pending",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-47"
+      ],
+      "evidence": [],
+      "completionBasis": "Owner requirement recorded; implementation pending",
+      "kind": "work-item",
+      "owner": "Agent A — AI/formation; C research; D validation",
+      "priority": "P0",
+      "criterion": "Survivors keep a bounded formation around a squad anchor; outnumbered mode holds/falls back, advantage mode advances; no swarm/individual chase.",
+      "note": "Use team orders/formation machinery (F2 equivalents), not per-agent scripted destinations; preserve loadouts/growth/invasion/speed/refill.",
+      "deferReason": "Supplemental formation/behavior work; not part of the required denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "feature",
+      "supportsOutcomeId": "ZOM-AI-03",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner observed survivors charging across the map instead of sticking together.",
+      "discoveredDuring": "owner cohesion/formation feedback",
+      "graphImpact": "Blocks AI-03 hold/cohesion acceptance; depends on task-46 loadouts."
     }
   ],
   "warnings": [
