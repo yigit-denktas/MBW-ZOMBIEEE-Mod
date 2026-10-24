@@ -78,24 +78,24 @@ identity. `run_metadata_partial`, `missing_class`, `missing_division`, `missing_
 - **Panels:** `telemetry/spatial_sample/panels/*.svg` (raw two runs) and
   `telemetry/spatial_sample_c/panels/*.svg` (C export). They are descriptive only.
 
-### 3.1 A behavior interpretation (independent, branch `agent/a-heatmap-interpretation` @ `191f2ef`)
+### 3.1 A behavior interpretation (independent, branch `agent/a-heatmap-interpretation` @ `6408595`)
 
 A's read-only interpretation (`reference/HEATMAP_BEHAVIOR_INTERPRETATION_2026-10-24.md`,
-pending merge) agrees with the bounded reading: early base/anchor dwell is **not** proof of
+ready to merge) agrees with the bounded reading: early base/anchor dwell is **not** proof of
 a hold; post-wave drift is attrition/survivorship-dominated; **no fallback condition and
 no role/class separation** are observed; team-1 remains southern; the chokepoint candidate
 is most likely spawn/base dwell. A's required gates (known build SHA, formation mode/seed,
 class/division/HP/round, a real fallback window, A-reviewed spectator visuals) are
 consistent with this report's section 6.
 
-Two corrections for A's draft before merge:
+A applied the two corrections in `6408595`:
 
 1. **Wave-2 mean alive is 8.0**, not "fewer" after the wave-1 low of 2.33 — later samples
    include respawns/new agents (wave 3 = 4.0, wave 4 = 6.0). The drift remains
    survivorship/combat displacement, but it is not a monotonic alive decline.
-2. **Dataset counts differ:** raw task45 has 308 outnumbered samples; the C export of the
-   same run has 375 (692 vs 526 points). Label which dataset a count comes from; do not
-   mix them.
+2. **Dataset counts are labelled:** raw task45 = 308 outnumbered / 526 points; C export of
+   the same run = 375 / 692 points; task55 raw = 388 / 572 points. Cohesion now reads
+   "sample composition, not an ordered formation"; counts are not mixed.
 
 ## 4. Outputs
 
