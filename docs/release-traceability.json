@@ -6,7 +6,7 @@
   "acceptance": "none",
   "runtime_verified": false,
   "observed_on": "2026-10-24",
-  "source_revision": "b92fa7d4ea4f5b9f212e5402e75cfa65f4c96a6b",
+  "source_revision": "bd2d4d06634c4761922d945e11df2e323bfad5e3",
   "version_sources": {
     "version": "VERSION",
     "changelog": "CHANGELOG.md#030-beta1-2026-10-24",
@@ -523,7 +523,7 @@
     "published": false
   },
   "source_revision_exception": {
-    "reason": "task-68 consumer-side branch metadata-only receipt commit; Lead updates final release metadata",
+    "reason": "ported summary caveat/parser to probe branch; metadata-only head revision",
     "changed_paths": [
       "docs/release-traceability.json",
       "CHANGELOG.md",

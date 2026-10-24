@@ -398,15 +398,74 @@ return true); heartbeat exposes `hit_attempts`, `hit_events`,
 `hit_param_invalid` to distinguish “never fired” from “fired with invalid
 params”.
 
-### Probe health doctor (regression guard)
+### Adaptive sampling (task-76)
 
-`python -m tools.telemetry_studio probe-health <bundle> --json` checks the
-sealed stream before analysis: manifest, trigger registrations/failures,
-base/hit/adaptive capabilities, heartbeat presence and counters, critical
-engine-error families, and an event/log budget estimate. Needed because a
-probe can register a trigger yet throw every heartbeat (zero samples) or
-register `ti_on_agent_hit` yet never emit hits; those failures must surface
-before heatmap/balance/acceptance work. Missing data is a gap, not a pass.
+The probe adds a 1 s `adaptive_tick` trigger:
+- **1 s** snapshots while active (`wave>=1`, recent hit within 5 s, or candidate
+  tactical `mode>=1`); **5 s** idle/between waves; event snapshots on
+  **hit**, **death** (last observed position), **wave transition**, and
+  **mode change**.
+- Each snapshot samples **all alive non-player agents**, bounded by
+  `zdr_adaptive_max_agents` (default 128) and emits `adaptive_sample`
+  (reason active/idle) or `adaptive_event` (reason hit/death/wave_transition/
+  mode_change) with agent/team/troop/class/division/hp/x/y/alive/wave/mode/tick
+  plus weapon/ammo/attack_action/accuracy/reload/weapon_mode for ranged/cadence
+  analysis. Adaptive output is **server-role only** (`adaptive_server_only=1`)
+  so client screenshots are not covered by console spam.
+- Config (globals; defaults): `zdr_adaptive_active_ms=1000`,
+  `zdr_adaptive_idle_ms=5000`, `zdr_adaptive_max_events=50000`,
+  `zdr_adaptive_max_agents=128`. Heartbeat exposes `adaptive_ticks`,
+  `adaptive_samples`, `adaptive_events`, `adaptive_skips`,
+  `adaptive_active_ticks`, `adaptive_last_interval_ms`.
+- Hard caps stop emission with a bounded `probe_anomaly`; no unbounded log
+  growth. The mode>=1 active signal is a candidate/fallback heuristic, not
+  validated behavior semantics.
+- Heatmap exporter accepts `adaptive_sample`/`adaptive_event` points and keeps
+  `reason`; `tick` is primary, `ts_ms` probe-relative only.
+
+**Measurement plan:** D seals matched 15 s vs adaptive runs with identical
+build/settings; compare CPU/memory/log size/event rate/heartbeat cadence and
+heatmap point density. No acceptance/visual claim.
+
+**Build-receipt context:** the summary CLI accepts `--build-receipt PATH`.
+If the receipt’s `ammo_refill` contains `off`, it sets
+`shot_measurement.ammo_refill_off=true`/`refill_masking_excluded=true` and
+removes `ammo_refill_masks_shots`; shots remain an ammo-delta proxy with
+`proven=false`, and `attack_action_is_not_shot_count` still applies. Without a
+receipt the refill gap remains.
+
+**Shot-measurement caveat (refill):** `refill_ammo` can increase ammo, which
+looks like a reload/reset in ammo-delta inference and can mask or inflate
+apparent shot intervals. Summary therefore exposes
+`firearms.shot_measurement={proxy:true,proven:false}`,
+`shots_are_lower_bound_proxy`, `ammo_increase_masks_shots`, and gaps
+`ammo_refill_masks_shots`, `attack_action_is_not_shot_count`, plus
+`zero_shots_not_proven` when both teams show zero. **Zero shots are not proven**
+and `attack_action` release/ready transitions are not a shot counter. Wait for
+A’s refill-off measurement build before claiming cadence/shots.
+
+### Ranged/fire-cadence telemetry (task-82)
+
+Summary `firearms.team0/1` now adds, from bounded ai/combat samples:
+- `time_to_first_shot`: first observed ammo decrease relative to that agent's
+  first observed sample; `unit=ms` when probe `ts_ms` is present, else `ticks`;
+  min/avg/max. Not round-start latency unless the first sample is round start.
+- `shots_per_minute`: shots / first→last observed shot `ts_ms` span; unknown
+  when fewer than two timestamps exist.
+- `weapon_modes`, `attack_actions`, `attack_action_transitions`,
+  `release_actions`, `reload_actions`, `weapon_ids`, accuracy/reload modifiers.
+- `movement`: charge/backward distance and sample counts by projecting each
+  consecutive displacement onto the vector toward the enemy team's per-tick
+  centroid; `charge_ratio`; unknown when no positions/enemy centroid.
+- gaps: `time_to_first_shot_unavailable`, `time_to_first_shot_tick_units_no_ts`,
+  `charge_backward_movement_unavailable`.
+- summary consumes both `ai_sample`/`combat_sample` and `adaptive_sample`/
+  `adaptive_event`; reports `sample_sources`, `shot_intervals_ms`, and
+  `agents_fired_ratio` (sampler-limited coverage, never inferred as missing AI).
+
+This is inferred from ammo/position deltas, not an engine shot event; probe-relative
+time only; no acceptance claim. Task-82 build `buildranged` needs no new probe
+fields for these summary metrics.
 
 ### Heatmap-ready ZDB1 input (task-74)
 
@@ -488,22 +547,6 @@ fixed probe. Regression tests: static guard/capability surface plus real-Lua
 valid-id checks (0/negative/non-number are rejected; valid >0 accepted).
 This is separate from the trigger-14 `-1` faction guard and the faction-id 16
 raw-operand fix.
-
-### Requested fire mode echo (task-68 consumer side)
-
-`tools/receipt_summary.py` accepts an optional external launcher receipt
-(`--launcher-receipt PATH`, schema `zombieee.city-launch-receipt.v1`; also
-auto-discovered at `<evidence-root>/launches/<session_id>/launch-receipt.json`
-from `<evidence-root>/flights/<session_id>`). It exposes only the requested
-configuration under top-level `session.fire_mode*`:
-`fire_mode`, normalized `fire_mode_scope="pre-game-session-only"`,
-`fire_mode_source="requested_build_or_launcher"`, `fire_mode_applied`,
-`fire_mode_manual_switch_supported=false`, and the tuning-only semantics string.
-The sidecar is not signed evidence; absence is `null`/unknown and is not a gap.
-It is never merged into `firearms.*`; `session.fire_mode_mismatch` and the
-`fire_mode_requested_observed_mismatch` gap appear only when both the requested
-mode and observed `fire_modes_observed` exist (ai is compared with wave%3
-expected labels; fixed modes against the observed label). Diagnostic only.
 
 ### Firearm telemetry (task-60)
 

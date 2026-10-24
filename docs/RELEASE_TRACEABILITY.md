@@ -102,4 +102,43 @@ runtime or telemetry artifact and neither affects `runtime_verified`:
 Source revision for the task-65 branch metadata-only receipt: `1374abd`.
 
 
-Source revision for the task-68 consumer-side branch metadata-only receipt: `b92fa7d`.
+Source revision for the P0 probe fix metadata-only receipt: `39aa3a7`.
+
+
+Source revision for the P0 probe team-order fix metadata-only receipt: `4848ee2`.
+
+
+Source revision for the telemetry hardening metadata-only receipt: `08a9546`.
+
+
+Source revision for the telemetry hardening metadata-only receipt: `d0f7edf`.
+
+
+Source revision for the telemetry claim-wording metadata-only receipt: `79d7b84`.
+
+
+Source revision for the hit-mapping metadata-only receipt: `8759eed`.
+
+
+Source revision for the task-74 heatmap metadata-only receipt: `b06f427`.
+
+
+Source revision for the task-71 hit-trigger metadata-only receipt: `1845906`.
+
+
+Source revision for the task-76 adaptive sampling metadata-only receipt: `67dd281`.
+
+
+Source revision for the heartbeat nil-fix metadata-only receipt: `8d07f2f`.
+
+
+Source revision for the hit-param two-arg metadata-only receipt: `0d9415c`.
+
+
+Source revision for the hit-param diagnostic metadata-only receipt: `d988597`.
+
+
+Source revision for the adaptive visual/fields metadata-only receipt: `d8a57f4`.
+
+
+Source revision for the ported summary caveat metadata-only receipt: `bd2d4d0`.

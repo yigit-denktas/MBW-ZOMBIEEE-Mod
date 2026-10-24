@@ -47,8 +47,11 @@ def _points_from_events(events: list[dict]) -> tuple[list[dict], dict[str, int]]
         fields = event.get("fields") or {}
         tick = _int(fields.get("tick"))
         agent = _int(fields.get("id"))
+        if agent is None:
+            agent = _int(fields.get("agent"))
         x, y = _float(fields.get("x")), _float(fields.get("y"))
-        if kind not in ("ai_sample", "agent_sample"):
+        if kind not in ("ai_sample", "agent_sample", "adaptive_sample",
+                        "adaptive_event"):
             continue
         if tick is None or agent is None:
             gaps["missing_tick_or_agent"] += 1
@@ -63,6 +66,8 @@ def _points_from_events(events: list[dict]) -> tuple[list[dict], dict[str, int]]
             gaps["unknown_team"] += 1
         troop = _int(fields.get("troop"))
         agent_class = _int(fields.get("class"))
+        if agent_class is None:
+            agent_class = _int(fields.get("class_id"))
         division = _int(fields.get("division"))
         hp = _int(fields.get("hp"))
         alive = fields.get("alive")
@@ -82,6 +87,7 @@ def _points_from_events(events: list[dict]) -> tuple[list[dict], dict[str, int]]
             gaps["missing_division"] += 1
         if ts_ms is None:
             gaps["missing_ts_ms"] += 1
+        reason = fields.get("reason")
         points.append({
             "agent_id": agent, "team": team, "troop": troop,
             "class_id": agent_class, "division": division,
@@ -91,7 +97,7 @@ def _points_from_events(events: list[dict]) -> tuple[list[dict], dict[str, int]]
             "wave": _int(fields.get("wave")),
             "round": _int(fields.get("round")),
             "mode": _int(fields.get("mode")),
-            "source": kind,
+            "source": kind, "reason": reason,
         })
     return points, dict(gaps)
 

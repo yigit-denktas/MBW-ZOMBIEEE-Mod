@@ -562,13 +562,37 @@ class LuaOperationMetadataTests(unittest.TestCase):
             self.assertIn(token, source)
 
 
-    def test_heartbeat_counters_nil_safe_and_declared_first(self):
-        hb = self.main.index("local function heartbeat()")
+    def test_adaptive_sampling_surface(self):
+        for token in ("adaptive_tick", "adaptive_sampling=1",
+                      "adaptive_active_ms=1000", "adaptive_idle_ms=5000",
+                      "adaptive_max_events=50000", "adaptive_max_agents=128",
+                      "adaptive_sample", "adaptive_event", "hit_attempts",
+                      "adaptive_server_only=1", "|weapon_mode=",
+                      "|ammo=", "|attack_action=",
+                      "hit_param_invalid", "adaptive_active_ticks"):
+            self.assertIn(token, self.main)
+
+
+    def test_heartbeat_counters_declared_before_use_and_nil_safe(self):
+        heartbeat_at = self.main.index("local function heartbeat()")
         for token in ("local hit_events = 0", "local hit_attempts = 0",
-                      "local hit_param_invalid = 0"):
-            self.assertLess(self.main.index(token), hb, token)
+                      "local hit_param_invalid = 0",
+                      "local adaptive_ticks = 0",
+                      "local adaptive_samples = 0",
+                      "local adaptive_events = 0",
+                      "local adaptive_skips = 0",
+                      "local adaptive_active_ticks = 0",
+                      "local adaptive_last_interval = -1"):
+            self.assertLess(self.main.index(token), heartbeat_at, token)
         self.assertIn("(hit_param_invalid or 0)", self.main)
         self.assertIn("(hit_attempts or 0)", self.main)
+
+
+    def test_hit_param_generic_api_and_capability(self):
+        for token in ("game.store_trigger_param", "pcall(generic, 0, index)",
+                      "pcall(fn, 0, index)",
+                      "|hit_param_api=generic_0_index_or_specific"):
+            self.assertIn(token, self.main)
 
 if __name__ == "__main__":
     unittest.main()

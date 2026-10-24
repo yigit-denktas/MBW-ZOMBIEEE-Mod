@@ -119,6 +119,8 @@ emit("recorder_capabilities",
     .. "|class_getter=" .. binding_flag("agent_get_class")
     .. "|division_getter=" .. binding_flag("agent_get_division")
     .. "|hp_getter=" .. binding_flag("store_agent_hit_points")
+    .. "|adaptive_sampling=1|adaptive_active_ms=1000|adaptive_idle_ms=5000"
+    .. "|adaptive_max_events=50000|adaptive_max_agents=128|adaptive_server_only=1"
     .. "|speed_modifier_getter=" .. binding_flag("agent_get_speed_modifier")
     .. "|time_multiplier_getter=" .. binding_flag("agent_get_time_speed_multiplier")
     .. "|action_speed_getter=" .. binding_flag("agent_get_action_speed_modifier")
@@ -1196,11 +1198,19 @@ if ok_entry then
 else
     emit("probe_failed", "|kind=entry")
 end
--- Heartbeat counters must be locals declared before the function; otherwise
--- the heartbeat references nil globals (Lua error every 15 s).
+local emit_adaptive_hit, emit_adaptive_death
+-- Forward-declare every counter used by the heartbeat string builder. Lua
+-- locals declared after a function are globals inside it; the previous layout
+-- produced "attempt to concatenate global 'hit_param_invalid' (nil)".
 local hit_events = 0
 local hit_attempts = 0
 local hit_param_invalid = 0
+local adaptive_ticks = 0
+local adaptive_samples = 0
+local adaptive_events = 0
+local adaptive_skips = 0
+local adaptive_active_ticks = 0
+local adaptive_last_interval = -1
 local function heartbeat()
     heartbeat_count = heartbeat_count + 1
     -- At most 480 periodic records (~2 h at 15 s each).
@@ -1233,6 +1243,9 @@ local function heartbeat()
                         defender_deaths_total = defender_deaths_total + 1
                         emit("defender_died", "|id=" .. id .. "|count="
                             .. defender_deaths_total .. "|wave=" .. wave)
+                        if emit_adaptive_death then
+                            emit_adaptive_death(id, wave, mode)
+                        end
                     end
                 end
                 previous_defender_ids = current
@@ -1245,7 +1258,13 @@ local function heartbeat()
             .. "|template=" .. current_mission() .. state_fields(world) .. skip_fields(world)
             .. "|hit_attempts=" .. (hit_attempts or 0)
             .. "|hit_events=" .. (hit_events or 0)
-            .. "|hit_param_invalid=" .. (hit_param_invalid or 0))
+            .. "|hit_param_invalid=" .. (hit_param_invalid or 0)
+            .. "|adaptive_ticks=" .. (adaptive_ticks or 0)
+            .. "|adaptive_samples=" .. (adaptive_samples or 0)
+            .. "|adaptive_events=" .. (adaptive_events or 0)
+            .. "|adaptive_skips=" .. (adaptive_skips or 0)
+            .. "|adaptive_active_ticks=" .. (adaptive_active_ticks or 0)
+            .. "|adaptive_last_interval_ms=" .. (adaptive_last_interval or -1))
         local round_start = global_int("g_round_start_time")
         if role == "server" then
             if wave >= 0 and wave ~= previous_wave then
@@ -1312,14 +1331,168 @@ local function heartbeat()
     end
     return false
 end
+-- Adaptive sampling (task-76): 1 s active / 5 s idle snapshots for bounded
+-- per-agent heatmap points, with event snapshots on hit/death/wave/mode
+-- transitions. Configurable through zdr_adaptive_* globals; hard caps avoid
+-- unbounded logs. This is sampling policy, not behavior/gameplay logic.
+local ADAPTIVE_ACTIVE_MS_DEFAULT = 1000
+local ADAPTIVE_IDLE_MS_DEFAULT = 5000
+local ADAPTIVE_MAX_EVENTS_DEFAULT = 50000
+local ADAPTIVE_MAX_AGENTS_DEFAULT = 128
+local ADAPTIVE_ACTIVE_WINDOW_MS = 5000
+local adaptive_last_clock = -1
+local adaptive_last_wave = nil
+local adaptive_last_mode = nil
+local adaptive_cap_emitted = false
+local last_hit_ms = -1
+local last_adaptive_pos = {}
+local function adaptive_cfg(name, default, minimum, maximum)
+    local value = global_int(name)
+    if value < minimum or value > maximum then return default end
+    return value
+end
+local function adaptive_limits()
+    return adaptive_cfg("zdr_adaptive_active_ms", ADAPTIVE_ACTIVE_MS_DEFAULT, 100, 15000),
+        adaptive_cfg("zdr_adaptive_idle_ms", ADAPTIVE_IDLE_MS_DEFAULT, 1000, 60000),
+        adaptive_cfg("zdr_adaptive_max_events", ADAPTIVE_MAX_EVENTS_DEFAULT, 100, 500000),
+        adaptive_cfg("zdr_adaptive_max_agents", ADAPTIVE_MAX_AGENTS_DEFAULT, 1, 512)
+end
+local function adaptive_state()
+    local active_ms, idle_ms, max_events, max_agents = adaptive_limits()
+    local wave = global_int("wave_number")
+    local mode = global_int("zdr_defence_mode")
+    local now = now_ms()
+    if now < 0 then now = adaptive_ticks * 1000 end
+    local recent_hit = last_hit_ms >= 0 and now >= last_hit_ms
+        and (now - last_hit_ms) <= ADAPTIVE_ACTIVE_WINDOW_MS
+    -- wave>=1 and recent hits are verified active signals. mode>=1 is a
+    -- candidate tactical/fallback signal (semantics unverified), used only to
+    -- choose sampling cadence.
+    local active = (wave >= 1) or recent_hit or (mode >= 1)
+    return (active and active_ms or idle_ms), active, wave, mode, now,
+        max_events, max_agents
+end
+local function emit_adaptive_agent(agent, reason, wave, mode, interval)
+    if type(agent) ~= "number" or agent <= 0 or not agent_live(agent) then
+        return false
+    end
+    local team = read_agent_number("agent_get_team", agent)
+    if team ~= 0 and team ~= 1 then return false end
+    local point = agent_position(agent)
+    if not point then return false end
+    local troop = read_agent_number("agent_get_troop_id", agent)
+    local agent_class = read_agent_number("agent_get_class", agent)
+    local division = read_agent_number("agent_get_division", agent)
+    local hp = read_agent_number("store_agent_hit_points", agent, 1)
+    local weapon = read_agent_number("agent_get_wielded_item", agent, 0)
+    local ammo = read_agent_number("agent_get_ammo", agent, 0)
+    local attack_action = read_agent_number("agent_get_attack_action", agent)
+    local accuracy = read_agent_number("agent_get_accuracy_modifier", agent)
+    local reload = read_agent_number("agent_get_reload_speed_modifier", agent)
+    local weapon_mode = "unknown"
+    if ammo > 0 then weapon_mode = "ranged"
+    elseif ammo == 0 and weapon >= 0 then weapon_mode = "melee" end
+    local x = math.floor(point.x * 10 + 0.5) / 10
+    local y = math.floor(point.y * 10 + 0.5) / 10
+    local event = reason == "hit" or reason == "death"
+        or reason == "wave_transition" or reason == "mode_change"
+    emit(event and "adaptive_event" or "adaptive_sample",
+        "|reason=" .. reason .. "|tick=" .. adaptive_ticks
+        .. "|agent=" .. agent
+        .. "|team=" .. team .. "|troop=" .. troop
+        .. "|class=" .. agent_class .. "|division=" .. division
+        .. "|hp=" .. hp .. "|x=" .. x .. "|y=" .. y
+        .. "|weapon=" .. weapon .. "|ammo=" .. ammo
+        .. "|attack_action=" .. attack_action
+        .. "|accuracy_modifier=" .. accuracy
+        .. "|reload_speed_modifier=" .. reload
+        .. "|weapon_mode=" .. weapon_mode
+        .. "|alive=1|wave=" .. wave .. "|mode=" .. mode
+        .. "|interval_ms=" .. interval)
+    if event then adaptive_events = adaptive_events + 1
+    else adaptive_samples = adaptive_samples + 1 end
+    last_adaptive_pos[agent] = {
+        x = x, y = y, team = team, troop = troop,
+        class = agent_class, division = division,
+    }
+    return true
+end
+local function adaptive_snapshot(reason, wave, mode, interval, max_events, max_agents)
+    if adaptive_samples >= max_events or adaptive_events >= max_events then
+        if not adaptive_cap_emitted then
+            adaptive_cap_emitted = true
+            emit("probe_anomaly", "|kind=adaptive_sample_cap|cap=" .. max_events)
+        end
+        return
+    end
+    local emitted = 0
+    for agent in game.agentsIt() do
+        if emit_adaptive_agent(agent, reason, wave, mode, interval) then
+            emitted = emitted + 1
+            if emitted >= max_agents then
+                adaptive_skips = adaptive_skips + 1
+                break
+            end
+        end
+    end
+end
+emit_adaptive_hit = function(victim, dealer)
+    last_hit_ms = now_ms()
+    local interval, _active, wave, mode, _now, max_events, max_agents =
+        adaptive_state()
+    for _, agent in ipairs({victim, dealer}) do
+        emit_adaptive_agent(agent, "hit", wave, mode, interval)
+    end
+end
+emit_adaptive_death = function(agent, wave, mode)
+    local previous = last_adaptive_pos[agent]
+    if type(agent) ~= "number" or agent <= 0 then return end
+    if previous then
+        emit("adaptive_event", "|reason=death|tick=" .. adaptive_ticks
+            .. "|agent=" .. agent
+            .. "|team=" .. (previous.team or -1)
+            .. "|troop=" .. (previous.troop or -1)
+            .. "|class=" .. (previous.class or -1)
+            .. "|division=" .. (previous.division or -1)
+            .. "|hp=0|x=" .. (previous.x or -1) .. "|y=" .. (previous.y or -1)
+            .. "|alive=0|wave=" .. wave .. "|mode=" .. mode
+            .. "|position=last_observed")
+        adaptive_events = adaptive_events + 1
+    end
+end
+local function adaptive_tick()
+    -- Visual/client seals: never print adaptive samples on a client console.
+    if resolve_role() ~= "server" then return true end
+    adaptive_ticks = adaptive_ticks + 1
+    local interval, active, wave, mode, now, max_events, max_agents =
+        adaptive_state()
+    if adaptive_last_wave ~= nil and wave ~= adaptive_last_wave then
+        adaptive_snapshot("wave_transition", wave, mode, interval,
+            max_events, max_agents)
+    end
+    if adaptive_last_mode ~= nil and mode ~= adaptive_last_mode then
+        adaptive_snapshot("mode_change", wave, mode, interval,
+            max_events, max_agents)
+    end
+    adaptive_last_wave = wave
+    adaptive_last_mode = mode
+    if adaptive_last_clock < 0 or now - adaptive_last_clock >= interval then
+        adaptive_snapshot(active and "active" or "idle",
+            wave, mode, interval, max_events, max_agents)
+        adaptive_last_clock = now
+        adaptive_last_interval = interval
+        if active then adaptive_active_ticks = adaptive_active_ticks + 1 end
+    end
+    return true
+end
+
 local hit_handler_anomaly_emitted = false
 local hit_cap_emitted = false
 local MAX_HIT_EVENTS = 2000
 local function hit_param(index)
     -- WSE2 guide's mission-trigger form is game.store_trigger_param(0,index);
-    -- the specific store_trigger_param_N(0) form works for item/scene triggers
-    -- but returned invalid params for this mission event. Try generic first,
-    -- then fall back to the specific getter.
+    -- the specific store_trigger_param_N(0) form returned invalid params for
+    -- this mission event. Try generic first, then fall back.
     local generic = game.store_trigger_param
     if type(generic) == "function" then
         local ok, value = pcall(generic, 0, index)
@@ -1327,7 +1500,9 @@ local function hit_param(index)
     end
     local fn = game["store_trigger_param_" .. index]
     if type(fn) ~= "function" then return -1 end
-    local ok, value = pcall(fn, 0)
+    -- Same two-argument convention as the generic form and read_group:
+    -- destination placeholder 0 + real param index. Never one-arg fn(0).
+    local ok, value = pcall(fn, 0, index)
     if ok and type(value) == "number" then return math.floor(value) end
     return -1
 end
@@ -1356,7 +1531,9 @@ local function on_agent_hit_consequence()
         hit_param_invalid = hit_param_invalid + 1
         if not hit_handler_anomaly_emitted then
             hit_handler_anomaly_emitted = true
-            emit("probe_anomaly", "|kind=hit_params_invalid|attempt=" .. hit_attempts)
+            emit("probe_anomaly", "|kind=hit_params_invalid|attempt=" .. hit_attempts
+                .. "|generic_type=" .. type(game.store_trigger_param)
+                .. "|specific_type=" .. type(game.store_trigger_param_1))
         end
         return
     end
@@ -1364,6 +1541,9 @@ local function on_agent_hit_consequence()
         .. "|damage=" .. damage .. "|missile=" .. missile
         .. "|kind=" .. (missile > 0 and "missile" or "melee"))
     hit_events = hit_events + 1
+    if emit_adaptive_hit then
+        emit_adaptive_hit(victim, dealer)
+    end
 end
 local ok_hit, hit_idx = pcall(game.addTrigger, MISSION, -28, 0, 0,
     on_agent_hit_conditions, on_agent_hit_consequence)
@@ -1377,4 +1557,11 @@ if ok_heart then
     emit("probe_registered", "|kind=heartbeat|index=" .. tostring(heart_idx))
 else
     emit("probe_failed", "|kind=heartbeat")
+end
+local ok_adaptive, adaptive_idx = pcall(game.addTrigger, MISSION, 1.0, 0, 0,
+    adaptive_tick)
+if ok_adaptive then
+    emit("probe_registered", "|kind=adaptive|index=" .. tostring(adaptive_idx))
+else
+    emit("probe_failed", "|kind=adaptive")
 end

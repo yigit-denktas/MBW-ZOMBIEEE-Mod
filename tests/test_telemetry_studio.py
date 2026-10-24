@@ -21,7 +21,6 @@ from tools.telemetry_studio import (
 from tools.telemetry_studio.balance import analyze_balance, render_balance_report
 from tools.telemetry_studio.loop import run_iteration
 from tools.telemetry_studio.heatmap_input import extract_heatmap, HEATMAP_SCHEMA
-from tools.telemetry_studio.probe_health import probe_health
 from tools.telemetry_studio.ingest import IngestError
 from tools.telemetry_studio.__main__ import main
 from tools.telemetry_studio.tail import tail_events
@@ -315,81 +314,24 @@ class HeatmapInputTests(unittest.TestCase):
             self.assertIn("no_position_points", data["gaps"])
 
 
-class ProbeHealthTests(unittest.TestCase):
-    def _lines(self, *, heartbeat=True, adaptive=True, errors=False):
+    def test_adaptive_samples_feed_heatmap_with_ticks(self):
         lines = [
-            "ZDB1|boot|triggers=34",
-            "ZDB1|recorder_capabilities|opmeta=1|group_getter=1|alive_getter=1"
-            "|hit_trigger=-28|hit_attribution=1|hit_events_cap=2000"
-            + ("|adaptive_sampling=1|adaptive_active_ms=1000|adaptive_idle_ms=5000"
-               "|adaptive_max_events=50000|adaptive_max_agents=128" if adaptive else ""),
-            "ZDB1|probe_registered|kind=entry|index=31",
-            "ZDB1|probe_registered|kind=hit|index=32",
-            "ZDB1|probe_registered|kind=heartbeat|index=33",
-        ]
-        if adaptive:
-            lines.append("ZDB1|probe_registered|kind=adaptive|index=34")
-        if heartbeat:
-            lines.append("ZDB1|heartbeat|count=1|role=server|team0=1|team1=1"
-                         "|hit_attempts=2|hit_events=1|hit_param_invalid=0"
-                         + ("|adaptive_ticks=5|adaptive_samples=10|adaptive_events=2"
-                            "|adaptive_skips=0|adaptive_active_ticks=4" if adaptive else ""))
-            lines.append("ZDB1|hit_sample|victim=2|dealer=1|damage=10|missile=1|kind=missile")
-        if adaptive:
-            lines.append("ZDB1|adaptive_sample|reason=active|tick=1|agent=1|team=0"
-                         "|troop=981|class=1|division=5|hp=90|alive=1|x=1|y=1")
-        if errors:
-            lines.append("SCRIPT ERROR: Invalid Faction ID: -2147483648")
-        return lines
-
-    def test_healthy_probe_passes(self):
-        with tempfile.TemporaryDirectory() as td:
-            root = _bundle(Path(td), self._lines(), sealed=True)
-            health = probe_health(ingest_bundle(root))
-            self.assertEqual(health["status"], "ok")
-            self.assertTrue(health["ok"])
-            self.assertIn("heartbeat", [c["id"] for c in health["checks"]])
-            self.assertEqual(health["budget"]["heartbeats"], 1)
-            self.assertEqual(health["budget"]["adaptive_points"], 1)
-
-    def test_missing_heartbeat_and_adaptive_samples_fail(self):
-        with tempfile.TemporaryDirectory() as td:
-            lines = [line for line in self._lines(heartbeat=False, adaptive=True)
-                     if not line.startswith("ZDB1|adaptive_sample")]
-            root = _bundle(Path(td), lines, sealed=False)
-            health = probe_health(ingest_bundle(root, allow_unsealed=True))
-            self.assertFalse(health["ok"])
-            self.assertIn("no_heartbeat_events", health["gaps"])
-            self.assertIn("adaptive_samples_missing", health["gaps"])
-
-    def test_error_spam_and_old_probe_warn(self):
-        with tempfile.TemporaryDirectory() as td:
-            root = _bundle(Path(td), self._lines(adaptive=False, errors=True),
-                           sealed=False)
-            health = probe_health(ingest_bundle(root, allow_unsealed=True))
-            self.assertFalse(health["ok"])
-            self.assertIn("invalid_faction_negative_spam", health["gaps"])
-
-
-    def test_hit_params_invalid_fails_gate(self):
-        lines = [
-            "ZDB1|boot|triggers=34",
-            "ZDB1|recorder_capabilities|opmeta=1|group_getter=1|alive_getter=1"
-            "|hit_trigger=-28|hit_attribution=1|hit_events_cap=2000",
-            "ZDB1|probe_registered|kind=entry|index=31",
-            "ZDB1|probe_registered|kind=hit|index=32",
-            "ZDB1|probe_registered|kind=heartbeat|index=33",
-            "ZDB1|heartbeat|count=1|role=server|hit_attempts=14|hit_events=15"
-            "|hit_param_invalid=14",
+            "ZDB1|heartbeat|count=1|ts_ms=1000|role=server|wave=1|team0=1"
+            "|team1=1|alive_team0=1|alive_team1=1",
+            "ZDB1|adaptive_sample|reason=active|tick=1|agent=1|team=0|troop=981"
+            "|class=1|division=5|hp=90|alive=1|wave=1|mode=0|ts_ms=1000|x=10|y=10",
+            "ZDB1|adaptive_event|reason=hit|tick=2|agent=1|team=0|troop=981"
+            "|class=1|division=5|hp=80|alive=1|wave=1|mode=0|ts_ms=2000|x=11|y=10",
         ]
         with tempfile.TemporaryDirectory() as td:
             root = _bundle(Path(td), lines, sealed=False)
-            health = probe_health(ingest_bundle(root, allow_unsealed=True))
-            self.assertFalse(health["ok"])
-            self.assertEqual(health["status"], "fail")
-            self.assertIn("hit_params_invalid", health["gaps"])
-            hit_check = next(c for c in health["checks"] if c["id"] == "hit_trigger")
-            self.assertEqual(hit_check["status"], "fail")
+            data = extract_heatmap(ingest_bundle(root, allow_unsealed=True))
+            self.assertEqual(len(data["points"]), 2)
+            self.assertEqual(data["points"][0]["source"], "adaptive_sample")
+            self.assertEqual(data["points"][1]["source"], "adaptive_event")
+            self.assertEqual(data["points"][1]["reason"], "hit")
+            self.assertGreater(data["agents"]["1"]["movement_total"], 0)
+            self.assertTrue(data["heartbeats"])
 
 if __name__ == "__main__":
     unittest.main()

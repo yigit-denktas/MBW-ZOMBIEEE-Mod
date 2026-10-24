@@ -20,9 +20,9 @@ from pathlib import Path
 SCHEMA = "zombieee.flight.v1"
 SUMMARY_SCHEMA = "zombieee.receipt-summary.v1"
 MANIFEST_LIMIT = 1024 * 1024
-ARTIFACT_LIMIT = 2 * 1024 * 1024
+ARTIFACT_LIMIT = 8 * 1024 * 1024
 MAX_FILES = 24
-MAX_EVENTS = 4096
+MAX_EVENTS = 20000
 MAX_HIST_ENTRIES = 16
 MAX_LIFECYCLE = 32
 MAX_ROUNDS = 32
@@ -40,7 +40,8 @@ ROSTER_SURVIVOR = frozenset({875, 876, 877, 878, 32, 33})
 DEFENDER_TROOPS = frozenset(range(981, 985))
 TEXT_NAME_HINTS = ("stdout", "stderr")
 LIFECYCLE_KINDS = ("player_joined", "player_died", "player_respawned",
-                   "player_left", "round_started", "wave_started")
+                   "player_left", "round_started", "wave_started",
+                   "round_ended")
 ERROR_CLASSES = (
     (re.compile(r"Invalid Faction ID: -1"), "invalid_faction_id_minus_one"),
     (re.compile(r"Illegal lvalue in statement"), "illegal_lvalue"),
@@ -224,57 +225,23 @@ def _lifecycle(events) -> dict:
     return grouped
 
 
-LAUNCHER_RECEIPT_SCHEMA = "zombieee.city-launch-receipt.v1"
+def _find_named_value(data, wanted):
+    if isinstance(data, dict):
+        for key, value in data.items():
+            if str(key).lower() == wanted.lower():
+                return value
+            found = _find_named_value(value, wanted)
+            if found is not None:
+                return found
+    elif isinstance(data, list):
+        for item in data:
+            found = _find_named_value(item, wanted)
+            if found is not None:
+                return found
+    return None
 
 
-def _load_launcher_session(root: Path, explicit: Path | None = None) -> dict:
-    """Read the external launcher sidecar (requested config, not signed evidence).
-
-    Auto-discovery: <evidence-root>/flights/<session>/ -> <evidence-root>/
-    launches/<session>/launch-receipt.json. Absence is not a gap; the sidecar is
-    never treated as sealed evidence or merged with observed firearm fields.
-    """
-    session = {
-        "fire_mode": None, "fire_mode_scope": None,
-        "fire_mode_source": "requested_build_or_launcher",
-        "fire_mode_applied": None,
-        "fire_mode_manual_switch_supported": False,
-        "fire_mode_semantics": "accuracy_reload_tuning_only; no engine fire-mode setter/getter",
-        "fire_mode_receipt_found": False, "fire_mode_receipt_schema": None,
-        "fire_mode_mismatch": None,
-    }
-    path = explicit
-    if path is None:
-        path = root.parent.parent / "launches" / root.name / "launch-receipt.json"
-    try:
-        if not path.is_file() or path.stat().st_size > 256 * 1024:
-            return session
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError, TypeError):
-        session["fire_mode_receipt_found"] = True
-        session["fire_mode_receipt_schema"] = "unreadable"
-        return session
-    if not isinstance(data, dict):
-        return session
-    session["fire_mode_receipt_found"] = True
-    session["fire_mode_receipt_schema"] = data.get("schema")
-    if data.get("schema") != LAUNCHER_RECEIPT_SCHEMA:
-        return session
-    mode = data.get("fire_mode")
-    if mode in ("ai", "single", "burst", "auto"):
-        session["fire_mode"] = mode
-    scope = data.get("fire_mode_scope")
-    if scope == "pre-game/session-only":
-        session["fire_mode_scope"] = "pre-game-session-only"
-    elif scope == "pre-game-session-only":
-        session["fire_mode_scope"] = scope
-    applied = data.get("fire_mode_applied")
-    if isinstance(applied, bool):
-        session["fire_mode_applied"] = applied
-    return session
-
-
-def summarize_receipt(target: Path, launcher_receipt: Path | None = None) -> dict:
+def summarize_receipt(target: Path, build_receipt: Path | None = None) -> dict:
     root = resolve_receipt_root(Path(target))
     verified = verify_manifest(root)
     receipt = verified["receipt"]
@@ -283,6 +250,18 @@ def summarize_receipt(target: Path, launcher_receipt: Path | None = None) -> dic
     for _name, text in artifacts:
         events.extend(parse_zdbi(text))
     events = events[:MAX_EVENTS]
+
+    refill_off = False
+    build_receipt_value = None
+    if build_receipt is not None:
+        try:
+            data = json.loads(Path(build_receipt).read_text(encoding="utf-8"))
+            value = _find_named_value(data, "ammo_refill")
+            if value is not None:
+                build_receipt_value = str(value)
+                refill_off = "off" in build_receipt_value.lower()
+        except (OSError, ValueError, TypeError):
+            build_receipt_value = "unreadable"
 
     heartbeats = [e for e in events if e["event"] == "heartbeat"]
     entries = [e for e in events if e["event"] == "mission_enter"]
@@ -305,7 +284,24 @@ def summarize_receipt(target: Path, launcher_receipt: Path | None = None) -> dic
         "game_type": _bounded_int(latest_field("game_type"), minimum=0),
         "ready_for_spawn": _bounded_int(latest_field("ready_for_spawn"), minimum=0),
         "template": latest_field("template"),
+        "hit_trigger": (_bounded_int(capability["fields"].get("hit_trigger"))
+                        if capability else None),
+        "hit_attribution": (_bounded_int(capability["fields"].get("hit_attribution"))
+                            if capability else None),
+        "hit_events_cap": (_bounded_int(capability["fields"].get("hit_events_cap"))
+                           if capability else None),
+        "adaptive_sampling": (_bounded_int(capability["fields"].get("adaptive_sampling"))
+                              if capability else None),
+        "adaptive_active_ms": (_bounded_int(capability["fields"].get("adaptive_active_ms"))
+                               if capability else None),
+        "adaptive_idle_ms": (_bounded_int(capability["fields"].get("adaptive_idle_ms"))
+                             if capability else None),
+        "adaptive_max_events": (_bounded_int(capability["fields"].get("adaptive_max_events"))
+                                if capability else None),
+        "adaptive_max_agents": (_bounded_int(capability["fields"].get("adaptive_max_agents"))
+                                if capability else None),
         "pre_round_samples": len(pre_round),
+        "heartbeats": len(heartbeats),
         "pre_round_only": bool(pre_round) and not heartbeats,
         "sampling_interval_s": _bounded_int(
             capability["fields"].get("sampling_interval_s")) if capability else None,
@@ -1055,28 +1051,79 @@ def summarize_receipt(target: Path, launcher_receipt: Path | None = None) -> dic
     FIRE_MODE_ORDER = ("single", "burst", "auto")
 
     def _firearm_team(team):
+        # Per-agent bounded samples: tick/ts/position/ammo/attack action/weapon.
         series = {}
+        weapon_modes = {}
+        sample_sources = {}
+        # Per-tick team centroids for charge/backward projection.
+        coord_groups = {}
         for event in events:
-            if event["event"] not in ("ai_sample", "combat_sample"):
+            if event["event"] not in ("ai_sample", "combat_sample",
+                                      "adaptive_sample", "adaptive_event"):
                 continue
             fields = event["fields"]
-            if _bounded_int(fields.get("team")) != team:
+            sample_source = event["event"]
+            sample_sources[sample_source] = sample_sources.get(sample_source, 0) + 1
+            sample_team = _bounded_int(fields.get("team"))
+            if sample_team not in (0, 1):
+                continue
+            tick = _bounded_int(fields.get("tick"), minimum=0)
+            # adaptive_sample/adaptive_event use agent=, ai/combat use id=.
+            agent = _bounded_int(fields.get("id"), minimum=0)
+            if agent is None:
+                agent = _bounded_int(fields.get("agent"), minimum=0)
+            if tick is None or agent is None:
+                continue
+            try:
+                x, y = float(fields.get("x")), float(fields.get("y"))
+            except (TypeError, ValueError):
+                x = y = None
+            if x is not None and y is not None:
+                coord_groups.setdefault((sample_team, tick), []).append((x, y))
+            if sample_team != team:
                 continue
             ammo = _bounded_int(fields.get("ammo"))
-            tick = _bounded_int(fields.get("tick"), minimum=0)
-            agent = _bounded_int(fields.get("id"), minimum=0)
-            if ammo is None or tick is None or agent is None:
+            if ammo is None:
                 continue
+            mode = fields.get("weapon_mode")
+            if mode:
+                weapon_modes[mode] = weapon_modes.get(mode, 0) + 1
             series.setdefault(agent, []).append((
                 tick, ammo, _bounded_int(fields.get("weapon")),
                 _bounded_int(fields.get("kills")),
                 _bounded_int(fields.get("attack_action")),
                 _bounded_int(fields.get("accuracy_modifier")),
                 _bounded_int(fields.get("reload_speed_modifier")),
-                _bounded_int(fields.get("wave"))))
+                _bounded_int(fields.get("wave")),
+                _bounded_int(fields.get("ts_ms")), x, y))
+        centroids = {}
+        for (sample_team, tick), rows in coord_groups.items():
+            if rows:
+                centroids[(sample_team, tick)] = (
+                    sum(row[0] for row in rows) / len(rows),
+                    sum(row[1] for row in rows) / len(rows))
+        all_centroids = {}
+        for (sample_team, _tick), pair in centroids.items():
+            all_centroids.setdefault(sample_team, []).append(pair)
+        mean_centroids = {
+            sample_team: (sum(p[0] for p in pairs) / len(pairs),
+                          sum(p[1] for p in pairs) / len(pairs))
+            for sample_team, pairs in all_centroids.items() if pairs}
+
+        def enemy_centroid(tick):
+            enemy = 1 - team
+            if (enemy, tick) in centroids:
+                return centroids[(enemy, tick)]
+            candidates = sorted((t, p) for (s, t), p in centroids.items()
+                                if s == enemy and t <= tick)
+            if candidates:
+                return candidates[-1][1]
+            return mean_centroids.get(enemy)
+
         shots = burn = reloads = samples = 0
         agents_with_shots = 0
         intervals = []
+        intervals_ms = []
         kills_delta = 0
         attack_actions = {}
         weapon_ids = {}
@@ -1086,13 +1133,27 @@ def summarize_receipt(target: Path, launcher_receipt: Path | None = None) -> dic
         fire_mode_expected = {}
         mode_match = mode_mismatch = 0
         attack_transitions = release_actions = reload_actions = 0
+        first_shot_offsets = []
+        first_shot_unit = None
+        shot_timestamps = []
+        shot_decrease_events = 0
+        charge_distance = backward_distance = 0.0
+        charge_samples = backward_samples = 0
+        all_points_flat = [point for points in series.values() for point in points]
+        team_first_ts = min((point[8] for point in all_points_flat
+                             if point[8] is not None), default=None)
+        team_first_tick = min((point[0] for point in all_points_flat), default=None)
         for points in series.values():
-            points.sort(key=lambda item: item[0])
+            points.sort(key=lambda item: (item[8] if item[8] is not None
+                                           else item[0] * 1000, item[0]))
             previous_tick = None
             agent_shots = 0
             previous_action = None
+            first_seen_tick = points[0][0] if points else None
+            first_seen_ts = points[0][8] if points else None
+            first_shot_recorded = False
             for (tick, ammo, weapon, kills, action, accuracy,
-                 reload_value, wave_number) in points:
+                 reload_value, wave_number, ts_ms, x, y) in points:
                 samples += 1
                 if weapon is not None:
                     weapon_ids[weapon] = weapon_ids.get(weapon, 0) + 1
@@ -1125,19 +1186,71 @@ def summarize_receipt(target: Path, launcher_receipt: Path | None = None) -> dic
                 if first[3] is not None and second[3] is not None \
                         and second[3] >= first[3]:
                     kills_delta += second[3] - first[3]
+                # Charge/backward projection toward the enemy centroid.
+                if first[9] is not None and second[9] is not None:
+                    enemy = enemy_centroid(second[0])
+                    if enemy is not None:
+                        dx = second[9] - first[9]
+                        dy = second[10] - first[10]
+                        ex = enemy[0] - second[9]
+                        ey = enemy[1] - second[10]
+                        norm = (ex * ex + ey * ey) ** 0.5
+                        if norm > 0:
+                            projection = (dx * ex + dy * ey) / norm
+                            if projection > 0:
+                                charge_distance += projection
+                                charge_samples += 1
+                            elif projection < 0:
+                                backward_distance += -projection
+                                backward_samples += 1
                 if second[1] < first[1]:
                     fired = first[1] - second[1]
+                    shot_decrease_events += 1
                     agent_shots += fired
                     shots += fired
                     burn += fired
+                    if not first_shot_recorded:
+                        ts = second[8]
+                        if ts is not None and team_first_ts is not None:
+                            first_shot_offsets.append(ts - team_first_ts)
+                            first_shot_unit = "ms"
+                        else:
+                            first_shot_offsets.append(second[0] - team_first_tick)
+                            first_shot_unit = first_shot_unit or "ticks"
+                        first_shot_recorded = True
+                    if second[8] is not None:
+                        shot_timestamps.append(second[8])
                     if previous_tick is not None:
                         intervals.append(second[0] - previous_tick)
+                    if first[8] is not None and second[8] is not None:
+                        intervals_ms.append(second[8] - first[8])
                     previous_tick = second[0]
                 elif second[1] > first[1]:
                     reloads += 1
                     previous_tick = None
             if agent_shots:
                 agents_with_shots += 1
+        shot_span = (max(shot_timestamps) - min(shot_timestamps)
+                     if len(shot_timestamps) >= 2 else None)
+        shots_per_minute = (shots / (shot_span / 60000.0)
+                            if shot_span and shot_span > 0 else None)
+        movement = {
+            "basis": "projection of movement onto vector toward enemy team centroid",
+            "charge_distance": round(charge_distance, 3),
+            "backward_distance": round(backward_distance, 3),
+            "charge_samples": charge_samples,
+            "backward_samples": backward_samples,
+            "charge_ratio": (round(charge_samples /
+                                   (charge_samples + backward_samples), 3)
+                             if (charge_samples + backward_samples) else None),
+        }
+        ranged_gaps = []
+        if not first_shot_offsets:
+            ranged_gaps.append("time_to_first_shot_unavailable")
+        if first_shot_unit == "ticks":
+            ranged_gaps.append("time_to_first_shot_tick_units_no_ts")
+        if not charge_samples and not backward_samples:
+            ranged_gaps.append("charge_backward_movement_unavailable")
         return {
             "samples": samples,
             "agents": len(series),
@@ -1145,13 +1258,36 @@ def summarize_receipt(target: Path, launcher_receipt: Path | None = None) -> dic
             "shots_observed": shots,
             "ammo_burn": burn,
             "reloads_observed": reloads,
+            "reloads_or_refills_observed": reloads,
+            "ammo_increase_masks_shots": True,
+            "shots_are_lower_bound_proxy": True,
+            "shot_count_proven": False,
             "shot_intervals_ticks": (
                 {"count": len(intervals), "min": min(intervals),
                  "avg": round(sum(intervals) / len(intervals), 3),
                  "max": max(intervals)} if intervals else None),
+            "shots_per_minute": (round(shots_per_minute, 3)
+                                 if shots_per_minute is not None else None),
+            "shot_intervals_ms": (
+                {"count": len(intervals_ms), "min": min(intervals_ms),
+                 "avg": round(sum(intervals_ms) / len(intervals_ms), 3),
+                 "max": max(intervals_ms)} if intervals_ms else None),
+            "sample_sources": sample_sources or None,
+            "agents_fired_ratio": (round(agents_with_shots / len(series), 3)
+                                   if series else None),
             "kills_delta_observed": kills_delta,
             "shot_to_kill_ratio": (round(shots / kills_delta, 3)
                                    if kills_delta > 0 else None),
+            "time_to_first_shot": (
+                {"count": len(first_shot_offsets), "min": min(first_shot_offsets),
+                 "avg": round(sum(first_shot_offsets) / len(first_shot_offsets), 3),
+                 "max": max(first_shot_offsets), "unit": first_shot_unit,
+                 "baseline": "team_first_observed_sample"}
+                if first_shot_offsets else None),
+            "shot_decrease_events": shot_decrease_events,
+            "weapon_modes": (dict(sorted(weapon_modes.items(),
+                                         key=lambda kv: (-kv[1], kv[0])))
+                             or None),
             "attack_actions": dict(sorted(attack_actions.items(),
                                           key=lambda kv: (-kv[1], kv[0]))[:12]) or None,
             "weapon_ids": dict(sorted(weapon_ids.items(),
@@ -1171,6 +1307,8 @@ def summarize_receipt(target: Path, launcher_receipt: Path | None = None) -> dic
             "attack_action_transitions": attack_transitions,
             "release_actions": release_actions,
             "reload_actions": reload_actions,
+            "movement": movement,
+            "ranged_gaps": ranged_gaps,
             "weapon_fire_modes": None,
             "item_accuracy_patch": None,
             "manual_fire_mode": None,
@@ -1185,6 +1323,17 @@ def summarize_receipt(target: Path, launcher_receipt: Path | None = None) -> dic
     firearms = {
         "team0": firearms_team0,
         "team1": firearms_team1,
+        "shot_measurement": {
+            "proxy": True,
+            "proven": False,
+            "ammo_refill_off": refill_off,
+            "build_receipt_ammo_refill": build_receipt_value,
+            "refill_masking_excluded": refill_off,
+            "reason": ("shots are inferred from ammo decreases; refill_ammo "
+                       "can increase ammo and reset the interval baseline, so "
+                       "shot counts/zero shots are not proven; attack_action "
+                       "release/ready transitions are not a shot counter"),
+        },
         "source": "ammo_decrease_between_bounded_ai_and_combat_samples",
         "tick_units": "recorder heartbeat/sample tick (wall-clock unknown)",
         "fire_mode_expected_source": (
@@ -1208,8 +1357,21 @@ def summarize_receipt(target: Path, launcher_receipt: Path | None = None) -> dic
                  "exists here, so those stay unknown."),
     }
     if firearms_team0["samples"] or firearms_team1["samples"]:
+        gaps_hint = list(gaps_hint) + [
+            *([] if refill_off else ["ammo_refill_masks_shots"]),
+            "attack_action_is_not_shot_count",
+        ]
+        if (firearms_team0.get("shots_observed") == 0
+                and firearms_team1.get("shots_observed") == 0):
+            gaps_hint = list(gaps_hint) + ["zero_shots_not_proven"]
+    # Top-level ranged gaps are survivor/team0 relevant; team1 melee gaps stay
+    # in firearms.team1.ranged_gaps and must not mark survivor timing unavailable.
+    ranged_gaps = sorted(set(firearms_team0.get("ranged_gaps") or []))
+    if ranged_gaps:
+        gaps_hint = list(gaps_hint) + ranged_gaps
+    if firearms_team0["samples"] or firearms_team1["samples"]:
         gaps_hint = list(gaps_hint) + ["shot_telemetry_ammo_delta_only"]
-    for gap in ("hit_telemetry_unavailable", "aim_error_unavailable",
+    for gap in ("aim_error_unavailable",
                 "reticle_telemetry_unavailable",
                 "weapon_fire_mode_unavailable",
                 "player_accuracy_state_unavailable",
@@ -1221,6 +1383,121 @@ def summarize_receipt(target: Path, launcher_receipt: Path | None = None) -> dic
     if not (firearms_team0["attack_actions"] or firearms_team1["attack_actions"]):
         gaps_hint.append("attack_action_unavailable")
 
+    agent_meta = {}
+    for event in events:
+        if event["event"] in ("ai_sample", "combat_sample"):
+            fields = event["fields"]
+            agent_id = _bounded_int(fields.get("id"), minimum=0)
+            if agent_id is None:
+                continue
+            team = _bounded_int(fields.get("team"), minimum=0, maximum=1)
+            if team is None and event["event"] == "combat_sample":
+                team = 0
+            troop = _bounded_int(fields.get("troop"), minimum=0)
+            if agent_id not in agent_meta or team is not None:
+                agent_meta[agent_id] = {"team": team, "troop": troop}
+    hit_events = [event for event in events if event["event"] == "hit_sample"]
+    hit_counts = {"missile": 0, "melee": 0}
+    damage_total = 0
+    friendly_fire = 0
+    by_dealer_team, by_victim_team = {}, {}
+    by_dealer_troop, by_victim_troop = {}, {}
+    unattributed = 0
+    for event in hit_events:
+        fields = event["fields"]
+        dealer = _bounded_int(fields.get("dealer"), minimum=0)
+        victim = _bounded_int(fields.get("victim"), minimum=0)
+        damage = _bounded_int(fields.get("damage"), minimum=0)
+        kind = fields.get("kind")
+        hit_counts[kind if kind in hit_counts else "melee"] += 1
+        damage_total += damage or 0
+        dmeta = agent_meta.get(dealer) if dealer is not None else None
+        vmeta = agent_meta.get(victim) if victim is not None else None
+        if dmeta and dmeta.get("team") is not None:
+            key = str(dmeta["team"])
+            by_dealer_team[key] = by_dealer_team.get(key, 0) + 1
+        if vmeta and vmeta.get("team") is not None:
+            key = str(vmeta["team"])
+            by_victim_team[key] = by_victim_team.get(key, 0) + 1
+        if dmeta and dmeta.get("troop") is not None:
+            key = str(dmeta["troop"])
+            by_dealer_troop[key] = by_dealer_troop.get(key, 0) + 1
+        if vmeta and vmeta.get("troop") is not None:
+            key = str(vmeta["troop"])
+            by_victim_troop[key] = by_victim_troop.get(key, 0) + 1
+        if dmeta is None or vmeta is None:
+            unattributed += 1
+        elif dmeta.get("team") is not None and dmeta.get("team") == vmeta.get("team"):
+            friendly_fire += 1
+    last_hb_fields = {}
+    for event in reversed(events):
+        if event["event"] == "heartbeat":
+            last_hb_fields = event["fields"]
+            break
+    hits = {
+        "source": (
+            "candidate ti_on_agent_hit param mapping (victim=1,dealer=2,"
+            "damage=3,missile=5); mapping and in-build behavior unverified"),
+        "mapping_unverified": True,
+        "capability": {
+            "hit_trigger": probe.get("hit_trigger"),
+            "hit_attribution": probe.get("hit_attribution"),
+            "hit_events_cap": probe.get("hit_events_cap"),
+        },
+        "events": len(hit_events),
+        "damage_total": damage_total,
+        "by_kind": hit_counts,
+        "friendly_fire": friendly_fire,
+        "by_dealer_team": by_dealer_team or None,
+        "by_victim_team": by_victim_team or None,
+        "by_dealer_troop": (dict(sorted(by_dealer_troop.items(),
+                                        key=lambda kv: (-kv[1], kv[0]))[:12])
+                            or None),
+        "by_victim_troop": (dict(sorted(by_victim_troop.items(),
+                                        key=lambda kv: (-kv[1], kv[0]))[:12])
+                            or None),
+        "unattributed": unattributed,
+        "agent_metadata_available": len(agent_meta) if agent_meta else None,
+        "friendly_fire_note": (
+            "metadata-limited undercount: only hits with both dealer and victim "
+            "metadata sampled are classified"),
+        "validation": "static/test-only pending sealed hit-bearing run",
+        "param_mapping_source": (
+            "Native-derived module_mission_templates.py: 1=victim,2=dealer,"
+            "3=damage,5=missile; cited, not yet verified in our build"),
+        "heartbeat_last": {
+            "hit_attempts": _bounded_int(last_hb_fields.get("hit_attempts")),
+            "hit_events": _bounded_int(last_hb_fields.get("hit_events")),
+            "hit_param_invalid": _bounded_int(last_hb_fields.get("hit_param_invalid")),
+        },
+    }
+
+    if not hit_events and "hit_telemetry_unavailable" not in gaps_hint:
+        gaps_hint.append("hit_telemetry_unavailable")
+    adaptive_rows = [event for event in events
+                     if event["event"] in ("adaptive_sample", "adaptive_event")]
+    adaptive_reasons = {}
+    for event in adaptive_rows:
+        reason = event["fields"].get("reason") or "unknown"
+        adaptive_reasons[reason] = adaptive_reasons.get(reason, 0) + 1
+    adaptive = {
+        "samples": sum(1 for event in adaptive_rows
+                       if event["event"] == "adaptive_sample"),
+        "events": sum(1 for event in adaptive_rows
+                      if event["event"] == "adaptive_event"),
+        "reasons": adaptive_reasons or None,
+        "heartbeat_last": {
+            "ticks": _bounded_int(last_hb_fields.get("adaptive_ticks")),
+            "samples": _bounded_int(last_hb_fields.get("adaptive_samples")),
+            "events": _bounded_int(last_hb_fields.get("adaptive_events")),
+            "skips": _bounded_int(last_hb_fields.get("adaptive_skips")),
+            "active_ticks": _bounded_int(last_hb_fields.get("adaptive_active_ticks")),
+            "last_interval_ms": _bounded_int(last_hb_fields.get("adaptive_last_interval_ms")),
+        },
+        "validation": "static/test-only pending sealed adaptive run",
+    }
+    if not adaptive_rows:
+        gaps_hint.append("adaptive_sampling_unavailable")
     gaps = list(gaps_hint)
     if defender_samples and not defenders["weapon_mode_observed"]:
         gaps.append("weapon_mode_unobserved")
@@ -1295,18 +1572,6 @@ def summarize_receipt(target: Path, launcher_receipt: Path | None = None) -> dic
     duration = (round(float(duration), 3)
                 if isinstance(duration, (int, float)) and not isinstance(duration, bool)
                 and 0 <= float(duration) <= 10 ** 7 else None)
-    session = _load_launcher_session(root, launcher_receipt)
-    observed_modes = ((firearms.get("team0") or {}).get("fire_modes_observed") or {})
-    expected_modes = ((firearms.get("team0") or {}).get("fire_mode_expected") or {})
-    requested = session["fire_mode"]
-    if requested and observed_modes:
-        if requested == "ai":
-            mismatch = bool(set(observed_modes) - set(expected_modes)) if expected_modes else None
-        else:
-            mismatch = requested not in observed_modes
-        session["fire_mode_mismatch"] = mismatch
-        if mismatch:
-            gaps.append("fire_mode_requested_observed_mismatch")
     summary = {
         "schema": SUMMARY_SCHEMA,
         "verified": verified["verified"],
@@ -1328,7 +1593,8 @@ def summarize_receipt(target: Path, launcher_receipt: Path | None = None) -> dic
         "divisions": divisions,
         "defenders": defenders,
         "firearms": firearms,
-        "session": session,
+        "hits": hits,
+        "adaptive": adaptive,
         "waves": {"observed": waves, "max": waves[-1] if waves else None,
                   "multiple_observed": len([w for w in waves if w >= 1]) >= 2,
                   "wave1": {"observed": wave1_observed,
@@ -1353,6 +1619,29 @@ def summarize_receipt(target: Path, launcher_receipt: Path | None = None) -> dic
                            "is implied by this summary."),
     }
     return summary
+
+
+def format_brief(summary: dict) -> str:
+    """One-screen 3-min smoke summary; proxy/gaps explicit, no acceptance."""
+    fire = (summary.get("firearms") or {}).get("team0") or {}
+    shot = (summary.get("firearms") or {}).get("shot_measurement") or {}
+    lines = [
+        "ZOMBIEEE brief summary",
+        f"verified={summary.get('verified')} duration={summary.get('duration_seconds')}s "
+        f"heartbeats={(summary.get('probe') or {}).get('heartbeats', 'n/a')} "
+        f"pre_round_samples={(summary.get('probe') or {}).get('pre_round_samples', 'n/a')}",
+        f"team0 shots={fire.get('shots_observed')} "
+        f"decrease_events={fire.get('shot_decrease_events')} "
+        f"agents={fire.get('agents')} fired={fire.get('agents_with_shots')} "
+        f"ratio={fire.get('agents_fired_ratio')}",
+        f"ttfs={fire.get('time_to_first_shot')} spm={fire.get('shots_per_minute')} "
+        f"movement={fire.get('movement')}",
+        f"shot_proxy={shot.get('proxy')} proven={shot.get('proven')} "
+        f"refill_off={shot.get('ammo_refill_off')}",
+        f"gaps={', '.join(summary.get('evidence_gaps') or ['none'])}",
+        "PROXY: shots are ammo-delta inferred; no acceptance/visual claim.",
+    ]
+    return "\n".join(lines)
 
 
 def format_summary(summary: dict) -> str:
@@ -1453,10 +1742,23 @@ def format_summary(summary: dict) -> str:
                  f"melee_team0={defend['melee_fallback_team0']} "
                  f"deaths={defend['deaths']}")
     fire = summary["firearms"]
+    adaptive = summary.get("adaptive") or {}
+    lines.append(f"adaptive:        samples={adaptive.get('samples')} "
+                 f"events={adaptive.get('events')} "
+                 f"reasons={adaptive.get('reasons')} "
+                 f"last={adaptive.get('heartbeat_last')}")
+    hits = summary.get("hits") or {}
+    lines.append(f"hits:            total={hits.get('events')} damage={hits.get('damage_total')} "
+                 f"friendly_fire={hits.get('friendly_fire')} "
+                 f"dealer_teams={hits.get('by_dealer_team')} "
+                 f"victim_troops={hits.get('by_victim_troop')}")
     lines.append(f"firearms:        team0 shots={fire['team0']['shots_observed']} "
                  f"burn={fire['team0']['ammo_burn']} reloads={fire['team0']['reloads_observed']} "
                  f"kills_delta={fire['team0']['kills_delta_observed']} "
                  f"actions={fire['team0']['attack_actions']} "
+                 f"ttfs={fire['team0']['time_to_first_shot']} "
+                 f"spm={fire['team0']['shots_per_minute']} "
+                 f"move={fire['team0']['movement']} "
                  f"accuracy={fire['team0']['accuracy_modifiers']} "
                  f"reload={fire['team0']['reload_speed_modifiers']} "
                  f"modes={fire['team0']['fire_modes_observed']} "
@@ -1468,12 +1770,6 @@ def format_summary(summary: dict) -> str:
                  f"faction_slots={summary['waves']['faction_slots']} "
                  f"slots_slow={summary['waves']['slots_slow']} "
                  f"current_scene={summary['waves']['current_scene']}")
-    sess = summary.get("session") or {}
-    lines.append(f"session fire_mode: requested={sess.get('fire_mode')} "
-                 f"applied={sess.get('fire_mode_applied')} "
-                 f"scope={sess.get('fire_mode_scope')} "
-                 f"observed={((summary.get('firearms') or {}).get('team0') or {}).get('fire_modes_observed')} "
-                 f"mismatch={sess.get('fire_mode_mismatch')}")
     lines.append(f"rounds:          {summary['rounds']['count']} distinct "
                  f"round_start values")
     done = ", ".join(f"{kind}={len(items)}" for kind, items in summary["lifecycle"].items())
@@ -1498,13 +1794,18 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Summarize a sealed flight receipt")
     parser.add_argument("receipt", type=Path)
     parser.add_argument("--json", action="store_true", help="Emit JSON instead of text")
-    parser.add_argument("--launcher-receipt", type=Path, default=None,
-                        help="external city launcher receipt sidecar (requested config only)")
+    parser.add_argument("--brief", action="store_true", help="One-screen smoke summary")
+    parser.add_argument("--build-receipt", type=Path, default=None,
+                        help="optional build/measurement receipt for refill context")
     args = parser.parse_args()
     try:
-        summary = summarize_receipt(args.receipt, args.launcher_receipt)
+        summary = summarize_receipt(args.receipt, args.build_receipt)
     except ReceiptError as exc:
         print("Receipt verification failed: " + str(exc), file=sys.stderr)
         raise SystemExit(2)
-    print(json.dumps(summary, indent=2, sort_keys=True)
-          if args.json else format_summary(summary))
+    if args.json:
+        print(json.dumps(summary, indent=2, sort_keys=True))
+    elif args.brief:
+        print(format_brief(summary))
+    else:
+        print(format_summary(summary))

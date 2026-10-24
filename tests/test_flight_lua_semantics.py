@@ -239,7 +239,7 @@ local team_value = read_team_order(0, 5, function(destination, team, subclass)
 end)
 checks[#checks + 1] = tostring(team_value == 2 and seen_team == 0 and seen_subclass == 5)
 
--- Heartbeat builder must survive nil/unknown counters.
+-- Heartbeat builder must survive nil/unknown counters (the 17:15 crash).
 local function heartbeat_counters(attempts, events, invalid)
     return "|hit_attempts=" .. (attempts or 0)
         .. "|hit_events=" .. (events or 0)

@@ -183,4 +183,43 @@ This project deliberately separates **source-verified**, **observed**, **unknown
 <!-- task-65 branch metadata-only source revision: 1374abd (rebased on e80bbf4) -->
 
 
-<!-- task-68 consumer branch metadata-only source revision: b92fa7d -->
+<!-- P0 probe fix metadata-only source revision: 39aa3a7 -->
+
+
+<!-- P0 probe team-order fix metadata-only source revision: 4848ee2 -->
+
+
+<!-- telemetry hardening metadata-only source revision: 08a9546 -->
+
+
+<!-- telemetry hardening metadata-only source revision: d0f7edf -->
+
+
+<!-- telemetry claim-wording metadata-only source revision: 79d7b84 -->
+
+
+<!-- hit mapping metadata-only source revision: 8759eed -->
+
+
+<!-- task-74 heatmap metadata-only source revision: b06f427 -->
+
+
+<!-- task-71 hit-trigger metadata-only source revision: 1845906 -->
+
+
+<!-- task-76 adaptive sampling metadata-only source revision: 67dd281 -->
+
+
+<!-- heartbeat nil-fix metadata-only source revision: 8d07f2f -->
+
+
+<!-- hit-param two-arg metadata-only source revision: 0d9415c -->
+
+
+<!-- hit-param diagnostic metadata-only source revision: d988597 -->
+
+
+<!-- adaptive visual/fields metadata-only source revision: d8a57f4 -->
+
+
+<!-- ported summary caveat metadata-only source revision: bd2d4d0 -->
