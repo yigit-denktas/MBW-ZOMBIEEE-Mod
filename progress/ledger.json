@@ -3745,6 +3745,35 @@
       "originReason": "Owner real-time firearm feedback.",
       "discoveredDuring": "owner live feedback 2026-10-24",
       "graphImpact": "Improves combat feel/AI effectiveness; depends on loadout/formation."
+    },
+    {
+      "id": "ZOM-DISC-63",
+      "title": "Warband engine/combat-AI research + Bannerlord comparison",
+      "groupId": "Runtime",
+      "milestoneId": "M1",
+      "state": "active",
+      "sourceState": "agent H researching",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-58"
+      ],
+      "evidence": [],
+      "completionBasis": "Research pending",
+      "kind": "work-item",
+      "owner": "Agent H — research; C/A review",
+      "priority": "P1",
+      "criterion": "Cited Warband engine/AI/order semantics and Bannerlord comparison identify adopt/adapt/avoid and feasible experiments.",
+      "note": "Combat AI/order channels, native groups 26/28/29/31, formations/morale/waves, WSE2; docs-only.",
+      "deferReason": "Supplemental engine research; not part of required denominator.",
+      "implementationLane": "H",
+      "workOrigin": "discovered",
+      "workType": "research",
+      "supportsOutcomeId": "ZOM-AI-03",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner asked for the Warband counterpart to Bannerlord research.",
+      "discoveredDuring": "owner live feedback 2026-10-24",
+      "graphImpact": "Unblocks feasible AI/order experiments; no runtime credit."
     }
   ],
   "warnings": [
