@@ -1,8 +1,8 @@
-{
-  "updated": "2026-10-24T18:12:00+02:00",
-  "phase": "Clean no-shield play test",
-  "build": "Installed no-shield ranged play build: mission 7A48C83D, probe ce9d98e, backup …180955.",
-  "now": "D is running the clean 10-min survivor POV with 10-attempt join retry and dense frames; zombie_block=null (no wooden shields), firearm_class=crossbow_type_ranged.",
-  "next": "Review frames, join success, time-to-first-shot/charge metrics; fix visible blockers only. No acceptance.",
+﻿{
+  "updated": "2026-10-24T18:29:00+02:00",
+  "phase": "Nextplay hold-ground / zombie targets",
+  "build": "Installed C62F0BCD: stand-ground/no-chase, zombie speed 50+4 cap85, HP 67.5%, counts x2; no shields.",
+  "now": "D running 10-min survivor POV on nextplay with join retry and screenshots. Probe console spam still overlays frames (C fixing).",
+  "next": "Compare charge/first-shot/KD vs prior run; keep only fixes that move behavior. No acceptance.",
   "acceptance": false
 }
