@@ -76,15 +76,17 @@ python -m tools.telemetry_studio probe-health <sealed-bundle> --json
 | --- | --- | --- | --- |
 | task45-wave2 | **warn** (`ok=true`) | 42 | hit counters absent (old probe); `SCRIPT ERROR x4` |
 | task55-p0 | **warn** (`ok=true`) | 41 | hit counters absent; no critical error family |
-| **task76-heatmap-hit** | **fail** (hit gate only) | **14** | `hit_trigger` fail: attempts=296/events=0/invalid=296; adaptive/positions/heartbeat checks pass |
+| **task76-heatmap-hit** | **fail** (hit gate only) | **14** | **`hit_attribution_unavailable`**: C freeze 420 attempts / 0 events / 420 invalid (task76 observed 296/0/296); adaptive/positions/heartbeat pass |
 | D partial pre-round | **fail** (`ok=false`) | 0 | `no_heartbeat_events`; trigger registered but heartbeat path not emitting |
 
 **Gate update (C `agent/c-probe-doctor` @ `6ec039b`):** the doctor now fails on
-`hit_attempts>0` with `hit_events=0` / `hit_param_invalid>0` / zero hit samples. task76's
-older "ok" was from the previous doctor and is **superseded**: its spatial/heatmap fields
-are usable, but hit attribution is not. D's new probe
-(`agent/c-adaptive-sampling` @ `ce9d98e`, two-arg trigger-param decode) is pending
-install/reseal.
+`hit_attempts>0` with `hit_events=0` / `hit_param_invalid>0` / zero hit samples. This is
+**`hit_attribution_unavailable`**, not “static/test-only”: runtime `game.addTrigger`
+trigger params are not populated (C freeze 420 attempts / 0 events / 420 invalid; task76
+observed 296/0/296). task76's older "ok" is superseded: its spatial/heatmap fields are
+usable, but hit attribution is unavailable. Compiled `ti_on_agent_hit` remains backlog;
+D's `ce9d98e` two-arg probe is pending install/reseal but C states hit attribution remains
+unavailable for this path.
 
 Gate rule: **zero heartbeats ⇒ stop, do not treat as heatmap evidence**. Warnings
 (old-probe hit counters, script errors) are recorded and must be carried into the run
@@ -156,7 +158,8 @@ D's sealed task76 bundle **fails the stricter `probe-health` hit gate** (C head
 heartbeat/adaptive/position checks pass; it exports **229 points / 14 heartbeats / 20
 unique IDs / 28 team tracks**, waves 0-1, class+division+HP sampled for all 28 tracks,
 conditions **160 outnumbered / 61 even / 8 unknown**, no fallback condition. Spatial
-input is usable; hit/attribution claims are not.
+input is usable; **hit attribution is unavailable** (`hit_attribution_unavailable`; C
+freeze 420 attempts / 0 events / 420 invalid; task76 observed 296/0/296).
 
 Run metadata (from `heatmap_run_metadata_task76.json`, sanitized into
 `spatial_task76/spatial_summary.json`): mission SHA `df21ae88…`, scripts SHA `b6a7cdde…`,
@@ -175,8 +178,10 @@ Bounded observations (descriptive only):
 - Movement proxy: 21 mixed / 7 over-moving / 0 under-moving across 28 tracks; no candidate
   chokepoint cell survives the threshold. Class/division values are 0/1 only and D marks
   them **source-troop-fallback**, not verified role identities.
-- Hit attribution: **hit_events=0 / attempts=296**, params invalid — heatmap input is
-  unaffected, but this run does **not** validate hit attribution.
+- Hit attribution: **unavailable** (`hit_attribution_unavailable`; runtime
+  `game.addTrigger` params not populated; C freeze 420 attempts / 0 events / 420 invalid;
+  task76 observed 296/0/296). Heatmap input is unaffected; compiled `ti_on_agent_hit`
+  remains backlog and this run does **not** validate hit attribution.
 
 Panels: `telemetry/spatial_task76/panels/spatial_panel_task76-heatmap-hit.svg`. This is a
 single baseline sample, **not** a baseline-vs-variant result; no visual/acceptance claim.
@@ -187,7 +192,7 @@ anchor is **combat/attrition/survivor-idle drift**, not adaptive fallback or a f
 hold; team-1's masses move toward each other and tighten; no 360° claim; no role
 separation from source-troop-fallback divisions; no fallback condition; single baseline,
 not A/B. A's required gates: verified formation_mode/seed/entry/round-end, true
-class/division identity, fixed hit attribution, and a real matched A/B pair. No causal or
+class/division identity, hit attribution availability, and a real matched A/B pair. No causal or
 behavior-acceptance claim.
 
 ## 4. Outputs
