@@ -84,7 +84,7 @@ C has pushed implementation updates for log head/tail and path checks, but compa
 - Root cause of earlier no-AI: dedicated rotation bot configuration (1-based `set_bot_count`; `g_multiplayer_num_bots_team_1` is the first team), not the build.
 - New defects: wave-1 generic bots are faction-default Crazed Civilian, not native Zombie troops (#13/#14); no respawn/new round after player death (#13/#14). Required rotation commands: `max_num_bots`, `set_bot_count 2`, `set_respawn_period 5`, `set_round_max_seconds 1800`, `set_defender_spawn_count 0`, `set_player_respawn_as_bot 0` before `start`.
 - Evidence: #15 recorder atomic-replace race (`ZOM-DISC-22`), #16 seal host ZDB1 stdout (`ZOM-DISC-24`); #1 closed → #13. Main tip `0eb9374`, suite **351 OK/4 skips**; `tools/city_runtime_triage.py --rotation` enforces the contract.
-- No gameplay acceptance: wave 2+/completion, native zombie roster, allied divisions 5-7, round transition, sealed receipt and teardown remain open. Required City outcomes **0/23**, milestones **0/5**.
+- No gameplay acceptance: wave 3+/completion (wave 2 observed in the configured hands-off variant), native zombie roster, allied divisions 5-7, round transition, sealed receipt and teardown remain open. Required City outcomes **0/23**, milestones **0/5**.
 
 ### Telemetry-v2 bug-fix integration — 2026-10-24
 
@@ -99,4 +99,4 @@ C has pushed implementation updates for log head/tail and path checks, but compa
 - Main `24ed22f` (canonical build `24ed22f`); merged suite 496 OK/7 skips with the documented pre-existing NUL-flake caveat (fixed by F, not reported as stably green).
 - Sealed evidence: native Zombies 894..911 reliable; native team-0 defenders 981..984 (bots_team0=4, player+4; spawn proven, division adoption/hold unproven); both-team positions; sealed host ZDB1 stdout; one-command play_city lifecycle passed (runtime_verified=false).
 - Kill/troop accessor fix (C 9756b14) makes engagement/troop fields reliable; legacy unreliable sums labelled rather than zeroed.
-- Still open: wave 2+/completion, survivor sector-hold correctness over time, firearm combat feel, legal redistribution, all release gates. Required City outcomes **0/23**, milestones **0/5**.
+- Still open: wave 3+/completion (wave 2 observed in the configured hands-off variant), survivor sector-hold correctness over time, firearm combat feel, legal redistribution, all release gates. Required City outcomes **0/23**, milestones **0/5**.

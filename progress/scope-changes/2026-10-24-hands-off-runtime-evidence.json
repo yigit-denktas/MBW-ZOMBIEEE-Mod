@@ -35,7 +35,7 @@
     "discoveredBacklog": 1,
     "canonicalBuildModuleSha256": "16162ed96e5bbabe39af797d93047027e7d9538f4c3839b158e64af0862a98f5"
   },
-  "rationale": "D's sealed hands-off runs prove the native Zombie roster (894..911) and the native team-0 defender spawn (981..984), sealed host ZDB1 stdout, reliable kill/troop reads and a passed play_city lifecycle. Defender division 5-7 adoption/hold-sector rotation and wave>=2 are NOT observed, so ZOM-DISC-28 stays active. All support leaves; required City outcomes remain 0/23 and milestones 0/5. C's final division/defender telemetry (08605a3) merged at main 24ed22f; it exposes groups/divisions and keeps hold_behavior_observed false until D's rebuilt-probe run observes the defenders. Canonical installed AI build 24ed22f (module_sha256 16162ed9...) re-confirms defender spawn and native roster; C's group getter fails in the disc28 sealed run, so division/hold stays unobserved. Wave>=2 remains native round-end limited; A documented the tradeoff.",
+  "rationale": "D's sealed hands-off runs prove the native Zombie roster (894..911) and the native team-0 defender spawn (981..984), sealed host ZDB1 stdout, reliable kill/troop reads and a passed play_city lifecycle. Defender division 5-7 adoption/hold-sector rotation and wave>=2 are NOT observed, so ZOM-DISC-28 stays active. All support leaves; required City outcomes remain 0/23 and milestones 0/5. C's final division/defender telemetry (08605a3) merged at main 24ed22f; it exposes groups/divisions and keeps hold_behavior_observed false until D's rebuilt-probe run observes the defenders. Canonical installed AI build 24ed22f (module_sha256 16162ed9...) re-confirms defender spawn and native roster; C's group getter fails in the disc28 sealed run, so division/hold stays unobserved. Wave>=2 remains native round-end limited; A documented the tradeoff. Wave>=2 observed once in the configured hands-off defender-heavy variant (sealed wave2c-attempt); it is a survival/clearance observation of the native lifecycle, not a wave-completion or acceptance claim.",
   "evidence": [
     "local/session/ai-evidence-20261024-final-idle-canon",
     "local/session/ai-evidence-20261024-035921-canon-noclient",
@@ -46,6 +46,7 @@
     "_zom-d-build/local/session/play-city/launches/b340e92225c14949b762a6a631bfd2ae",
     "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/08605a3",
     "local/session/ai-evidence-disc28-groups",
-    "local/session/ai-evidence-wave2-attempt"
+    "local/session/ai-evidence-wave2-attempt",
+    "local/session/ai-evidence-wave2c-attempt"
   ]
 }
