@@ -317,6 +317,15 @@ Bare invocation defaults to `play`; `play --rebuild` forces a fresh build.
    `recovery_required`.
 3. Rotation: validated lines are written to the private launch directory and
    passed with `-r`; they are never written into the game tree or the repo.
+   Because one-click City always builds/uses A's City defender profile, the
+   default rotation requests A's **native team-0 allied squad** with
+   `set_bot_count 1 4` (1-based rotation team 1 = telemetry team 0; A's roster
+   patch maps faction 15 + `g_multiplayer_game_type==7` bots to survivor
+   troops 981..984). `set_bot_count 2 32` and `set_defender_spawn_count 0`
+   stay unchanged. Override with `--team0-bots N` (alias `--team1-bots`);
+   `--stock-rotation` / `--team0-bots 0` keeps the stock zero-ally rotation
+   for a module built without defenders. `build_rotation()` itself keeps its
+   stock default; `build_defender_rotation()` is the explicit profile.
 4. Recorder first: C's passive recorder is armed and must publish a canonical
    ready marker for this exact session/attempt/PID before any game child starts.
    The host is then started with a generated loopback-only WSE2 config
@@ -344,6 +353,11 @@ files contain local paths and must stay private.
 
 ### Truth boundaries
 
+`summary.json` is C's sealed-bundle summary stored verbatim, not a launcher
+interpretation. Its `no_player` flag reflects only the latest heartbeat window;
+always read it together with the composition block (for example
+`mode=human_present`) instead of treating that single flag as player absence.
+
 All receipts keep `runtime_verified=false`, `outcome=unknown` and
 `simulation=false`; `lifecycle_outcome`/`status` describe only the launcher's own
 owned-process lifecycle (`clean_stop`, `failed`, `interrupted`). A verified
@@ -370,7 +384,7 @@ attach, join/mission markers, stop after client exit, artifact-before-stop,
 manifest/summary results, and fail-closed cleanup for bind timeout, recorder
 readiness failure, attachment rejection, recorder death and Ctrl+C. No game,
 recorder subprocess or network probe is started by tests. Latest Windows result:
-`python -B -m unittest discover -s tests -q` → **475 tests, OK, 103 skipped**
+`python -B -m unittest discover -s tests -q` → **486 tests, OK, 104 skipped**
 (the interop cases run because C's recorder is present in the merged tree).
 
 ### Python 3.13 NUL-path regression

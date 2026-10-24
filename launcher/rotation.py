@@ -3,7 +3,9 @@
 The first live City runs showed three server-side configuration traps that are
 not visible in the build:
 
-* ``set_bot_count`` team numbers are 1-based (1 = player/first team);
+* ``set_bot_count`` team numbers are 1-based (1 = player/first team); the
+  City native defender squad is switched on with team-1 bots = 4 (telemetry
+  team 0), while ``build_rotation()`` stays stock by default;
 * without a positive second-team bot count the native wave controller stayed at
   ``wave=0`` / ``team1=0``;
 * without respawn/round settings the player could remain dead with no new
@@ -32,6 +34,10 @@ ROSTER_CAVEAT = ('generic set_bot_count bots use the faction default '
 
 DEFAULT_MAX_BOTS = 200
 DEFAULT_TEAM1_BOTS = 0
+# A's merged roster patch maps faction 15 + ``g_multiplayer_game_type==7``
+# bots to the 981..984 survivor troops; ``set_bot_count 1 4`` is the switch
+# that spawns the native team-0 allied squad (1-based rotation team 1).
+DEFENDER_SQUAD_BOTS = 4
 DEFAULT_TEAM2_BOTS = 32
 DEFAULT_RESPAWN_PERIOD = 5
 DEFAULT_ROUND_MAX_SECONDS = 1800
@@ -47,6 +53,7 @@ def _int(value, name, minimum, maximum):
 
 def build_rotation(*, server_name=SERVER_NAME, mission=MISSION, map_name=MAP,
                    team1_bots=DEFAULT_TEAM1_BOTS, team2_bots=DEFAULT_TEAM2_BOTS,
+                   defender_squad=False,
                    max_bots=DEFAULT_MAX_BOTS,
                    respawn_period=DEFAULT_RESPAWN_PERIOD,
                    round_max_seconds=DEFAULT_ROUND_MAX_SECONDS,
@@ -61,6 +68,12 @@ def build_rotation(*, server_name=SERVER_NAME, mission=MISSION, map_name=MAP,
         raise ValueError('server_name must be a non-empty string')
     if mission != MISSION or map_name != MAP:
         raise ValueError('only the original City mission/map is supported')
+    if type(defender_squad) is not bool:
+        raise ValueError('defender_squad must be a boolean')
+    if defender_squad:
+        if team1_bots != DEFAULT_TEAM1_BOTS:
+            raise ValueError('defender_squad conflicts with an explicit team1_bots')
+        team1_bots = DEFENDER_SQUAD_BOTS
     team1_bots = _int(team1_bots, 'team1_bots', 0, 200)
     team2_bots = _int(team2_bots, 'team2_bots', 1, 500)
     max_bots = _int(max_bots, 'max_bots', 50, 500)
@@ -87,6 +100,18 @@ def build_rotation(*, server_name=SERVER_NAME, mission=MISSION, map_name=MAP,
         'set_player_respawn_as_bot %d' % player_respawn_as_bot,
         'start',
     ]
+
+
+def build_defender_rotation(**kwargs):
+    """City rotation that switches on the native team-0 defender squad.
+
+    ``set_bot_count`` numbering is 1-based, so rotation team 1 is telemetry
+    team 0. ``build_rotation()`` keeps its stock default (no allied bots).
+    """
+    if 'team1_bots' in kwargs:
+        raise TypeError('build_defender_rotation fixes team1_bots')
+    kwargs['defender_squad'] = True
+    return build_rotation(**kwargs)
 
 
 def rotation_sha256(lines):
