@@ -96,7 +96,7 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
           defender_loadouts: str = "original", solo_assist: bool = False,
           private_commands: bool = False, difficulty: str = "standard",
           firearm_accuracy: str = "default",
-          zombie_bot_roster: str = "weak", zombie_block: str = "default",
+          zombie_bot_roster: str = "weak", zombie_block: str = "stock",
           defensive_line: str = "rear",
           wave_visitors: str = "slow",
           defender_reinforce: str = "default",
@@ -121,7 +121,7 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         raise ValueError("Unknown --firearm-accuracy profile")
     if zombie_bot_roster not in ("weak", "full"):
         raise ValueError("Unknown --zombie-bot-roster profile")
-    if zombie_block not in ("default", "stock"):
+    if zombie_block not in ("stock", "cosmetic-half"):
         raise ValueError("Unknown --zombie-block profile")
     if defensive_line not in ("rear", "forward"):
         raise ValueError("Unknown --defensive-line profile")
@@ -255,11 +255,12 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
                 raise RuntimeError("Native Zombie roster patch failed static validation")
             if defender_range and not roster_report.get("defender_candidates"):
                 raise RuntimeError("Native defender roster range has no faction-15 troops")
-            if zombie_block == "default":
-                zombie_block_report = apply_zombie_block(source)
-                if (not zombie_block_report.get("applied")
-                        or not zombie_block_report.get("troops")):
-                    raise RuntimeError("Zombie shield/block patch failed static validation")
+            zombie_block_report = apply_zombie_block(source, zombie_block)
+            if (not zombie_block_report.get("applied")
+                    or zombie_block_report.get("gate") != "passed"
+                    or zombie_block_report.get("wooden_shield_troops")
+                    or zombie_block_report.get("shield_skill") != 0):
+                raise RuntimeError("Zombie shield policy failed static validation")
         defender_report = None
         if experimental_defenders:
             defender_report = patch_file(source, experimental_defenders,
@@ -454,7 +455,7 @@ def main():
     parser.add_argument("--difficulty", choices=tuple(PROFILES), default="standard", help="Survivor-support difficulty: controls reinforcement wave and fallback thresholds")
     parser.add_argument("--firearm-accuracy", choices=("default", "stock"), default="default", help="Default build profile buffs automatic firearm accuracy (+5..10 pts); stock keeps original stats")
     parser.add_argument("--zombie-bot-roster", choices=("weak", "full"), default="weak", help="City generic invader bots: weak original Zombie 894 only or full native 894..911 roster")
-    parser.add_argument("--zombie-block", choices=("default", "stock"), default="default", help="Give City invader troops a shield for block capability; stock keeps original equipment")
+    parser.add_argument("--zombie-block", choices=("stock", "cosmetic-half"), default="stock", help="Canonical invader shield policy: stock = zero shields (default); cosmetic-half = alternate practice shield with shield skill 0 (no block)")
     parser.add_argument("--defensive-line", choices=("rear", "forward"), default="rear", help="City defender hold line: rear/spawn line (default) or the old forward guard sectors")
     parser.add_argument("--wave-visitors", choices=("slow", "original"), default="slow", help="City wave visitors: slow Zombie 894 only (default) or original 0.4 wave table")
     parser.add_argument("--defender-reinforce", choices=("default", "stock"), default="default", help="City defender spawn_agent refill to --defender-target; stock disables")
