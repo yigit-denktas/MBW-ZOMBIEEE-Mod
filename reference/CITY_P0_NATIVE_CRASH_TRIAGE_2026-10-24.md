@@ -253,6 +253,42 @@ with its bundle and exact build receipt, not folded into a generic "P0 crashes" 
 Suggested order: **1 -> 2 -> 3 -> 4 -> 5 -> 6**, then 7-10 only if the clean pair is
 contradictory. This tests the probe-first hypothesis before changing A's loop.
 
+### 9.1 Bisect results received (D, 2026-10-24)
+
+D reports four **180 s** sealed runs with the corrected probe `ecd3f4b` - clean-off,
+clean-on, full-off, full-on - **no crash in any**, all 8-file verified, no
+`Invalid Agent ID: 0` / `Invalid Group ID: 0` / `SCRIPT ERROR`; slots
+200/221/231/241=894; full-on team-1 speed 60. A **600 s full-on** seal was reported as
+running; the local artifact for it is a 637.7 s / 42-heartbeat run with no crash.
+
+Local artifacts inspected (durations differ from D's stated 180 s; treat these as
+captures, not a substitute for D's sealed report):
+
+| Run | Duration | Heartbeats | Speed loop | Invalid agent/group | AV | hit_sample |
+| --- | ---: | ---: | --- | ---: | ---: | ---: |
+| clean-off (`161810-cleanoff-ecd`) | 57.2 s | 3 | off | 0 / 0 | 0 | 0 |
+| clean-on (`161926-cleanon-ecd`) | 143.3 s | 8 | on | 0 / 0 | 0 | 0 |
+| full-off (`162211-fulloff-ecd`) | 217.5 s | 13 | off | 0 / 0 | 0 | 0 |
+| full-on (`162603-fullon-ecd`) | 217.6 s | 14 | on | 0 / 0 | 0 | 0 |
+| full-on 600 (`162955-fullon600-ecd`) | 637.7 s | 42 | on | 0 / 0 | 0 | 0 |
+
+Interpretation, bounded:
+
+- **The original AV did not reproduce** in these 57-638 s captures, and the corrected
+  probe removed the observed `Invalid Agent ID/Group` script errors. This does **not**
+  prove the crash fixed or root-caused; the original AV had no Lua frame and may be
+  timing/state-dependent.
+- **The trigger-15 speed loop is not implicated** by current evidence: full-on ran
+  637.7 s with 42 heartbeats and no AV, while clean-off/clean-on also showed no AV.
+- **No hit-bearing run exists** in this set (`hit_sample`=0); those runs predate the
+  hit-attribution wire, so they cannot validate C's hit claim.
+- clean-off is only 57 s/3 heartbeats; longer duration, old-probe reproduction
+  (rows 3/4), one-shot (row 5), explicit valid-id guard (row 6), and wave-2/3 coverage
+  remain unsealed. D's 600 s result and the original-probe path are the remaining
+  discriminators.
+- Do not close #50 as fixed from this matrix; keep it open until the longer/reproducer
+  evidence and the 600 s seal are reviewed.
+
 ## 10. Required evidence / actions
 
 1. **C:** freeze the probe fix branch `agent/c-invalid-agent-guard` @ **`ecd3f4b`**
