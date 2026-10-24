@@ -35,6 +35,9 @@ ROSTER_GENERIC = frozenset({873, 874})
 ROSTER_NATIVE_ZOMBIE = frozenset(range(894, 912))
 ROSTER_DEFENDER = frozenset(range(981, 985))
 ROSTER_SURVIVOR = frozenset({875, 876, 877, 878, 32, 33})
+# Native defender roster appended by A's patch; used as a bounded fallback
+# when native bots are not in divisions 5-7.
+DEFENDER_TROOPS = frozenset(range(981, 985))
 TEXT_NAME_HINTS = ("stdout", "stderr")
 LIFECYCLE_KINDS = ("player_joined", "player_died", "player_respawned",
                    "player_left", "round_started", "wave_started")
@@ -404,8 +407,12 @@ def summarize_receipt(target: Path) -> dict:
     defender_samples = [event for event in events
                         if event["event"] == "ai_sample"
                         and _bounded_int(event["fields"].get("team")) == 0
-                        and _bounded_int(event["fields"].get("group"), minimum=0,
-                                         maximum=255) in (5, 6, 7)]
+                        and (_bounded_int(event["fields"].get("defender"),
+                                          minimum=0, maximum=1) == 1
+                             or _bounded_int(event["fields"].get("group"), minimum=0,
+                                             maximum=255) in (5, 6, 7)
+                             or _bounded_int(event["fields"].get("troop"), minimum=0)
+                             in DEFENDER_TROOPS)]
     defender_positions = {}
     for event in defender_samples:
         agent = _bounded_int(event["fields"].get("id"), minimum=0)
@@ -428,6 +435,20 @@ def summarize_receipt(target: Path) -> dict:
         values = [value for value in values if value is not None]
         return max(values) if values else None
 
+    defender_groups_seen = {}
+    for event in defender_samples:
+        group = _bounded_int(event["fields"].get("group"), minimum=0, maximum=255)
+        if group is not None:
+            defender_groups_seen[group] = defender_groups_seen.get(group, 0) + 1
+    group_based = bool([group for group in defender_groups_seen if group in (5, 6, 7)]) \
+        or bool(defender_groups)
+    if group_based:
+        division_source = "group"
+    elif defender_samples:
+        division_source = "troop-fallback"
+    else:
+        division_source = "unavailable"
+
     defender_alive = _max_field("defender_alive_team0")
     defender_kills = _max_field("defender_kills_team0")
     defender_read_unknown = _max_field("defender_read_unknown")
@@ -446,9 +467,10 @@ def summarize_receipt(target: Path) -> dict:
         "moving": sum(1 for points in defender_positions.values() if len(points) >= 2),
         "hold_samples": len(defender_samples),
         "hold_behavior_observed": False,
-        "division_source": ("agent_get_group"
-                            if (sum(defender_divisions.values()) or defender_samples)
-                            else "unavailable"),
+        "groups": (dict(sorted(defender_groups_seen.items(),
+                               key=lambda kv: (-kv[1], kv[0]))[:MAX_HIST_ENTRIES])
+                   or None),
+        "division_source": division_source,
         "note": ("team-0 non-player defenders; guard_entries_reached is a bounded "
                  "distinct-coarse-position proxy, not a guard-entry identity; "
                  "hold behaviour is not asserted from samples."),
@@ -833,6 +855,7 @@ def format_summary(summary: dict) -> str:
                  f"alive={defend['alive']} kills={defend['kills']} "
                  f"positions_sampled={defend['positions_sampled']} "
                  f"guard_entries_reached={defend['guard_entries_reached']} "
+                 f"division_source={defend['division_source']} groups={defend['groups']} "
                  f"moving={defend['moving']} hold_samples={defend['hold_samples']} "
                  f"hold_behavior_observed={defend['hold_behavior_observed']}")
     lines.append(f"waves:           observed={summary['waves']['observed']} "

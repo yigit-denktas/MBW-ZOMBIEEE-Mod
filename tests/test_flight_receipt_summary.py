@@ -536,6 +536,7 @@ class ReceiptSummaryTests(unittest.TestCase):
         defenders = summary["defenders"]
         self.assertTrue(defenders["observed"])
         self.assertEqual(defenders["divisions"], {5: 2, 6: 1, 7: 1})
+        self.assertEqual(defenders["division_source"], "group")
         self.assertEqual(defenders["bots"], 4)
         self.assertEqual(defenders["alive"], 4)
         self.assertEqual(defenders["kills"], 1)
@@ -592,6 +593,41 @@ class ReceiptSummaryTests(unittest.TestCase):
         summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
         self.assertEqual(summary["divisions"]["convention"], "direct")
         self.assertNotIn("group_convention_unknown", summary["evidence_gaps"])
+
+
+    def test_defender_troop_fallback_positions_without_divisions(self):
+        # Native defenders in groups 26/28 (not 5-7): troop-id fallback must
+        # still yield bounded position/movement/hold evidence.
+        lines = [
+            "ZDB1|heartbeat|count=1|role=server|team0=4|team1=17"
+            "|groups_team0=26:2,28:2|groups_team1=0:17|group_read_unknown=0"
+            "|troops_team0=981:2,982:2|defenders_team0=4|defender_alive_team0=4"
+            "|defender_kills_team0=1|defender_read_unknown=0"
+            "|defender_source=troop-fallback|defender_groups=26:2,28:2",
+            "ZDB1|ai_sample|role=server|tick=1|team=0|id=1|group=26|troop=981"
+            "|defender=1|x=166.0|y=181.0|kills=0|wave=1",
+            "ZDB1|ai_sample|role=server|tick=2|team=0|id=1|group=26|troop=981"
+            "|defender=1|x=166.5|y=181.5|kills=0|wave=1",
+            "ZDB1|ai_sample|role=server|tick=1|team=0|id=2|group=28|troop=982"
+            "|defender=1|x=167.0|y=182.0|kills=1|wave=1",
+            "ZDB1|ai_sample|role=server|tick=2|team=0|id=2|group=28|troop=982"
+            "|defender=1|x=167.0|y=182.0|kills=1|wave=1",
+        ]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        defenders = summary["defenders"]
+        self.assertTrue(defenders["observed"])
+        self.assertEqual(defenders["division_source"], "troop-fallback")
+        self.assertEqual(defenders["groups"], {26: 2, 28: 2})
+        self.assertEqual(defenders["positions_sampled"], 4)
+        self.assertGreaterEqual(defenders["distinct_positions"], 2)
+        self.assertGreaterEqual(defenders["guard_entries_reached"], 2)
+        self.assertEqual(defenders["moving"], 1)
+        self.assertEqual(defenders["hold_samples"], 4)
+        self.assertFalse(defenders["hold_behavior_observed"])
+        self.assertFalse(summary["divisions"]["defender_divisions_observed"])
+        self.assertIn("defender_divisions_unobserved", summary["evidence_gaps"])
+        self.assertNotIn("defender_positions_unobserved", summary["evidence_gaps"])
+        self.assertIn("defender_division_unreadable", summary["evidence_gaps"])
 
 if __name__ == "__main__":
     unittest.main()

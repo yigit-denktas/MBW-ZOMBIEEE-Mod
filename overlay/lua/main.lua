@@ -15,6 +15,10 @@ local MAX_AI_SAMPLES = 8
 local MAX_PRE_ROUND_SAMPLES = 6
 local MAX_PLAUSIBLE_KILLS = 10000
 local MAX_TROOP_ID = 100000
+-- Native defender roster appended by A's patch: 981..984. Used as a bounded
+-- fallback when native bots are not in divisions 5-7.
+local DEFENDER_TROOP_MIN = 981
+local DEFENDER_TROOP_MAX = 984
 local function emit(event, details)
     print("ZDB1|" .. event .. "|version=" .. VERSION .. (details or ""))
 end
@@ -289,6 +293,8 @@ local function sample_world()
                          defender_alive = 0,
                          defender_kills = 0,
                          defender_read_unknown = 0,
+                         defender_groups = {},
+                         defender_source = -1,
                          ai_samples = {},
                          pos_count = {[0] = 0, [1] = 0},
                          pos_sum = {[0] = {0, 0}, [1] = {0, 0}},
@@ -336,19 +342,37 @@ local function sample_world()
                 elseif human == true and supports_npc then
                     if is_npc(agent) then
                         result.bots[side] = result.bots[side] + 1
+                        local troop = supports_troop
+                            and read_agent_number("agent_get_troop_id", agent) or -1
+                        local group = -1
                         if group_read_enabled and type(game.agent_get_group) == "function" then
-                            local group = read_group(agent)
+                            group = read_group(agent)
                             if group >= 0 and group <= 255 then
                                 local groups = side == 0 and result.groups0 or result.groups1
                                 groups[group] = (groups[group] or 0) + 1
                             else
+                                group = -1
                                 result.group_read_unknown = result.group_read_unknown + 1
                             end
-                            -- Team-0 defender divisions 5-7: expose alive/kill
-                            -- evidence alongside the group histogram so hold/sector
-                            -- adoption can be checked without assuming it.
-                            if side == 0 and group >= 5 and group <= 7 then
+                        end
+                        -- Team-0 defenders: divisions 5-7 when the group map is
+                        -- effective, plus a bounded troop-id fallback (981-984)
+                        -- when native bots sit in other native groups.
+                        if side == 0 then
+                            local troop_defender = troop >= DEFENDER_TROOP_MIN
+                                and troop <= DEFENDER_TROOP_MAX
+                            local group_defender = group >= 5 and group <= 7
+                            if troop_defender or group_defender then
                                 result.defender_count = result.defender_count + 1
+                                if group_defender then
+                                    result.defender_source = "group"
+                                elseif result.defender_source ~= "group" then
+                                    result.defender_source = "troop-fallback"
+                                end
+                                if group >= 0 then
+                                    result.defender_groups[group] =
+                                        (result.defender_groups[group] or 0) + 1
+                                end
                                 if supports_alive and is_alive(agent) == true then
                                     result.defender_alive = result.defender_alive + 1
                                 end
@@ -424,9 +448,18 @@ local function sample_world()
                                 group = read_group(agent)
                                 if group < 0 or group > 255 then group = -1 end
                             end
+                            local troop = supports_troop
+                                and read_agent_number("agent_get_troop_id", agent) or -1
+                            local defender = 0
+                            if side == 0 and ((troop >= DEFENDER_TROOP_MIN
+                                    and troop <= DEFENDER_TROOP_MAX)
+                                    or (group >= 5 and group <= 7)) then
+                                defender = 1
+                            end
                             result.ai_samples[#result.ai_samples + 1] =
                                 { team = side, id = agent, x = x, y = y,
-                                  kills = kills, group = group }
+                                  kills = kills, group = group, troop = troop,
+                                  defender = defender }
                         end
                     end
                 end
@@ -559,6 +592,8 @@ local function state_fields(world)
             .. "|defender_alive_team0=" .. world.defender_alive
             .. "|defender_kills_team0=" .. world.defender_kills
             .. "|defender_read_unknown=" .. world.defender_read_unknown
+            .. "|defender_source=" .. tostring(world.defender_source)
+            .. "|defender_groups=" .. (histogram_text(world.defender_groups))
             .. "|pos_team0=" .. world.pos_text[0]
             .. "|pos_team1=" .. world.pos_text[1]
             .. "|bbox_team0=" .. world.bbox_text[0]
@@ -577,6 +612,7 @@ local function state_fields(world)
             .. "|troop_read_unknown=-1|groups_team0=-1|groups_team1=-1"
             .. "|group_read_unknown=-1|defenders_team0=-1|defender_alive_team0=-1"
             .. "|defender_kills_team0=-1|defender_read_unknown=-1"
+            .. "|defender_source=-1|defender_groups=-1"
             .. "|pos_team0=-1|pos_team1=-1"
             .. "|bbox_team0=-1|bbox_team1=-1|pos_sampled_team0=-1|pos_sampled_team1=-1"
     end
@@ -644,20 +680,28 @@ local function sample_defenders(tick, mode, wave)
         for agent in game.agentsIt() do
             local team = read_agent_number("agent_get_team", agent)
             local group = read_group(agent)
-            if team == 0 and group >= 5 and group <= 7 and is_npc(agent) then
+            local troop = read_agent_number("agent_get_troop_id", agent)
+            local group_defender = group >= 5 and group <= 7
+            local troop_defender = troop >= DEFENDER_TROOP_MIN
+                and troop <= DEFENDER_TROOP_MAX
+            if team == 0 and is_npc(agent) and (group_defender or troop_defender) then
                 local kills = read_agent_number("agent_get_kill_count", agent)
                 local ammo = read_agent_number("agent_get_ammo", agent, 0)
                 local weapon = read_agent_number("agent_get_wielded_item", agent, 0)
                 if kills >= 0 or ammo >= 0 or weapon >= 0 then
                     emit("combat_sample", "|tick=" .. tick .. "|id=" .. agent
-                        .. "|group=" .. group .. "|wave=" .. wave .. "|mode=" .. mode
+                        .. "|group=" .. group .. "|troop=" .. troop
+                        .. "|defender_source="
+                        .. (group_defender and "group" or "troop-fallback")
+                        .. "|wave=" .. wave .. "|mode=" .. mode
                         .. "|kills=" .. kills .. "|ammo=" .. ammo .. "|weapon=" .. weapon)
                 end
                 if type(game.agent_get_position) == "function" then
                     local point = agent_position(agent)
                     if point then
                         emit("agent_sample", "|tick=" .. tick .. "|id=" .. agent
-                            .. "|group=" .. group .. "|mode=" .. mode
+                            .. "|group=" .. group .. "|troop=" .. troop
+                            .. "|mode=" .. mode
                             .. "|x=" .. math.floor(point.x * 10 + 0.5) / 10
                             .. "|y=" .. math.floor(point.y * 10 + 0.5) / 10)
                     end
@@ -690,6 +734,8 @@ local function emit_ai_samples(world, role, wave, tick)
     for _, sample in ipairs(world.ai_samples or {}) do
         emit("ai_sample", "|role=server|tick=" .. tick .. "|team=" .. sample.team
             .. "|id=" .. sample.id .. "|group=" .. (sample.group or -1)
+            .. "|troop=" .. (sample.troop or -1)
+            .. "|defender=" .. (sample.defender or 0)
             .. "|x=" .. sample.x .. "|y=" .. sample.y
             .. "|kills=" .. (sample.kills or -1) .. "|wave=" .. wave)
     end
