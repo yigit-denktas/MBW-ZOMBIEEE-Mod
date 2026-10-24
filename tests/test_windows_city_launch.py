@@ -19,7 +19,8 @@ from unittest import mock
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 from launcher.city_launch import (  # noqa: E402
-    CityLauncher, LaunchError, LaunchPaths, build_launch_plan, main,
+    CityLauncher, LaunchError, LaunchPaths, build_launch_plan,
+    builder_supports_fire_mode, build_parser, main,
     server_config_text, session_commands)
 from launcher.engines import CLIENT_NAMES, DEDICATED_NAMES  # noqa: E402
 from launcher.profile_matrix import (  # noqa: E402
@@ -348,6 +349,134 @@ class LaunchEnemyProfileTests(unittest.TestCase):
                 self._plan(tmp, team2_bots=-1)
             with self.assertRaises(LaunchError):
                 self._plan(tmp, team2_bots=600)
+
+
+class LaunchFireModeTests(unittest.TestCase):
+    """Pre-game fire tuning is exposed honestly; no in-game switch is claimed."""
+
+    def _plan(self, tmp, **kwargs):
+        fixture = GameFixture(tmp)
+        return build_launch_plan(discovery_report=fixture.report,
+                                 evidence_root=fixture.evidence,
+                                 installed_status=INSTALLED_OK, **kwargs)
+
+    def test_default_is_ai_pre_game_only_and_not_claimed_applied(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            plan = self._plan(tmp)
+            self.assertTrue(plan['ok'], plan['blockers'])
+            self.assertEqual(plan['fire_mode'], 'ai')
+            self.assertEqual(plan['fire_mode_scope'], 'pre-game/session-only')
+            self.assertIs(plan['fire_mode_applied'], False)
+            self.assertIs(plan['fire_mode_manual_switch_supported'], False)
+            self.assertIn('no engine fire-mode', plan['fire_mode_semantics'])
+            self.assertIn('fire_mode_default_unverified_for_installed_module',
+                          plan['warnings'])
+            self.assertTrue(any('blocked (#43)' in note for note in plan['notes']))
+
+    def test_selected_mode_without_rebuild_is_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            plan = self._plan(tmp, fire_mode='burst')
+            self.assertFalse(plan['ok'])
+            self.assertIn('fire_mode_requires_rebuild', plan['blockers'])
+            with self.assertRaises(LaunchError):
+                self._plan(tmp, fire_mode='rapid')
+
+    def test_builder_support_detection_is_text_only(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            (repo / 'tools').mkdir(parents=True)
+            builder = repo / 'tools' / 'build.py'
+            builder.write_text('parser.add_argument("--fire-mode")\n'
+                               'fire_mode = "ai"\n', encoding='utf-8')
+            self.assertTrue(builder_supports_fire_mode(repo))
+            builder.write_text('print("no selector")\n', encoding='utf-8')
+            self.assertFalse(builder_supports_fire_mode(repo))
+
+    def test_rebuild_passes_fire_mode_to_builder_and_records_it(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            repo = root / 'repo'
+            (repo / 'tools').mkdir(parents=True)
+            (repo / 'tools' / 'build.py').write_text(
+                'parser.add_argument("--fire-mode")\nfire_mode = "ai"\n',
+                encoding='utf-8')
+            archive = root / 'ZOMBIEEEBeta04.rar'
+            archive.write_bytes(b'fixture archive')
+            fixture = GameFixture(root / 'game-fixture')
+            captured = {}
+
+            def fake_plan_install(**kwargs):
+                captured.update(kwargs)
+                return {'blockers': [], 'archive': kwargs.get('archive'),
+                        'archive_identity': kwargs.get('archive_identity'),
+                        'evidence_root': kwargs.get('evidence_dir'),
+                        'transaction_id': kwargs.get('transaction_id'),
+                        'expected_source_sha256': SOURCE_SHA}
+
+            with mock.patch('launcher.city_launch.plan_install',
+                            side_effect=fake_plan_install):
+                plan = build_launch_plan(
+                    discovery_report=fixture.report,
+                    evidence_root=fixture.evidence, archive=archive,
+                    repo_root=repo, rebuild=True,
+                    audit_runner=lambda *_a, **_k: {
+                        'identity_ok': True, 'crc_status': 'ok'},
+                    process_checker=lambda: [],
+                    fire_mode='burst')
+            self.assertTrue(plan['ok'], plan['blockers'])
+            self.assertEqual(plan['fire_mode'], 'burst')
+            self.assertIs(plan['fire_mode_applied'], True)
+            self.assertIs(plan['fire_mode_builder_supported'], True)
+            flags = list(captured['city_flags'])
+            self.assertEqual(flags[-2:], ['--fire-mode', 'burst'])
+            self.assertEqual(plan['custom_city_flags'][-2:],
+                             ['--fire-mode', 'burst'])
+
+    def test_builder_without_selector_refuses_non_ai_build(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            repo = root / 'repo'
+            (repo / 'tools').mkdir(parents=True)
+            (repo / 'tools' / 'build.py').write_text('print(1)\n',
+                                                     encoding='utf-8')
+            archive = root / 'ZOMBIEEEBeta04.rar'
+            archive.write_bytes(b'fixture archive')
+            fixture = GameFixture(root / 'game-fixture')
+            with mock.patch('launcher.city_launch.plan_install',
+                            return_value={'blockers': []}):
+                plan = build_launch_plan(
+                    discovery_report=fixture.report,
+                    evidence_root=fixture.evidence, archive=archive,
+                    repo_root=repo, rebuild=True,
+                    audit_runner=lambda *_a, **_k: {
+                        'identity_ok': True, 'crc_status': 'ok'},
+                    process_checker=lambda: [], fire_mode='single')
+            self.assertIn('fire_mode_requires_builder_support',
+                          plan['blockers'])
+
+    def test_cli_accepts_fire_mode_choices(self):
+        parser = build_parser()
+        args = parser.parse_args(['plan', '--fire-mode', 'auto'])
+        self.assertEqual(args.fire_mode, 'auto')
+        args = parser.parse_args(['plan'])
+        self.assertIsNone(args.fire_mode)
+        with contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit):
+                parser.parse_args(['plan', '--fire-mode', 'rapid'])
+
+
+class FireModeReceiptTests(unittest.TestCase):
+    def test_receipt_carries_honest_fire_mode_fields(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            harness = Harness(tmp, host_on_start=write_join_markers,
+                              plan_kwargs={'fire_mode': 'ai'})
+            receipt = harness.launcher().run()
+            self.assertEqual(receipt['status'], 'stopped', receipt.get('error'))
+            self.assertEqual(receipt['fire_mode'], 'ai')
+            self.assertEqual(receipt['fire_mode_scope'], 'pre-game/session-only')
+            self.assertIs(receipt['fire_mode_applied'], False)
+            self.assertIs(receipt['fire_mode_manual_switch_supported'], False)
+            self.assertIn('no engine fire-mode', receipt['fire_mode_semantics'])
 
 
 class LaunchPathTests(unittest.TestCase):
@@ -702,6 +831,11 @@ class CityLauncherSuccessTests(unittest.TestCase):
             self.assertTrue(receipt['loopback_only'])
             self.assertEqual(receipt['endpoint'], '127.0.0.1:7240')
             self.assertEqual(receipt['team0_bots'], 8)
+            self.assertEqual(receipt['fire_mode'], 'ai')
+            self.assertEqual(receipt['fire_mode_scope'],
+                             'pre-game/session-only')
+            self.assertIs(receipt['fire_mode_applied'], False)
+            self.assertIs(receipt['fire_mode_manual_switch_supported'], False)
             self.assertEqual(receipt['rotation_profile'], 'defender-squad')
             self.assertEqual(receipt['rotation_sha256'],
                              rotation_sha256(build_defender_rotation()))

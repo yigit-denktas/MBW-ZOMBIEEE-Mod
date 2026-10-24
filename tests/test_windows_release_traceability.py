@@ -384,6 +384,25 @@ class GateFailClosedTests(unittest.TestCase):
                            capture_output=True, text=True)
             gate = build_release_gate(root=tmp, tracked_files=tracked)
             self.assertIn('traceability_head_revision', gate['blockers'])
+            trace = json.loads(trace_path.read_text(encoding='utf-8'))
+            trace['source_revision_exception'] = {
+                'kind': 'feature-branch',
+                'reason': 'feature work builds on the candidate revision'}
+            trace_path.write_text(json.dumps(trace), encoding='utf-8')
+            subprocess.run(['git', '-C', tmp, 'add', '-A'], check=True,
+                           capture_output=True, text=True)
+            subprocess.run(['git', '-C', tmp, 'commit', '-m', 'feature'],
+                           check=True, capture_output=True, text=True)
+            # A persisted feature-branch exception must not weaken the
+            # default gate (this is the PR #34 stale-merge class).
+            gate = build_release_gate(root=tmp, tracked_files=tracked)
+            self.assertIn('traceability_head_revision',
+                          gate['blockers'])
+            # Only an explicit per-invocation allowance may pass.
+            gate = build_release_gate(root=tmp, tracked_files=tracked,
+                                      feature_branch=True)
+            self.assertNotIn('traceability_head_revision',
+                             gate['blockers'])
 
     def test_semver_candidate_and_malformed_versions(self):
         for version in ('0.3.0-beta.1', '0.3.0', '0.3.0-rc.2+build.5'):

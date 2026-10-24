@@ -82,12 +82,14 @@ def install_receipt(game, target, path):
 class SettingsTests(unittest.TestCase):
     def test_validate_and_roundtrip(self):
         data = {'schema': SETTINGS_SCHEMA, 'schema_version': 1,
-                'enemy_profile': 'weak-wave1', 'team0_bots': 8,
+                'enemy_profile': 'weak-wave1', 'fire_mode': 'single',
+                'team0_bots': 8,
                 'team2_bots': 8, 'max_minutes': 3.0,
                 'evidence_root': 'D:\\private-evidence'}
         settings, warnings = validate_settings(data)
         self.assertEqual(warnings, [])
         self.assertEqual(settings['enemy_profile'], 'weak-wave1')
+        self.assertEqual(settings['fire_mode'], 'single')
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / 'settings.json'
             written = save_settings(data, path)
@@ -102,6 +104,7 @@ class SettingsTests(unittest.TestCase):
         for payload in (
                 {'schema': 'wrong'},
                 {'schema': SETTINGS_SCHEMA, 'enemy_profile': 'insane'},
+                {'schema': SETTINGS_SCHEMA, 'fire_mode': 'rapid'},
                 {'schema': SETTINGS_SCHEMA, 'team0_bots': 500},
                 {'schema': SETTINGS_SCHEMA, 'max_minutes': -1},
                 {'schema': SETTINGS_SCHEMA, 'no_known_folders': 'yes'},

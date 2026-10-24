@@ -19,11 +19,13 @@ DEFAULT_NAME = 'launcher-settings.json'
 FORBIDDEN_KEYS = ('password', 'passwd', 'secret', 'token', 'serial', 'control_key',
                   'admin', 'rcon')
 ENEMY_PROFILES = ('generic', 'weak-wave1', 'native-only')
+FIRE_MODES = ('ai', 'single', 'burst', 'auto')
 FIELDS = {
     'game_root': (str, None),
     'archive': (str, None),
     'evidence_root': (str, None),
     'enemy_profile': (str, ENEMY_PROFILES),
+    'fire_mode': (str, FIRE_MODES),
     'team0_bots': (int, None),
     'team2_bots': (int, None),
     'max_minutes': (float, None),
@@ -67,7 +69,7 @@ def _check_field(name, value):
         return value
     if not isinstance(value, str) or not value:
         raise SettingsError('invalid_type:' + name)
-    if name == 'enemy_profile' and value not in choices:
+    if choices is not None and value not in choices:
         raise SettingsError('invalid_choice:' + name)
     if name in ('game_root', 'archive', 'evidence_root'):
         if '\x00' in value:
@@ -145,6 +147,7 @@ def cli_defaults(settings):
         'archive': [settings['archive']] if settings.get('archive') else None,
         'evidence_root': settings.get('evidence_root'),
         'enemy_profile': settings.get('enemy_profile'),
+        'fire_mode': settings.get('fire_mode'),
         'team0_bots': settings.get('team0_bots'),
         'team2_bots': settings.get('team2_bots'),
         'max_minutes': settings.get('max_minutes'),
