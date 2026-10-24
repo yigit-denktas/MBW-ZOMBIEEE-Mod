@@ -408,7 +408,10 @@ The probe adds a 1 s `adaptive_tick` trigger:
 - Each snapshot samples **all alive non-player agents**, bounded by
   `zdr_adaptive_max_agents` (default 128) and emits `adaptive_sample`
   (reason active/idle) or `adaptive_event` (reason hit/death/wave_transition/
-  mode_change) with agent/team/troop/class/division/hp/x/y/alive/wave/mode/tick.
+  mode_change) with agent/team/troop/class/division/hp/x/y/alive/wave/mode/tick
+  plus weapon/ammo/attack_action/accuracy/reload/weapon_mode for ranged/cadence
+  analysis. Adaptive output is **server-role only** (`adaptive_server_only=1`)
+  so client screenshots are not covered by console spam.
 - Config (globals; defaults): `zdr_adaptive_active_ms=1000`,
   `zdr_adaptive_idle_ms=5000`, `zdr_adaptive_max_events=50000`,
   `zdr_adaptive_max_agents=128`. Heartbeat exposes `adaptive_ticks`,
@@ -423,6 +426,46 @@ The probe adds a 1 s `adaptive_tick` trigger:
 **Measurement plan:** D seals matched 15 s vs adaptive runs with identical
 build/settings; compare CPU/memory/log size/event rate/heartbeat cadence and
 heatmap point density. No acceptance/visual claim.
+
+**Build-receipt context:** the summary CLI accepts `--build-receipt PATH`.
+If the receipt’s `ammo_refill` contains `off`, it sets
+`shot_measurement.ammo_refill_off=true`/`refill_masking_excluded=true` and
+removes `ammo_refill_masks_shots`; shots remain an ammo-delta proxy with
+`proven=false`, and `attack_action_is_not_shot_count` still applies. Without a
+receipt the refill gap remains.
+
+**Shot-measurement caveat (refill):** `refill_ammo` can increase ammo, which
+looks like a reload/reset in ammo-delta inference and can mask or inflate
+apparent shot intervals. Summary therefore exposes
+`firearms.shot_measurement={proxy:true,proven:false}`,
+`shots_are_lower_bound_proxy`, `ammo_increase_masks_shots`, and gaps
+`ammo_refill_masks_shots`, `attack_action_is_not_shot_count`, plus
+`zero_shots_not_proven` when both teams show zero. **Zero shots are not proven**
+and `attack_action` release/ready transitions are not a shot counter. Wait for
+A’s refill-off measurement build before claiming cadence/shots.
+
+### Ranged/fire-cadence telemetry (task-82)
+
+Summary `firearms.team0/1` now adds, from bounded ai/combat samples:
+- `time_to_first_shot`: first observed ammo decrease relative to that agent's
+  first observed sample; `unit=ms` when probe `ts_ms` is present, else `ticks`;
+  min/avg/max. Not round-start latency unless the first sample is round start.
+- `shots_per_minute`: shots / first→last observed shot `ts_ms` span; unknown
+  when fewer than two timestamps exist.
+- `weapon_modes`, `attack_actions`, `attack_action_transitions`,
+  `release_actions`, `reload_actions`, `weapon_ids`, accuracy/reload modifiers.
+- `movement`: charge/backward distance and sample counts by projecting each
+  consecutive displacement onto the vector toward the enemy team's per-tick
+  centroid; `charge_ratio`; unknown when no positions/enemy centroid.
+- gaps: `time_to_first_shot_unavailable`, `time_to_first_shot_tick_units_no_ts`,
+  `charge_backward_movement_unavailable`.
+- summary consumes both `ai_sample`/`combat_sample` and `adaptive_sample`/
+  `adaptive_event`; reports `sample_sources`, `shot_intervals_ms`, and
+  `agents_fired_ratio` (sampler-limited coverage, never inferred as missing AI).
+
+This is inferred from ammo/position deltas, not an engine shot event; probe-relative
+time only; no acceptance claim. Task-82 build `buildranged` needs no new probe
+fields for these summary metrics.
 
 ### Heatmap-ready ZDB1 input (task-74)
 

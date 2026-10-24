@@ -868,6 +868,9 @@ class ReceiptSummaryTests(unittest.TestCase):
                       summary["firearms"]["fire_mode_expected_source"])
         self.assertIn("fire_mode_policy_not_in_bundle",
                       summary["evidence_gaps"])
+        self.assertIn("ammo_refill_masks_shots", summary["evidence_gaps"])
+        self.assertIn("attack_action_is_not_shot_count", summary["evidence_gaps"])
+        self.assertFalse(summary["firearms"]["shot_measurement"]["proven"])
 
     def test_firearm_reload_resets_interval_baseline(self):
         lines = [
@@ -917,6 +920,82 @@ class ReceiptSummaryTests(unittest.TestCase):
             self.assertIs(hits["mapping_unverified"], True)
             self.assertIn("mapping and in-build behavior unverified", hits["source"])
             self.assertIn("hits:", format_summary(summary))
+
+
+    def test_ranged_time_to_first_shot_cadence_and_charge(self):
+        lines = [
+            "ZDB1|heartbeat|count=1|role=server|team0=1|team1=1|wave=1|ts_ms=1000",
+            "ZDB1|ai_sample|role=server|tick=1|ts_ms=1000|team=0|id=1|troop=981"
+            "|weapon=7|ammo=10|alive=1|weapon_mode=ranged|attack_action=2|x=10|y=10|wave=1",
+            "ZDB1|ai_sample|role=server|tick=1|ts_ms=1000|team=1|id=2|troop=894"
+            "|weapon=598|ammo=0|alive=1|weapon_mode=melee|attack_action=2|x=30|y=10|wave=1",
+            "ZDB1|ai_sample|role=server|tick=2|ts_ms=2000|team=0|id=1|troop=981"
+            "|weapon=7|ammo=8|alive=1|weapon_mode=ranged|attack_action=2|x=12|y=10|wave=1",
+            "ZDB1|ai_sample|role=server|tick=2|ts_ms=2000|team=1|id=2|troop=894"
+            "|weapon=598|ammo=0|alive=1|weapon_mode=melee|attack_action=2|x=25|y=10|wave=1",
+            "ZDB1|ai_sample|role=server|tick=3|ts_ms=3000|team=0|id=1|troop=981"
+            "|weapon=7|ammo=5|alive=1|weapon_mode=ranged|attack_action=2|x=9|y=10|wave=1",
+            "ZDB1|ai_sample|role=server|tick=3|ts_ms=3000|team=1|id=2|troop=894"
+            "|weapon=598|ammo=0|alive=1|weapon_mode=melee|attack_action=2|x=20|y=10|wave=1",
+        ]
+        with tempfile.TemporaryDirectory() as td:
+            session = seal(Path(td), {"host_stdout.log": "\n".join(lines)})
+            summary = summarize_receipt(session)
+            fire = summary["firearms"]["team0"]
+            self.assertEqual(fire["shots_observed"], 5)
+            self.assertEqual(fire["time_to_first_shot"]["unit"], "ms")
+            self.assertEqual(fire["time_to_first_shot"]["min"], 1000)
+            self.assertIsNotNone(fire["weapon_modes"])
+            self.assertIn("2", fire["attack_actions"])
+            self.assertGreater(fire["movement"]["charge_samples"], 0)
+            self.assertGreater(fire["movement"]["backward_samples"], 0)
+
+
+    def test_adaptive_samples_feed_ranged_cadence_and_coverage(self):
+        lines = [
+            "ZDB1|heartbeat|count=1|role=server|team0=1|team1=1|wave=1|ts_ms=1000",
+            "ZDB1|ai_sample|role=server|tick=1|ts_ms=1000|team=0|id=1|troop=981"
+            "|weapon=7|ammo=10|alive=1|weapon_mode=ranged|attack_action=2|x=10|y=10|wave=1",
+            "ZDB1|adaptive_sample|reason=active|tick=2|ts_ms=2000|team=0|agent=1"
+            "|troop=981|class=1|division=5|hp=90|weapon=7|ammo=8|attack_action=2"
+            "|weapon_mode=ranged|alive=1|x=11|y=10|wave=1|mode=0",
+            "ZDB1|adaptive_sample|reason=active|tick=3|ts_ms=3000|team=0|agent=1"
+            "|troop=981|class=1|division=5|hp=80|weapon=7|ammo=6|attack_action=2"
+            "|weapon_mode=ranged|alive=1|x=12|y=10|wave=1|mode=0",
+        ]
+        with tempfile.TemporaryDirectory() as td:
+            session = seal(Path(td), {"host_stdout.log": "\n".join(lines)})
+            summary = summarize_receipt(session)
+            fire = summary["firearms"]["team0"]
+            self.assertEqual(fire["sample_sources"]["adaptive_sample"], 2)
+            self.assertEqual(fire["shots_observed"], 4)
+            self.assertEqual(fire["time_to_first_shot"]["unit"], "ms")
+            self.assertEqual(fire["time_to_first_shot"]["min"], 1000)
+            self.assertEqual(fire["shot_intervals_ms"]["count"], 2)
+            self.assertEqual(fire["shot_intervals_ms"]["min"], 1000)
+            self.assertEqual(fire["agents_fired_ratio"], 1.0)
+
+
+    def test_refill_off_build_receipt_clears_refill_gap(self):
+        lines = [
+            "ZDB1|heartbeat|count=1|role=server|team0=1|team1=5|wave=1",
+            "ZDB1|ai_sample|role=server|tick=1|team=0|id=1|group=5|troop=981"
+            "|defender=1|weapon=7|ammo=10|alive=1|weapon_mode=ranged"
+            "|attack_action=2|x=10|y=10|kills=0|wave=1",
+            "ZDB1|ai_sample|role=server|tick=2|team=0|id=1|group=5|troop=981"
+            "|defender=1|weapon=7|ammo=8|alive=1|weapon_mode=ranged"
+            "|attack_action=2|x=10|y=10|kills=0|wave=1",
+        ]
+        with tempfile.TemporaryDirectory() as td:
+            session = seal(Path(td), {"host_stdout.log": "\n".join(lines)})
+            receipt = Path(td) / "MEASUREMENT.json"
+            receipt.write_text(json.dumps({"ammo_refill": "off (ammo-burn measurement build)"}),
+                               encoding="utf-8")
+            summary = summarize_receipt(session, build_receipt=receipt)
+            self.assertTrue(summary["firearms"]["shot_measurement"]["ammo_refill_off"])
+            self.assertTrue(summary["firearms"]["shot_measurement"]["refill_masking_excluded"])
+            self.assertNotIn("ammo_refill_masks_shots", summary["evidence_gaps"])
+            self.assertIn("attack_action_is_not_shot_count", summary["evidence_gaps"])
 
 if __name__ == "__main__":
     unittest.main()
