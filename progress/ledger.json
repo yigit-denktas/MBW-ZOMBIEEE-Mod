@@ -3657,7 +3657,7 @@
         },
         {
           "kind": "crash-log",
-          "source": "D:\\Program Files (x86)\\Steam\\steamapps\\common\\MountBlade Warband\\Logs\\rgl_log_24.10.2026_15.56.05_crash.txt",
+          "source": "<warband>\\Logs\\rgl_log_24.10.2026_15.56.05_crash.txt",
           "observedOn": "2026-10-24",
           "acceptance": "not-accepted"
         },
@@ -3998,7 +3998,7 @@
       "evidence": [
         {
           "kind": "crash-log",
-          "source": "D:\\Program Files (x86)\\Steam\\steamapps\\common\\MountBlade Warband\\Logs\\rgl_log_24.10.2026_15.56.05_crash.txt",
+          "source": "<warband>\\Logs\\rgl_log_24.10.2026_15.56.05_crash.txt",
           "observedOn": "2026-10-24",
           "acceptance": "not-accepted"
         },
