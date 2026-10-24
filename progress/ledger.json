@@ -3686,6 +3686,35 @@
       "originReason": "Owner: script errors are blocking log sessions and AI iteration.",
       "discoveredDuring": "owner live log screenshots 2026-10-24",
       "graphImpact": "Blocks reliable live-log diagnosis; must be clean before more telemetry conclusions."
+    },
+    {
+      "id": "ZOM-DISC-61",
+      "title": "Ralph-loop telemetry/modding toolkit + performance auto-research",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "active",
+      "sourceState": "owner directive; toolkit/probe loop pending",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-60"
+      ],
+      "evidence": [],
+      "completionBasis": "Owner directive recorded; loop pending",
+      "kind": "work-item",
+      "owner": "Agent C — telemetry/tooling; D runs; A knobs",
+      "priority": "P1",
+      "criterion": "A repeatable telemetry studio ingests sealed runs, measures performance, granulates probes, and improves itself via documented auto-research iterations.",
+      "note": "Ralph-style loop; build our own modding/telemetry tooling; no invented data; ledger/PR per iteration.",
+      "deferReason": "Supplemental diagnostics/tooling; not part of required denominator.",
+      "implementationLane": "C",
+      "workOrigin": "discovered",
+      "workType": "tooling",
+      "supportsOutcomeId": "ZOM-OBS-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner: too much data is being collected; build a toolkit and iterate like auto-research.",
+      "discoveredDuring": "owner live feedback 2026-10-24",
+      "graphImpact": "Unblocks faster AI/performance iteration and reproducible diagnostics."
     }
   ],
   "warnings": [
