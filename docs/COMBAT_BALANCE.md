@@ -104,3 +104,14 @@ No gameplay validation is claimed; D/Lead validate in a sealed run.
   validation (defenders firing, holding, KD) remains D's sealed evidence; no
   acceptance claim.
 
+## Standoff/fire discipline (task-42)
+
+Per-bot ammo-gated WSE2 safety on team-0 defenders: keep the ranged weapon
+(`agent_ai_set_can_weapon_switch=0`) while ammo exists; allow the native melee
+switch only at zero ammo (last resort); `agent_ai_set_simple_behavior(aisb_hold,6 s)`
+keeps formation behaviour. No scripted destination. AI clone loadouts carry no
+bombs/grenades, so explosive gating by cluster density is not applicable to AI
+survivors (receipt `explosive_gating=not_applicable_ai_loadouts_have_no_bombs`);
+player bomb gating remains an equipment/design decision. D validates movement,
+ammo and KD; no acceptance claim.
+

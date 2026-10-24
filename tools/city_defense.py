@@ -116,6 +116,19 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None,
             ops.append(["1791", "3", "0", l4, str(pos)])   # team_set_order_position
             for order in HOLD_FIRE_ORDERS:
                 ops.append(["1790", "3", "0", l4, str(order)])
+            # Ranged standoff: keep the firearm while ammo remains; only allow
+            # the native melee weapon switch when the magazine is empty
+            # (knife/melee is a last resort). WSE2 hold behavior keeps the
+            # formation from chasing, without any scripted destination.
+            l5 = str(LOCAL0 + 5)
+            ops.append(["1727", "3", l5, l1, "0"])         # agent_get_ammo
+            ops.append(["4", "0"])                          # try_begin
+            ops.append(["31", "2", l5, "0"])                # ammo == 0
+            ops.append(["3343", "2", l1, "1"])              # allow switch (last resort)
+            ops.append(["5", "0"])                          # else_try
+            ops.append(["3343", "2", l1, "0"])              # keep ranged weapon
+            ops.append(["3", "0"])                          # try_end
+            ops.append(["3314", "3", l1, "0", "6"])         # WSE2 hold behavior
         ops.append(["2120", "3", l0, l0, "1"])             # count += 1
         ops.append(["3", "0"])                             # try_end
         if defender_target:
@@ -274,6 +287,8 @@ def apply_module(module: Path, hold_entries: tuple[int, ...] = REAR_HOLD_ENTRIES
             "engine_verified": False,
             "wave_sector_rotation": True,
             "zombie_speed": zombie_speed,
+            "defender_standoff": defender_orders,
+            "explosive_gating": "not_applicable_ai_loadouts_have_no_bombs",
             "defender_orders": defender_orders,
             "wave_visitors": wave_visitors,
             "defender_target": defender_target,

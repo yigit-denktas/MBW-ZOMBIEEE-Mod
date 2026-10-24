@@ -63,3 +63,20 @@ moving toward the enemy, defenders fire (ammo decreasing, ranged weapon modes),
 and the squad survives longer / trades better; report exact positions and KD,
 with `runtime_verified=false` and no acceptance claim.
 
+## Standoff/fire discipline - task-42 (after task-38)
+
+- Survivor AI: existing rear hold + hold/fire/ranged team orders, plus per-bot
+  ammo-gated **WSE2** safety: `agent_ai_set_can_weapon_switch(agent, 0)` keeps the
+  firearm while `agent_get_ammo > 0`; the native melee switch is only allowed when
+  the magazine is empty (knife/melee last resort). `agent_ai_set_simple_behavior(
+  aisb_hold, 6 s)` keeps formation behaviour without any scripted destination.
+- Explosive classes: the balanced AI clone loadouts contain **no bomb/grenade
+  items** (only guns, cartridges and, for the lumberjack, a bowie knife), so there
+  is no AI throwable to gate by cluster density. Bomb gating is therefore not
+  applicable to AI survivors; it remains a player-equipment design decision, not
+  a mission-trigger rule. Receipt records
+  `explosive_gating=not_applicable_ai_loadouts_have_no_bombs`.
+- Zombie pace/slow visitors/rear line are unchanged from task-38; the intent is
+  that survivors shoot the slowed wave before it reaches the line. Runtime
+  distance/KD/ammo evidence is D's sealed validation; no acceptance claim.
+
