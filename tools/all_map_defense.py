@@ -57,7 +57,8 @@ def replace_city_orders(mission, scene_ids):
     if count != 27 or lines[count_row].strip() != "27":
         raise PatchError("All-map defence requires the 27-trigger City tactical module")
     old=lines[end-1].split()
-    if len(old)<25 or old[:3]!=["5.000000","0.000000","0.000000"] or old[3]!="3":
+    if (len(old) < 25 or old[:3] != ["5.000000", "0.000000", "0.000000"]
+            or old[3] not in ("3", "4")):
         raise PatchError("Unexpected City-only order trigger; refusing replacement")
     newline="\r\n" if "\r\n" in mission else "\n"
     lines[end-1]=five_map_orders(scene_ids)+newline

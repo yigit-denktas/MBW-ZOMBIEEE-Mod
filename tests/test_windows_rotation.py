@@ -16,14 +16,14 @@ class RotationContractTests(unittest.TestCase):
     def test_default_rotation_has_validated_fields_and_order(self):
         lines = build_rotation()
         self.assertEqual(lines[-1], 'start')
-        self.assertIn('set_bot_count 2 32', lines)
+        self.assertIn('set_bot_count 2 24', lines)
         self.assertIn('set_bot_count 1 0', lines)
         self.assertIn('set_respawn_period 5', lines)
         self.assertIn('set_round_max_seconds 1800', lines)
         self.assertIn('set_defender_spawn_count 0', lines)
         self.assertIn('set_player_respawn_as_bot 0', lines)
         self.assertLess(lines.index('max_num_bots 200'),
-                        lines.index('set_bot_count 2 32'))
+                        lines.index('set_bot_count 2 24'))
         self.assertTrue(validate_rotation(lines))
 
     def test_second_team_count_must_be_positive(self):
@@ -61,7 +61,7 @@ class RotationContractTests(unittest.TestCase):
         defender = build_defender_rotation()
         self.assertEqual(stock[7], 'set_bot_count 1 0')
         self.assertEqual(defender[7], 'set_bot_count 1 8')
-        self.assertEqual(defender[8], 'set_bot_count 2 32')
+        self.assertEqual(defender[8], 'set_bot_count 2 24')
         self.assertIn('set_defender_spawn_count 0', defender)
         self.assertTrue(validate_rotation(defender))
         self.assertEqual(DEFAULT_TEAM1_BOTS, 0)
@@ -82,10 +82,10 @@ class RotationContractTests(unittest.TestCase):
     def test_enemy_profiles_select_team2_counts(self):
         self.assertEqual(DEFAULT_ENEMY_PROFILE, 'generic')
         self.assertEqual(ENEMY_PROFILES, ('generic', 'weak-wave1', 'native-only'))
-        self.assertEqual(ENEMY_PROFILE_BOTS['generic'], 32)
+        self.assertEqual(ENEMY_PROFILE_BOTS['generic'], 24)
         self.assertEqual(ENEMY_PROFILE_BOTS['weak-wave1'], WEAK_WAVE1_BOTS)
         self.assertEqual(ENEMY_PROFILE_BOTS['native-only'], 0)
-        self.assertEqual(build_rotation()[8], 'set_bot_count 2 32')
+        self.assertEqual(build_rotation()[8], 'set_bot_count 2 24')
         self.assertEqual(build_rotation(enemy_profile='weak-wave1')[8],
                          'set_bot_count 2 8')
         native = build_rotation(enemy_profile='native-only')

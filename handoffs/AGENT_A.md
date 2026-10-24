@@ -171,3 +171,9 @@ While actual B boot results remained unposted, A fixed a **false-positive diagno
   remain an equipment design decision.
 - Tests/build/chain green; D validates ammo/KD/positions; no acceptance.
 
+## Task-46 survivor consolidation
+
+- Loadouts: exactly one melee (itm_bowie) + doubled ammo (8 cartridge stacks) per clone.
+- Survivor growth: faction-slot wins counter -> refill target 8 + wins capped 12; game_type=7 City gate; task-45 balance retained.
+- Build/chain green; C cross-reviews behavior/telemetry; D validates KD/wave2; no acceptance.
+

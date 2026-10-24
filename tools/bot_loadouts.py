@@ -19,15 +19,20 @@ CLONES = (
     "trp_zdr_scout_bot",
     "trp_zdr_lumberjack_bot",
 )
-# Four weapon slots at most (including ammunition). Clothing remains equipped.
+# Owner rule (task-46): every survivor AI carries exactly one melee weapon and
+# double ammunition stacks (8 packs instead of 4). Clothing remains equipped.
 LOADOUTS = (
-    ("itm_m16a2", "itm_cartridges", "itm_cartridges", "itm_cartridges", "itm_cartridges", "itm_beretta_92fs",
-     "itm_police_uniform_a", "itm_leather_gloves", "itm_boots"),
+    ("itm_m16a2", "itm_cartridges", "itm_cartridges", "itm_cartridges", "itm_cartridges",
+     "itm_cartridges", "itm_cartridges", "itm_cartridges", "itm_cartridges", "itm_beretta_92fs",
+     "itm_bowie", "itm_police_uniform_a", "itm_leather_gloves", "itm_boots"),
     ("itm_remington_model_700", "itm_cartridges", "itm_cartridges", "itm_cartridges", "itm_cartridges",
-     "itm_beretta_92fs", "itm_police_uniform_b", "itm_brogans_a"),
-    ("itm_mp5", "itm_cartridges_1", "itm_cartridges_1", "itm_cartridges_1", "itm_cartridges_1", "itm_sw_5904",
-     "itm_police_uniform_a", "itm_brogans_a"),
+     "itm_cartridges", "itm_cartridges", "itm_cartridges", "itm_cartridges",
+     "itm_beretta_92fs", "itm_bowie", "itm_police_uniform_b", "itm_brogans_a"),
+    ("itm_mp5", "itm_cartridges_1", "itm_cartridges_1", "itm_cartridges_1", "itm_cartridges_1",
+     "itm_cartridges_1", "itm_cartridges_1", "itm_cartridges_1", "itm_cartridges_1",
+     "itm_sw_5904", "itm_bowie", "itm_police_uniform_a", "itm_brogans_a"),
     ("itm_browning_cynergy", "itm_cartridges_2", "itm_cartridges_2", "itm_cartridges_2", "itm_cartridges_2",
+     "itm_cartridges_2", "itm_cartridges_2", "itm_cartridges_2", "itm_cartridges_2",
      "itm_bowie", "itm_lumberjack", "itm_boots"),
 )
 
