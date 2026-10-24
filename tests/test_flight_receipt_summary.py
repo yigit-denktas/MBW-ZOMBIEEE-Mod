@@ -864,6 +864,10 @@ class ReceiptSummaryTests(unittest.TestCase):
             self.assertIn(gap, summary["evidence_gaps"])
         self.assertNotIn("attack_action_unavailable", summary["evidence_gaps"])
         self.assertIn("firearms:", format_summary(summary))
+        self.assertIn("wave_mod3_policy_assumption",
+                      summary["firearms"]["fire_mode_expected_source"])
+        self.assertIn("fire_mode_policy_not_in_bundle",
+                      summary["evidence_gaps"])
 
     def test_firearm_reload_resets_interval_baseline(self):
         lines = [

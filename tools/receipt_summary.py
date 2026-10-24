@@ -1137,6 +1137,12 @@ def summarize_receipt(target: Path) -> dict:
         "team1": firearms_team1,
         "source": "ammo_decrease_between_bounded_ai_and_combat_samples",
         "tick_units": "recorder heartbeat/sample tick (wall-clock unknown)",
+        "fire_mode_expected_source": (
+            "wave_mod3_policy_assumption; a fixed --fire-mode build has a "
+            "constant expected mode and needs its build receipt"),
+        "fire_mode_match_validity": (
+            "match/mismatch only meaningful for the default ai wave%3 build; "
+            "fixed single/burst/auto builds are not represented in the bundle"),
         "unavailable": {
             "hit_counter": True, "aim_error": True, "reticle_width": True,
             "target_icon_width": True, "player_accuracy_state": True,
@@ -1158,7 +1164,8 @@ def summarize_receipt(target: Path) -> dict:
                 "weapon_fire_mode_unavailable",
                 "player_accuracy_state_unavailable",
                 "manual_fire_mode_unavailable",
-                "item_accuracy_patch_receipt_only"):
+                "item_accuracy_patch_receipt_only",
+                "fire_mode_policy_not_in_bundle"):
         if gap not in gaps_hint:
             gaps_hint.append(gap)
     if not (firearms_team0["attack_actions"] or firearms_team1["attack_actions"]):
