@@ -19,7 +19,7 @@ already unproven/active).
 City generic invader bots previously selected the full native block 894..911
 (Zombie/Tough/Fast/Cop/Steroid/Mutated/Witchy/...). New build profile
 `--zombie-bot-roster weak` (default) restricts generic team-2 bots to the weak
-block **894..897** (Zombie/Tough/Fast/Cop); `--zombie-bot-roster full` restores
+block **902..906** (Zombie/Tough/Fast/Cop); `--zombie-bot-roster full` restores
 894..911. Receipt records `invader_troop_range` and `zombie_bot_roster`.
 Residual: the original native wave visitors are outside this selector; if the
 engine's wave 1 still spawns special/mounted visitors, that needs a separate
@@ -40,7 +40,7 @@ engine equips/blocks with the shield is D's sealed run.
   [894,898], 4 weak candidates, zombie_block changed_count=18; chain verification
   passes with `troops.txt` as an intentional City change.
 - D must validate: defenders fire at range (firearm muzzle/ammo), no melee charge
-  from the removed destination override; wave-1 generic bots all in 894..897;
+  from the removed destination override; wave-1 generic bots all in 902..906;
   zombies block with shields and survive better; receipts keep
   `runtime_verified=false`.
 - No gameplay/release acceptance; required City outcomes stay 0/23, milestones 0/5.

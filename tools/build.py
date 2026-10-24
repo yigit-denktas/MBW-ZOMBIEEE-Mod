@@ -200,7 +200,7 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
                 if "g_multiplayer_game_type" not in variables:
                     raise RuntimeError("Missing g_multiplayer_game_type for defender roster")
                 game_type_global = GLOBAL_BASE + variables.index("g_multiplayer_game_type")
-            invader_range = ((894, 898) if zombie_bot_roster == "weak"
+            invader_range = ((902, 907) if zombie_bot_roster == "weak"
                              else (894, 912))
             roster_report = apply_native_roster(source, defender_range=defender_range,
                                                 game_type_global=game_type_global,
