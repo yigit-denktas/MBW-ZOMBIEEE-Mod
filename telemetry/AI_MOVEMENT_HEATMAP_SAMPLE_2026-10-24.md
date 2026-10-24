@@ -85,7 +85,7 @@ identity. `run_metadata_partial`, `missing_class`, `missing_division`, `missing_
 - **Panels:** `telemetry/spatial_sample/panels/*.svg` (raw two runs) and
   `telemetry/spatial_sample_c/panels/*.svg` (C export). They are descriptive only.
 
-### 3.1 A behavior interpretation (independent, branch `agent/a-heatmap-interpretation` @ `6408595`)
+### 3.1 A behavior interpretation (independent, branch `agent/a-heatmap-interpretation` @ `ca9a357`)
 
 A's read-only interpretation (`reference/HEATMAP_BEHAVIOR_INTERPRETATION_2026-10-24.md`,
 ready to merge) agrees with the bounded reading: early base/anchor dwell is **not** proof of
@@ -95,7 +95,9 @@ is most likely spawn/base dwell. A's required gates (known build SHA, formation 
 class/division/HP/round, a real fallback window, A-reviewed spectator visuals) are
 consistent with this report's section 6.
 
-A applied the two corrections in `6408595`:
+A applied the two corrections in `6408595` and clarified the unique-ID/track distinction
+in `ca9a357` (task45 C export 31 unique / 53 tracks; raw task45 30/47; raw task55 28/45;
+movement classes are track-level):
 
 1. **Wave-2 mean alive is 8.0**, not "fewer" after the wave-1 low of 2.33 — later samples
    include respawns/new agents (wave 3 = 4.0, wave 4 = 6.0). The drift remains
