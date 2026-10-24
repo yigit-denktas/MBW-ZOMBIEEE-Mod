@@ -131,3 +131,13 @@ While actual B boot results remained unposted, A fixed a **false-positive diagno
 - Offline: 480 tests OK/7 skips; build receipt defender_candidates 981..984;
   chain verification passes. Runtime proof pending D's sealed run.
 
+## Task-26 round vs wave lifecycle (branch `agent/a-wave-lifecycle`)
+
+- Decoded native lifecycle: trigger 3 init wave=0; trigger 7 (-26 round end) sets round_ended=1
+  and wave=0; trigger 6 (-25 round start) clears round_ended only; trigger 15 (1 s server)
+  increments wave and spawns. Wave reset each round is native design, not a City patch defect.
+- Hands-off lever: `set_player_respawn_as_bot 1` + defender-heavy (`--experimental-defenders 8`,
+  `set_bot_count 2 4`); owner-solo tradeoff is survival-based wave progression. Wave-carryover
+  mission patch not recommended (changes native difficulty; keep original 25 triggers intact).
+- Tool `tools/round_wave_lifecycle.py`, tests, docs reference. Static only; D validates wave>=2.
+

@@ -59,3 +59,15 @@ No flag means **no modification** to the original mission or City scene (only th
 Sources: [Warband SCO binary format](https://mbmodwiki.github.io/SceneObj), [Warband operation definitions](https://github.com/Veehats/WarbandCoop/blob/main/header_operations.py), [Warband mission order constants](https://github.com/CaueVaranda/Warband-Module-System/blob/main/header_mission_templates.py).
 
 The three new marker positions are a staging point for later interactive defend/rally/fallback commands and respawn waves, not the finished AI system. Original creators retain full credit and original assets remain outside Git.
+
+## Wave >= 2: native round-end reset (task-26, 2026-10-24)
+
+The wave counter reset is native, not a City overlay defect: original trigger 7 (-26 round
+end) sets `g_round_ended=1` and `g_wave_number=0`; trigger 15 (1 s server) increments the
+wave; trigger 3 initialises it and trigger 6 (round start) only clears `g_round_ended`.
+D's 10-round sealed run therefore restarted at wave 0 each time. Recommended hands-off
+validation lever: `set_player_respawn_as_bot 1` plus a defender-heavy variant
+(`--experimental-defenders 8`, `set_bot_count 2 4`), not a mission rewrite. See
+`reference/CITY_ROUND_WAVE_LIFECYCLE_2026-10-24.md` and
+`tools/round_wave_lifecycle.py`. No wave>=2 or gameplay acceptance is claimed.
+
