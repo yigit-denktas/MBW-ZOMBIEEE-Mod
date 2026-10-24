@@ -4391,7 +4391,7 @@
       "owner": "Agent A fixes; Lead install; D 10-min play",
       "priority": "P0",
       "criterion": "P2s fixed, P0 rebased, play build installed, 10-min survivor run with only visible blockers fixed.",
-      "note": "review-b2: P0 9b97e15 accepted no P0/P1; P2 add_visitors group_no premise + verifier speed-on bug. No new telemetry branches. | A e90763d P2-fixed play candidate ready; D 10-min survivor play running (17:55).",
+      "note": "review-b2: P0 9b97e15 accepted no P0/P1; P2 add_visitors group_no premise + verifier speed-on bug. No new telemetry branches. | A e90763d P2-fixed play candidate ready; D 10-min survivor play running (17:55). | Canonical playbuild builds/PLAYBUILD.json: a-ranged-fix ce600ee, zombie_block stock (no shields), mission 7A48C83D; do not install mid-run.",
       "deferReason": "Converts diagnostics to visible progress.",
       "implementationLane": "A",
       "workOrigin": "discovered",

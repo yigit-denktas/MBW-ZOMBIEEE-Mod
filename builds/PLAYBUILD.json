@@ -1,0 +1,15 @@
+﻿{
+  "schema": "zombieee.playbuild.v1",
+  "name": "ranged-noshield-play",
+  "branch": "agent/a-ranged-fix",
+  "commit": "ce600ee",
+  "probe": "ce9d98e",
+  "mission_sha256": "7A48C83D4CF4E7F8C7A4115873EAD653CC9DA5FB1F45C6DD46857BE3CAF44D6B",
+  "zombie_block": "stock (no wooden shields)",
+  "firearm_class": "crossbow_type_ranged",
+  "ai_accuracy_modifier": 130,
+  "features": ["P2 fixes", "ranged classification", "crossbow/archery proficiency", "no 1730 scripted destination", "speed loop on"],
+  "excludes": ["task-81 zombie count/HP targets", "formation branch abc6e51"],
+  "backup": "ZOMBIEEE_Remaster.backup-20261024-180955",
+  "rule": "Do not install while a WSE2 run is active. Verify receipt/mission before a play run."
+}
