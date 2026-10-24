@@ -1,8 +1,8 @@
 ﻿{
-  "updated": "2026-10-24T16:42:00+02:00",
-  "phase": "P0 bisect passed; spectator review",
-  "build": "Known-good f57c800 restored and installed.",
-  "now": "4 sealed 180s runs (clean/full x off/on): no crash, 0 invalid agent/group errors, slots 894; full-on speed 60. 600s run hung and is invalid, not crash evidence.",
-  "next": "Spectator-mode screenshots + bounded seals; then C/F/H batch integration. No acceptance.",
+  "updated": "2026-10-24T16:48:00+02:00",
+  "phase": "P0 bisect / hardening review",
+  "build": "Known-good f57c800 installed.",
+  "now": "4 bisect seals: no crash, 0 invalid agent/group, slots 894, full-on speed 60. 600s run invalid (hung). C hardening 79e98ca amended for E review; hit seal pending.",
+  "next": "E re-review; D spectator-mode hit-bearing seal; then batch merge. No acceptance.",
   "acceptance": false
 }
