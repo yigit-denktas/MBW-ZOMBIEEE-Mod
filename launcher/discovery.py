@@ -75,6 +75,11 @@ def executable_status(path):
                 return 'invalid_pe_header'
     except FileNotFoundError:
         return 'missing_executable'
+    except ValueError:
+        # Python 3.13 raises ValueError for an embedded NUL in a path on open()
+        # (older versions may surface OSError). A malformed candidate is data,
+        # never a reason to abort the whole bounded discovery report.
+        return 'invalid_path'
     except OSError:
         return 'unreadable_executable'
     return 'found'
@@ -242,7 +247,10 @@ def discover(steam_roots=(), custom_paths=(), known_roots=()):
                             add(wse, path, 'bounded_search:' + str(root))
             except FileNotFoundError:
                 pass
-            except OSError as exc:
+            except (OSError, ValueError) as exc:
+                # A malformed configured path (for example an embedded NUL) can
+                # raise ValueError from scandir on Python 3.13; keep the bounded
+                # report structured instead of aborting discovery entirely.
                 warnings.append({'source': str(folder), 'reason': type(exc).__name__})
         if pending or budget <= 0:
             warnings.append({'source': str(root), 'reason': 'search_limit_reached'})

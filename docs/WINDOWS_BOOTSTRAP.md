@@ -1,9 +1,13 @@
-# Windows bootstrap: Agent B offline slice
+# Windows bootstrap: Agent B lane
 
-Implements the first slices of issues #8 and #9 on v0.1.8. Discovery and install
-planning are read-only. Solo orchestration is a pure simulation with a fake
-process harness. **No game startup, installation, shortcut, auto-join or City
-wave has been demonstrated.** No ledger leaf is accepted by these tests.
+Implements the B slices of issues #8 and #9. The current branch adds a complete
+one-command Play City flow: discovery, pinned archive audit, reversible
+build/install, validated rotation, recorder arming, owned dedicated host,
+loopback auto-join, stop-after-client-exit, artifact sealing and manifest
+verification. It is **implemented and offline-tested only**: no real WSE2
+startup, installation, auto-join or City wave has been demonstrated in this
+branch, no desktop shortcut is wired, and D owns the sealed runtime validation.
+No ledger leaf is accepted by these tests.
 
 ## Use
 
@@ -261,4 +265,120 @@ final Windows session remains pending after A/B/C integration.
 - The passive recorder cannot capture another process's stdout. The launcher owns the host child via `launcher.host_session.HostSession`, which tees bounded stdout/stderr to `host_stdout.log`.
 - After both game children exit and **before** `PassiveRecorder.stop_after_exit`, call `adapter.add_artifact(host_stdout)`. C hashes every file in the session directory at seal time, so the ZDB1 probe stream is then inside the verified manifest (issue #16).
 - `launcher.rotation.build_rotation` is the single source of truth for the dedicated rotation: 1-based team numbering, positive second-team bot count, respawn/round fields, and the explicit generic-bot (Crazed Civilian) roster caveat. `Session.rotation_commands()` and `Session.receipt()['rotation_sha256']` expose it.
+
+## One-command Play City (B launcher)
+
+`launcher.play_city` is the owner-facing entry point. It composes the existing
+B/C/A pieces instead of duplicating them: discovery + engine pairing
+(`launcher/engines.py`), A's pinned archive audit (`tools/archive_audit.py
+--verify-crc`) and builder (`tools/build.py`) with backup-first activation
+(`launcher/install.py`), the validated rotation (`launcher/rotation.py`), C's
+passive recorder adapter (`launcher/recorder.py`), owned host/client children
+(`launcher/host_session.py`), and the lifecycle model (`launcher/solo.py`).
+
+```powershell
+# Read-only readiness report (no writes, no launch)
+python -m launcher.play_city doctor
+
+# Show the exact plan; the first run needs the owned Beta 0.4 RAR
+python -m launcher.play_city plan
+python -m launcher.play_city plan --rebuild
+
+# The one command: install if needed, then play and record
+python -m launcher.play_city
+
+# Explicit variants
+python -m launcher.play_city install        # build/backup/activate only
+python -m launcher.play_city --no-install   # never touch the game tree
+python -m launcher.play_city --max-minutes 90
+python -m launcher.play_city rollback --receipt '<evidence-root>\install-receipt-<tx>.json'
+```
+
+Optional flags: `--game-root`, `--client-exe`, `--dedicated-exe`
+(`mb_warband_wse2.exe` / `mb_warband_wse2_dedicated.exe`), `--archive`
+(repeat only when selecting explicitly), `--evidence-root`, `--steam-root`,
+`--custom-path`, `--no-known-folders`, `--json`, and the timeout flags.
+Bare invocation defaults to `play`; `play --rebuild` forces a fresh build.
+
+### Flow (fail-closed at every step)
+
+1. Discovery and pairing: exactly one owned Warband root and its WSE2 client +
+   dedicated executable; ambiguity is a blocker, never a guess.
+2. Install **only when the City module is missing or fails structural checks**
+   (or `--rebuild`). A's read-only audit pins the original RAR4 SHA-256 and runs
+   the 7-Zip member CRC. The builder runs into a fresh same-volume
+   `Modules/.zombieee-stage-<tx>/ZOMBIEEE_Remaster`; its own
+   `ZOMBIEEE_REMASTER.json` receipt is checked (`city-only`, 31 triggers,
+   original 25, `runtime_verified=false`, probe prefix) and the module is
+   digest-verified before an existing target is renamed to
+   `Modules/ZOMBIEEE_Remaster.backup-<tx>`. Nothing is deleted; a journal is
+   written before each transition. Activation or digest failure restores the
+   backup; if restore itself fails, both trees are retained and the receipt says
+   `recovery_required`.
+3. Rotation: validated lines are written to the private launch directory and
+   passed with `-r`; they are never written into the game tree or the repo.
+4. Recorder first: C's passive recorder is armed and must publish a canonical
+   ready marker for this exact session/attempt/PID before any game child starts.
+   The host is then started with a generated loopback-only WSE2 config
+   (`bLoopbackServer=true`, `sServerAddress=127.0.0.1`, `iServerPort=7240`,
+   RCON/OGP disabled), and the launcher waits for a read-only `netstat`
+   observation of the owned host PID on exactly `127.0.0.1:7240`.
+5. Auto-join: the owner's client is started with
+   `--module ZOMBIEEE_Remaster --address 127.0.0.1:7240 --no-intro` and both
+   owned PIDs are attached to the recorder. `joined`/`mission_entered` are
+   recorded only when C's `ZDB1|` markers actually appear; a missing marker is an
+   evidence gap, never a claim.
+6. Stop: leaving the game (client exit) is the normal end of the session. The
+   launcher stops the client, asks the host to `quit` with a bounded
+   terminate/kill fallback, then copies `host_stdout.log` into the recorder
+   session directory **before** the signed stop. C seals the bundle; the launcher
+   verifies the SHA-256 manifest and renders `tools/diagnostics.py summary` into
+   the launch directory. Ctrl+C performs the same owned shutdown.
+
+Private evidence defaults to `local/session/play-city/` (gitignored):
+`flights/<session>/` (sealed recorder bundle) and `launches/<session>/`
+(rotation, loopback config, host/client stdout, `launch-receipt.json`,
+`summary.json`). The WSE2 dedicated engine log is
+`<game-root>/zombieee_play_<session>.log`; the launcher never deletes it. These
+files contain local paths and must stay private.
+
+### Truth boundaries
+
+All receipts keep `runtime_verified=false`, `outcome=unknown` and
+`simulation=false`; `lifecycle_outcome`/`status` describe only the launcher's own
+owned-process lifecycle (`clean_stop`, `failed`, `interrupted`). A verified
+manifest proves sealed bytes, not gameplay. No public bind, firewall rule, port
+forwarding, server-browser publication, anti-cheat change, serial key or upload
+exists in this path, and only literal IPv4 loopback is accepted. A desktop
+shortcut is intentionally **not** wired yet: D must first validate the real
+flow with sealed evidence; until then the documented CLI is the interface.
+Real WSE2 startup semantics, the generated minimal config and in-engine recorder
+attachment remain runtime gates owned by D. The launcher's own loopback bind
+observation is not proof that the engine cannot bind publicly.
+
+### Offline evidence
+
+`launcher.install` tests cover fresh install, backup-preserving update, build
+failure, build-verification failure, locked activation with restore, unrecoverable
+activation with retained trees, post-activation digest mismatch rollback, running
+process refusal, explicit rollback and unsafe transaction IDs. `launcher.engines`
+covers root/client/dedicated selection and ambiguity. `launcher.runtime` covers
+the exact loopback netstat parse, bounded tails and deterministic waits.
+`launcher.city_launch` drives the whole flow over injected recorder/process/clock
+fakes: recorder-before-host-before-client order, loopback argv, rotation emission,
+attach, join/mission markers, stop after client exit, artifact-before-stop,
+manifest/summary results, and fail-closed cleanup for bind timeout, recorder
+readiness failure, attachment rejection, recorder death and Ctrl+C. No game,
+recorder subprocess or network probe is started by tests. Latest Windows result:
+`python -B -m unittest discover -s tests -q` → **458 tests, OK, 96 skipped**
+(the interop cases run because C's recorder is present in the merged tree).
+
+### Python 3.13 NUL-path regression
+
+On Python 3.13, `os.scandir`/`open` raise `ValueError` (not `OSError`) for an
+embedded NUL in a configured path. `launcher.discovery` previously let that
+escape, aborting the whole structured report; it now records a bounded warning
+and reports the candidate as `invalid_path`. Regression tests cover NUL search
+roots, NUL WSE2 candidates and NUL Steam roots on both 3.11 and 3.13.
+
 

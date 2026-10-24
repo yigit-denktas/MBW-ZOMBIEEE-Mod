@@ -176,3 +176,38 @@ class DiscoveryTests(unittest.TestCase):
         self.assertTrue(report['warnings'])
         self.assertEqual(report['selected'], str(game))
         self.assertNotIn('warband_not_found', report['blockers'])
+
+    def test_nul_search_root_is_a_warning_not_an_abort(self):
+        """Regression (Python 3.13): scandir raises ValueError on embedded NUL.
+
+        The bounded search must record the malformed path and keep the valid
+        game candidate instead of letting ValueError escape discovery.
+        """
+        game = self.game(self.root / 'valid game')
+        malformed = str(self.root / 'bad root') + '\x00'
+        report = discover([], [malformed, game])
+        self.assertEqual(report['selected'], str(game))
+        self.assertNotIn('warband_not_found', report['blockers'])
+        self.assertTrue(report['warnings'])
+        for candidate in report['candidates']:
+            if '\x00' in candidate['path']:
+                self.assertNotEqual(candidate['status'], 'found')
+
+    def test_nul_wse2_candidate_stays_structured_not_found(self):
+        game = self.game(self.root / 'valid game')
+        malformed = str(self.root / 'bad_wse2.exe') + '\x00'
+        report = discover([], [malformed, game])
+        self.assertEqual(report['selected'], str(game))
+        for item in report['wse2_candidates']:
+            if '\x00' in item['path']:
+                self.assertNotEqual(item['status'], 'found')
+                self.assertIn(item['status'], ('invalid_path', 'unreadable_executable',
+                                               'missing_executable'))
+
+    def test_nul_steam_root_does_not_abort_the_report(self):
+        steam = self.root / 'steam'
+        (steam / 'steamapps').mkdir(parents=True)
+        game = self.game(steam / 'steamapps/common/MountBlade Warband')
+        report = discover([str(steam) + '\x00', steam])
+        self.assertEqual(report['selected'], str(game))
+        self.assertNotIn('warband_not_found', report['blockers'])
