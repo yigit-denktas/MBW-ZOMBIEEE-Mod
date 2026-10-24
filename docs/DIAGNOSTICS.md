@@ -822,7 +822,7 @@ Run the full offline suite with `py -3 -m unittest discover -s tests -v` before 
 # Agent B generates a fresh random key and correlation ID for each attempt.
 # The environment variable is PRIVATE to the C process.
 $env:ZOMBIEEE_RECORDER_CONTROL_KEY = '<64 hex digits generated securely by B>'
-py -3 -m telemetry.flight_recorder --passive --output-root '.\\evidence\\flight' --session city-attempt-1 --attempt attempt-1 --recorder-start-id '<opaque-id>' --log 'C:\\path\\to\\rgl_log.txt' --timeout 3600
+py -3 -m telemetry.flight_recorder --passive --output-root '.\\evidence\\flight' --session city-attempt-1 --attempt attempt-1 --recorder-start-id '<opaque-id>' --log '<local>/rgl_log.txt' --timeout 3600
 ```
 
 Agent B owns the supervising process and writes authenticated control JSON from the same user account; the command above runs until a signed stop message or timeout. It **does not** launch Warband. B waits for `recorder-ready.json` before proceeding. When C finishes, `py -3 tools\\diagnostics.py collect --flight-root .\\evidence\\flight\\city-attempt-1 --output .\\evidence\\city-attempt-1.zip --session city-attempt-1` verifies and packages the local session without automatically uploading data.
