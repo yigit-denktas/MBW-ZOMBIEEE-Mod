@@ -223,3 +223,6 @@ This project deliberately separates **source-verified**, **observed**, **unknown
 
 
 <!-- ranged adaptive coverage metadata-only source revision: 1d714c7 -->
+
+
+<!-- shot proxy metadata-only source revision: 9e4342c -->

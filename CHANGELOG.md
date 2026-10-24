@@ -256,3 +256,6 @@ work-item → PR → commit → version links are in
 
 
 <!-- ranged adaptive coverage metadata-only source revision: 1d714c7 -->
+
+
+<!-- shot proxy metadata-only source revision: 9e4342c -->
