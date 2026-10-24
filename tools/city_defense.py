@@ -62,6 +62,7 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None) -> str:
         ops.append(["2119", "3", l3, l0, "3"])             # count % 3
         ops.append(["2120", "3", l3, l3, "5"])             # division 5..7
         ops.append(["1783", "2", l1, l3])                  # agent_set_division
+        ops.append(["1766", "2", l1, l3])                  # agent_set_group (order sub_class)
         ops.append(["2120", "3", l0, l0, "1"])             # count += 1
         ops.append(["3", "0"])                             # try_end
         # l5 = wave parity; per division: entry = 2 + ((division-5 + parity) % 3)
