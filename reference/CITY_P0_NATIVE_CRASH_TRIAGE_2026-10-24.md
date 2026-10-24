@@ -126,6 +126,40 @@ This is the **strongest evidence-matched hypothesis for the script error**: a pr
 call-convention bug, not a P0 speed-loop opcode. The 28 s-later AV remains engine-side and
 its causal link to the script error is **unproven**.
 
+## 5b. Community/primary cross-check (2026-10-24)
+
+Searched public WSE2/Warband sources for the exact crash and for the agent/team-op call
+conventions. **No exact public crash report for `mbAgent::updateWalkingEffects` /
+`updateWalkingEffects` was found**; do not treat this stack as a community-known crash
+mode. Sources checked: the [WSE2 releases repository](https://github.com/Ruslan-700/WSE2-Releases)
+(releases only; no source/doc for this symbol), the
+[Steam Warband crash-to-desktop thread](https://steamcommunity.com/app/48700/discussions/3/1620599015902378283/)
+and the [TaleWorlds WSE2 release thread](https://forums.taleworlds.com/index.php?threads/warband-script-enhancer-2-v1-1-4-9.384882/)
+(generic CTD/config discussion, no matching symbol). The project crash log remains the
+primary evidence.
+
+Primary header evidence confirms the call conventions used in this report:
+
+- [`agent_get_group = 1765` `(destination, agent_id)`](https://raw.githubusercontent.com/cvlc/tgsmod/master/header_operations.py)
+  — supports the probe `read_group` bug and the fix `fn(0, agent)`.
+- [`team_get_hold_fire_order` 1784 / `team_get_movement_order` 1785 /
+  `team_get_riding_order` 1786 / `team_get_weapon_usage_order` 1787
+  `(destination, team_no, sub_class)`](https://raw.githubusercontent.com/cvlc/tgsmod/master/header_operations.py)
+  — supports the team-order guard (valid team 0/1, group 1..9) and C's 1785-1787 finding.
+- [`ti_on_agent_hit = -28`](https://raw.githubusercontent.com/cvlc/tgsmod/master/header_triggers.py)
+  documents trigger params 1/2/3 (victim/dealer/damage), Register 0 = dealer item,
+  Position Register 0 = blow position; the public header **does not document param 5**.
+  A Native-derived module source does use
+  [`store_trigger_param, ":missile", 5`](https://github.com/LilyModzStuff/warband_mod_source/blob/master/source/module_mission_templates.py)
+  in a `ti_on_agent_hit` block, so C's missile mapping is **cited but still unverified in
+  our WSE2 build**; this is relevant to the hardening claim review, not to the crash cause.
+- No public WSE2 API documentation for `getTime()` was located; the relative `ts_ms`
+  evidence therefore stands as probe-relative only, not UTC/wall-clock.
+
+No community source changes the crash conclusion; it reinforces "probe convention" and
+"team-order argument order" as known native signatures, and leaves the speed-loop/AV
+causality for the bisect.
+
 ## 6. The P0 speed loop (bisect target, not yet implicated)
 
 A's P0 native-wave patch (commit `7610376`, branch `agent/a-p0-native-wave`) appends a
