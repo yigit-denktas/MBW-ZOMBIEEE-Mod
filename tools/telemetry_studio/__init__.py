@@ -31,5 +31,7 @@ __all__ = [
     "analyze_balance",
     "extract_heatmap",
     "HEATMAP_SCHEMA",
+    "probe_health",
+    "PROBE_HEALTH_SCHEMA",
     "render_balance_report",
 ]
