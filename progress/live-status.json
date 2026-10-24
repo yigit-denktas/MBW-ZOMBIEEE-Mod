@@ -1,8 +1,8 @@
 {
-  "updated": "2026-10-24T17:45:00+02:00",
-  "phase": "P0 review -> playable build",
-  "build": "Known-good f57c800 installed; heatmap/adaptive probe parked after reseal.",
-  "now": "review-b2 accepted P0 9b97e15 (2 P2s: add_visitors group_no premise; verifier speed-on gap). A fixing P2s/rebase. D reseal pending. No new telemetry branches.",
-  "next": "A push P2 fixes; Lead installs play build; D 10-min survivor POV; visible blockers only. No acceptance.",
+  "updated": "2026-10-24T17:58:00+02:00",
+  "phase": "Play checkpoint / tracker sync",
+  "build": "Installed test build (DF21AE88); A play candidate e90763d ready.",
+  "now": "D is running the 10-minute survivor play session with join retry/screenshots. Gun-armed survivor AI task added (firearms are crossbow-type).",
+  "next": "Review play screenshots/blockers; install A e90763d; zombie targets next. No acceptance.",
   "acceptance": false
 }
