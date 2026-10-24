@@ -233,7 +233,7 @@ class LuaOperationMetadataTests(unittest.TestCase):
         # Events carry their observation basis; none is inferred from a metric.
         for basis in ("observed=first_alive_player", "observed=dead_agent",
                       "observed=alive_after_absence", "observed=agent_removed",
-                      "observed=round_identity_change", "observed=wave_transition"):
+                      '"round_clock_reset"', "observed=wave_transition"):
             self.assertIn(basis, self.main)
 
     def test_v2_events_are_emitted_only_from_observed_transitions(self):
@@ -330,6 +330,32 @@ class LuaOperationMetadataTests(unittest.TestCase):
         self.assertLess(self.main.index("local function pre_round_snapshot"),
                         self.main.index("local function first_entry"))
         self.assertIn("pre_round_snapshot(sample_world(), resolve_role()", self.main)
+
+
+    def test_team_tables_are_zero_based_and_players_arithmetic_parenthesised(self):
+        # v3 runtime regression: Lua literals are 1-based, so team tables must be
+        # declared explicitly 0-based, and concatenation needs parentheses around
+        # arithmetic (a .. b - c would parse as (a .. b) - c).
+        for table in ("humans", "bots", "horses", "alive", "kills", "pos_count"):
+            self.assertIn(f"{table} = {{[0] = ", self.main)
+        self.assertIn("pos_sum = {[0] = {0, 0}, [1] = {0, 0}}", self.main)
+        self.assertNotIn("humans = {0, 0}", self.main)
+        self.assertIn("|players_team0=\" .. (world.humans[0] - math.max(world.bots[0], 0))",
+                      self.main)
+        self.assertIn("|players_team1=\" .. (world.humans[1] - math.max(world.bots[1], 0))",
+                      self.main)
+        self.assertIn("kind=sample_world|error=", self.main)
+
+    def test_round_started_requires_a_real_transition(self):
+        # g_round_start_time increasing (15/30/45) is not a round identity: only
+        # a clock reset or an observed round-end transition may emit, otherwise
+        # one bounded probe_anomaly is reported.
+        self.assertNotIn("observed=round_identity_change", self.main)
+        self.assertIn('"round_clock_reset"', self.main)
+        self.assertIn('"round_end_transition"', self.main)
+        self.assertIn("kind=round_start_monotonic", self.main)
+        self.assertIn("round_start < previous_round_start", self.main)
+        self.assertIn("previous_round_ended == 1 and round_ended == 0", self.main)
 
 if __name__ == "__main__":
     unittest.main()

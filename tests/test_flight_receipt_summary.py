@@ -429,5 +429,26 @@ class ReceiptSummaryTests(unittest.TestCase):
         text = format_summary(summary)
         self.assertIn("pre-round:", text)
 
+
+    def test_monotonic_round_start_does_not_inflate_rounds(self):
+        lines = [
+            "ZDB1|heartbeat|count=1|role=server|team0=4|team1=25|round_start=15",
+            "ZDB1|heartbeat|count=2|role=server|team0=4|team1=25|round_start=30",
+            "ZDB1|heartbeat|count=3|role=server|team0=4|team1=25|round_start=45",
+            "ZDB1|probe_anomaly|kind=round_start_monotonic|first=15|last=45|samples=4",
+        ]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        self.assertEqual(summary["rounds"]["count"], 0)
+        self.assertTrue(summary["rounds"]["identity_unstable"])
+        self.assertIn("round_identity_unstable", summary["evidence_gaps"])
+
+    def test_repeated_round_start_is_stable_identity(self):
+        lines = [
+            "ZDB1|heartbeat|count=1|role=server|team0=4|team1=25|round_start=84",
+            "ZDB1|heartbeat|count=2|role=server|team0=4|team1=25|round_start=84",
+        ]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        self.assertEqual(summary["rounds"]["round_starts"], [84])
+
 if __name__ == "__main__":
     unittest.main()
