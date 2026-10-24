@@ -4336,6 +4336,35 @@
       "originReason": "Owner: make GIFs and deploy behavior comparisons.",
       "discoveredDuring": "owner live feedback 2026-10-24",
       "graphImpact": "Makes behavior/parameter effects reviewable."
+    },
+    {
+      "id": "ZOM-DISC-80",
+      "title": "probe-health mandatory pre-analysis gate",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "active",
+      "sourceState": "C tool delivered; D/E adoption pending",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-78"
+      ],
+      "evidence": [],
+      "completionBasis": "Tool delivered; enforce before seals",
+      "kind": "work-item",
+      "owner": "Agent C tool; D/E run before analysis",
+      "priority": "P0",
+      "criterion": "Every sealed bundle gets probe-health JSON; 0 heartbeats/missing hit/adaptive counters/error spam are caught before analysis.",
+      "note": "C branch c7d58a0; command probe-health; strict gaps.",
+      "deferReason": "Supplemental tooling; not denominator.",
+      "implementationLane": "C",
+      "workOrigin": "discovered",
+      "workType": "diagnostics",
+      "supportsOutcomeId": "ZOM-OBS-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Two seals were analyzed before detecting broken heartbeat/hit telemetry.",
+      "discoveredDuring": "owner/agent debugging 2026-10-24",
+      "graphImpact": "Prevents false analysis on broken probes."
     }
   ],
   "warnings": [

@@ -1,8 +1,8 @@
 ﻿{
-  "updated": "2026-10-24T17:18:00+02:00",
-  "phase": "Probe bug reset",
-  "build": "Known-good f57c800 restored.",
-  "now": "Heatmap/hit probe concat bug: hit_param_invalid nil -> zero heartbeats. Broken probes parked; C fixing nil init/robust heartbeat.",
-  "next": "Install fixed SHA, then adaptive 15s-vs-1s A/B + hit seal with spectator screenshots. No acceptance.",
+  "updated": "2026-10-24T17:32:00+02:00",
+  "phase": "Derived heatmap live",
+  "build": "Fixed adaptive probe installed (mission DF21AE88, backup …172142).",
+  "now": "Raw game captures removed from public Pages on IP grounds. Derived occupancy heatmap GIF is live (all/even/advantage/outnumbered/unknown). Probe-health gate added; D seal pending.",
+  "next": "D re-seals with fixed probe; then dense adaptive heatmap + defender_target 8-vs-4 A/B. No acceptance.",
   "acceptance": false
 }
