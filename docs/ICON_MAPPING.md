@@ -10,6 +10,8 @@ catalogue), [`configs/ui_icon_map.json`](../configs/ui_icon_map.json) (definitio
 **Review:** independently reviewed by Agent E on 2026-10-24 (cross-review record:
 [`reference/CROSS_REVIEW_LEGAL_RELEASE_2026-10-24.md`](../reference/CROSS_REVIEW_LEGAL_RELEASE_2026-10-24.md) §A; PR #31 review comment). Findings are folded in; this is
 **not** legal clearance and **not** acceptance.
+**Task-64 addendum:** cosmetics/equipment/cover/reticle slots (§4.6) and the required screenshot
+comparison plan (§10). Visual validation is **not** performed here.
 
 **Scope.** A kill-feed / HUD icon layer for `ZOMBIEEE_Remaster` that maps **melee, bow/crossbow,
 firearm, zombie and money/USD** events to icons, plus the atlas contract that a later
@@ -154,6 +156,32 @@ weapon id is unknown, the row shows the text token and no icon rather than a wro
 
 ---
 
+### 4.6 Cosmetics / equipment / cover / reticle slots (task-64 addendum)
+
+Slots for between-wave upgrade UI and an additive reticle overlay. All icons are 2D UI only (not 3D
+models) and require the same attribution/atlas rules as §3–§4.
+
+| Slot key | Use | Primary icon (source, licence) | Fallback | Text token |
+| --- | --- | --- | --- | --- |
+| `armour` | armour purchase/upgrade | game-icons `kevlar-vest` (Skoll, CC BY 3.0) | `breastplate` (Lorc) | `[ARMOUR]` |
+| `armour-upgrade` | upgrade action | game-icons `armor-upgrade` (Delapouite, CC BY 3.0) | `armour` | `[UPGRADE]` |
+| `clothing` | clothing/cosmetic purchase | game-icons `hoodie` (Delapouite, CC BY 3.0) | `person` (Delapouite) | `[CLOTHING]` |
+| `helmet` | helmet/hat cosmetic | game-icons `light-helm` (Delapouite, CC BY 3.0) | `breastplate` (Lorc) | `[HELMET]` |
+| `hair` | hairstyle cosmetic | game-icons `hair-strands` (Delapouite, CC BY 3.0) | `person` (Delapouite) | `[HAIR]` |
+| `face` | face/head cosmetic | game-icons `person` (Delapouite, CC BY 3.0) | `hair` | `[FACE]` |
+| `crate` | supply/crate cover prop UI | game-icons `wooden-crate` (Delapouite, CC BY 3.0) | `barricade` (Delapouite) | `[CRATE]` |
+| `barricade` | barricade/cover deployment | game-icons `barricade` (Delapouite, CC BY 3.0) | `crate` | `[COVER]` |
+| `reticle` | **additive** reticle overlay candidate | project-authored crosshair (best) or game-icons `reticule` (Lorc, CC BY 3.0) | `crosshair` (Delapouite) / Font Awesome `crosshairs` (CC BY 4.0) | n/a — engine reticle remains |
+
+**Reticle rule:** this layer may **add/replace an overlay texture**, never claim to resize the native
+reticle; any visual acceptance requires the in-game screenshot comparison in §10. Icon page pattern
+`https://game-icons.net/1x1/<author>/<icon>.html`; candidate pages checked 2026-10-24.
+
+3D character/cosmetic candidate sources (Kenney Animated Characters Survivors, MakeHuman community
+categories) are tracked in `reference/FREE_ASSET_SOURCES.md` §3.8/§3.9; they are not icon slots.
+
+---
+
 ## 5. Native atlas risk and free replacements
 
 | Native element we would otherwise touch | Status | Replacement for a public/clean-room build |
@@ -163,6 +191,7 @@ weapon id is unknown, the row shows the text token and no icon rather than a wro
 | Native fonts (`font_data.xml`, `font.dds`) | No redistribution right recorded; treat as non-redistributable (R-05) | OFL font → `font.dds` + `font_data.xml` in our module's language folder |
 | Native sounds (hard-coded ids) | No redistribution right recorded; treat as non-redistributable (R-05) | CC0/CC-BY sounds with new `module_sounds.py` ids (catalogue §3.5) |
 | Native kill notifications (text) | Engine UI; internals unverified; no redistribution right recorded | Additive presentation; text-only fallback; no engine hooks claimed |
+| Native reticle/crosshair (engine UI) | Engine-owned; no redistribution right recorded; **no native resize claim** | Additive overlay candidate (`reticle` slot) + screenshot comparison (§10); owner/E approval before any binary |
 
 **Policy:** the private/local build may *reference* native assets from the user's own installation
 (never captured into the repo or evidence bundles). Any public artifact must use the replacement
@@ -231,3 +260,29 @@ Consumers (future):
    but blocks a fully licence-clean visual remaster.
 6. **No acceptance claim:** this file does not accept any ledger leaf, the legal gate, or any City
    outcome; no visual or gameplay verification has been performed.
+7. **Screenshots are required for visual/asset validation:** cosmetic/prop/reticle candidates and
+   any visual change need the in-game comparison in §10; none captured in this docs-only task.
+
+---
+
+## 10. Screenshot comparison plan (required for visual/asset validation)
+
+**Owner/Lead requirement:** any visual or asset validation (icon atlas, cosmetic/prop replacement,
+reticle overlay) needs **in-game screenshots**; this document does not claim any such validation and
+no game launch was performed for it.
+
+| Step | Requirement |
+| --- | --- |
+| 1. Freeze the build | same module SHA, same scene/map, same HUD scale (1000×1000 presentation space), same camera/FOV/position, same time-of-day and weather |
+| 2. Capture baseline | 3 frames each on dark, bright and blood-red backgrounds; 1920×1080 and 1280×720; native reticle/HUD left untouched |
+| 3. Capture candidate | same frames with the additive overlay/atlas loaded; no other change |
+| 4. Measure | reticle width at a fixed aim distance (px), icon legibility at 16/32/64 px, contrast vs plate, overlap/occlusion with kill feed |
+| 5. Review | owner + E blind comparison; record pass/fail per slot; store under `local/`/`evidence/` (gitignored, never committed) |
+| 6. Prove | only then may a visual claim be made; reticle is described as an **additive overlay**, never a native resize; receipt records build SHA + screenshot hashes |
+
+**Non-claims:** no screenshots exist for this document, no visual acceptance is implied, and no
+binary asset may be committed before licence clearance + this comparison.
+
+The project-authored reticle/overlay concept (geometry, variants A/B/C, candidate licences, reticle-
+specific measurements) is [`reference/RETICLE_OVERLAY_CONCEPT.md`](../reference/RETICLE_OVERLAY_CONCEPT.md);
+it is the subject of this validation gate and contains no binary or visual claim.
