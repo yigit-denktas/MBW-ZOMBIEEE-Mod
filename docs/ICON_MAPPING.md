@@ -7,7 +7,9 @@ binary asset is committed. This is not acceptance of any ledger leaf or City out
 **Related:** [`reference/FREE_ASSET_SOURCES.md`](../reference/FREE_ASSET_SOURCES.md) (licence
 catalogue), [`configs/ui_icon_map.json`](../configs/ui_icon_map.json) (definitions-only mapping),
 [`reference/LEGAL_RIGHTS_AND_CREDITS.md`](../reference/LEGAL_RIGHTS_AND_CREDITS.md) (rights gate).
-**Review:** Agent E reviews the licence/attribution side before merge.
+**Review:** independently reviewed by Agent E on 2026-10-24 (cross-review record:
+[`reference/CROSS_REVIEW_LEGAL_RELEASE_2026-10-24.md`](../reference/CROSS_REVIEW_LEGAL_RELEASE_2026-10-24.md) §A; PR #31 review comment). Findings are folded in; this is
+**not** legal clearance and **not** acceptance.
 
 **Scope.** A kill-feed / HUD icon layer for `ZOMBIEEE_Remaster` that maps **melee, bow/crossbow,
 firearm, zombie and money/USD** events to icons, plus the atlas contract that a later
@@ -26,8 +28,8 @@ acceptance.
    safe design is an **additive presentation** that renders text plus an icon per row, with a
    text-only fallback. (Native feed specifics are **open** — the community "killstreaks and
    statistics" threads were Cloudflare-blocked in this pass; see catalogue §3.6.)
-2. **Native UI art is not ours to redistribute.** Native HUD/score meshes, item meshes, fonts and
-   hard-coded sounds belong to TaleWorlds/Warband and are excluded by the rights gate. Our public
+2. **Native UI art has no recorded redistribution right.** Native HUD/score meshes, item meshes,
+   fonts and hard-coded sounds are excluded by the rights gate (legal dossier R-03/R-05). Our public
    icon layer must be built from cleared replacements (game-icons.net CC BY 3.0 / Font Awesome CC BY
    4.0 / our own glyphs).
 3. **Owner decision: money is a USD symbol, not a gold coin.** "Gold coin" icons read as an RPG
@@ -54,7 +56,7 @@ acceptance.
 crispness; the exact DDS mipmap behaviour for HUD sprites; native kill-feed event availability. These
 require a build/launch test that this task does not perform.
 
-**Native boundaries (never copy into repo):** `mesh_mp_ingame_menu`, `mesh_mp_ui_host_main`,
+**Native boundaries (no redistribution right recorded; never copy into repo):** `mesh_mp_ingame_menu`, `mesh_mp_ui_host_main`,
 `mesh_load_window`, `mesh_mp_score_*`, native item meshes, `font_data.xml`/`font.dds`, native sound
 files. See catalogue §2.7.
 
@@ -156,15 +158,16 @@ weapon id is unknown, the row shows the text token and no icon rather than a wro
 
 | Native element we would otherwise touch | Status | Replacement for a public/clean-room build |
 | --- | --- | --- |
-| Native HUD/score meshes (`mesh_mp_score_*`, `mesh_mp_ingame_menu`, `mesh_mp_ui_host_main`) | TaleWorlds assets — **not redistributable** | Our own atlas + presentation overlays; layout re-implemented from scratch |
-| Native inventory item icons (item meshes) | TaleWorlds/original-mod assets — **not redistributable** | 3D item meshes authored from cleared sources (catalogue §3.4), or keep private-only |
-| Native fonts (`font_data.xml`, `font.dds`) | TaleWorlds assets | OFL font → `font.dds` + `font_data.xml` in our module's language folder |
-| Native sounds (hard-coded ids) | TaleWorlds assets | CC0/CC-BY sounds with new `module_sounds.py` ids (catalogue §3.5) |
-| Native kill notifications (text) | Engine UI; we do not replace it | Additive presentation; text-only fallback; no engine hooks claimed |
+| Native HUD/score meshes (`mesh_mp_score_*`, `mesh_mp_ingame_menu`, `mesh_mp_ui_host_main`) | No redistribution right recorded; treat as non-redistributable (legal dossier R-03/R-05) | Our own atlas + presentation overlays; layout re-implemented from scratch |
+| Native inventory item icons (item meshes) | No redistribution right recorded; treat as non-redistributable (R-03/R-05) | 3D item meshes authored from cleared sources (catalogue §3.4), or keep private-only |
+| Native fonts (`font_data.xml`, `font.dds`) | No redistribution right recorded; treat as non-redistributable (R-05) | OFL font → `font.dds` + `font_data.xml` in our module's language folder |
+| Native sounds (hard-coded ids) | No redistribution right recorded; treat as non-redistributable (R-05) | CC0/CC-BY sounds with new `module_sounds.py` ids (catalogue §3.5) |
+| Native kill notifications (text) | Engine UI; internals unverified; no redistribution right recorded | Additive presentation; text-only fallback; no engine hooks claimed |
 
 **Policy:** the private/local build may *reference* native assets from the user's own installation
 (never captured into the repo or evidence bundles). Any public artifact must use the replacement
-column. This is the same boundary as `reference/LEGAL_RIGHTS_AND_CREDITS.md` §4.
+column. This is the same boundary as [`reference/LEGAL_RIGHTS_AND_CREDITS.md`](../reference/LEGAL_RIGHTS_AND_CREDITS.md)
+§4 — a conservative project position, not a legal determination.
 
 ---
 

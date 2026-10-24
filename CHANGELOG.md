@@ -2,13 +2,6 @@
 
 Uses [Semantic Versioning](https://semver.org/) for the remaster, not the historical original.
 
-## [Unreleased]
-
-### Added
-- Free-asset sourcing catalogue with verified licences, integration constraints and adopt/adapt/avoid decisions (`reference/FREE_ASSET_SOURCES.md`), plus a definitions-only Warband icon/currency mapping contract (`docs/ICON_MAPPING.md`) and `configs/ui_icon_map.json` — **no binary assets**, docs/definitions only.
-- Recorded licence evidence for game-icons.net, Kenney, Poly Haven, ambientCG, KayKit, Blender Studio, MakeHuman, OpenGameArt CC0 sounds/models, Freesound, SIL OFL fonts, Font Awesome and the Persistent World BSD-3 pipeline reference; flagged Quaternius QAL, Sonniss and Sketchfab store licences as unsuitable for an unpacked mod bundle.
-- Named Agent E as independent licence reviewer; review findings are pending and no legal/acceptance claim is made.
-
 ## [0.2.0] - 2026-10-24
 
 ### Added

@@ -18,9 +18,19 @@
     "runtimeFormat": "dds",
     "compression": "DXT5",
     "masterSizePx": 64,
-    "deliveredSizesPx": [64, 32, 16],
-    "feedbackSizesPx": [24, 32],
-    "pages": [256, 512],
+    "deliveredSizesPx": [
+      64,
+      32,
+      16
+    ],
+    "feedbackSizesPx": [
+      24,
+      32
+    ],
+    "pages": [
+      256,
+      512
+    ],
     "paddingPx": 2,
     "foreground": "#FFFFFF",
     "background": "transparent",
@@ -709,15 +719,64 @@
     }
   ],
   "weaponClasses": [
-    { "itemTypeFlag": "itp_type_one_handed_wpn", "valueHex": "0x0000000000000002", "icon": "melee", "confident": true },
-    { "itemTypeFlag": "itp_type_two_handed_wpn", "valueHex": "0x0000000000000003", "icon": "melee", "confident": true },
-    { "itemTypeFlag": "itp_type_polearm", "valueHex": "0x0000000000000004", "icon": "melee", "confident": true },
-    { "itemTypeFlag": "itp_type_arrows", "valueHex": "0x0000000000000005", "icon": null, "confident": true, "note": "ammo only; no kill-row icon" },
-    { "itemTypeFlag": "itp_type_bolts", "valueHex": "0x0000000000000006", "icon": null, "confident": true, "note": "ammo only; no kill-row icon" },
-    { "itemTypeFlag": "itp_type_bow", "valueHex": "0x0000000000000008", "icon": "bow", "confident": true },
-    { "itemTypeFlag": "itp_type_crossbow", "valueHex": "0x0000000000000009", "icon": "crossbow", "confident": true },
-    { "itemTypeFlag": "itp_type_thrown", "valueHex": "0x000000000000000a", "icon": "explosive", "confident": false, "note": "policy decision: throwing knives/axes may use melee instead" },
-    { "itemTypeFlag": "itp_type_pistol", "valueHex": "0x0000000000000010", "icon": "firearm", "confident": true, "note": "Warband firearms class" }
+    {
+      "itemTypeFlag": "itp_type_one_handed_wpn",
+      "valueHex": "0x0000000000000002",
+      "icon": "melee",
+      "confident": true
+    },
+    {
+      "itemTypeFlag": "itp_type_two_handed_wpn",
+      "valueHex": "0x0000000000000003",
+      "icon": "melee",
+      "confident": true
+    },
+    {
+      "itemTypeFlag": "itp_type_polearm",
+      "valueHex": "0x0000000000000004",
+      "icon": "melee",
+      "confident": true
+    },
+    {
+      "itemTypeFlag": "itp_type_arrows",
+      "valueHex": "0x0000000000000005",
+      "icon": null,
+      "confident": true,
+      "note": "ammo only; no kill-row icon"
+    },
+    {
+      "itemTypeFlag": "itp_type_bolts",
+      "valueHex": "0x0000000000000006",
+      "icon": null,
+      "confident": true,
+      "note": "ammo only; no kill-row icon"
+    },
+    {
+      "itemTypeFlag": "itp_type_bow",
+      "valueHex": "0x0000000000000008",
+      "icon": "bow",
+      "confident": true
+    },
+    {
+      "itemTypeFlag": "itp_type_crossbow",
+      "valueHex": "0x0000000000000009",
+      "icon": "crossbow",
+      "confident": true
+    },
+    {
+      "itemTypeFlag": "itp_type_thrown",
+      "valueHex": "0x000000000000000a",
+      "icon": "explosive",
+      "confident": false,
+      "note": "policy decision: throwing knives/axes may use melee instead"
+    },
+    {
+      "itemTypeFlag": "itp_type_pistol",
+      "valueHex": "0x0000000000000010",
+      "icon": "firearm",
+      "confident": true,
+      "note": "Warband firearms class"
+    }
   ],
   "currency": {
     "symbol": "$",
@@ -727,37 +786,46 @@
     "noGoldCoin": true,
     "format": {
       "style": "prefix-symbol grouping",
-      "examples": ["$0", "$12", "$1,234"],
+      "examples": [
+        "$0",
+        "$12",
+        "$1,234"
+      ],
       "negative": "-$12",
       "maxFeedDigits": 7,
       "storeUnit": "integer minor units"
     },
-    "events": ["money.gain", "money.spend", "money.bounty", "money.insufficient"]
+    "events": [
+      "money.gain",
+      "money.spend",
+      "money.bounty",
+      "money.insufficient"
+    ]
   },
   "nativeRisk": [
     {
       "nativeElement": "mesh_mp_score_a/b, mesh_mp_ingame_menu, mesh_mp_ui_host_main, mesh_load_window, mp_inventory_slot_*",
-      "status": "TaleWorlds game assets; not redistributable",
+      "status": "No redistribution right recorded; treat as non-redistributable and do not bundle (legal dossier R-03/R-05)",
       "replacement": "ui_zdr_* atlas + custom presentation overlays"
     },
     {
       "nativeElement": "native item meshes (inventory icons)",
-      "status": "TaleWorlds/original-mod assets; not redistributable",
+      "status": "No redistribution right recorded; treat as non-redistributable and do not bundle (legal dossier R-03/R-05)",
       "replacement": "authored item meshes from licence-cleared sources, or private-only build"
     },
     {
       "nativeElement": "font_data.xml + font.dds",
-      "status": "TaleWorlds game assets; not redistributable",
+      "status": "No redistribution right recorded; treat as non-redistributable and do not bundle (legal dossier R-03/R-05)",
       "replacement": "OFL font rasterised into our own font_data.xml + font.dds (font files not committed)"
     },
     {
       "nativeElement": "hard-coded native sound ids",
-      "status": "TaleWorlds game assets; not redistributable",
+      "status": "No redistribution right recorded; treat as non-redistributable and do not bundle (legal dossier R-03/R-05)",
       "replacement": "CC0/CC-BY sounds with new module_sounds.py ids"
     },
     {
       "nativeElement": "native multiplayer kill notification",
-      "status": "engine UI; internals unverified in this pass",
+      "status": "engine UI; internals unverified in this pass (no native redistribution right recorded)",
       "replacement": "additive presentation with text fallback; no native UI hook claimed"
     }
   ],
@@ -768,15 +836,28 @@
       "CC-BY-4.0 Font Awesome icons: 'Dollar-sign/Gun icon by Fonticons, Inc. (Font Awesome Free), licensed under CC BY 4.0' + licence link",
       "OFL-1.1 fonts: keep copyright line + OFL link; do not ship modified font files under a Reserved Font Name",
       "CC0 sources: courtesy credit (Kenney, Poly Haven, ambientCG, KayKit, OpenGameArt CC0)",
-      "No brand logos, no endorsement implication"
-    ]
+      "No brand logos, no endorsement implication",
+      "Before the first binary asset PR: generate THIRD_PARTY_NOTICES.md from this file (asset, author, source URL, licence, date/version, changes)"
+    ],
+    "noticePath": "THIRD_PARTY_NOTICES.md",
+    "generatedFrom": "configs/ui_icon_map.json"
   },
   "openItems": [
     "No atlas/BRF/presentation/font exists; nothing tested in Warband.",
     "Native kill-feed internals unverified (forum source Cloudflare-blocked).",
     "DDS sprite/mipmap behaviour for HUD scale unverified in-engine.",
     "Attribution register not generated yet.",
-    "Agent E licence review pending before merge.",
+    "Independent licence review by Agent E completed 2026-10-24 (reference/CROSS_REVIEW_LEGAL_RELEASE_2026-10-24.md §A, PR #31 review comment); findings folded; no legal clearance or acceptance claimed.",
+    "No acceptance claim for any ledger leaf, legal gate or City outcome.",
     "No acceptance claim for any ledger leaf, legal gate or City outcome."
-  ]
+  ],
+  "review": {
+    "reviewer": "Agent E",
+    "completed": "2026-10-24",
+    "record": "reference/CROSS_REVIEW_LEGAL_RELEASE_2026-10-24.md",
+    "prComment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/31",
+    "result": "no blockers; corrections folded",
+    "legalClearance": false,
+    "acceptance": false
+  }
 }

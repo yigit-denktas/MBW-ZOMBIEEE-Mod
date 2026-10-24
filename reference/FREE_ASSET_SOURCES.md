@@ -6,8 +6,10 @@ into, or committed to, this repository; no game launch; no runtime, visual or ac
 was observed, and the integration constraints that follow.
 **Observed:** 2026-10-24, from branch `agent/g-free-assets` (base `main` `c72de64`), owner task
 `task-49`.
-**Review:** independent licence review by Agent E is required before this catalogue is treated as
-reviewed (see §9). Until then this file is a **pre-review draft**.
+**Review:** independently reviewed by Agent E on 2026-10-24 (cross-review record:
+[`reference/CROSS_REVIEW_LEGAL_RELEASE_2026-10-24.md`](CROSS_REVIEW_LEGAL_RELEASE_2026-10-24.md);
+review comment on PR #31). E's findings are folded in; this is still **not** legal clearance and **not**
+an acceptance (§9).
 **Related:** [`docs/ICON_MAPPING.md`](../docs/ICON_MAPPING.md) (icon/event/currency contract),
 [`configs/ui_icon_map.json`](../configs/ui_icon_map.json) (definitions-only proposal, no binaries),
 [`reference/LEGAL_RIGHTS_AND_CREDITS.md`](LEGAL_RIGHTS_AND_CREDITS.md) (ZOMBIEEE rights dossier).
@@ -31,16 +33,18 @@ Evidence classes used:
 
 ## 1. Licence policy for this project
 
-1. **Preferred, in order:** CC0 / public domain → CC BY 3.0/4.0 (with a shipped attribution
-   register) → SIL OFL 1.1 (fonts), Apache-2.0, MIT/ISC (code/tools).
+1. **Preferred, in order:** CC0 1.0 (a public-domain-equivalent waiver **with a fallback licence**)
+   → CC BY 3.0/4.0 (with a shipped attribution register) → SIL OFL 1.1 (fonts), Apache-2.0, MIT/ISC
+   (code/tools). Do not describe CC0 as universal "public domain" status.
 2. **Conditional:** licences that allow use *inside a product* but forbid redistributing the assets
    as assets. A Warband module is distributed as loose `Resource/`, `Textures/`, `Sounds/`, `Data/`
    and compiled-text files, so the mod package *is* an asset collection. Treat these as **not
    frictionless**; only use them if the owner decides the whole module is the "product" and legal
    review agrees. They are marked **AVOID (bundle)** below, not "illegal".
-3. **Excluded from a distributable bundle:** CC BY-NC, CC BY-SA (share-alike would extend to the
-   adapted asset and complicate the whole bundle), GPL/AGPL assets (copyleft and, for AGPL, the
-   network clause), "free for personal use", "for non-commercial mods only", and every ripped or
+3. **Excluded from a distributable bundle:** CC BY-NC, CC BY-ND, CC BY-SA (share-alike would extend
+   to the adapted asset and complicate the whole bundle), GPL/AGPL assets (copyleft and, for AGPL, the
+   network clause), legacy CC Sampling+ (still present on old Freesound sounds), unknown/custom
+   licences, "free for personal use", "for non-commercial mods only", and every ripped or
    unattributed game asset.
 4. **No binary commits.** This repository stays asset-free. If a later PR adds a cleared asset it
    must add, in the same commit: source URL, author, licence + version, observation date, SHA-256 of
@@ -144,10 +148,11 @@ Everything in this section is what makes an external asset "frictionless" or not
   under a Reserved Font Name. Glyph coverage (Latin + punctuation + `$`) must be tested, and the
   native font files themselves are TaleWorlds assets.
 
-### 2.7 Native-asset boundary (do not distribute)
+### 2.7 Native-asset boundary (no redistribution right recorded)
 
-From the engine and the owner's private module, the following are **not ours to publish**:
-native UI meshes/textures and native item meshes; native fonts (`font_data.xml`, `font.dds`);
+For the engine and the owner's private module, **no redistribution right is recorded for this
+project**; treat the following as **non-redistributable and do not bundle them** (legal dossier
+R-03/R-05): native UI meshes/textures and native item meshes; native fonts (`font_data.xml`, `font.dds`);
 hard-coded native sound files; all original ZOMBIEEE Beta 0.4 content and its OSP/third-party
 credits; Warband game files; WSE2 binaries. The rights position is recorded in
 [`reference/LEGAL_RIGHTS_AND_CREDITS.md`](LEGAL_RIGHTS_AND_CREDITS.md). This catalogue only clears
@@ -175,7 +180,7 @@ are **2026-10-24**.
 | ID | Source | Licence | Modify | Redistribute | Attribution | Constraints / notes | Decision |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | IC-01 | [game-icons.net](https://game-icons.net/) — SVG/PNG, 4,000+ monochrome icons | **CC BY 3.0** (site "About": "provided under the terms of the Creative Commons 3.0 BY license") | Yes | Yes (as part of a work) | **Required:** "Icons made by {author}. Available on https://game-icons.net"; link licence; note changes | SVG is editable (recolour/threshold); attribution is per-icon author; must ship an attribution register. Icons verified on tag pages: `crossed-swords` (Lorc), `sword-brandish` (Delapouite), `gladius` (Skoll), `bow-arrow` (Delapouite), `bowman` (Lorc), `crossbow` (Carl Olsen), `rifle` (sbed), `ak47` (Skoll), `uzi` (Delapouite), `revolver` (Skoll), `winchester-rifle` (Skoll), `shambling-zombie`/`dead-head` (Delapouite), `raise-zombie` (Skoll), `grenade` (sbed), `crossed-pistols` (Lorc), `gunshot` (Lorc), `archery-target` (Lorc), `crosshair` (Delapouite), `banknote` (Delapouite), `cash` (Lorc), `pirate-skull` (Lorc), `ringing-bell` (Lorc), `profit` (Lorc), `dark-squad` (Lorc) | **ADOPT** — primary icon source |
-| IC-02 | [Kenney — Game Icons](https://kenney.nl/assets/game-icons) (105 icons, 2D) | **CC0** (Kenney support: "all game assets on the asset pages are public domain licensed (CC0)"; asset page: License CC0) | Yes | Yes | Not required (credit "Kenney" appreciated) | General GUI/prompt glyphs, not weapon silhouettes; actual pack contents not inspected on disk in this pass (licence clear regardless) | **ADAPT** — generic UI glyphs only |
+| IC-02 | [Kenney — Game Icons](https://kenney.nl/assets/game-icons) (105 icons, 2D) | **CC0** (Kenney support: "all game assets on the asset pages are public domain licensed (CC0)"; asset page: License CC0) | Yes | Yes | Not required (credit "Kenney" appreciated; **do not use the Kenney logo**) | General GUI/prompt glyphs, not weapon silhouettes; check each pack's included license file (some bundles include contributions); contents not inspected on disk in this pass | **ADAPT** — generic UI glyphs only |
 | IC-03 | [Font Awesome Free](https://fontawesome.com/license/free) — icon SVGs | **Icons: CC BY 4.0**; fonts SIL OFL 1.1; code MIT (repo `LICENSE.txt`) | Yes | Yes | **Required** for icons (CC BY): attribution + licence link; file headers already carry a notice — keep it | Verified individual SVGs: `dollar-sign` and `gun` (Font Awesome Free 6.7.2). Do **not** use brand icons (trademarks). | **ADAPT** — `dollar-sign` money glyph and firearm fallback |
 | IC-04 | [Material Symbols / Material Design Icons](https://github.com/google/material-design-icons) | **Apache License 2.0** (repo `LICENSE`) | Yes | Yes | NOTICE/copyright retention; state changes | `attach_money` style glyphs exist; Apache is fine but heavier attribution bookkeeping than CC0/CC BY for one symbol | **AVOID (for this layer)** — no need to add a third icon licence when IC-01/IC-03 cover it |
 
@@ -213,13 +218,13 @@ public package.
 | ID | Source | Licence | Modify | Redistribute | Attribution | Constraints | Decision |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | M-01 | [OpenGameArt — "Low Poly Guns Pack" by quaternius](https://opengameart.org/content/low-poly-guns-pack) (2021-06-18) | **CC0** as published on the OGA page | Yes | Yes | Not required | 40 gun models, FBX/OBJ/Blend; author's own site now uses the restrictive QAL (M-06) — take the **CC0 OGA copy only**, record page + date; low-poly style; needs rescale/rig-to-hand | **ADOPT** — firearm placeholder/first 3D integration |
-| M-02 | [KayKit — Adventurers](https://kaylousberg.itch.io/kaykit-adventurers) (free tier) | **CC0** (itch page: "Free for personal and commercial use, no attribution required. (CC0 Licensed)"; asset license field: CC0) | Yes | Yes | Not required | 5 rigged/animated fantasy characters + 25+ weapons/shields/accessories, 1024 atlas; **fantasy style does not match ZOMBIEEE's modern setting** — placeholders/dev only | **ADAPT** — dev placeholders |
+| M-02 | [KayKit — Adventurers](https://kaylousberg.itch.io/kaykit-adventurers) (free tier) | **CC0** (itch page: "Free for personal and commercial use, no attribution required. (CC0 Licensed)"; asset license field: CC0) | Yes | Yes | Not required | **Free-tier only** (EXTRA/SOURCE are paid tiers — record pack/version and check the included licence); 5 rigged/animated fantasy characters + 25+ weapons/accessories; **fantasy style does not match ZOMBIEEE's modern setting** — dev placeholders only. The "please don't resell unmodified copies" line is a request, not a CC0 restriction | **ADAPT** — dev placeholders |
 | M-03 | [KayKit — Skeletons](https://kaylousberg.itch.io/kaykit-skeletons) (legacy/new) | **CC0** (same publisher/licence model; verify per page on download) | Yes | Yes | Not required | Skeleton characters usable as zombie/skeleton stand-ins for tests; fantasy style | **ADAPT** — test stand-ins only |
-| M-04 | [Blender Studio — Human Base Meshes v1.4.1](https://www.blender.org/download/demo-files/) | **CC0** (download page: "49 MB – CC0") | Yes | Yes | Not required | 17 clean base meshes (bodies/parts), .blend; no clothing/hair; needs rigging to Warband skeleton and UV/material work; Blender 4.2+ file | **ADOPT** — body base for authored survivors |
-| M-05 | [MakeHuman](http://www.makehumancommunity.org/content/license.html) + community assets | **Source/data AGPL3**, with an **optional CC0 export**: exports are CC0 **only** if (a) produced by an *official, unmodified* MakeHuman export, or (b) the asset is a 2D PNG/BMP/JPG | Yes | Yes **only** for CC0-qualified exports | Not required for CC0 exports | Strict process gate: document the MakeHuman build/version and that it was unmodified; modified MakeHuman or non-export data is AGPL. Use for body/clothing/hair bases | **ADAPT** — only with the export-process rule |
-| M-06 | [Quaternius site assets](https://quaternius.com/license.html) | **Quaternius Asset License (QAL) v1.0**, last updated 2026-08-28: may use/modify in products, but **may not resell or redistribute the assets themselves as assets**, including modified form | Yes (in a product) | **No** (as loose asset files) | Not required | Verified text; applies per asset version at time of download. Not suitable for an unpacked Warband module unless the package is a finished product and legal agrees | **AVOID (bundle)** |
+| M-04 | [Blender Studio — Human Base Meshes v1.4.1](https://www.blender.org/download/demo-files/) | **CC0** (download page: "49 MB – CC0") | Yes | Yes | Not required | **CC0 applies to this bundle only** — Blender demo assets are not site-wide CC0 (splash/Ellie bundles are CC-BY or CC-BY-SA); 17 base meshes (bodies/parts), .blend; no clothing/hair; needs rigging/UV/material work | **ADOPT** — body base for authored survivors |
+| M-05 | [MakeHuman](http://www.makehumancommunity.org/content/license.html) + community assets (live site 404; [Wayback 2026-08-27 capture](https://web.archive.org/web/20260827233101/http://www.makehumancommunity.org/content/license.html)) | **Source/data AGPL3**, with an **optional CC0 export**; the licence grants CC0 **only if** (a) the assets were bundled in an export made using the file-export function of an **OFFICIAL and UNMODIFIED** MakeHuman **and/or** (b) the asset consists solely of a **2D binary image in PNG, BMP or JPG** | Yes | Yes **only** for CC0-qualified exports | Not required for CC0 exports | Quote both conditions verbatim and document the MakeHuman build/version + unmodified status per export; modified MakeHuman code stays AGPL (and AGPL §13 network-source obligation applies if ever run as a service — not planned). Use for body/clothing/hair bases | **ADAPT** — only with the export-process rule |
+| M-06 | [Quaternius site assets](https://quaternius.com/license.html) | **Quaternius Asset License (QAL) v1.0**, last updated 2026-08-28: may use/modify in products, but **may not resell or redistribute the assets themselves as assets**, original **or modified**, alone or bundled with other assets | Yes (in a product) | **No** (as loose asset files) | Not required | Verified text; applies per asset version at time of download. A module folder containing raw model/texture files is arguably redistribution of the assets as assets even inside a product → exclude from public builds; only a compiled/finished product after legal review | **AVOID (bundle)** |
 | M-07 | [Kenney characters](https://kenney.nl/assets) (character/kit packs; per-asset licence page is CC0) | **CC0** | Yes | Yes | Not required | Blocky style; placeholder proportions/rig differ from Warband skeleton | **ADAPT** — placeholders |
-| M-08 | [Sketchfab](https://sketchfab.com/) free downloadable models | Per-model licence; store licences forbid standalone-file distribution; CC0/CC-BY models exist | Per model | Only CC0/CC-BY per model page | Per model | Must open each model page, record licence/author/date, reject store/editorial licences and any "no redistribution" terms; export formats vary | **ADAPT** — secondary, per-asset verification |
+| M-08 | [Sketchfab](https://sketchfab.com/) free downloadable models | Per-model licence; **standard** and **editorial** store licences both forbid standalone-file distribution/access; CC0/CC-BY models exist | Per model | Only CC0/CC-BY per model page | Per model | Record licence/author/date per model; reject store/editorial and any "no redistribution" terms; store licences also prohibit promoting **weapons/explosives** (relevant to a zombie/gun mod) and sub-licensing; export formats vary | **ADAPT** — secondary, per-asset verification |
 | M-09 | Hairstyles: **authored hair meshes** (Blender sculpt/cards) | Our own work (owner) | Yes | Yes | Project credit | No third-party licence; matches Warband head/skeleton; time cost. This is the most reliable route given the gap | **ADOPT** — preferred hair path |
 | M-10 | Hairstyles via **MakeHuman hair assets** (CC0-qualified exports) | CC0 (same condition as M-05) | Yes | Yes | Not required | Process gate as M-05; hair proxies export as meshes; retopo/rig to Warband head | **ADAPT** — alternative hair path |
 | M-11 | Blender Studio "Hair Styles" geometry-nodes demo | **CC-BY-SA** (demo-files page) | Yes | Yes, but share-alike | Required | Share-alike would extend to adapted hair assets; avoid for the mod bundle | **AVOID (bundle)** |
@@ -236,8 +241,8 @@ placeholders. Modern tactical clothing remains an **open sourcing gap** (§9).
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | S-01 | [Kenney — UI Audio](https://kenney.nl/assets/ui-audio) and [Impact Sounds](https://kenney.nl/assets/impact-sounds) | **CC0** (asset pages read: License "Creative Commons CC0"; site-wide CC0 statement) | Yes | Yes | Not required | UI clicks/beeps and impact hits; .ogg/.wav; trim/normalise; add `module_sounds.py` ids | **ADOPT** — UI + impact |
 | S-02 | [OpenGameArt — "The Free Firearm Sound Library"](https://opengameart.org/content/the-free-firearm-sound-library) (Ben Jaszczak, Brian Nelson, Kevin Heras, Matthew Nanney; Kickstarted 2013) | **CC0** ("CC0 NO RIGHTS RESERVED for this library… without royalty or credit") | Yes | Yes | Not required (authors requested courtesy only) | ~194 MB 7z prepared library; large — select a small subset; check sample rate/format and convert; metadata inside files is informative | **ADOPT** — firearm sounds |
-| S-03 | [Freesound](https://freesound.org/) | Per-sound **CC0 / CC BY / CC BY-NC** (FAQ: three licences; Sampling+ legacy) | Yes (per licence) | Yes for CC0/CC BY; **no** for NC | **Required** for CC BY: title, author, sound URL, licence | Filter to CC0/CC BY only; account required to download; keep an attribution list; avoid NC and Sampling+; zombie/ambience/foley | **ADOPT** — filtered CC0/CC BY only |
-| S-04 | [Sonniss #GameAudioGDC bundle](https://sonniss.com/gdc-bundle-license/) | **Custom EULA v2.0 (2026-08-27)**: synchronised use in finished projects only; **may not distribute/publish/sub-license the sound effects as sound effects**, modified or not | Yes (in a project) | **No** (as sound files) | Not required | Explicitly disallows supplying the effects as files/asset packs; an unpacked mod's `Sounds/` folder is exactly that. Not frictionless | **AVOID (bundle)** |
+| S-03 | [Freesound](https://freesound.org/) | Per-sound **CC0 / CC BY / CC BY-NC**; legacy **CC Sampling+ still exists on old sounds**; per-uploader **July-2026 GenAI preferences** may add conditions | Yes (per licence) | Yes for CC0/CC BY; **no** for NC/Sampling+ | **Required** for CC BY: title, author, sound URL, licence | Filter **per sound** to CC0/CC BY (do not assume Sampling+ is gone); account required to download; record GenAI preference if present (we do not train AI); keep an attribution list; zombie/ambience/foley | **ADOPT** — filtered CC0/CC BY only |
+| S-04 | [Sonniss #GameAudioGDC bundle](https://sonniss.com/gdc-bundle-license/) | **Custom EULA v2.0 (effective 2026-08-27)**: synchronised use in finished projects only; **may not distribute/publish/sub-license the effects as effects**, modified or not (explicitly not as files, libraries, asset packs, templates or SDKs); **no AI/ML training**; no attribution required | Yes (in a project) | **No** (as sound files) | Not required | Applies per download date/version; an unpacked mod's `Sounds/` folder is exactly the forbidden supply. Not frictionless | **AVOID (bundle)** |
 | S-05 | Nexus/ModDB/other mod sound packs (incl. "Mortal Women Sound Pack", cRPG sound packs) | Per-upload permissions; often "ask author"; may contain rips | Per author | Only with explicit written permission | Per author | Not verified in this pass; do not copy from mod archives; use only as design reference unless permission is recorded | **AVOID** |
 | S-06 | BBC Sound Effects / Pixabay / Mixkit / ZapSplat-type sites | Mixed/custom terms; several restrict redistribution as standalone assets | Varies | Varies | Varies | Not verified in this pass; treat as **verify-first/avoid** for a raw mod bundle until terms are read and recorded | **AVOID (for now)** |
 | S-07 | Native Warband sounds (hard-coded ids) | TaleWorlds game assets | No | **No** | — | Do not capture/redistribute; private build references the user's install | **AVOID (bundle)** |
@@ -270,9 +275,10 @@ a mod is not redistributable just because the mod is public.
 | Sonniss GDC bundle (S-04) | Forbids supplying the effects as files |
 | Sketchfab store/editorial licences (M-08) | Forbid standalone-file access; mods are unpacked |
 | CC BY-SA / GPL / AGPL / CC BY-NC assets | Share-alike/copyleft/non-commercial conflicts with a mixed mod bundle |
+| CC BY-ND / legacy CC Sampling+ / unknown custom licences | No-derivatives/share-alike/unknown terms conflict with a modified, mixed bundle |
 | "Free for personal use" texture/model/font sites; "free" CDN aggregators | Not a reuse grant for redistribution |
 | AI-generated asset packs with unclear training-data provenance | Provenance cannot be audited; owner/legal risk |
-| Native Warband UI/item/font/sound assets | TaleWorlds property; not redistributable |
+| Native Warband UI/item/font/sound assets | **No redistribution right recorded** for this project; treat as non-redistributable and do not bundle (legal dossier R-03/R-05) |
 | WSE2 binaries | Third-party runtime with no observed licence grant; users install separately |
 
 ---
@@ -295,8 +301,8 @@ commits yet.
 | 9 | **S-03 Freesound CC0/CC-BY subset** | Zombie/ambience/foley gaps | Filter CC0; if CC BY, fill the attribution template |
 
 **Deliberately not in the first integration:** any 3D modern clothing/armour (gap), third-party OSP
-assets (terms unknown), native assets (not redistributable), and anything requiring the owner's
-public/private distribution decision.
+assets (terms unknown), native assets (no redistribution right recorded; treat as non-redistributable),
+and anything requiring the owner's public/private distribution decision.
 
 ---
 
@@ -329,6 +335,14 @@ least:
 9. **Native assets:** state that no Warband/ZOMBIEEE/native assets are distributed and that users
    supply their own game + original archive (see legal dossier §6).
 
+**Register path (required before the first binary asset PR):** create `THIRD_PARTY_NOTICES.md` at the
+repository root (or `docs/CREDITS.md` if the Lead prefers), generated from
+`configs/ui_icon_map.json`, with one row per asset: asset/slot, author, source URL, licence + version,
+date/version obtained, and the changes made. Today the JSON records
+`"attribution": {"generated": false, "noticePath": "THIRD_PARTY_NOTICES.md"}` — the register does not
+exist yet. When the owner later chooses a licence for our own code/docs, carve out third-party
+components explicitly; a repo without a `LICENSE` does not revoke the CC BY status of the icons.
+
 Do **not** use brand logos (Kenney, Poly Haven, Font Awesome brand icons, etc.) in the mod.
 
 ---
@@ -337,14 +351,17 @@ Do **not** use brand logos (Kenney, Poly Haven, Font Awesome brand icons, etc.) 
 
 | Licence | Modify | Redistribute in mod bundle | Attribution | Share-alike / copyleft | Fit for this project |
 | --- | --- | --- | --- | --- | --- |
-| CC0 / public domain | Yes | Yes | No | No | **Best** |
+| CC0 1.0 (public-domain-equivalent waiver + fallback licence) | Yes | Yes | No | No | **Best** |
 | CC BY 3.0 / 4.0 | Yes | Yes | **Yes** (+ link, changes) | No | **Good** with register |
 | SIL OFL 1.1 (fonts) | Yes | Yes (with notice; RFN rule on modified font files) | **Yes** | Font software only | **Good** |
 | Apache 2.0 | Yes | Yes | Yes (NOTICE) | Patent grant, no copyleft | Good (heavier bookkeeping) |
 | MIT / ISC | Yes | Yes | Yes (notice) | No | Good |
 | CC BY-SA | Yes | Yes | Yes | **Yes** → avoid in bundle | Avoid |
 | GPL / AGPL | Yes | Yes | Yes | **Yes** (AGPL network clause) | Avoid for assets |
+| CC BY-ND | No (no derivatives) | Yes (unmodified) | Yes | No | Avoid (we modify/convert) |
 | CC BY-NC | Yes | Yes | Yes | No commercial use | Avoid |
+| Legacy CC Sampling+ | Yes | Yes | Yes | Restricts advertising | Avoid |
+| Unknown/custom (incl. "OSP credit only") | Unclear | **No** | Unclear | Unclear | Avoid until written permission |
 | QAL v1.0 (Quaternius) | Yes (in product) | **No** (raw assets) | No | No | Avoid for unpacked mod |
 | Sonniss EULA | Yes (synced) | **No** (sound files) | No | No | Avoid |
 | Sketchfab store/editorial | Limited | **No** (standalone) | Per licence | No | Avoid |
@@ -386,15 +403,20 @@ All URLs fetched 2026-10-24 unless noted.
 | Warband font pipeline | Mount&Blade Chinese forum thread 2076056 (HTTP 200) | `font_data.xml` + `font.dds`; BMFont + Swyter XML converter workflow (community) |
 | cRPG mirror licence | GitHub API `repos/epuronta/cRPG-Toolkit` (HTTP 200) | `license: null`, archived repo (last push 2012-03-18) → design reference only |
 | cRPG/OSP forum threads (direct fetch) | `forums.taleworlds.com` (HTTP 403 Cloudflare) | **external-blocked**; not relied on; cite search-index URLs only |
+| Independent review (E) | Cross-review record `reference/CROSS_REVIEW_LEGAL_RELEASE_2026-10-24.md` §A + PR #31 review comment (2026-10-24) | **No blockers**; A1/A5–A13 corrections folded into this revision; no legal clearance |
 | Native assets not in repo | `git ls-tree`/`git grep` on branch (`reference/`, `docs/`, `configs/`) | No `.brf/.dds/.wav/.ogg/.ttf/.png` assets added by this task |
 
 ---
 
 ## 9. Open questions and next actions
 
-1. **Independent review (Agent E):** verify the licence claims in §3, the CC BY/OFL notice strings,
-   and the "no raw redistribution" readings for QAL/Sonniss/Sketchfab. Record findings in this file
-   or the PR before merge (review loop: G writes, E reviews).
+1. **Independent review (Agent E) — completed 2026-10-24:** E's cross-review
+   ([`reference/CROSS_REVIEW_LEGAL_RELEASE_2026-10-24.md`](CROSS_REVIEW_LEGAL_RELEASE_2026-10-24.md) §A and
+   the PR #31 review comment) found **no blockers**; corrections A1/A5–A13 are folded into this revision
+   (per-icon attribution, free-tier/bundle scopes, MakeHuman's exact two conditions, QAL "even modified",
+   Sonniss constraints/version, Sketchfab editorial/weapons rules, Freesound Sampling+/GenAI,
+   Font Awesome's three parts, conservative native-asset wording). E's review is **not** legal clearance,
+   **not** acceptance and **not** adoption of any ledger leaf.
 2. **Owner/legal decision on the publication model** (`reference/LEGAL_RIGHTS_AND_CREDITS.md` §5):
    private-only vs public asset-free vs public bundle decides whether any third-party asset can ever
    be redistributed. Until then, **do not bundle**.
@@ -405,6 +427,8 @@ All URLs fetched 2026-10-24 unless noted.
    per-asset unknown; contact authors only if the owner wants to reuse them in a public artifact.
 5. **Icon production is not implemented:** the mapping is a contract only (see `docs/ICON_MAPPING.md`);
    no atlas/BRF/presentation exists yet, and nothing has been tested in Warband.
-6. **Asset register:** before the first binary asset PR, create the register described in §1.4 and
-   update `CHANGELOG.md` with the licence evidence.
+6. **Asset register:** before the first binary asset PR, create `THIRD_PARTY_NOTICES.md` from
+   `configs/ui_icon_map.json` (see §6) and let release metadata (F/Lead) carry the single CHANGELOG
+   entry; a duplicate `[Unreleased]` section was removed from this branch to avoid a version-scheme
+   conflict with PR #29 (`0.3.0-rc.1`).
 7. **No acceptance claim:** this catalogue does not accept `ZOM-LEGAL-01`, M4, or any City outcome.
