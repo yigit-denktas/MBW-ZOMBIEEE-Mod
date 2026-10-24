@@ -1,0 +1,10 @@
+{
+  "id": "2026-10-24-wave2-leak",
+  "date": "2026-10-24",
+  "reason": "D found 896 Fast Zombie leaked into wave 2; track as P0 gating fix.",
+  "denominatorEffect": "none",
+  "added": [
+    "ZOM-DISC-53"
+  ],
+  "milestoneEffect": "M3 support only"
+}

@@ -1,0 +1,3841 @@
+{
+  "contractVersion": "0.2.0",
+  "groups": [
+    {
+      "id": "Tracking",
+      "title": "Records & governance",
+      "panel": "Records & governance"
+    },
+    {
+      "id": "Runtime",
+      "title": "Engine compatibility",
+      "panel": "Engine compatibility"
+    },
+    {
+      "id": "Diagnostics",
+      "title": "Telemetry & performance",
+      "panel": "Telemetry & performance"
+    },
+    {
+      "id": "Setup",
+      "title": "Windows installation",
+      "panel": "Windows installation"
+    },
+    {
+      "id": "Solo",
+      "title": "One-click local play",
+      "panel": "One-click local play"
+    },
+    {
+      "id": "Gameplay",
+      "title": "AI, maps and waves",
+      "panel": "AI, maps and waves"
+    },
+    {
+      "id": "Quality",
+      "title": "Testing, legal and release",
+      "panel": "Testing, legal and release"
+    },
+    {
+      "id": "Performance",
+      "title": "Measured performance profiling",
+      "panel": "Instrumented optimisation"
+    }
+  ],
+  "milestones": [
+    {
+      "id": "M0",
+      "title": "Scoped record ready for owner review",
+      "goal": "Owner reviews baseline; official toolkit check, counts and accessibility evidence exist",
+      "horizon": "Now",
+      "groupIds": [
+        "Tracking"
+      ],
+      "gateItemIds": [
+        "ZOM-REC-01",
+        "ZOM-REC-02",
+        "ZOM-REC-03"
+      ],
+      "acceptanceRule": "all-gate-items",
+      "sourceAccepted": null,
+      "unscopedWork": [],
+      "nextAction": "ZOM-REC-01",
+      "sourceState": "proposed",
+      "acceptance": "Pending owner baseline and real engine evidence"
+    },
+    {
+      "id": "M1",
+      "title": "Observed WSE2 baseline",
+      "goal": "Original 0.4 launches and completes a City wave with diagnostic and crash evidence",
+      "horizon": "Now",
+      "groupIds": [
+        "Runtime",
+        "Diagnostics"
+      ],
+      "gateItemIds": [
+        "ZOM-ENG-01",
+        "ZOM-ENG-02",
+        "ZOM-ENG-03",
+        "ZOM-OBS-01",
+        "ZOM-OBS-02"
+      ],
+      "acceptanceRule": "all-gate-items",
+      "sourceAccepted": null,
+      "unscopedWork": [],
+      "nextAction": "ZOM-ENG-01",
+      "sourceState": "proposed",
+      "acceptance": "Pending owner baseline and real engine evidence"
+    },
+    {
+      "id": "M2",
+      "title": "One-click Windows solo start",
+      "goal": "Windows detects owned game and launches private solo invasion from desktop without manual paths",
+      "horizon": "Next",
+      "groupIds": [
+        "Setup",
+        "Solo"
+      ],
+      "gateItemIds": [
+        "ZOM-WIN-01",
+        "ZOM-WIN-02",
+        "ZOM-WIN-03",
+        "ZOM-SOLO-01",
+        "ZOM-SOLO-02"
+      ],
+      "acceptanceRule": "all-gate-items",
+      "sourceAccepted": null,
+      "unscopedWork": [],
+      "nextAction": "ZOM-WIN-01",
+      "sourceState": "proposed",
+      "acceptance": "Pending owner baseline and real engine evidence"
+    },
+    {
+      "id": "M3",
+      "title": "City survivor AI and combat reliable",
+      "goal": "Prove allied AI, weapons, zombie waves, defensive positions and measured performance in original City. Other four maps are explicitly deferred.",
+      "horizon": "Next",
+      "groupIds": [
+        "Gameplay",
+        "Performance"
+      ],
+      "gateItemIds": [
+        "ZOM-AI-01",
+        "ZOM-AI-02",
+        "ZOM-AI-03",
+        "ZOM-WAVE-01",
+        "ZOM-PERF-01"
+      ],
+      "acceptanceRule": "all-gate-items",
+      "sourceAccepted": null,
+      "unscopedWork": [],
+      "nextAction": "ZOM-AI-01",
+      "sourceState": "proposed",
+      "acceptance": "Pending owner baseline and real engine evidence"
+    },
+    {
+      "id": "M4",
+      "title": "City-first solo release accepted",
+      "goal": "Ten-wave final private run, host permissions, licensing and install/recovery accepted by owner",
+      "horizon": "Later",
+      "groupIds": [
+        "Quality"
+      ],
+      "gateItemIds": [
+        "ZOM-QA-01",
+        "ZOM-QA-02",
+        "ZOM-ADMIN-01",
+        "ZOM-LEGAL-01",
+        "ZOM-REL-01"
+      ],
+      "acceptanceRule": "all-gate-items",
+      "sourceAccepted": null,
+      "unscopedWork": [],
+      "nextAction": "ZOM-QA-01",
+      "sourceState": "proposed",
+      "acceptance": "Pending owner baseline and real engine evidence"
+    }
+  ],
+  "items": [
+    {
+      "id": "ZOM-REC-01",
+      "title": "Reconcile pinned kit and repeat installer replay",
+      "groupId": "Tracking",
+      "milestoneId": "M0",
+      "state": "review",
+      "sourceState": "review-branch setup pending kit replay",
+      "required": true,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Agent A — implementation; user retains release acceptance",
+      "priority": "P2",
+      "issueUrl": null,
+      "criterion": "Verify source ZIP hash, execute official preview/apply and identical second run; preserve original AGENTS",
+      "note": null,
+      "deferReason": null,
+      "implementationLane": "A"
+    },
+    {
+      "id": "ZOM-REC-02",
+      "title": "Approve the scoped product baseline",
+      "groupId": "Tracking",
+      "milestoneId": "M0",
+      "state": "backlog",
+      "sourceState": "new scoped proposal; not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-REC-01"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Agent A — implementation; user retains release acceptance",
+      "priority": "P2",
+      "issueUrl": null,
+      "criterion": "Owner confirms solo-first outcome, required/deferred leaves, release gates and delegation policy",
+      "note": null,
+      "deferReason": null,
+      "implementationLane": "A"
+    },
+    {
+      "id": "ZOM-REC-03",
+      "title": "Validate and review branded progress views",
+      "groupId": "Tracking",
+      "milestoneId": "M0",
+      "state": "backlog",
+      "sourceState": "new scoped proposal; not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-REC-02"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Agent A — implementation; user retains release acceptance",
+      "priority": "P2",
+      "issueUrl": null,
+      "criterion": "Toolkit check/pipeline and README-vs-tracker counts pass; keyboard/reflow and contrast reviewed",
+      "note": null,
+      "deferReason": null,
+      "implementationLane": "A"
+    },
+    {
+      "id": "ZOM-ENG-01",
+      "title": "Verify complete original ZOMBIEEE 0.4 archive",
+      "groupId": "Runtime",
+      "milestoneId": "M1",
+      "state": "done",
+      "sourceState": "B full Windows archive CRC verified; supporting source replay complete; release-outcome state retained pending owner acceptance",
+      "required": true,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/1"
+        },
+        {
+          "kind": "draft-pull-request",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/10",
+          "revision": "agent/a-city-engine",
+          "observedOn": "2026-10-23",
+          "acceptance": "pending"
+        },
+        {
+          "kind": "static-contract-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/agent/a-city-engine/tools/city_acceptance.py",
+          "observedOn": "2026-10-23",
+          "acceptance": "static-only-unaccepted"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/build_v3_receipt.json",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        }
+      ],
+      "completionBasis": "7-Zip integrity and pinned SHA-256 identity verified; clean build staged from the owned archive.",
+      "kind": "work-item",
+      "owner": "Agent A — implementation; user retains release acceptance",
+      "priority": "P0",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/1",
+      "criterion": "Windows 7-Zip CRC passes all entries and provenance SHA matches without modifying input",
+      "note": "Original source RAR hash pinned; B independently reports Windows 7z t all 1,068 members OK, exact archive SHA match. City chain source tests also run. Engine/gameplay remains separate and unverified; original owner criterion acceptance still pending. | Required criterion evidenced: 7-Zip integrity and pinned SHA-256 identity verified; clean build staged from the owned archive.",
+      "deferReason": null,
+      "implementationLane": "A",
+      "review": {
+        "status": "offline-replay-passed-only",
+        "reviewer": "Agent A",
+        "date": "2026-10-23",
+        "blockers": [
+          "exact branch complete offline suite",
+          "Windows 7-Zip member CRC",
+          "actual WSE2 City runtime"
+        ],
+        "comment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/10#issuecomment-6374658614"
+      }
+    },
+    {
+      "id": "ZOM-ENG-02",
+      "title": "Boot the original module with supported WSE2",
+      "groupId": "Runtime",
+      "milestoneId": "M1",
+      "state": "done",
+      "sourceState": "Agent A City source audit integrated in draft PR #10; 20 local replay tests passed; exact GitHub branch full suite and WSE2 runtime pending",
+      "required": true,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-ENG-01"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/1"
+        },
+        {
+          "kind": "draft-pull-request",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/10",
+          "revision": "agent/a-city-engine",
+          "observedOn": "2026-10-23",
+          "acceptance": "pending"
+        },
+        {
+          "kind": "static-contract-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/agent/a-city-engine/tools/city_acceptance.py",
+          "observedOn": "2026-10-23",
+          "acceptance": "static-only-unaccepted"
+        },
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/13",
+          "observedOn": "2026-10-24",
+          "acceptance": "open-observation"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-evidence-final-defenders",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        }
+      ],
+      "completionBasis": "WSE2 1.1.5.4 loaded the City module and multiplayer_iv mission in sealed sessions; no fatal parser/resource failure.",
+      "kind": "work-item",
+      "owner": "Agent A — implementation; user retains release acceptance",
+      "priority": "P0",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/1",
+      "criterion": "Pinned or updated WSE2 loads the unmodified invasion module with no fatal parser/resource failure",
+      "note": "B reported real WSE2 1.1.5.4 dedicated host loaded City module built at A 141a792, `Starting map tbfc_invasion_4 in mode multiplayer_iv`, UDP listener loopback 127.0.0.1:7240. Four Invalid Faction ID:-1 engine script errors occurred; joined player, waves and engine gameplay still unverified. First merged-main candidate host run is observed with role=server and game_type=7; sealed evidence and wave completion remain open (#13). | Required criterion evidenced: WSE2 1.1.5.4 loaded the City module and multiplayer_iv mission in sealed sessions; no fatal parser/resource failure.",
+      "deferReason": null,
+      "implementationLane": "A",
+      "review": {
+        "status": "offline-replay-passed-only",
+        "reviewer": "Agent A",
+        "date": "2026-10-23",
+        "blockers": [
+          "exact branch complete offline suite",
+          "Windows 7-Zip member CRC",
+          "actual WSE2 City runtime"
+        ],
+        "comment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/10#issuecomment-6374658614"
+      }
+    },
+    {
+      "id": "ZOM-ENG-03",
+      "title": "Complete baseline City zombie wave",
+      "groupId": "Runtime",
+      "milestoneId": "M1",
+      "state": "backlog",
+      "sourceState": "new scoped proposal; not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-ENG-02"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/1"
+        },
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/13",
+          "observedOn": "2026-10-24",
+          "acceptance": "open-observation"
+        },
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/14",
+          "observedOn": "2026-10-24",
+          "acceptance": "open-observation"
+        }
+      ],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Agent A — implementation; user retains release acceptance",
+      "priority": "P0",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/1",
+      "criterion": "Private City mission starts and finishes at least one wave with usable guns, sounds, ammo and class selection",
+      "note": "Dedicated host selected City mission/map and remains listening in the owner-authorized session. No player joined or original zombie-wave completion has been independently observed yet. Four faction ID script errors require original-source triage. First enemy wave observed on the merged-main candidate: wave=1, wave_change, team1=41; wave completion, native zombie roster and round behaviour remain open (#13/#14).",
+      "deferReason": null,
+      "implementationLane": "A"
+    },
+    {
+      "id": "ZOM-OBS-01",
+      "title": "Validate game-event telemetry inside WSE2",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "done",
+      "sourceState": "First implementation slice in draft PR #12; code review pending; runtime acceptance not observed",
+      "required": true,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-ENG-02"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6"
+        },
+        {
+          "kind": "draft-pull-request",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12",
+          "revision": "e069c59d10352f363161e15eda3fad86e2c4bcc2",
+          "observedOn": "2026-10-23",
+          "acceptance": "pending-code-review-and-test"
+        },
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/13",
+          "observedOn": "2026-10-24",
+          "acceptance": "open-observation"
+        },
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/16",
+          "observedOn": "2026-10-24",
+          "acceptance": "open-observation"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/a29fabfdbd61384c4dfc73cd33de5c51d68b43b9",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/0393794",
+          "observedOn": "2026-10-24",
+          "acceptance": "merged-implementation"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-evidence-wave2c-attempt",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/play-city/flights/891af9e0cf714f7cb87e64c5c99e5242",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        }
+      ],
+      "completionBasis": "Bounded ZDB1 event stream sealed in an 8-file manifest with explicit unknown fields.",
+      "kind": "work-item",
+      "owner": "Agent C — implementation; user retains release acceptance",
+      "priority": "P0",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
+      "criterion": "Bounded, versioned wave, spawn, team and combat events recorded in one actual session with explicit unknown fields",
+      "note": "C forensic source now includes guarded server round identity, strict server+invasion scope, receipt check-count repair and new R030/CITY-I08 for observed faction error. Local partial 10/10 C tests passed at 16a0bad; exact-current focused/full suites pending. Corrected C probe validates role=server, game_type=7, ready_for_spawn and wave fields live; sealed receipt and host ZDB1 retention remain open (#16). Telemetry v2 (bounded histogram + observed lifecycle events) is merged at main 42d4ec3 as bug-fix support; live field capture remains pending. | Required criterion evidenced: Bounded ZDB1 event stream sealed in an 8-file manifest with explicit unknown fields.",
+      "deferReason": null,
+      "implementationLane": "C",
+      "review": {
+        "status": "changes-requested-in-conversation",
+        "reviewer": "Agent A",
+        "date": "2026-10-23",
+        "comment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12#issuecomment-6373897277",
+        "blockers": [
+          "offline test execution missing",
+          "WSE2 getter runtime unknown"
+        ]
+      }
+    },
+    {
+      "id": "ZOM-OBS-02",
+      "title": "Collect crash-resistant external host evidence",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "active",
+      "sourceState": "First implementation slice in draft PR #12; code review pending; runtime acceptance not observed",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-ENG-02"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6"
+        },
+        {
+          "kind": "draft-pull-request",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12",
+          "revision": "e069c59d10352f363161e15eda3fad86e2c4bcc2",
+          "observedOn": "2026-10-23",
+          "acceptance": "pending-code-review-and-test"
+        },
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/15",
+          "observedOn": "2026-10-24",
+          "acceptance": "open-observation"
+        },
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/16",
+          "observedOn": "2026-10-24",
+          "acceptance": "open-observation"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/42d4ec3",
+          "observedOn": "2026-10-24",
+          "acceptance": "merged-implementation"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/a29fabfdbd61384c4dfc73cd33de5c51d68b43b9",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/0393794",
+          "observedOn": "2026-10-24",
+          "acceptance": "merged-implementation"
+        }
+      ],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Agent C — implementation; user retains release acceptance",
+      "priority": "P0",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
+      "criterion": "Separate recorder retains startup/crash context when game or Lua exits, plus CPU/memory/process status where measurable",
+      "note": "C e455354 recorder started before host, readiness verified and owned host/client PIDs attached per B live report; signed stop, sealed manifest, manual privacy review and City gameplay sampling remain pending. Host ZDB1 stdout is not yet sealed inside the flight evidence bundle (#16); recorder atomic-replace read race is tracked as #15 / ZOM-DISC-22. Host-stdout tee/add_artifact (B d1011e2) and fail-closed receipt summary (C a29fabf) are merged at main 42d4ec3; an actual sealed ZDB1-bearing attempt remains open (#16).",
+      "deferReason": null,
+      "implementationLane": "C",
+      "review": {
+        "status": "changes-requested-in-conversation",
+        "reviewer": "Agent A",
+        "date": "2026-10-23",
+        "comment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/agent/a-city-engine/handoffs/RECORDER_LIFECYCLE_V1.md",
+        "blockers": [
+          "B/C exact passive recorder interoperability and negative tests not yet confirmed",
+          "actual WSE2 runtime remains unverified"
+        ]
+      }
+    },
+    {
+      "id": "ZOM-WIN-01",
+      "title": "Discover installed licensed Warband and WSE2",
+      "groupId": "Setup",
+      "milestoneId": "M2",
+      "state": "done",
+      "sourceState": "First implementation slice in draft PR #11; code review pending; runtime acceptance not observed",
+      "required": true,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-ENG-01"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "draft-pull-request",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11",
+          "revision": "d096c21f43d6ed0988e2d4a0ebd669eaad48f24c",
+          "observedOn": "2026-10-23",
+          "acceptance": "pending-code-review-and-test"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/play-city",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        }
+      ],
+      "completionBasis": "Discovery validated against the actual installed Warband/WSE2 tree; doctor/plan report candidates without false confidence.",
+      "kind": "work-item",
+      "owner": "Agent B — implementation; user retains release acceptance",
+      "priority": "P1",
+      "issueUrl": null,
+      "criterion": "Windows 11 detector finds supported Steam/custom locations, validates engine and reports ambiguity without false confidence",
+      "note": "B reports original Warband and pinned official WSE2 1.1.5.4 binary identity, plus restoration of missing official dedicated host files; application discovery and launcher acceptance remain separate. | Required criterion evidenced: Discovery validated against the actual installed Warband/WSE2 tree; doctor/plan report candidates without false confidence.",
+      "deferReason": null,
+      "implementationLane": "B",
+      "review": {
+        "status": "changes-requested-in-conversation",
+        "reviewer": "Agent A",
+        "date": "2026-10-23",
+        "comment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11#issuecomment-6373896560",
+        "blockers": [
+          "real-installation-owned-game-observation-pending"
+        ]
+      }
+    },
+    {
+      "id": "ZOM-WIN-02",
+      "title": "Deliver safe install, repair and rollback",
+      "groupId": "Setup",
+      "milestoneId": "M2",
+      "state": "active",
+      "sourceState": "First implementation slice in draft PR #11; code review pending; runtime acceptance not observed",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-WIN-01"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "draft-pull-request",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11",
+          "revision": "d096c21f43d6ed0988e2d4a0ebd669eaad48f24c",
+          "observedOn": "2026-10-23",
+          "acceptance": "pending-code-review-and-test"
+        },
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/14",
+          "observedOn": "2026-10-24",
+          "acceptance": "open-observation"
+        }
+      ],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Agent B — implementation; user retains release acceptance",
+      "priority": "P1",
+      "issueUrl": null,
+      "criterion": "Installer validates original files and pinned dependencies; supports dry run, repair, rollback and uninstall without deleting owned game data",
+      "note": "B installed staged City module as a new Modules/ZOMBIEEE_Remaster (1,071 files), without overwrite, and reports static receipt checks passed. This manual add-only operation does NOT verify P1 durable journal, installer rollback or crash recovery. Installer/launcher must emit the rotation bot/respawn commands (team-2 bot count is 1-based); see #14 and ZOM-DISC-23.",
+      "deferReason": null,
+      "implementationLane": "B",
+      "review": {
+        "status": "changes-requested-in-conversation",
+        "reviewer": "Agent A",
+        "date": "2026-10-23",
+        "comment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11#issuecomment-6373896560",
+        "blockers": [
+          "B-3 path redirects before resolution",
+          "transactional execution not implemented"
+        ]
+      }
+    },
+    {
+      "id": "ZOM-WIN-03",
+      "title": "Create user desktop launcher and settings",
+      "groupId": "Setup",
+      "milestoneId": "M2",
+      "state": "backlog",
+      "sourceState": "new scoped proposal; not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-WIN-02"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/14",
+          "observedOn": "2026-10-24",
+          "acceptance": "open-observation"
+        }
+      ],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Agent B — implementation; user retains release acceptance",
+      "priority": "P1",
+      "issueUrl": null,
+      "criterion": "A desktop shortcut opens remaster launcher with Play Solo, settings, logs and repair actions",
+      "note": "Launcher settings must expose/emit the required rotation bot and respawn configuration (#14).",
+      "deferReason": null,
+      "implementationLane": "B"
+    },
+    {
+      "id": "ZOM-SOLO-01",
+      "title": "Automatically start private invasion host",
+      "groupId": "Solo",
+      "milestoneId": "M2",
+      "state": "done",
+      "sourceState": "First implementation slice in draft PR #11; code review pending; runtime acceptance not observed",
+      "required": true,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-ENG-03",
+        "ZOM-WIN-02"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "draft-pull-request",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11",
+          "revision": "d096c21f43d6ed0988e2d4a0ebd669eaad48f24c",
+          "observedOn": "2026-10-23",
+          "acceptance": "pending-code-review-and-test"
+        },
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/13",
+          "observedOn": "2026-10-24",
+          "acceptance": "open-observation"
+        },
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/14",
+          "observedOn": "2026-10-24",
+          "acceptance": "open-observation"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/play-city",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/play-city/flights/891af9e0cf714f7cb87e64c5c99e5242",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        }
+      ],
+      "completionBasis": "play_city started an isolated loopback dedicated host and stopped it cleanly.",
+      "kind": "work-item",
+      "owner": "Agent B — implementation; user retains release acceptance",
+      "priority": "P1",
+      "issueUrl": null,
+      "criterion": "Launcher starts/stops an isolated local listen-server or managed dedicated host without port forwarding",
+      "note": "Actual dedicated host was observed bound UDP 127.0.0.1:7240 only by B; no public UDP bind seen. Outbound TCP does not count as listener. Player join, one-click automation and clean teardown are not verified. Private host rotation must configure second-team bots and respawn parameters before start; wave 1 is observed but respawn after death was missing (#13/#14). | Required criterion evidenced: play_city started an isolated loopback dedicated host and stopped it cleanly.",
+      "deferReason": null,
+      "implementationLane": "B",
+      "review": {
+        "status": "changes-requested-in-conversation",
+        "reviewer": "Agent A",
+        "date": "2026-10-23",
+        "comment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/agent/a-city-engine/handoffs/RECORDER_LIFECYCLE_V1.md",
+        "blockers": [
+          "B/C exact passive recorder interoperability and negative tests not yet confirmed",
+          "actual WSE2 runtime remains unverified"
+        ]
+      }
+    },
+    {
+      "id": "ZOM-SOLO-02",
+      "title": "Join solo player without manual server setup",
+      "groupId": "Solo",
+      "milestoneId": "M2",
+      "state": "done",
+      "sourceState": "new scoped proposal; not accepted",
+      "required": true,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-SOLO-01",
+        "ZOM-WIN-03"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/14",
+          "observedOn": "2026-10-24",
+          "acceptance": "open-observation"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/play-city",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/play-city/flights/891af9e0cf714f7cb87e64c5c99e5242",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        }
+      ],
+      "completionBasis": "play_city selected the City mission/map, auto-joined the private host, observed mission entry and shut down cleanly.",
+      "kind": "work-item",
+      "owner": "Agent B — implementation; user retains release acceptance",
+      "priority": "P1",
+      "issueUrl": null,
+      "criterion": "One click reliably selects mission/map and connects user to private local host; clean shutdown and retry work",
+      "note": "Join/one-click route additionally depends on the rotation bot/respawn configuration (#14). | Required criterion evidenced: play_city selected the City mission/map, auto-joined the private host, observed mission entry and shut down cleanly.",
+      "deferReason": null,
+      "implementationLane": "B"
+    },
+    {
+      "id": "ZOM-AI-01",
+      "title": "Verify allied defender team and initial spawns",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "done",
+      "sourceState": "source implementation prototype; runtime not accepted",
+      "required": true,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-ENG-03",
+        "ZOM-OBS-01"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/2"
+        },
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/13",
+          "observedOn": "2026-10-24",
+          "acceptance": "open-observation"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-evidence-disc28e-troopfallback",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/play-city/flights/891af9e0cf714f7cb87e64c5c99e5242",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        }
+      ],
+      "completionBasis": "Four native team-0 defenders (troops 981..984) spawned and engaged in sealed City runs.",
+      "kind": "work-item",
+      "owner": "Agent A — implementation; user retains release acceptance",
+      "priority": "P2",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/2",
+      "criterion": "At least two survivor AI spawn on team 0, use expected loadouts and attack zombies in actual City wave",
+      "note": "Prototype exists in v0.1.8; engine acceptance pending 32 native allied bots appeared on team 0 via set_bot_count 1 32, but the remaster's original survivor divisions 5-7 and hold orders are not yet observed (#13). | Required criterion evidenced: Four native team-0 defenders (troops 981..984) spawned and engaged in sealed City runs.",
+      "deferReason": null,
+      "implementationLane": "A"
+    },
+    {
+      "id": "ZOM-AI-02",
+      "title": "Establish measurable effective ranged combat",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "active",
+      "sourceState": "source implementation prototype; runtime not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-AI-01",
+        "ZOM-OBS-01"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/2"
+        },
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/13",
+          "observedOn": "2026-10-24",
+          "acceptance": "open-observation"
+        },
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/14",
+          "observedOn": "2026-10-24",
+          "acceptance": "open-observation"
+        }
+      ],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Agent A — implementation; user retains release acceptance",
+      "priority": "P2",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/2",
+      "criterion": "Bots equip correct compatible guns/ammo, deal confirmed hits or kills, resupply and avoid ineffective loops",
+      "note": "Prototype exists in v0.1.8; engine acceptance pending Wave-1 enemy population is generic faction-default Crazed Civilian bots plus original wave visitors; native Zombie roster and original invader troops remain unverified (#13/#14).",
+      "deferReason": null,
+      "implementationLane": "A"
+    },
+    {
+      "id": "ZOM-AI-03",
+      "title": "Verify guarded positions and recovery behaviour",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "active",
+      "sourceState": "source implementation prototype; runtime not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-AI-01"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/3"
+        },
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/13",
+          "observedOn": "2026-10-24",
+          "acceptance": "open-observation"
+        }
+      ],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Agent A — implementation; user retains release acceptance",
+      "priority": "P2",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/3",
+      "criterion": "At least two City guard locations reached; hold/fallback/regroup respond with recorded transitions and no zombie-path obstruction",
+      "note": "Prototype exists in v0.1.8; engine acceptance pending Positions/hold-order behaviour still requires runtime evidence; first wave is observed but roster/respawn defects remain (#13).",
+      "deferReason": null,
+      "implementationLane": "A"
+    },
+    {
+      "id": "ZOM-WAVE-01",
+      "title": "Balance survivor help and zombie wave progression",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "active",
+      "sourceState": "source implementation prototype; runtime not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-AI-02",
+        "ZOM-ENG-03"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/2"
+        },
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/13",
+          "observedOn": "2026-10-24",
+          "acceptance": "open-observation"
+        },
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/14",
+          "observedOn": "2026-10-24",
+          "acceptance": "open-observation"
+        }
+      ],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Agent A — implementation; user retains release acceptance",
+      "priority": "P2",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/2",
+      "criterion": "Selected difficulty has bounded reinforcement, controlled wave pacing and reproducible measurements without replacing original waves unintentionally",
+      "note": "Prototype exists in v0.1.8; engine acceptance pending First enemy wave observed (wave=1, team1=41) but roster mix is partly generic and wave 2+/completion are not observed (#13/#14).",
+      "deferReason": null,
+      "implementationLane": "A"
+    },
+    {
+      "id": "ZOM-MAP-01",
+      "title": "Prove each of five original maps playable",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "backlog",
+      "sourceState": "Deferred by owner decision: four non-City maps after first playable City release",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-AI-03",
+        "ZOM-ENG-03"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/3"
+        }
+      ],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Agent A — implementation; user retains release acceptance",
+      "priority": "P2",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/3",
+      "criterion": "All five maps load and complete wave with bot path/LOS/collision and weapon checks; candidate navmesh coordinates reviewed",
+      "note": "Agent A holds this preserved optional work item; explicitly deferred until after City-first release.",
+      "deferReason": "Owner confirmed 2026-10-23 that City is sufficient for first solo release; remaining four maps are post-v1 optional expansion.",
+      "implementationLane": "A"
+    },
+    {
+      "id": "ZOM-PERF-01",
+      "title": "Measure actual frame pacing and agent costs",
+      "groupId": "Performance",
+      "milestoneId": "M3",
+      "state": "backlog",
+      "sourceState": "new scoped proposal; not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-OBS-02",
+        "ZOM-ENG-03"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/4"
+        }
+      ],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Agent C — implementation; user retains release acceptance",
+      "priority": "P2",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/4",
+      "criterion": "Collect CPU/memory/FPS or frame-time data where supported, compare baseline vs optimizations; no unsourced speed claims",
+      "note": null,
+      "deferReason": null,
+      "implementationLane": "C"
+    },
+    {
+      "id": "ZOM-QA-01",
+      "title": "Produce one auditable end-session diagnosis",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "done",
+      "sourceState": "First implementation slice in draft PR #12; code review pending; runtime acceptance not observed",
+      "required": true,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-OBS-01",
+        "ZOM-OBS-02"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6"
+        },
+        {
+          "kind": "draft-pull-request",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12",
+          "revision": "e069c59d10352f363161e15eda3fad86e2c4bcc2",
+          "observedOn": "2026-10-23",
+          "acceptance": "pending-code-review-and-test"
+        },
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/15",
+          "observedOn": "2026-10-24",
+          "acceptance": "open-observation"
+        },
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/16",
+          "observedOn": "2026-10-24",
+          "acceptance": "open-observation"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/a29fabfdbd61384c4dfc73cd33de5c51d68b43b9",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/0393794",
+          "observedOn": "2026-10-24",
+          "acceptance": "merged-implementation"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-evidence-disc28e-troopfallback",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/play-city/flights/891af9e0cf714f7cb87e64c5c99e5242",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        }
+      ],
+      "completionBasis": "Sealed receipt summary verifies the manifest and reports observed vs unknown outcomes and actionable gaps.",
+      "kind": "work-item",
+      "owner": "Agent C — implementation; user retains release acceptance",
+      "priority": "P2",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
+      "criterion": "Checksummed, redacted evidence bundle and rule report explain observed/unknown game outcomes and actionable failures",
+      "note": "C recorder was armed/attached in the live host attempt and C authored R030/CITY-I08 for four Invalid Faction ID:-1 errors. No complete sealed game evidence ZIP or final forensic interpretation has been reported. Evidence gates need sealed host stdout (#16) and stable merged-suite runs (#15). Receipt summary CLI verifies sealed evidence and fails closed on tampering; repeated merged-suite stability is observed post-fix (3/3) but is not proof of general stability. | Required criterion evidenced: Sealed receipt summary verifies the manifest and reports observed vs unknown outcomes and actionable gaps.",
+      "deferReason": null,
+      "implementationLane": "C",
+      "review": {
+        "status": "changes-requested-in-conversation",
+        "reviewer": "Agent A",
+        "date": "2026-10-23",
+        "comment": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/agent/a-city-engine/handoffs/RECORDER_LIFECYCLE_V1.md",
+        "blockers": [
+          "B/C exact passive recorder interoperability and negative tests not yet confirmed",
+          "actual WSE2 runtime remains unverified"
+        ]
+      }
+    },
+    {
+      "id": "ZOM-QA-02",
+      "title": "Complete sustained integrated City solo test",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "active",
+      "sourceState": "new scoped proposal; not accepted",
+      "required": true,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-SOLO-02",
+        "ZOM-QA-01"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6"
+        },
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/13",
+          "observedOn": "2026-10-24",
+          "acceptance": "open-observation"
+        },
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/16",
+          "observedOn": "2026-10-24",
+          "acceptance": "open-observation"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/42d4ec3",
+          "observedOn": "2026-10-24",
+          "acceptance": "merged-implementation"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/play-city/flights/891af9e0cf714f7cb87e64c5c99e5242",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        }
+      ],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Agent C — implementation; user retains release acceptance",
+      "priority": "P2",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
+      "criterion": "A private City solo run completes the agreed minimum sustained wave test (proposed 10 waves), with reliable AI, no fatal failures and build-linked evidence. Other maps are not part of this gate.",
+      "note": "City-first sustained acceptance only. Optional map expansion ZOM-MAP-01 must not gate this work. Final acceptance requires wave 2+/roster/respawn evidence and sealed receipt (#13/#16). Merged tip 42d4ec3 suite 380 OK/4 skips over 3 consecutive runs with owned originals; no acceptance. | Sealed 300 s integrated City session with one player, 4 native defenders, 32-50 native zombies, 8 rounds, kills 3/5, player death/respawn events; wave max 1, no wave completion. Evidence: local/session/play-city/flights/891af9e0cf714f7cb87e64c5c99e5242",
+      "deferReason": null,
+      "implementationLane": "C"
+    },
+    {
+      "id": "ZOM-ADMIN-01",
+      "title": "Verify private cheat authority and behavior",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "active",
+      "sourceState": "source implementation prototype; runtime not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-ENG-03"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/4"
+        }
+      ],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Agent A — implementation; user retains release acceptance",
+      "priority": "P2",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/4",
+      "criterion": "Hotkeys work for one-player local host and cannot affect public/dedicated/unauthorised sessions",
+      "note": "Prototype exists in v0.1.8; engine acceptance pending",
+      "deferReason": null,
+      "implementationLane": "A"
+    },
+    {
+      "id": "ZOM-LEGAL-01",
+      "title": "Resolve publication rights and attribution",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "backlog",
+      "sourceState": "backlog - credits verified from archived OP; permission owner-attested; redistribution not cleared; legal gate not accepted",
+      "required": true,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/5"
+        },
+        {
+          "kind": "github-pull-request",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/18",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "github-issue-comment",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/5#issuecomment-6378327556",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "github-pull-request",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/27",
+          "observedOn": "2026-10-24",
+          "acceptance": "open-requirement"
+        }
+      ],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Agent B — implementation; user retains release acceptance",
+      "priority": "P2",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/5",
+      "criterion": "Original and OSP contributors credited; installer asset distribution reviewed; unlicensed material never bundled",
+      "note": "E's docs lane records archived-OP credits (Artizan, Nemerius (OP spells Nemeruis), Belendor, BattalGaziTR, Hayalperest, Artintrex + OSP), owner attestation, explicit unknown on a free-reuse sentence, Nirecotive base readme, and no redistribution clearance. State remains backlog; no acceptance. E dossier reference/LEGAL_RIGHTS_AND_CREDITS.md (PR #27): archived OP credits verified; installer distribution reviewed bounded (user-supplied RAR, no bundling, dry-run planner); third-party/OSP asset provenance conditional/open; leaf stays backlog/required, no acceptance.",
+      "deferReason": null,
+      "implementationLane": "B"
+    },
+    {
+      "id": "ZOM-REL-01",
+      "title": "Package City-first accessible solo v1.0 candidate",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "backlog",
+      "sourceState": "new scoped proposal; not accepted",
+      "required": true,
+      "blocked": true,
+      "dependsOn": [
+        "ZOM-REC-03",
+        "ZOM-QA-02",
+        "ZOM-WIN-02",
+        "ZOM-LEGAL-01"
+      ],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/5"
+        }
+      ],
+      "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
+      "kind": "work-item",
+      "owner": "Agent B — implementation; user retains release acceptance",
+      "priority": "P2",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/5",
+      "criterion": "Approved Windows installer and desktop launcher start original City with bots; release notes, diagnostics, attribution, scoped accessibility and repair are accepted by owner; non-City maps explicitly excluded.",
+      "note": null,
+      "deferReason": null,
+      "implementationLane": "B"
+    },
+    {
+      "id": "ZOM-DISC-01",
+      "title": "Correct native Invasion game-type guards from 6 to 7",
+      "groupId": "Runtime",
+      "milestoneId": "M1",
+      "state": "done",
+      "sourceState": "bounded source/fixture criterion verified; overall release outcome open",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/agent/a-city-engine/reference/CITY_AI_WAVE_AUDIT_2026-10-23.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        }
+      ],
+      "completionBasis": "Narrow supporting criterion met; no parent release-outcome credit",
+      "kind": "work-item",
+      "owner": "Agent A — bounded supporting work; owner retains outcome acceptance",
+      "priority": "P0",
+      "issueUrl": null,
+      "criterion": "The original mission initializes mode 7; added native wave and recovery conditions compare 7 and pass regression tests.",
+      "note": "131/131 original-source tests reported at fix revision; game unverified.",
+      "deferReason": "Supplemental bug-fix/diagnostics-hardening support work; not part of the required City release denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "bug-fix",
+      "supportsOutcomeId": "ZOM-ENG-02",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Discovered during the City-first native, Windows, or forensic integration audit; separate from the original planning baseline."
+    },
+    {
+      "id": "ZOM-DISC-02",
+      "title": "Prevent missing wave top-ups after original round resets",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "done",
+      "sourceState": "bounded source/fixture criterion verified; overall release outcome open",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/agent/a-city-engine/reference/CITY_ROUND_AWARE_REINFORCEMENT_2026-10-24.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        }
+      ],
+      "completionBasis": "Narrow supporting criterion met; no parent release-outcome credit",
+      "kind": "work-item",
+      "owner": "Agent A — bounded supporting work; owner retains outcome acceptance",
+      "priority": "P0",
+      "issueUrl": null,
+      "criterion": "The original round-start clock and wave form a two-field identity; native regression covers consecutive rounds repeating wave 2.",
+      "note": "140/140 original-source tests; no in-game spawn claim.",
+      "deferReason": "Supplemental bug-fix/diagnostics-hardening support work; not part of the required City release denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "bug-fix",
+      "supportsOutcomeId": "ZOM-WAVE-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Discovered during the City-first native, Windows, or forensic integration audit; separate from the original planning baseline."
+    },
+    {
+      "id": "ZOM-DISC-03",
+      "title": "Screen City guard posts for navmesh connectivity and clearance",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "done",
+      "sourceState": "bounded source/fixture criterion verified; overall release outcome open",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/agent/a-city-engine/reference/CITY_GUARD_HARDENING_2026-10-24.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        }
+      ],
+      "completionBasis": "Narrow supporting criterion met; no parent release-outcome credit",
+      "kind": "work-item",
+      "owner": "Agent A — bounded supporting work; owner retains outcome acceptance",
+      "priority": "P1",
+      "issueUrl": null,
+      "criterion": "Three deterministic guard posts pass actual shared-edge face connectivity, minimum area and prop-origin clearance on the original City scene.",
+      "note": "134/134 source tests; independently repeated by B on Windows at older SHA; no collider or LOS proof.",
+      "deferReason": "Supplemental bug-fix/diagnostics-hardening support work; not part of the required City release denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "hardening",
+      "supportsOutcomeId": "ZOM-AI-03",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Discovered during the City-first native, Windows, or forensic integration audit; separate from the original planning baseline."
+    },
+    {
+      "id": "ZOM-DISC-04",
+      "title": "Verify byte-exact City overlays after optional host commands",
+      "groupId": "Runtime",
+      "milestoneId": "M1",
+      "state": "done",
+      "sourceState": "bounded source/fixture criterion verified; overall release outcome open",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/agent/a-city-engine/tools/final_city_gate.py",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        }
+      ],
+      "completionBasis": "Narrow supporting criterion met; no parent release-outcome credit",
+      "kind": "work-item",
+      "owner": "Agent A — bounded supporting work; owner retains outcome acceptance",
+      "priority": "P0",
+      "issueUrl": null,
+      "criterion": "Post-control City mission/variables/scene match deterministic patch of the audited native core, with negative controls.",
+      "note": "Original asset and compiled chain tests passed; not a gameplay test.",
+      "deferReason": "Supplemental bug-fix/diagnostics-hardening support work; not part of the required City release denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "assurance",
+      "supportsOutcomeId": "ZOM-ENG-02",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Discovered during the City-first native, Windows, or forensic integration audit; separate from the original planning baseline."
+    },
+    {
+      "id": "ZOM-DISC-05",
+      "title": "Reproduce the complete original-source City patch chain",
+      "groupId": "Runtime",
+      "milestoneId": "M1",
+      "state": "done",
+      "sourceState": "bounded source/fixture criterion verified; overall release outcome open",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/agent/a-city-engine/reference/CITY_CHAIN_VERIFICATION_2026-10-23.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        }
+      ],
+      "completionBasis": "Narrow supporting criterion met; no parent release-outcome credit",
+      "kind": "work-item",
+      "owner": "Agent A — bounded supporting work; owner retains outcome acceptance",
+      "priority": "P0",
+      "issueUrl": null,
+      "criterion": "The verifier replays 25→26→27→29→31→35 and optional 32 while preserving first 25 triggers and four deferred scenes.",
+      "note": "Later A source tests and patch-chain replay passed; distinguishes verified source from engine startup.",
+      "deferReason": "Supplemental bug-fix/diagnostics-hardening support work; not part of the required City release denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "assurance",
+      "supportsOutcomeId": "ZOM-ENG-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Discovered during the City-first native, Windows, or forensic integration audit; separate from the original planning baseline."
+    },
+    {
+      "id": "ZOM-DISC-06",
+      "title": "Prevent CRLF duplication in Windows regression fixtures",
+      "groupId": "Runtime",
+      "milestoneId": "M1",
+      "state": "done",
+      "sourceState": "bounded source/fixture criterion verified; overall release outcome open",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/agent/a-city-engine/tests/test_bot_loadouts.py",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        }
+      ],
+      "completionBasis": "Narrow supporting criterion met; no parent release-outcome credit",
+      "kind": "work-item",
+      "owner": "Agent A — bounded supporting work; owner retains outcome acceptance",
+      "priority": "P1",
+      "issueUrl": null,
+      "criterion": "Two existing-CRLF test writes use newline='' and Windows original-asset suite passes without extra blank lines.",
+      "note": "B reports initial Windows errors resolved and subsequent 134/134 tests passed.",
+      "deferReason": "Supplemental bug-fix/diagnostics-hardening support work; not part of the required City release denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "bug-fix",
+      "supportsOutcomeId": "ZOM-ENG-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Discovered during the City-first native, Windows, or forensic integration audit; separate from the original planning baseline."
+    },
+    {
+      "id": "ZOM-DISC-07",
+      "title": "Restore official WSE2 dedicated-server files omitted by client installer",
+      "groupId": "Setup",
+      "milestoneId": "M2",
+      "state": "done",
+      "sourceState": "bounded source/fixture criterion verified; overall release outcome open",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        }
+      ],
+      "completionBasis": "Narrow supporting criterion met; no parent release-outcome credit",
+      "kind": "work-item",
+      "owner": "Agent B — bounded supporting work; owner retains outcome acceptance",
+      "priority": "P0",
+      "issueUrl": null,
+      "criterion": "The installed x86 host/client pair matches the pinned WSE2 1.1.5.4 Warband package, with only missing files added.",
+      "note": "B reports pinned official ZIP SHA, dedicated EXE matching upstream and no overwrites; no runtime proof.",
+      "deferReason": "Supplemental bug-fix/diagnostics-hardening support work; not part of the required City release denominator.",
+      "implementationLane": "B",
+      "workOrigin": "discovered",
+      "workType": "incident-resolution",
+      "supportsOutcomeId": "ZOM-WIN-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Discovered during the City-first native, Windows, or forensic integration audit; separate from the original planning baseline."
+    },
+    {
+      "id": "ZOM-DISC-08",
+      "title": "Exercise B/C signed recorder interoperability with fake game processes",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "done",
+      "sourceState": "bounded source/fixture criterion verified; overall release outcome open",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        }
+      ],
+      "completionBasis": "Narrow supporting criterion met; no parent release-outcome credit",
+      "kind": "work-item",
+      "owner": "Agent B — bounded supporting work; owner retains outcome acceptance",
+      "priority": "P0",
+      "issueUrl": null,
+      "criterion": "Recorder-ready precedes B-owned fake-game launch; signed attach/stop and incomplete crash recovery tested against exact older C protocol.",
+      "note": "B reports 14 tests (1 skipped) at C@1119cca on Windows; simulation true, runtime unknown.",
+      "deferReason": "Supplemental bug-fix/diagnostics-hardening support work; not part of the required City release denominator.",
+      "implementationLane": "B",
+      "workOrigin": "discovered",
+      "workType": "integration-verification",
+      "supportsOutcomeId": "ZOM-OBS-02",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Discovered during the City-first native, Windows, or forensic integration audit; separate from the original planning baseline."
+    },
+    {
+      "id": "ZOM-DISC-09",
+      "title": "Harden passive recorder PID identity and incomplete-session recovery",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "done",
+      "sourceState": "bounded source/fixture criterion verified; overall release outcome open",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12",
+          "observedOn": "2026-10-24",
+          "acceptance": "pending-current-revision"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/0fe86a446b8a8f2c56e97dcdae03dc9e87f51b48",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        }
+      ],
+      "completionBasis": "Narrow supporting criterion met; no parent release-outcome credit",
+      "kind": "work-item",
+      "owner": "Agent C — bounded supporting work; owner retains outcome acceptance",
+      "priority": "P0",
+      "issueUrl": null,
+      "criterion": "Read-only PID start-identity checks, bounded crash tail, durable event journal and incomplete recovery require latest-C exact-suite verification.",
+      "note": "C PID-identity and incomplete-session recovery hardening merged via PR #12; exact-head and merged-main suites execute the tests. No runtime recorder acceptance.",
+      "deferReason": "Supplemental bug-fix/diagnostics-hardening support work; not part of the required City release denominator.",
+      "implementationLane": "C",
+      "workOrigin": "discovered",
+      "workType": "hardening",
+      "supportsOutcomeId": "ZOM-OBS-02",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Discovered during the City-first native, Windows, or forensic integration audit; separate from the original planning baseline."
+    },
+    {
+      "id": "ZOM-DISC-10",
+      "title": "Repair privacy-sanitized City source receipt counting",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "done",
+      "sourceState": "bounded source/fixture criterion verified; overall release outcome open",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12",
+          "observedOn": "2026-10-24",
+          "acceptance": "pending-current-revision"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/0fe86a446b8a8f2c56e97dcdae03dc9e87f51b48",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        }
+      ],
+      "completionBasis": "Narrow supporting criterion met; no parent release-outcome credit",
+      "kind": "work-item",
+      "owner": "Agent C — bounded supporting work; owner retains outcome acceptance",
+      "priority": "P1",
+      "issueUrl": null,
+      "criterion": "The ZIP analyzer retains original bounded count/passed/failed summaries and rejects tampered or inconsistent counter totals at current C SHA.",
+      "note": "C privacy-sanitized receipt counting correction merged via PR #12 and covered by the exact-head Windows suite.",
+      "deferReason": "Supplemental bug-fix/diagnostics-hardening support work; not part of the required City release denominator.",
+      "implementationLane": "C",
+      "workOrigin": "discovered",
+      "workType": "bug-fix",
+      "supportsOutcomeId": "ZOM-OBS-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Discovered during the City-first native, Windows, or forensic integration audit; separate from the original planning baseline."
+    },
+    {
+      "id": "ZOM-DISC-11",
+      "title": "Reject untrusted round identities in City incident events",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "done",
+      "sourceState": "bounded source/fixture criterion verified; overall release outcome open",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12",
+          "observedOn": "2026-10-24",
+          "acceptance": "pending-current-revision"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/0fe86a446b8a8f2c56e97dcdae03dc9e87f51b48",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        }
+      ],
+      "completionBasis": "Narrow supporting criterion met; no parent release-outcome credit",
+      "kind": "work-item",
+      "owner": "Agent C — bounded supporting work; owner retains outcome acceptance",
+      "priority": "P1",
+      "issueUrl": null,
+      "criterion": "Only explicit server-role telemetry can establish observed round-start and last-reinforced-round values, with negative client/roleless cases passing at exact C SHA.",
+      "note": "C untrusted round-identity rejection merged via PR #12 and its City round tests pass.",
+      "deferReason": "Supplemental bug-fix/diagnostics-hardening support work; not part of the required City release denominator.",
+      "implementationLane": "C",
+      "workOrigin": "discovered",
+      "workType": "bug-fix",
+      "supportsOutcomeId": "ZOM-OBS-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Discovered during the City-first native, Windows, or forensic integration audit; separate from the original planning baseline."
+    },
+    {
+      "id": "ZOM-DISC-12",
+      "title": "Audit survivor spawn and hold orders across native round transitions",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "done",
+      "sourceState": "bounded source/fixture criterion verified; overall release outcome open",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/agent/a-city-engine/reference/CITY_ROUND_LIFECYCLE_AUDIT_2026-10-24.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        }
+      ],
+      "completionBasis": "Narrow supporting criterion met; no parent release-outcome credit",
+      "kind": "work-item",
+      "owner": "Agent A — bounded supporting work; owner retains outcome acceptance",
+      "priority": "P1",
+      "issueUrl": null,
+      "criterion": "The read-only audit identifies original wave reset and mission-start versus periodic survivor handlers without claiming WSE2 persistence.",
+      "note": "9/9 native source checks and 144/144 local tests passed; runtime persistence unknown.",
+      "deferReason": "Supplemental bug-fix/diagnostics-hardening support work; not part of the required City release denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "investigation",
+      "supportsOutcomeId": "ZOM-AI-03",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Discovered during the City-first native, Windows, or forensic integration audit; separate from the original planning baseline."
+    },
+    {
+      "id": "ZOM-DISC-13",
+      "title": "Reject client and foreign mission markers from City readiness",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "done",
+      "sourceState": "bounded source/fixture criterion verified; overall release outcome open",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/agent/a-city-engine/reference/CITY_SERVER_EVIDENCE_GATING_2026-10-24.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        }
+      ],
+      "completionBasis": "Narrow supporting criterion met; no parent release-outcome credit",
+      "kind": "work-item",
+      "owner": "Agent A — bounded supporting work; owner retains outcome acceptance",
+      "priority": "P0",
+      "issueUrl": null,
+      "criterion": "Server+invasion-template markers and separately measured City scene are required; client/wrong mission and heartbeat data cannot produce false readiness.",
+      "note": "149/149 local original-source suite passed, including five new fixture tests.",
+      "deferReason": "Supplemental bug-fix/diagnostics-hardening support work; not part of the required City release denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "bug-fix",
+      "supportsOutcomeId": "ZOM-OBS-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Discovered during the City-first native, Windows, or forensic integration audit; separate from the original planning baseline."
+    },
+    {
+      "id": "ZOM-DISC-14",
+      "title": "Define exact-version City integration acceptance and evidence gates",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "done",
+      "sourceState": "bounded source/fixture criterion verified; overall release outcome open",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/agent/a-city-engine/docs/INTEGRATED_CITY_ACCEPTANCE_2026-10-24.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        }
+      ],
+      "completionBasis": "Narrow supporting criterion met; no parent release-outcome credit",
+      "kind": "work-item",
+      "owner": "Agent A — bounded supporting work; owner retains outcome acceptance",
+      "priority": "P1",
+      "issueUrl": null,
+      "criterion": "14 gate ledger requires matching source identity, verified private socket/City runtime and C evidence without mixing historical revisions.",
+      "note": "A published acceptance ledger and handoffs; no runtime or release acceptance awarded.",
+      "deferReason": "Supplemental bug-fix/diagnostics-hardening support work; not part of the required City release denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "governance",
+      "supportsOutcomeId": "ZOM-QA-02",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Discovered during the City-first native, Windows, or forensic integration audit; separate from the original planning baseline."
+    },
+    {
+      "id": "ZOM-DISC-15",
+      "title": "Separate source claims and unknowns in City Incident Report v1",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "done",
+      "sourceState": "bounded source/fixture criterion verified; overall release outcome open",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12",
+          "observedOn": "2026-10-24",
+          "acceptance": "pending-current-revision"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/main/docs/CITY_INCIDENT_V1.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        }
+      ],
+      "completionBasis": "Narrow supporting criterion met; no parent release-outcome credit",
+      "kind": "work-item",
+      "owner": "Agent C — bounded supporting work; owner retains outcome acceptance",
+      "priority": "P1",
+      "issueUrl": null,
+      "criterion": "Report must keep bounded independent engine/recorder timelines, missing data, privacy filtering and noncausal leads, verified at current C SHA.",
+      "note": "City Incident Report v1 merged in PR #12; it separates observed markers from unknown causes and awards no gameplay credit.",
+      "deferReason": "Supplemental bug-fix/diagnostics-hardening support work; not part of the required City release denominator.",
+      "implementationLane": "C",
+      "workOrigin": "discovered",
+      "workType": "assurance",
+      "supportsOutcomeId": "ZOM-QA-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Discovered during the City-first native, Windows, or forensic integration audit; separate from the original planning baseline."
+    },
+    {
+      "id": "ZOM-DISC-16",
+      "title": "Trace observed invalid faction ID to original City trigger 14",
+      "groupId": "Runtime",
+      "milestoneId": "M1",
+      "state": "done",
+      "sourceState": "bounded source/fixture criterion verified; overall release outcome open",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11#issuecomment-6376361668",
+          "observedOn": "2026-10-24",
+          "acceptance": "pending-current-source-investigation-or-verification"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/10#issuecomment-6376896943",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/main/reference/CITY_RUNTIME_TRIAGE_2026-10-24.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        }
+      ],
+      "completionBasis": "Narrow supporting criterion met; no parent release-outcome credit",
+      "kind": "work-item",
+      "owner": "Agent A — incident work; owner retains release acceptance",
+      "priority": "P0",
+      "issueUrl": null,
+      "criterion": "Compare original Beta 0.4 and exact installed City mission trigger 14 opcode 502 and related inputs; report whether baseline-origin, introduced or indeterminate without inventing engine cause.",
+      "note": "A decoded trigger 14 as four trailing faction_set_slot(-1, 200, trp_invader_multiplayer_ai) writes, byte-identical to the pinned Beta 0.4 prefix; source scope is original/non-causal and engine causality remains unproven. No gameplay patch.",
+      "deferReason": "Supplemental bug-fix/diagnostics-hardening support work; not part of the required City release denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "incident-investigation",
+      "supportsOutcomeId": "ZOM-ENG-03",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Real WSE2 City host boot surfaced a new runtime error or forensic input-classification defect not present in the original 2026-10-23 work breakdown."
+    },
+    {
+      "id": "ZOM-DISC-17",
+      "title": "Classify observed faction errors without assigning an unproven cause",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "done",
+      "sourceState": "bounded source/fixture criterion verified; overall release outcome open",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12#issuecomment-6376414645",
+          "observedOn": "2026-10-24",
+          "acceptance": "pending-current-source-investigation-or-verification"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/main/docs/CITY_INCIDENT_V1.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        }
+      ],
+      "completionBasis": "Narrow supporting criterion met; no parent release-outcome credit",
+      "kind": "work-item",
+      "owner": "Agent C — incident work; owner retains release acceptance",
+      "priority": "P0",
+      "issueUrl": null,
+      "criterion": "R030/CITY-I08 detect the bounded Invalid Faction ID: -1 incident signature with cause unknown, and current exact C suite confirms no false attribution.",
+      "note": "C classified the observed faction errors without assigning an engine cause; A's independent triage reached the same bounded conclusion after merge.",
+      "deferReason": "Supplemental bug-fix/diagnostics-hardening support work; not part of the required City release denominator.",
+      "implementationLane": "C",
+      "workOrigin": "discovered",
+      "workType": "diagnostic-hardening",
+      "supportsOutcomeId": "ZOM-OBS-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Real WSE2 City host boot surfaced a new runtime error or forensic input-classification defect not present in the original 2026-10-23 work breakdown."
+    },
+    {
+      "id": "ZOM-DISC-18",
+      "title": "Reject malformed non-scalar Lua telemetry identifiers safely",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "done",
+      "sourceState": "bounded source/fixture criterion verified; overall release outcome open",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12#issuecomment-6376414645",
+          "observedOn": "2026-10-24",
+          "acceptance": "pending-current-source-investigation-or-verification"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/0fe86a446b8a8f2c56e97dcdae03dc9e87f51b48",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        }
+      ],
+      "completionBasis": "Narrow supporting criterion met; no parent release-outcome credit",
+      "kind": "work-item",
+      "owner": "Agent C — incident work; owner retains release acceptance",
+      "priority": "P1",
+      "issueUrl": null,
+      "criterion": "Non-string template, scene and event JSON fields fail closed to unknown, never raise TypeError, and the current C focused/full suite passes.",
+      "note": "C malformed non-scalar template/scene identifier handling merged via PR #12; fix lives in the evidence gating and its negative tests.",
+      "deferReason": "Supplemental bug-fix/diagnostics-hardening support work; not part of the required City release denominator.",
+      "implementationLane": "C",
+      "workOrigin": "discovered",
+      "workType": "bug-fix",
+      "supportsOutcomeId": "ZOM-OBS-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Real WSE2 City host boot surfaced a new runtime error or forensic input-classification defect not present in the original 2026-10-23 work breakdown."
+    },
+    {
+      "id": "ZOM-DISC-19",
+      "title": "Declare WSE2 msfiles operation metadata for Lua-bound operations",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "done",
+      "sourceState": "bounded source/fixture criterion verified; overall release outcome open",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/675188ac5ac3f240dedc339199d0ef32d821042a",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/main/docs/CITY_INCIDENT_V1.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/main/tests/test_flight_lua_msfiles.py",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/13",
+          "observedOn": "2026-10-24",
+          "acceptance": "observed-probe-validation"
+        }
+      ],
+      "completionBasis": "Narrow supporting criterion met; no parent release-outcome credit",
+      "kind": "work-item",
+      "owner": "Agent C — bounded supporting work; owner retains outcome acceptance",
+      "priority": "P0",
+      "issueUrl": null,
+      "criterion": "WSE2 Lua bridge must classify agent_get_team as lhs and multiplayer_is_server as can-fail, so trigger-32 stops logging Illegal lvalue and role fails closed instead of reporting a dedicated host as client.",
+      "note": "Root cause fixed in 675188a: trailing lhs_operations/can_fail_operations lists plus fail-closed role/team reads, separate game_type field and opmeta=1 marker; signed recorder wire untouched. 112 focused/204 full C tests OK on Windows; merged main 340 OK/4 skips. Validated live on merged main 4c56242: corrected probe reported role=server, game_type=7, ready_for_spawn=1 and emitted no illegal-lvalue spam.",
+      "deferReason": "Supplemental bug-fix/diagnostics-hardening support work; not part of the required City release denominator.",
+      "implementationLane": "C",
+      "workOrigin": "discovered",
+      "workType": "bug-fix",
+      "supportsOutcomeId": "ZOM-OBS-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "The first real WSE2 City host session exposed a diagnostic-binding defect not present in the original 2026-10-23 work breakdown."
+    },
+    {
+      "id": "ZOM-DISC-20",
+      "title": "Bind observed City evidence to candidate identity and separate tactical mode from game type",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "done",
+      "sourceState": "bounded source/fixture criterion verified; overall release outcome open",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/d3dbef500045062fa9324ada594494a2aaa72f3e",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/main/reference/CITY_RUNTIME_TRIAGE_2026-10-24.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/main/tools/city_runtime_triage.py",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/14",
+          "observedOn": "2026-10-24",
+          "acceptance": "observed-root-cause"
+        }
+      ],
+      "completionBasis": "Narrow supporting criterion met; no parent release-outcome credit",
+      "kind": "work-item",
+      "owner": "Agent A — bounded supporting work; owner retains outcome acceptance",
+      "priority": "P0",
+      "issueUrl": null,
+      "criterion": "Runtime triage must prove trigger-14 provenance, show the built mission preserves the original 25-trigger wave controller, bind the probe mode field to zdr_defence_mode and state that engine game type was never observed.",
+      "note": "A read-only triage tool plus 9 negative-control tests merged; A suite 158 OK/0 skips on Windows with owned original module and archive. No gameplay or causality claim. Live follow-up identified the no-AI cause as missing second-team bot configuration; docs and the --rotation contract were extended on main 18a35f0/0eb9374.",
+      "deferReason": "Supplemental bug-fix/diagnostics-hardening support work; not part of the required City release denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "investigation",
+      "supportsOutcomeId": "ZOM-OBS-02",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Live evidence interpretation required new source-scope analysis that the original plan did not contain."
+    },
+    {
+      "id": "ZOM-DISC-21",
+      "title": "Unify reviewed A/B/C branches and verify merged main",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "done",
+      "sourceState": "bounded source/fixture criterion verified; overall release outcome open",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/9eed34b9e3d66a03fe00b9a35553eba09c0a4e81",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/0fe86a446b8a8f2c56e97dcdae03dc9e87f51b48",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/4c5624259ed9ce876da06d1996e728c63666a398",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "github-issue-comment",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6#issuecomment-6377051343",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        }
+      ],
+      "completionBasis": "Narrow supporting criterion met; no parent release-outcome credit",
+      "kind": "work-item",
+      "owner": "Agent A — bounded supporting work; owner retains outcome acceptance",
+      "priority": "P0",
+      "issueUrl": null,
+      "criterion": "Each branch suite must be green on this laptop, the merge order resolved with no lost work, and merged main must pass its full suite without gameplay acceptance.",
+      "note": "Merged #10->#12->#11 as 9eed34b/0fe86a4/4c56242. Merged main 340 tests OK/4 skips (A 158/0, C 112/3 focused and 204/33 full, B 162/39). Two A/C conflicts resolved; one transient Windows file-replace PermissionError race observed in 1 of 7 runs (ZOM-DISC-22). Main advanced to 0eb9374 with post-merge docs/rotation-contract commits; full suite at that tip is 351 tests OK/4 skips on this laptop.",
+      "deferReason": "Supplemental bug-fix/diagnostics-hardening support work; not part of the required City release denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "integration-verification",
+      "supportsOutcomeId": "ZOM-QA-02",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner asked for branch unification after the live incident, which was not part of the original 2026-10-23 work breakdown."
+    },
+    {
+      "id": "ZOM-DISC-22",
+      "title": "Harden B adapter against transient Windows recorder control-file replace races",
+      "groupId": "Setup",
+      "milestoneId": "M2",
+      "state": "done",
+      "sourceState": "B retry + NUL discovery fix merged; pre-existing flake documented and regression-tested",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue-comment",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6#issuecomment-6377051343",
+          "observedOn": "2026-10-24",
+          "acceptance": "observed-defect-unresolved"
+        },
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/15",
+          "observedOn": "2026-10-24",
+          "acceptance": "open-defect"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/42d4ec3",
+          "observedOn": "2026-10-24",
+          "acceptance": "merged-implementation"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/f097c6c",
+          "observedOn": "2026-10-24",
+          "acceptance": "merged-implementation"
+        },
+        {
+          "kind": "test-count",
+          "source": "486 tests OK / 7 skips (owned module+archive, Windows 3.11.9)",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        }
+      ],
+      "completionBasis": "Narrow supporting criterion met; no parent release-outcome credit",
+      "kind": "work-item",
+      "owner": "Agent B — bounded supporting work; owner retains outcome acceptance",
+      "priority": "P1",
+      "issueUrl": null,
+      "criterion": "B recorder adapter must tolerate a Windows os.replace window when reading recorder-ready/attachment-ack files, with a regression test and a stable repeated merged-main run.",
+      "note": "Recorder control-file replace race has retry coverage; the pre-existing Windows NUL discovery ValueError was fixed by F (3.11 behavior unchanged) with regression tests. One earlier merged-main run flaked with 1 failure in test_windows_discovery before the fix; not reported as stably green until then.",
+      "deferReason": "Supplemental bug-fix/diagnostics-hardening support work; not part of the required City release denominator.",
+      "implementationLane": "B",
+      "workOrigin": "discovered",
+      "workType": "bug-fix",
+      "supportsOutcomeId": "ZOM-WIN-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Merged-main verification discovered a Windows concurrency race between the reviewed B and C branches."
+    },
+    {
+      "id": "ZOM-DISC-23",
+      "title": "Configure second-team bots, respawn and correct invader roster in launcher rotation",
+      "groupId": "Solo",
+      "milestoneId": "M2",
+      "state": "done",
+      "sourceState": "launcher/rotation merged (PR #19/#20); sealed play_city lifecycle passes on 156e275 and with the defender squad (bots_team0=4, native roster)",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/14",
+          "observedOn": "2026-10-24",
+          "acceptance": "open-requirement"
+        },
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/13",
+          "observedOn": "2026-10-24",
+          "acceptance": "open-requirement"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/42d4ec3",
+          "observedOn": "2026-10-24",
+          "acceptance": "merged-implementation"
+        },
+        {
+          "kind": "github-pull-request",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/19",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "github-pull-request",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/20",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/f097c6c",
+          "observedOn": "2026-10-24",
+          "acceptance": "merged-implementation"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-evidence-final-defenders",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "_zom-d-build/local/session/play-city/flights/b340e92225c14949b762a6a631bfd2ae",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "_zom-d-build/local/session/play-city/launches/b340e92225c14949b762a6a631bfd2ae",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "_zom-d-build/local/session/play-city/launches/043cca386df64dcf82c99d3aedd1f5f2",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "bounded-evidence",
+          "source": "local/session/PLAYABLE_EVIDENCE.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        }
+      ],
+      "completionBasis": "Done as bounded support work: validated rotation/profile emitted, native roster verified in sealed bundles, one-command play_city lifecycle passed. Does not restore release credit.",
+      "kind": "work-item",
+      "owner": "Agent B — bounded supporting work; owner retains outcome acceptance",
+      "priority": "P0",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/14",
+      "criterion": "Generated rotation sets max_num_bots, a positive set_bot_count 2 (1-based enemy team), set_respawn_period, set_round_max_seconds, set_defender_spawn_count 0 and set_player_respawn_as_bot 0 before start; launcher tests cover it and the generic-bot troop roster is verified or replaced with the native invader roster.",
+      "note": "D's one-command play_city live PASS on 2fef70d: loopback host, join, mission, defender-squad rotation (team0_bots=4), clean stop, 8 files sealed. Receipt keeps runtime_verified=false; wave>=2 unproven. Final play_city validation on the 8ea6b34 install also passed (clean_stop, loopback-only, join+mission, 8-file verified; defenders.division_source=troop-fallback, positions_sampled=11, guard_entries_reached=9, divisions 5-7 unreadable but honest). play_city validated 3x (final launch 043cca38..., clean_stop, 8 files, team0_bots=4, defender-squad rotation, troop-fallback defenders, runtime_verified=false).",
+      "deferReason": "Supplemental bug-fix/diagnostics-hardening support work; not part of the required City release denominator.",
+      "implementationLane": "B",
+      "workOrigin": "discovered",
+      "workType": "bug-fix",
+      "supportsOutcomeId": "ZOM-SOLO-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "The first real merged-main wave run exposed launcher/rotation, roster and respawn requirements absent from the original breakdown."
+    },
+    {
+      "id": "ZOM-DISC-24",
+      "title": "Seal dedicated-host ZDB1 stdout inside the flight evidence bundle",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "done",
+      "sourceState": "sealed dedicated-host ZDB1 stdout verified in multiple 8-file bundles",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/16",
+          "observedOn": "2026-10-24",
+          "acceptance": "open-requirement"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/42d4ec3",
+          "observedOn": "2026-10-24",
+          "acceptance": "merged-implementation"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/a29fabfdbd61384c4dfc73cd33de5c51d68b43b9",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/0393794",
+          "observedOn": "2026-10-24",
+          "acceptance": "merged-implementation"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-evidence-20261024-final-idle-canon",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-evidence-final-defenders",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/08605a3",
+          "observedOn": "2026-10-24",
+          "acceptance": "merged-implementation"
+        }
+      ],
+      "completionBasis": "Done as bounded support work: sealed evidence bundles include the dedicated-host ZDB1 stdout (39,042 B / 251 lines) with manifest verification. Does not restore release credit.",
+      "kind": "work-item",
+      "owner": "Agent C — bounded supporting work; owner retains outcome acceptance",
+      "priority": "P1",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/16",
+      "criterion": "The recorder evidence bundle includes the dedicated-host ZDB1 stdout for the same owned session, with bounded redaction and manual privacy review.",
+      "note": "Sealed bundles include host_stdout.log (ZDB1 stream) added before signed stop; receipt summary consumes it and reports explicit gaps. #16 closed.",
+      "deferReason": "Supplemental bug-fix/diagnostics-hardening support work; not part of the required City release denominator.",
+      "implementationLane": "C",
+      "workOrigin": "discovered",
+      "workType": "hardening",
+      "supportsOutcomeId": "ZOM-OBS-02",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Live merged-main verification showed host stdout was outside the sealed evidence set."
+    },
+    {
+      "id": "ZOM-DISC-25",
+      "title": "Bounded per-team troop histogram and explicit observed lifecycle events",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "done",
+      "sourceState": "bounded per-team troop histogram + observed lifecycle verified reliable in sealed runs",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/a29fabfdbd61384c4dfc73cd33de5c51d68b43b9",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/0393794",
+          "observedOn": "2026-10-24",
+          "acceptance": "merged-implementation"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/main/overlay/lua/main.lua",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/main/tests/test_flight_lua_msfiles.py",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-evidence-final-defenders",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-evidence-20261024-final-idle-canon",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        }
+      ],
+      "completionBasis": "Narrow supporting criterion met; no parent release-outcome credit",
+      "kind": "work-item",
+      "owner": "Agent C — bounded supporting work; owner retains outcome acceptance",
+      "priority": "P1",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/13",
+      "criterion": "Probe heartbeat/mission_enter carries bounded troops_team0/1 id:count plus capped troop names (<=12 ids and 400 chars per team, <=32-char labels, unknown counted) and emits player_died/player_respawned/round_started/wave_started only from observed server transitions, with no guessed events or unbounded output.",
+      "note": "C's kill/troop accessor fix (9756b14) reads returned lhs values; sealed runs report troops reliable=true, unknown_ids=0 and explicit player_joined/died/respawned/left events.",
+      "deferReason": "Supplemental bug-fix/diagnostics-hardening support work; not part of the required City release denominator.",
+      "implementationLane": "C",
+      "workOrigin": "discovered",
+      "workType": "bug-fix",
+      "supportsOutcomeId": "ZOM-OBS-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner requested recording the diagnostics upgrades as bug-fix work after live wave and respawn issues; not part of the release baseline."
+    },
+    {
+      "id": "ZOM-DISC-26",
+      "title": "Receipt summary CLI: verify sealed evidence and report what happened",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "done",
+      "sourceState": "receipt summary verifies sealed bundles and keeps runtime_verified=false",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/a29fabfdbd61384c4dfc73cd33de5c51d68b43b9",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/0393794",
+          "observedOn": "2026-10-24",
+          "acceptance": "merged-implementation"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/main/tools/receipt_summary.py",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/main/tests/test_flight_receipt_summary.py",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-evidence-final-defenders",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        }
+      ],
+      "completionBasis": "Narrow supporting criterion met; no parent release-outcome credit",
+      "kind": "work-item",
+      "owner": "Agent C — bounded supporting work; owner retains outcome acceptance",
+      "priority": "P1",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
+      "criterion": "`python tools/diagnostics.py summary <attempt-or-session dir>` verifies the recorder manifest (exact member set, safe paths, SHA-256) and fails closed with exit 2 on tampering; it reports session/outcome/probe fields, max/last team counts, bounded troop histogram, waves/rounds, lifecycle events, engine-error classes, evidence gaps and runtime_verified=false.",
+      "note": "Summary CLI verified read-only on the final sealed bundles; labels legacy unreliable kill sums rather than zero and reports evidence gaps.",
+      "deferReason": "Supplemental bug-fix/diagnostics-hardening support work; not part of the required City release denominator.",
+      "implementationLane": "C",
+      "workOrigin": "discovered",
+      "workType": "assurance",
+      "supportsOutcomeId": "ZOM-OBS-02",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner requested a receipt-level 'what happened' summary as part of the bug-fix diagnostics pass."
+    },
+    {
+      "id": "ZOM-DISC-27",
+      "title": "Native Zombie roster in engine (894..911, no 873/874)",
+      "groupId": "Solo",
+      "milestoneId": "M2",
+      "state": "done",
+      "sourceState": "compiled-script roster patch merged (4c4a730/87aa498) and verified in sealed idle/no-client runs",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/13",
+          "observedOn": "2026-10-24",
+          "acceptance": "open-requirement"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/4c4a730",
+          "observedOn": "2026-10-24",
+          "acceptance": "merged-implementation"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-evidence-20261024-final-idle-canon",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-evidence-final-defenders",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-evidence-wave2-attempt",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-evidence-wave2c-attempt",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        }
+      ],
+      "completionBasis": "Done as bounded support work/evidence; not release acceptance.",
+      "kind": "work-item",
+      "owner": "Agent A — bounded supporting work; owner retains outcome acceptance",
+      "priority": "P0",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/13",
+      "criterion": "Faction 16 native bots select Zombie troops 894..911; 873/874 never observed; roster read reliable.",
+      "note": "D's sealed bundles show native Zombie ids 894..911 (with resolved trp_invader*_multiplayer_ai names), troops reliable=true, no 873/874, positions moving. Implementation only changes compiled bot-troop selection; no gameplay acceptance. Wave>=2 observation (sealed wave2c-attempt, configured defender-heavy hands-off variant) shows waves.max=2; native round reset and survival mechanics documented, no counter fix.",
+      "deferReason": "Supplemental bug-fix/diagnostics-hardening support work; not part of the required City release denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered"
+    },
+    {
+      "id": "ZOM-DISC-28",
+      "title": "Native team-0 defender squad (981..984) with hold-sector contract",
+      "groupId": "Solo",
+      "milestoneId": "M2",
+      "state": "active",
+      "sourceState": "native team-0 defender spawn proven in sealed engine evidence (bots_team0=4, troops 981..984); division 5-7 adoption and hold-sector rotation NOT observed",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "github-issue",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/13",
+          "observedOn": "2026-10-24",
+          "acceptance": "open-requirement"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/3950f44",
+          "observedOn": "2026-10-24",
+          "acceptance": "merged-implementation"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-evidence-final-defenders",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-evidence-final-noclient-killfix",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "_zom-d-build/local/session/play-city/flights/b340e92225c14949b762a6a631bfd2ae",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-evidence-final-noclient-defenders",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/08605a3",
+          "observedOn": "2026-10-24",
+          "acceptance": "merged-implementation"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-evidence-disc28-groups",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-evidence-disc28d-scripted",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-evidence-disc28e-troopfallback",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        }
+      ],
+      "completionBasis": "Not completed: spawn/roster proven, but division 5-7 adoption and guard-post hold/sector rotation are unproven; defenders cluster near spawn and no combat/agent samples exist.",
+      "kind": "work-item",
+      "owner": "Agent A — bounded supporting work; owner retains outcome acceptance",
+      "priority": "P0",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/13",
+      "criterion": "Rotation set_bot_count 1 4 yields four native team-0 bots selecting 981..984; City orders adopt them into divisions 5-7 and issue hold/sector orders; movement/positions observable.",
+      "note": "Sealed idle bundle: bots_team0=4, alive_team0=5, team0 troops 981x3/982x2/983x2/984x2 with zdr names, unknown_ids=0, team1 native 894..910, engagement reliable (1/5 lifetime counters), positions moving, 8-file manifest verified. No-client bundle: no_player=true, bots_team0=4 (981/982/984), team1 8 natives. BUT no combat_sample/agent_sample events from sample_defenders; team0 stays clustered near spawn (166,182) and guard entries 2/3/4/division 5-7 holding is NOT observed. Keep active; C probe group/division capture needed. C's final telemetry merge (08605a3, main 24ed22f) adds groups_team0/1 and a defenders summary with explicit hold_behavior_observed=false and division gaps; D is rebuilding from 24ed22f to validate group 5-7 / guard positions. D's sealed group-telemetry run ai-evidence-disc28-groups (build 24ed22f) again shows defender troops 981..984 and reliable kills (4/5) but group_read_unknown=17, groups_team0/1=none and defenders.positions_sampled=0: the probe's agent_get_group (1765) read fails for every agent, so division 5-7 adoption stays unobservable; C hotfix requested. Build a590a05 run ai-evidence-disc28d-scripted (300 s, 22 heartbeats): defenders 981..984 present every heartbeat; team0 ai_sample positions leave the spawn cluster and move 20-39 m away after the adoption ticks, so the scripted-destination fallback works. But group_convention=unknown, groups_team0/1=none, divisions.read_unknown=22, division_source=unavailable, combat_sample=0: division 5-7 assignment and guard-post hold remain unobservable/unproven. DISC-28 stays active. C troop-fallback re-seal ai-evidence-disc28e-troopfallback (build 8ea6b34): defender_source=troop-fallback, positions_sampled=62, distinct_positions=30, guard_entries_reached=16 coarse cells, moving=10, hold_samples=62, combat_sample=88/agent_sample=88. Team0 centroid still ~165,182 (near spawn); hold_behavior_observed=false and guard-entry identity unproven; division 5-7 still unreadable (group_convention=unknown). Quantified movement (sealed ai_sample points vs spawn 166,182): disc28e median 2.2 m, p75 7.0, p90 15.6, max 49.9 m, 16% >10 m; disc28d median 3.1, p75 16.2, p90 26.5, max 39.1 m, 28% >10 m; 8/13-14 ids' furthest excursion toward the guard side (-y). But samples are dominated by respawned defenders and trajectories oscillate back; no plateau/stability near guard entries, hold_behavior_observed=false, entry identity cannot be asserted (scene entry indices are not coordinates in evidence). Metric guardrails: guard_entries_reached=16 is a bounded distinct coarse-position proxy capped at 16, NOT guard-entry identity (the stronger number is distinct_positions=30); hold_samples=62 counts sampled observations, not hold assertions (hold_behavior_observed=false). Recorded bound: movement toward the guard side observed; stable hold/sector assignment and guard-entry identity unproven. Final build 8ea6b34 module_sha256=e4b44f94cbf37af5579cbdb933e8d26d7c8f016a337cebdae0ecfe4c0819b280. FINAL WORDING: guard_entries_reached=16 is a cap, not 16 entries -> >=16 distinct coarse positions sampled (bounded 1 m proxy; not guard-entry identity); stronger behavioural facts are distinct_positions=30 + moving=10. hold_samples=62 are bounded defender position observations, NOT a hold assertion; hold_behavior_observed=false; divisions.convention=unknown / read_unknown=17 with defender_divisions_unobserved / defender_division_unreadable is the intended honest 5-7-unobserved state. Native defenders (981-984) spawn, move between >=16 distinct coarse positions over 300 s (out-of-spawn movement proven; median 2.2 m / p90 15.6 m / max 49.9 m); team1 native zombies 894..911 fight (reliable kills both teams); wave 2 reached in the defender-heavy variant; play_city validated on the same install - 5-7 adoption/hold and wave-carryover remain unobserved/unimplemented; no acceptance. Build 8ea6b34 (module_sha256 e4b44f94...).",
+      "deferReason": "Supplemental bug-fix/diagnostics-hardening support work; not part of the required City release denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered"
+    },
+    {
+      "id": "ZOM-DISC-29",
+      "title": "Automatic-firearm accuracy build profile (default on, stock override)",
+      "groupId": "Solo",
+      "milestoneId": "M2",
+      "state": "done",
+      "sourceState": "profile merged (9449f7b/a28c89d); offline tests + build receipt; gameplay feel not measured",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/9449f7b",
+          "observedOn": "2026-10-24",
+          "acceptance": "merged-implementation"
+        },
+        {
+          "kind": "test-count",
+          "source": "9 firearm profile tests; build receipt changed_count=10, untouched=674",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-sealed-evidence"
+        }
+      ],
+      "completionBasis": "Done as bounded support work/evidence; not release acceptance.",
+      "kind": "work-item",
+      "owner": "Agent A — bounded supporting work; owner retains outcome acceptance",
+      "priority": "P2",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/13",
+      "criterion": "Automatic firearms gain +5..10 accuracy; single-shot firearms and all non-firearm items unchanged; build receipt records deltas and runtime_verified=false.",
+      "note": "Owner asked for slightly more accurate sustained/serial fire. Implementation patches only the built item table for the automatic-weapon flag group (derived from itm_m16a2+itm_mp5): 10 items +8..+10 accuracy; Remington 700, Browning Cynergy, Beretta 92FS, SW5904, M82 unchanged. No accuracy measurement in engine; not claimed as gameplay validation.",
+      "deferReason": "Supplemental bug-fix/diagnostics-hardening support work; not part of the required City release denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered"
+    },
+    {
+      "id": "ZOM-DISC-30",
+      "title": "Community Warband AI behavior research + hold/fire/speed prototype",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "done",
+      "sourceState": "bounded source review complete; runtime behavior unverified",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/4cc36bf/reference/WARBAND_AI_MODDING.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-review"
+        }
+      ],
+      "completionBasis": "Research + offline prototype delivered; no runtime acceptance",
+      "kind": "work-item",
+      "owner": "Agent C — research/prototype; owner retains runtime acceptance",
+      "priority": "P1",
+      "criterion": "Cited community sources establish exact hold/fire, speed-control and wave ops; prototype validates plan shape without launching the game.",
+      "note": "Sources include TaleWorlds/Modding Wiki/Chinese forum/tgsmod/WSE2; no code copied. Occurred while diagnosing task-30 survivors charging.",
+      "deferReason": "Supplemental research/prototype that supports required AI/wave leaves; not part of the required denominator.",
+      "implementationLane": "C",
+      "workOrigin": "discovered",
+      "workType": "research",
+      "supportsOutcomeId": "ZOM-AI-03",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Discovered while the owner tested the task-30 rear-line build and reported survivors charging/sprinting.",
+      "discoveredDuring": "task-30 live owner test; survivors charging + sprint complaints",
+      "graphImpact": "Unblocks task-38 speed/hold implementation; supports ZOM-AI-02/ZOM-AI-03/ZOM-WAVE-01."
+    },
+    {
+      "id": "ZOM-DISC-31",
+      "title": "Cited Warband AI community source pack and licence limits",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "done",
+      "sourceState": "source pack verified; no runtime effect",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/4cc36bf/reference/WARBAND_AI_COMMUNITY_SOURCES.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-review"
+        }
+      ],
+      "completionBasis": "Source pack delivered; no acceptance",
+      "kind": "work-item",
+      "owner": "Agent E — provenance/credits; owner retains release acceptance",
+      "priority": "P2",
+      "criterion": "Community AI sources and licence limits are cited with dates, URLs and explicit accessibility gaps.",
+      "note": "FormAI/Battle AI/Native AI treated as one Motomataru lineage; link-only.",
+      "deferReason": "Supplemental provenance research; not part of the required denominator.",
+      "implementationLane": "E",
+      "workOrigin": "discovered",
+      "workType": "research",
+      "supportsOutcomeId": "ZOM-LEGAL-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Requested by the owner to stop guessing AI behavior and trust the community.",
+      "discoveredDuring": "task-30/35 research sweep",
+      "graphImpact": "Feeds task-35 synthesis and legal/attribution review."
+    },
+    {
+      "id": "ZOM-DISC-32",
+      "title": "No-launch AI/profile matrix and pre-launch gate",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "done",
+      "sourceState": "read-only matrix/tests complete; runtime evidence separate",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-34"
+      ],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/4cc36bf/launcher/profile_matrix.py",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-tests"
+        }
+      ],
+      "completionBasis": "Planner/tests delivered; no runtime acceptance",
+      "kind": "work-item",
+      "owner": "Agent F — launcher/test harness; owner retains release acceptance",
+      "priority": "P1",
+      "criterion": "A read-only planner validates team counts, rotation hashes, receipt fields, rear hold, wave visitors, refill target and block mode without launching a host.",
+      "note": "`play_city matrix`; tests mock process launch to prove no host.",
+      "deferReason": "Supplemental validation tooling; not part of the required denominator.",
+      "implementationLane": "F",
+      "workOrigin": "discovered",
+      "workType": "test-harness",
+      "supportsOutcomeId": "ZOM-QA-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Needed to gate repeated task-30/task-34 rebuilds without launching a live game.",
+      "discoveredDuring": "task-34 validation queue",
+      "graphImpact": "D pre-launch gate for wave/refill/hold validation."
+    },
+    {
+      "id": "ZOM-DISC-33",
+      "title": "Rear defensive line and 8-defender spawn_agent refill",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "active",
+      "sourceState": "sealed task-34 refill/rear positions observed; hold behaviour not asserted",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-28"
+      ],
+      "evidence": [
+        {
+          "kind": "sealed-evidence",
+          "source": "_zom-d-profiles/local/session/play-city/launches/ee8c7f885f6d4b30aca40ba50cf9f6fb",
+          "observedOn": "2026-10-24",
+          "acceptance": "sealed-8-file-verified"
+        }
+      ],
+      "completionBasis": "Implementation and sealed counts observed; no acceptance",
+      "kind": "work-item",
+      "owner": "Agent A — implementation; Agent D sealed it; owner retains acceptance",
+      "priority": "P0",
+      "criterion": "Defenders hold near the rear line and refill toward 8 after deaths without a forward scripted destination.",
+      "note": "D sealed: alive=8 at end, max_team0=8, troops 981..984, ranged 61/61, kills 7/deaths 15; hold_behavior_observed=false.",
+      "deferReason": "Supplemental defensive-line support work; not part of the required denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "bug-fix",
+      "supportsOutcomeId": "ZOM-AI-03",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner reported survivors charging and being wiped during live task-30 testing.",
+      "discoveredDuring": "task-30 rear-line live owner test",
+      "graphImpact": "Keeps the AI squad alive; prerequisite for speed/hold tuning and wave survival."
+    },
+    {
+      "id": "ZOM-DISC-34",
+      "title": "Gate native wave visitors to slow Zombie 894",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "active",
+      "sourceState": "wave-1 sealed 894-only; wave-2 visitor ids not yet observed",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-33"
+      ],
+      "evidence": [
+        {
+          "kind": "sealed-evidence",
+          "source": "_zom-d-profiles/local/session/play-city/launches/ee8c7f885f6d4b30aca40ba50cf9f6fb",
+          "observedOn": "2026-10-24",
+          "acceptance": "sealed-8-file-verified"
+        }
+      ],
+      "completionBasis": "Wave-1 gating observed; longer wave-2 run pending",
+      "kind": "work-item",
+      "owner": "Agent A — implementation; Agent D validating",
+      "priority": "P0",
+      "criterion": "Native wave slots 200..244 are rewritten to 894, and sealed runs show no Fast/Tank/mounted/ranged visitors.",
+      "note": "D wave1 classes {native_zombie:17}, troops {894:17}; wave max 1 in 3-min run; wave-2 pending.",
+      "deferReason": "Supplemental wave-balance support work; not part of the required denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "bug-fix",
+      "supportsOutcomeId": "ZOM-WAVE-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner saw strong/mounted/Fast enemies in wave 1/2 during live testing.",
+      "discoveredDuring": "task-34 wave-2 Fast Zombie wipe",
+      "graphImpact": "Blocks strong/mounted wave spikes; must pass before ZOM-WAVE-01 balance can be judged."
+    },
+    {
+      "id": "ZOM-DISC-35",
+      "title": "Community-backed zombie speed clamp and team hold/fire orders",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "active",
+      "sourceState": "implementation queued; no runtime evidence yet",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-30",
+        "ZOM-DISC-33",
+        "ZOM-DISC-34"
+      ],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/4cc36bf/reference/WARBAND_AI_MODDING.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-design-only"
+        }
+      ],
+      "completionBasis": "Design complete; implementation/validation pending",
+      "kind": "work-item",
+      "owner": "Agent A — implementation; Agent D validation",
+      "priority": "P0",
+      "criterion": "Zombies move at a bounded speed modifier and defenders hold/fire with team orders, no scripted-destination override.",
+      "note": "Plan: agent_set_speed_modifier 2093 ~70% wave-scaled; team_set_order_position 1791 + mordr_hold/hold_fire/fire_at_will/use_ranged_weapons; WSE2 3343/3314 only if needed.",
+      "deferReason": "Supplemental combat-behavior support work; not part of the required denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "feature",
+      "supportsOutcomeId": "ZOM-AI-03",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner reported continuous sprinting and survivors charging instead of holding/shooting.",
+      "discoveredDuring": "owner speed/charge complaints after task-30",
+      "graphImpact": "Primary unblock for ZOM-AI-03 hold behavior and ZOM-WAVE-01 balance; depends on research + rear line + wave gating."
+    },
+    {
+      "id": "ZOM-DISC-36",
+      "title": "Speed/order/movement/wave-2/refill telemetry",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "done",
+      "sourceState": "probe/tests delivered; rebuild required to emit new fields",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-30"
+      ],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/4cc36bf/docs/DIAGNOSTICS.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-tests"
+        }
+      ],
+      "completionBasis": "Telemetry/tests delivered; runtime unverified",
+      "kind": "work-item",
+      "owner": "Agent C — telemetry; Agent D re-seal",
+      "priority": "P1",
+      "criterion": "Per-agent speed/order readbacks, movement rate, wave-2 classes and refill series are observable with unknown semantics.",
+      "note": "No behavior/speed getter assumed; capability flags and gaps explicit.",
+      "deferReason": "Supplemental diagnostics support work; not part of the required denominator.",
+      "implementationLane": "C",
+      "workOrigin": "discovered",
+      "workType": "diagnostics",
+      "supportsOutcomeId": "ZOM-OBS-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Without speed/order telemetry the task-38 fix would be unprovable.",
+      "discoveredDuring": "task-38 preparation; no speed/order readback existed",
+      "graphImpact": "Unblocks proof for task-38 and D's final validation."
+    },
+    {
+      "id": "ZOM-DISC-37",
+      "title": "Installer uninstall/repair + desktop/settings + release gate",
+      "groupId": "Setup",
+      "milestoneId": "M2",
+      "state": "done",
+      "sourceState": "implementation in review; no runtime acceptance",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-REC-01"
+      ],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/4cc36bf/launcher/city_launch.py",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/794cd1b/launcher/maintenance.py",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-tests"
+        }
+      ],
+      "completionBasis": "Work in progress; no acceptance",
+      "kind": "work-item",
+      "owner": "Agent F — implementation; owner retains release acceptance",
+      "priority": "P1",
+      "criterion": "Installer uninstall/repair, desktop launcher/settings and release-candidate checks are verified without deleting owned data.",
+      "note": "Task-39 lane; no game launch. | Task-39 merged: ownership inventory, verify/repair/uninstall, control panel/settings/shortcut spec, release-check candidate gate.",
+      "deferReason": "Supplemental M2 release-gate work; not part of the required denominator.",
+      "implementationLane": "F",
+      "workOrigin": "discovered",
+      "workType": "feature",
+      "supportsOutcomeId": "ZOM-WIN-02",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Required M2 gates remain open; owner requested milestone work alongside AI fixes.",
+      "discoveredDuring": "M2 milestone review",
+      "graphImpact": "Supports ZOM-WIN-02/ZOM-WIN-03 and ZOM-REL-01; cannot close M2 alone."
+    },
+    {
+      "id": "ZOM-DISC-38",
+      "title": "Publication rights, credits and redistribution gate dossier",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "done",
+      "sourceState": "dossier complete; owner/licence decisions and qualified review open",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/4cc36bf/reference/LEGAL_RIGHTS_AND_CREDITS.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static"
+        }
+      ],
+      "completionBasis": "Dossier delivered; gate open, no acceptance",
+      "kind": "work-item",
+      "owner": "Agent E — evidence; owner/legal acceptance",
+      "priority": "P0",
+      "criterion": "Rights-holder map, redistribution matrix, attribution and risk register are documented with explicit unresolved items.",
+      "note": "High-severity R-03 imported-model statements; not legal findings; ZOM-LEGAL-01 remains backlog. | Task-40 merged; legal gate remains OPEN (ZOM-LEGAL-01 backlog).",
+      "deferReason": "Supplemental legal evidence work; not part of the required denominator.",
+      "implementationLane": "E",
+      "workOrigin": "discovered",
+      "workType": "legal-gate",
+      "supportsOutcomeId": "ZOM-LEGAL-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "M4 legal gate was open; owner asked for real credits/rights rather than assumptions.",
+      "discoveredDuring": "M4 legal/publication gate",
+      "graphImpact": "Supports ZOM-LEGAL-01 and blocks ZOM-REL-01 until owner decisions/qualified review."
+    },
+    {
+      "id": "ZOM-DISC-39",
+      "title": "Sealed task-34 validation of refill, rear line and wave-1 gating",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "done",
+      "sourceState": "two sealed no-install runs; wave-2 not observed",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-33",
+        "ZOM-DISC-34"
+      ],
+      "evidence": [
+        {
+          "kind": "sealed-evidence",
+          "source": "_zom-d-profiles/local/session/play-city/launches/ee8c7f885f6d4b30aca40ba50cf9f6fb",
+          "observedOn": "2026-10-24",
+          "acceptance": "sealed-8-file-verified"
+        }
+      ],
+      "completionBasis": "Sealed support evidence collected; no acceptance",
+      "kind": "work-item",
+      "owner": "Agent D — sealed validation; owner retains acceptance",
+      "priority": "P1",
+      "criterion": "A sealed run shows 8 defenders refilling, rear positions, ranged-only modes and wave-1 894-only composition.",
+      "note": "ee8c7f88: alive=8/max=8, ranged 61/61, wave1 894:17, kills 7/deaths 15; 684864b6 baseline same shape.",
+      "deferReason": "Supplemental validation evidence; not part of the required denominator.",
+      "implementationLane": "D",
+      "workOrigin": "discovered",
+      "workType": "validation",
+      "supportsOutcomeId": "ZOM-QA-02",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "The owner/live queue needed sealed evidence for the task-34 behavior change.",
+      "discoveredDuring": "task-34 validation run",
+      "graphImpact": "Supports ZOM-QA-02; waves.max=1 leaves wave-2 acceptance open."
+    },
+    {
+      "id": "ZOM-DISC-40",
+      "title": "Survivor standoff/fire discipline and last-resort melee",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "active",
+      "sourceState": "implementation merged; sealed validation pending",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-35"
+      ],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/794cd1b/tools/city_defense.py",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static"
+        }
+      ],
+      "completionBasis": "Merged implementation; runtime validation pending",
+      "kind": "work-item",
+      "owner": "Agent A — implementation; Agent D validation",
+      "priority": "P0",
+      "criterion": "Survivors keep firearms until ammo depletion, hold formation/rear line, and only melee as last resort; no scripted-destination charge.",
+      "note": "`agent_ai_set_can_weapon_switch(0/1)` by ammo, `aisb_hold` 6 s, existing native-group hold/fire orders; no AI bombs fitted. | Sealed task-42: ranged-while-ammo and tighter rear standoff verified; melee branch unobservable due refill, KD not improved.",
+      "deferReason": "Supplemental AI behavior support; not part of the required denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "feature",
+      "supportsOutcomeId": "ZOM-AI-02",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner design rule after task-38: zombies should rarely reach survivors; explosives only packed/close or desperate; knives last resort.",
+      "discoveredDuring": "owner standoff/explosives design note",
+      "graphImpact": "Blocks ZOM-AI-02/03 behavioral acceptance until sealed."
+    },
+    {
+      "id": "ZOM-DISC-41",
+      "title": "Sealed task-38 speed/refill/ranged validation",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "done",
+      "sourceState": "8-minute sealed run; wave 2 not reached",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-34",
+        "ZOM-DISC-35"
+      ],
+      "evidence": [
+        {
+          "kind": "sealed-evidence",
+          "source": "_zom-d-profiles/local/session/play-city/launches/bfd6876be96843b78272e0745b4d53ef",
+          "observedOn": "2026-10-24",
+          "acceptance": "sealed-8-file-verified"
+        }
+      ],
+      "completionBasis": "Sealed support evidence; no acceptance",
+      "kind": "work-item",
+      "owner": "Agent D — sealed validation; owner retains acceptance",
+      "priority": "P1",
+      "criterion": "Sealed run shows refill toward 8, ranged defenders, rear-ish positions, wave-1 894 only.",
+      "note": "bfd6876b: refill min6 peak8 observed; ranged 78/78; kills 6/deaths 49; wave max1; speed/order readback gaps remain.",
+      "deferReason": "Supplemental validation evidence; not part of the required denominator.",
+      "implementationLane": "D",
+      "workOrigin": "discovered",
+      "workType": "validation",
+      "supportsOutcomeId": "ZOM-QA-02",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "D sealed the task-38 behavior build.",
+      "discoveredDuring": "task-38 validation queue",
+      "graphImpact": "Supports QA-02; wave-2 gate still unobserved."
+    },
+    {
+      "id": "ZOM-DISC-42",
+      "title": "Sealed task-42 standoff validation (weapon switch, positions, KD)",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "done",
+      "sourceState": "D rebuilding task-42 module; no seal yet",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-40",
+        "ZOM-DISC-41"
+      ],
+      "evidence": [
+        {
+          "kind": "sealed-evidence",
+          "source": "_zom-d-profiles/local/session/play-city/launches/095d3b4a402a4677966e8a982d120035",
+          "observedOn": "2026-10-24",
+          "acceptance": "sealed-8-file-verified"
+        }
+      ],
+      "completionBasis": "Sealed task-42 validation completed; no acceptance",
+      "kind": "work-item",
+      "owner": "Agent D — sealed validation; owner retains acceptance",
+      "priority": "P1",
+      "criterion": "Sealed task-42 run shows ranged-while-ammo, no melee drift, rear/standoff positions, zombie pace and wave 894 classes.",
+      "note": "D rebuilding from c18fe75; wave-2 and behavior getter gaps remain explicit. | Sealed 095d3b4a: ranged 72/72, ammo never zero, refill verified, rear spread x160.9-166.4/y175.2-183.5, kills4/deaths52, wave max1 (894-only); melee and wave-2 unobserved.",
+      "deferReason": "Supplemental validation evidence; not part of the required denominator.",
+      "implementationLane": "D",
+      "workOrigin": "discovered",
+      "workType": "validation",
+      "supportsOutcomeId": "ZOM-QA-02",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Task-42 standoff implementation needs its own sealed evidence.",
+      "discoveredDuring": "task-42 validation queue",
+      "graphImpact": "Final validation gate before standoff can be judged; supports QA-02."
+    },
+    {
+      "id": "ZOM-DISC-43",
+      "title": "Ledger-linked dependency rows on the Pages tracker",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "done",
+      "sourceState": "custom map deployed; no Mermaid dependency",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/794cd1b/site/index.html",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-ui"
+        }
+      ],
+      "completionBasis": "UI change delivered; no release acceptance",
+      "kind": "work-item",
+      "owner": "Lead — UI/tracker integration",
+      "priority": "P2",
+      "criterion": "Pages shows milestone rows with task columns; nodes open task details, hover isolates edges, frontier/all filters; no Mermaid/CDN dependency.",
+      "note": "Restored task-card fetch catch block; custom SVG/DOM map from progress/ledger.json.",
+      "deferReason": "Supplemental tracker UI support; not part of the required denominator.",
+      "implementationLane": "Lead",
+      "workOrigin": "discovered",
+      "workType": "ui",
+      "supportsOutcomeId": "ZOM-REC-03",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner rejected Mermaid and reported broken task cards.",
+      "discoveredDuring": "owner Pages/dependency-map feedback",
+      "graphImpact": "Supports REC-03 progress-view validation; no required credit."
+    },
+    {
+      "id": "ZOM-DISC-44",
+      "title": "Task-42 telemetry gaps: team-1 speed and native-group order readback",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "done",
+      "sourceState": "sealed task-42 run shows configured pace/orders unreadable",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-42"
+      ],
+      "evidence": [
+        {
+          "kind": "sealed-evidence",
+          "source": "_zom-d-profiles/local/session/play-city/launches/095d3b4a402a4677966e8a982d120035",
+          "observedOn": "2026-10-24",
+          "acceptance": "sealed-8-file-verified"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/c72de64/docs/DIAGNOSTICS.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-tests"
+        }
+      ],
+      "completionBasis": "Telemetry extension merged; no acceptance",
+      "kind": "work-item",
+      "owner": "Agent C — telemetry; Agent A implementation",
+      "priority": "P1",
+      "criterion": "Team-1 speed modifier/readback and native-group order state are observable, or explicitly bounded as unavailable.",
+      "note": "`defender_speed_modifiers=100:8` only; no team1 speed in ai_sample; defender_orders lacks native groups 26/28/29/31 and mordr codes. | Task-43 merged: team1 speed readback, subclass 0..9 order scope, ammo-transition inference; native-group orders explicitly unavailable.",
+      "deferReason": "Supplemental diagnostics support; not part of the required denominator.",
+      "implementationLane": "C",
+      "workOrigin": "discovered",
+      "workType": "diagnostics",
+      "supportsOutcomeId": "ZOM-OBS-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "D's task-42 seal could not verify the configured 70% zombie pace or native-group orders.",
+      "discoveredDuring": "task-42 sealed validation",
+      "graphImpact": "Unblocks proof for speed/hold; without it those claims stay config-only."
+    },
+    {
+      "id": "ZOM-DISC-45",
+      "title": "Task-42 limited-ammo/no-refill and wave-2 validation",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "active",
+      "sourceState": "task-42 sealed; melee branch and wave 2 unobserved",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-42"
+      ],
+      "evidence": [
+        {
+          "kind": "sealed-evidence",
+          "source": "_zom-d-profiles/local/session/play-city/launches/095d3b4a402a4677966e8a982d120035",
+          "observedOn": "2026-10-24",
+          "acceptance": "sealed-8-file-verified"
+        }
+      ],
+      "completionBasis": "Follow-up validation pending",
+      "kind": "work-item",
+      "owner": "Agent D — sealed validation; owner retains acceptance",
+      "priority": "P1",
+      "criterion": "A no-refill/limited-ammo run reaches melee-last-resort, and a longer run observes wave-2 visitor classes.",
+      "note": "Task-42: ranged 72/72, refill works, KD 4 kills/52 deaths, wave max1, 894-only; melee branch not testable while refill grants full ammo.",
+      "deferReason": "Supplemental validation; not part of the required denominator.",
+      "implementationLane": "D",
+      "workOrigin": "discovered",
+      "workType": "validation",
+      "supportsOutcomeId": "ZOM-QA-02",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Refill and 8-minute rounds prevented the melee and wave-2 branches from being observed.",
+      "discoveredDuring": "task-42 sealed validation",
+      "graphImpact": "Supports QA-02 and WAVE-01; without it standoff/balance remain partially unproven."
+    },
+    {
+      "id": "ZOM-DISC-46",
+      "title": "Balance KD and zombie pressure after standoff patch",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "active",
+      "sourceState": "sealed task-42 KD worse than task-38; wave2 unobserved",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-40",
+        "ZOM-DISC-42"
+      ],
+      "evidence": [
+        {
+          "kind": "sealed-evidence",
+          "source": "_zom-d-profiles/local/session/play-city/launches/095d3b4a402a4677966e8a982d120035",
+          "observedOn": "2026-10-24",
+          "acceptance": "sealed-8-file-verified"
+        }
+      ],
+      "completionBasis": "Implementation/research pending; no acceptance",
+      "kind": "work-item",
+      "owner": "Agent A — AI/balance; Agent D validation",
+      "priority": "P0",
+      "criterion": "Measured defender kills/deaths and wave survival improve without reverting standoff/refill behavior.",
+      "note": "Task-42: 4 defender kills vs 52 deaths (task-38 6/49); zombies still outpace defenders; wave2 never reached.",
+      "deferReason": "Supplemental balance support; not part of the required denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "balance",
+      "supportsOutcomeId": "ZOM-WAVE-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner reported heavy kill/death imbalance; sealed evidence confirms it persists.",
+      "discoveredDuring": "task-42 sealed validation/owner balance feedback",
+      "graphImpact": "Blocks WAVE-01 acceptance; depends on standoff validation and telemetry."
+    },
+    {
+      "id": "ZOM-DISC-47",
+      "title": "Survivor melee weapon, doubled ammo, accumulating reinforcements, Invasion mode",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "active",
+      "sourceState": "owner decision; implementation pending",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-40",
+        "ZOM-DISC-46"
+      ],
+      "evidence": [],
+      "completionBasis": "Owner decision recorded; implementation pending",
+      "kind": "work-item",
+      "owner": "Agent A — implementation; Agent D validation",
+      "priority": "P0",
+      "criterion": "Each survivor AI has one melee fallback; every ammo stack is doubled; survivor count grows with won rounds within a cap; Invasion mode is explicitly used.",
+      "note": "Owner decisions 2026-10-24; preserve standoff/refill; target KD/wave2.",
+      "deferReason": "Supplemental AI/loadout work; not part of the required denominator.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "feature",
+      "supportsOutcomeId": "ZOM-AI-02",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner decisions after task-42 KD evidence.",
+      "discoveredDuring": "owner consolidation after task-42",
+      "graphImpact": "Primary balance lever; depends on standoff and KD work."
+    },
+    {
+      "id": "ZOM-DISC-48",
+      "title": "Consolidation board, cross-review loop and worktree discipline",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "active",
+      "sourceState": "coordination active",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "evidence": [],
+      "completionBasis": "Coordination task; no acceptance",
+      "kind": "work-item",
+      "owner": "Lead — coordination; reviewers A/C/D/E/F/G",
+      "priority": "P1",
+      "criterion": "No self-review; each owner has an independent reviewer; worktrees do not overlap; statuses/PRs/ledger stay current.",
+      "note": "Review pairs A↔C, D↔A, F↔E, G↔E; Lead owns merges/installs.",
+      "deferReason": "Supplemental coordination work; not part of the required denominator.",
+      "implementationLane": "Lead",
+      "workOrigin": "discovered",
+      "workType": "governance",
+      "supportsOutcomeId": "ZOM-REC-03",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner asked for a review loop and no worktree collisions.",
+      "discoveredDuring": "owner consolidation request",
+      "graphImpact": "Unblocks coordinated delivery; no required credit."
+    },
+    {
+      "id": "ZOM-DISC-49",
+      "title": "Modder diagnostics/telemetry reuse research",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "done",
+      "sourceState": "research pending",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-44"
+      ],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/e0c76ac/reference/MODDER_DIAGNOSTICS_RESEARCH.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static"
+        }
+      ],
+      "completionBasis": "Research reference merged; runtime checks delegated to D/E",
+      "kind": "work-item",
+      "owner": "Agent C — research; Agent D validation",
+      "priority": "P1",
+      "criterion": "Existing Warband/WSE2 diagnostics/telemetry patterns are cited and mapped to our gaps instead of reinventing.",
+      "note": "Community tools/mods, debug logs, WSE2 instrumentation; adopt/adapt/ignore. | Merged f74c0c2: adopt WSE2 rgl_log/crash logs as secondary evidence; adapt profiler/console getters; ignore display/print in sealed runs; keep ZDB1. Community tooling does not fill behavior/native-order/shield gaps.",
+      "deferReason": "Supplemental diagnostics research; not part of the required denominator.",
+      "implementationLane": "C",
+      "workOrigin": "discovered",
+      "workType": "research",
+      "supportsOutcomeId": "ZOM-OBS-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner asked to research modder diagnostics rather than reinvent.",
+      "discoveredDuring": "owner consolidation request",
+      "graphImpact": "Improves telemetry proof and validation speed."
+    },
+    {
+      "id": "ZOM-DISC-50",
+      "title": "Semantic versioning, CHANGELOG and PR/version traceability",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "active",
+      "sourceState": "implementation pending",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-37"
+      ],
+      "evidence": [],
+      "completionBasis": "Pending",
+      "kind": "work-item",
+      "owner": "Agent F — release metadata; Agent E review",
+      "priority": "P2",
+      "criterion": "VERSION/CHANGELOG follow semver; each work item links PR/commit/tag; release-check surfaces missing links.",
+      "note": "0.3.0 candidate; link work items to PRs.",
+      "deferReason": "Supplemental release metadata; not part of the required denominator.",
+      "implementationLane": "F",
+      "workOrigin": "discovered",
+      "workType": "release",
+      "supportsOutcomeId": "ZOM-REL-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner requires semver/changelog/PR traceability.",
+      "discoveredDuring": "owner consolidation request",
+      "graphImpact": "Supports release gate; no acceptance alone."
+    },
+    {
+      "id": "ZOM-DISC-51",
+      "title": "Free-asset sourcing + cosmetics/icon mapping",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "active",
+      "sourceState": "agent G researching",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "evidence": [],
+      "completionBasis": "Research pending",
+      "kind": "work-item",
+      "owner": "Agent G — sourcing; Agent E licence review",
+      "priority": "P1",
+      "criterion": "Free/licensed weapons/clothing/models/hairstyles/UI icons catalogued with attribution; melee/bow/firearm/USD icon mapping.",
+      "note": "No unlicensed assets committed; native atlas may not be redistributable.",
+      "deferReason": "Supplemental asset research; not part of the required denominator.",
+      "implementationLane": "G",
+      "workOrigin": "discovered",
+      "workType": "assets",
+      "supportsOutcomeId": "ZOM-LEGAL-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner asked for a free-asset agent and proper icons/cosmetics.",
+      "discoveredDuring": "owner consolidation request",
+      "graphImpact": "Supports legal/release and future cosmetics layer."
+    },
+    {
+      "id": "ZOM-DISC-52",
+      "title": "Cross-review of free assets and release/legal claims",
+      "groupId": "Quality",
+      "milestoneId": "M4",
+      "state": "active",
+      "sourceState": "review pending",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [
+        "ZOM-DISC-38",
+        "ZOM-DISC-50",
+        "ZOM-DISC-51"
+      ],
+      "evidence": [],
+      "completionBasis": "Pending",
+      "kind": "work-item",
+      "owner": "Agent E — independent reviewer; Lead merges",
+      "priority": "P1",
+      "criterion": "Licences/attribution and CHANGELOG/version claims independently reviewed; findings recorded.",
+      "note": "No self-review.",
+      "deferReason": "Supplemental review work; not part of the required denominator.",
+      "implementationLane": "E",
+      "workOrigin": "discovered",
+      "workType": "review",
+      "supportsOutcomeId": "ZOM-REC-03",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner required independent review of assets/release claims.",
+      "discoveredDuring": "owner consolidation request",
+      "graphImpact": "Blocks release/asset acceptance until reviewer signs off."
+    }
+  ],
+  "warnings": [
+    "Owner chose City-first release 2026-10-23; 23 required outcome leaves (0 accepted), one retained optional five-map expansion leaf.",
+    "Owner explicitly classifies the telemetry upgrades and A/C/D fixes as BUG-FIX / diagnostics-hardening support work, not release acceptance: main tip 06b3186 (C division/defender telemetry merged; A round/wave lifecycle analysis added); canonical installed AI build 24ed22f.",
+    "Required City outcomes remain 0/23 and accepted milestones 0/5; runtime_verified=false everywhere. No gameplay, wave-completion, AI or release acceptance is claimed.",
+    "Merged main 06b3186 (Windows 3.11.9, owned module+archive): 496 tests OK / 7 skips; canonical installed AI build 24ed22f, module_sha256 16162ed9..., runtime_verified=false. One earlier merged run flaked with 1 failure in the pre-existing test_windows_discovery NUL bug; F fixed it with regression tests, but the suite is recorded with that caveat rather than claimed stably green.",
+    "Sealed hands-off evidence: no-client bundle (no_player=true) pre-round bots_team0=8 / bots_team1=32 with both-team positions; idle-client bundle team1 894..911 native Zombies reliable, positions moving, kills measured (1 team1 / 0 team0), waves max 1 across 5 stable rounds; defender bundle bots_team0=4 selecting 981..984 (spawn PROVEN), but division 5-7 adoption and guard-post hold/sector rotation are NOT observed (no combat/agent samples; clustered near spawn); no-client defender bundle no_player=true/bots_team0=4.",
+    "D's play_city live validation passed the full lifecycle (loopback host, join, mission, 8-file sealed manifest, clean stop); the latest sealed flight b340e922 verifies true with bots_team0=4 (native defenders 981..984), native team1 roster and positions, while receipts keep outcome=unknown and runtime_verified=false.",
+    "Still unproven: wave completion and wave 3+, survivor guard-entry identity/hold stability, combat feel with the firearm profile, and release acceptance. WAVE 2 IS OBSERVED in the configured hands-off defender-heavy variant: sealed local/session/ai-evidence-wave2c-attempt, build a590a05, 600 s, set_bot_count 1 8 / 2 4 and set_player_respawn_as_bot 1: waves.max=2, multiple_observed=true, observed=[0,1,2], bots_team0=8, max_team0=9, max_team1=22, engagement.reliable=true (lifetime kills 10/8, not a victory), 7 rounds. This is a survival/clearance observation of the native lifecycle, not a counter fix; wave completion/wave 3+, defender hold/entry identity and combat feel remain unproven.",
+    "Host stdout sealing verified: sealed bundles include dedicated-host ZDB1 stdout (39,042 B / 251 lines) added before signed stop (#16 closed).",
+    "Kill/troop accessor fix (9756b14): stale-register reads replaced with returned lhs values; sealed engagement/troop fields reliable=true, unknown_agents=0, kill bound MAX_PLAUSIBLE_KILLS=10000.",
+    "Native team-0 defenders use the native bot path (rotation set_bot_count 1 4) because add_visitors team 0 produced no agents on the dedicated host; player+4 bots observed with 981..984 troops and division adoption.",
+    "30 non-required leaves: 28 narrowly Done, 1 active (ZOM-DISC-28 defender division/hold observation), one retained optional five-map backlog (ZOM-MAP-01); none adds release credit.",
+    "Four observed Invalid Faction ID:-1 errors remain original Beta 0.4 trailing faction_set_slot writes (trigger 14/opcode 502); engine causality unproven, no gameplay patch.",
+    "Final canonical sealed evidence bounds: defender SPAWN proven (bots_team0=4, troops 981..984) and defender movement away from spawn observed, but C's troop-id fallback samples defender positions (62 samples, median 2.2 m from spawn, p90 15.6 m, max 49.9 m, 16% beyond 10 m, 8/14 ids toward the guard side; disc28d median 3.1/p90 26.5/max 39.1); defenders move out of spawn but no plateau/stability near guard entries, so division 5-7 adoption, entry identity and hold stability are NOT observed; WAVE 2 IS OBSERVED in the configured hands-off defender-heavy variant: sealed local/session/ai-evidence-wave2c-attempt, build a590a05, 600 s, set_bot_count 1 8 / 2 4 and set_player_respawn_as_bot 1: waves.max=2, multiple_observed=true, observed=[0,1,2], bots_team0=8, max_team0=9, max_team1=22, engagement.reliable=true (lifetime kills 10/8, not a victory), 7 rounds. This is a survival/clearance observation of the native lifecycle, not a counter fix; wave completion/wave 3+, defender hold/entry identity and combat feel remain unproven.",
+    "Probe boundary: C's agent_get_group (1765) read fails for every agent in the sealed disc28 run (group_read_unknown=17, groups_team0/1=none), so defender division 5-7 adoption/hold rotation remains unobservable; DISC-28 stays active pending C hotfix. no_player reads the last heartbeat only; use composition.mode.",
+    "DISC-28 behavioral boundary (build a590a05, sealed ai-evidence-disc28d-scripted): defender spawn is proven and scripted-destination movement away from spawn is observed (20-39 m for several bots), but group/division reads are unknown (groups none, read_unknown=22), so division 5-7 adoption, combat_sample and hold-at-sector remain unproven; do not describe movement as holding.",
+    "Final one-line state (D task-18, local/session/PLAYABLE_EVIDENCE.md): Native defenders (981-984) spawn, move between >=16 distinct coarse positions over 300 s (out-of-spawn movement proven; median 2.2 m / p90 15.6 m / max 49.9 m); team1 native zombies 894..911 fight (reliable kills both teams); wave 2 reached in the defender-heavy variant; play_city validated on the same install - 5-7 adoption/hold and wave-carryover remain unobserved/unimplemented; no acceptance. Build 8ea6b34 (module_sha256 e4b44f94...).",
+    {
+      "id": "W-DISC-30-39",
+      "date": "2026-10-24",
+      "message": "New supplemental discovered work added for community AI research, wave gating/refill, speed/hold patch, telemetry, installer/release and legal gates; required denominator unchanged."
+    }
+  ],
+  "governance": {
+    "purpose": "City-first private solo Windows 11 remaster, verified flight-recorder diagnostics; four other original maps deferred until later release.",
+    "owner": "Repository owner",
+    "acceptanceAuthority": "Repository owner",
+    "changeAuthority": "Repository owner",
+    "approach": "adaptive",
+    "baselineStatus": "proposed-unapproved",
+    "successCriteria": [
+      "One-click Windows 11 solo play on licensed Warband + compatible WSE2",
+      "Friendly bots and zombie waves function across the original City map; four remaining maps deferred",
+      "A local diagnostic report explains failures with build identity",
+      "Owner accepts legal, stability and accessibility gates"
+    ],
+    "wbsCoverage": "partial",
+    "workPackages": [
+      {
+        "id": "M0",
+        "deliverable": "Scoped record ready for owner review",
+        "owner": "Owner and implementing agent (proposed)",
+        "acceptance": "Every referenced leaf's criterion is evidenced and owner accepts this outcome milestone",
+        "workItemIds": [
+          "ZOM-REC-01",
+          "ZOM-REC-02",
+          "ZOM-REC-03"
+        ]
+      },
+      {
+        "id": "M1",
+        "deliverable": "Observed WSE2 baseline",
+        "owner": "Owner and implementing agent (proposed)",
+        "acceptance": "Every referenced leaf's criterion is evidenced and owner accepts this outcome milestone",
+        "workItemIds": [
+          "ZOM-ENG-01",
+          "ZOM-ENG-02",
+          "ZOM-ENG-03",
+          "ZOM-OBS-01",
+          "ZOM-OBS-02"
+        ]
+      },
+      {
+        "id": "M2",
+        "deliverable": "One-click Windows solo start",
+        "owner": "Owner and implementing agent (proposed)",
+        "acceptance": "Every referenced leaf's criterion is evidenced and owner accepts this outcome milestone",
+        "workItemIds": [
+          "ZOM-WIN-01",
+          "ZOM-WIN-02",
+          "ZOM-WIN-03",
+          "ZOM-SOLO-01",
+          "ZOM-SOLO-02"
+        ]
+      },
+      {
+        "id": "M3",
+        "deliverable": "City survivor AI and combat reliable (five-map expansion deferred)",
+        "owner": "Owner and implementing agent (proposed)",
+        "acceptance": "All required City gameplay/performance gates pass; optional ZOM-MAP-01 does not block release",
+        "workItemIds": [
+          "ZOM-AI-01",
+          "ZOM-AI-02",
+          "ZOM-AI-03",
+          "ZOM-WAVE-01",
+          "ZOM-MAP-01",
+          "ZOM-PERF-01"
+        ]
+      },
+      {
+        "id": "M4",
+        "deliverable": "Solo release accepted",
+        "owner": "Owner and implementing agent (proposed)",
+        "acceptance": "Every referenced leaf's criterion is evidenced and owner accepts this outcome milestone",
+        "workItemIds": [
+          "ZOM-QA-01",
+          "ZOM-QA-02",
+          "ZOM-ADMIN-01",
+          "ZOM-LEGAL-01",
+          "ZOM-REL-01"
+        ]
+      }
+    ],
+    "baselines": [
+      {
+        "id": "BASE-SOLO-CITY-2026-10-23",
+        "status": "proposed",
+        "authority": "Owner choice observed in conversation: first playable release may contain City only.",
+        "reason": "City-first acceptance reduces earliest runtime test risk; original five-map ambitions retained in optional leaf ZOM-MAP-01.",
+        "approvedBy": "Repository owner (City-first scope only)",
+        "approvedAt": "2026-10-23",
+        "approvalSource": "Owner's explicit City-only response in setup conversation"
+      }
+    ],
+    "changeRequests": [],
+    "risks": [
+      {
+        "id": "RISK-ENGINE",
+        "event": "Native compiled mission/WSE2 runtime behavior unverified",
+        "owner": "Project owner / implementing agent (proposed)",
+        "response": "Capture evidence, contain unsafe build and revisit prior verified baseline",
+        "trigger": "Before Windows release or if actual WSE2 evidence contradicts static claims",
+        "status": "open"
+      },
+      {
+        "id": "RISK-ASSET",
+        "event": "Original binary archive redistribution rights not demonstrated",
+        "owner": "Project owner / implementing agent (proposed)",
+        "response": "Capture evidence, contain unsafe build and revisit prior verified baseline",
+        "trigger": "Before Windows release or if actual WSE2 evidence contradicts static claims",
+        "status": "open"
+      },
+      {
+        "id": "RISK-BOOT",
+        "event": "Automatic Windows discovery/install not implemented",
+        "owner": "Project owner / implementing agent (proposed)",
+        "response": "Capture evidence, contain unsafe build and revisit prior verified baseline",
+        "trigger": "Before Windows release or if actual WSE2 evidence contradicts static claims",
+        "status": "open"
+      }
+    ],
+    "operations": {
+      "status": "proposed",
+      "reason": "No published web deploy or live game operational evidence; no CI by owner choice"
+    },
+    "tailoring": {
+      "governance": {
+        "status": "not-assessed",
+        "reason": "Owner acceptance and context needed; preserve current project practice pending focused setup conversation."
+      },
+      "scope": {
+        "status": "not-assessed",
+        "reason": "Owner acceptance and context needed; preserve current project practice pending focused setup conversation."
+      },
+      "schedule": {
+        "status": "not-assessed",
+        "reason": "Owner acceptance and context needed; preserve current project practice pending focused setup conversation."
+      },
+      "finance": {
+        "status": "not-assessed",
+        "reason": "Owner acceptance and context needed; preserve current project practice pending focused setup conversation."
+      },
+      "stakeholders": {
+        "status": "not-assessed",
+        "reason": "Owner acceptance and context needed; preserve current project practice pending focused setup conversation."
+      },
+      "resources": {
+        "status": "not-assessed",
+        "reason": "Owner acceptance and context needed; preserve current project practice pending focused setup conversation."
+      },
+      "risk": {
+        "status": "not-assessed",
+        "reason": "Owner acceptance and context needed; preserve current project practice pending focused setup conversation."
+      }
+    },
+    "agentAllocation": {
+      "status": "active-preparation-no-runtime-acceptance",
+      "coordinator": "Agent A",
+      "source": "progress/agent-allocation.json",
+      "integrationMode": "reviewed branches unified into main 4c56242 with post-merge bug-fix additions; main tip 42d4ec3 merges C telemetry v2 (0393794) and B sealing (42d4ec3); no unreviewed automatic merge; owner retains release acceptance",
+      "releaseAcceptanceAuthority": "Repository owner",
+      "currentMain": "42d4ec37b0f44dda693247f8a9bbb67a77a42228"
+    },
+    "discoveredWork": {
+      "observedOn": "2026-10-24",
+      "authority": "Owner expressly requested documenting unplanned work; this does not imply approval of the previously proposed whole release baseline.",
+      "marker": "●",
+      "label": "Discovered after original baseline",
+      "taxonomy": "bug-fix | hardening | assurance | integration-verification | incident-resolution | investigation | governance | incident-investigation | diagnostic-hardening",
+      "mode": "supplemental-nonadditive",
+      "requiredReleaseLeavesBefore": 23,
+      "requiredReleaseLeavesAfter": 23,
+      "originalOptionalLeaves": 1,
+      "additionalSupportingLeaves": 26,
+      "additionalSupportingDone": 24,
+      "supportsRule": "Each task has one parent outcome and its own narrow source/fixture criterion. A completed supporting task is not a completed parent outcome.",
+      "priorLedger": "progress/snapshots/ledger-2026-10-23-original.json",
+      "priorGitBlob": "c19e866f0e0acdf2d6cc5ee5cf0f20a2ae518140",
+      "history": "progress/scope-changes/2026-10-24-discovered-work.json",
+      "latestBranchAtReview": {
+        "A": "d3dbef500045062fa9324ada594494a2aaa72f3e",
+        "B": "d41aefc0d7b810f0e1ca0c5961c71f107e5d0052",
+        "C": "675188ac5ac3f240dedc339199d0ef32d821042a",
+        "note": "historical pre-merge review heads; superseded by unifiedMain"
+      },
+      "review": 0,
+      "active": 2,
+      "liveHostObservation": {
+        "reportedOn": "2026-10-24",
+        "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11#issuecomment-6376361668",
+        "candidate": {
+          "A": "141a792",
+          "B": "d41aefc",
+          "C": "e455354"
+        },
+        "observations": [
+          "City-only staged module installed without overwrites",
+          "actual WSE2 1.1.5.4 dedicated host boot",
+          "OS observed UDP 127.0.0.1:7240 loopback-only",
+          "C passive recorder ready and attached",
+          "four Invalid Faction ID:-1 engine errors at invasion trigger 14",
+          "client process joined the dedicated host; host heartbeat showed agents=1, team0=1, team1=0",
+          "15 heartbeat samples over about 225 s with wave=0, round=0 and mode=0",
+          "host reported role=client because the pre-fix WSE2 Lua bridge returned an error state for multiplayer_is_server",
+          "trigger-32 Illegal lvalue was a pre-fix msfiles metadata defect; C fix merged in 0fe86a4",
+          "trigger-14 faction -1 errors decoded as original trailing faction_set_slot writes; non-causal source scope, engine causality unproven"
+        ],
+        "unknown": [
+          "sealed recorder receipt and screenshots",
+          "wave 2+ and wave completion",
+          "native Zombie troop roster in the reproduced wave",
+          "original allied survivor divisions 5-7, hold orders and combat",
+          "round transition/respawn behaviour after the rotation fix",
+          "controlled teardown and final privacy review"
+        ],
+        "classification": "observed subset of real host session; NOT complete City runtime/owner acceptance",
+        "diagnosis": {
+          "trigger14": "original Beta 0.4 trailing faction_set_slot(-1,200,trp_invader_multiplayer_ai); byte-identical 25-trigger prefix; non-fatal and not proven causal; no gameplay patch",
+          "mode_field": "probe mode field is zdr_defence_mode (source-initialized 0), not game type 7; game type was never observed",
+          "probe_blindness": "pre-fix probe reported the dedicated host as client and skipped server-only sampling; fixed by C in 675188a",
+          "causality": "unproven; one controlled post-fix observation is required"
+        },
+        "mergedMainLive": {
+          "reportedOn": "2026-10-24",
+          "candidate": {
+            "module": "rebuilt City module with C corrected probe opmeta=1",
+            "main": "4c5624259ed9ce876da06d1996e728c63666a398",
+            "tipAtRecord": "0eb93743e14aa17a2643d155c97ea9129244b964"
+          },
+          "baseline": "role=server game_type=7 ready_for_spawn=1 bots_team1=0 team1=0 wave=0 for 90+ s",
+          "alliedConfig": "set_bot_count 1 32 -> agents=33 team0=33 team1=0",
+          "enemyConfig": "set_bot_count 2 32 -> agents=42 team0=1 team1=41 wave=1, wave_change wave=1",
+          "rootCause": "dedicated rotation did not configure second-team bots; set_bot_count is 1-based and g_multiplayer_num_bots_team_1 names the first team",
+          "rosterDefect": "wave-1 generic bots are faction-default trp_invader_multiplayer_ai (Crazed Civilian), not native Zombie troops; original visitors still spawn the native troop list",
+          "respawnDefect": "after player death no respawn/new round observed (team0=0 wave=0); rotation must set set_respawn_period 5, set_round_max_seconds 1800, set_defender_spawn_count 0, set_player_respawn_as_bot 0",
+          "probeValidation": "corrected probe reports role=server and a separate game_type=7 field",
+          "issues": {
+            "wave_roster_allies": 13,
+            "launcher_rotation": 14,
+            "recorder_atomic_replace": 15,
+            "seal_zdb1_stdout": 16
+          },
+          "sealedReceipt": "pending",
+          "classification": "observed candidate runtime subset; NOT wave completion or gameplay acceptance"
+        }
+      },
+      "latestHistory": "progress/scope-changes/2026-10-24-bugfix-diagnostics-track.json",
+      "unifiedMain": {
+        "ref": "main",
+        "sha": "42d4ec37b0f44dda693247f8a9bbb67a77a42228",
+        "previousMain": "048564a526de9b36abd55874271c7b80f36e5cf5",
+        "mergeCommits": {
+          "PR #10 A": "9eed34b9e3d66a03fe00b9a35553eba09c0a4e81",
+          "PR #12 C": "0fe86a446b8a8f2c56e97dcdae03dc9e87f51b48",
+          "PR #11 B": "4c5624259ed9ce876da06d1996e728c63666a398"
+        },
+        "headsMerged": {
+          "A": "d3dbef5",
+          "B": "d41aefc",
+          "C": "675188a"
+        },
+        "suites": {
+          "A": {
+            "tests": 158,
+            "skips": 0,
+            "failures": 0,
+            "errors": 0
+          },
+          "C_focused": {
+            "tests": 112,
+            "skips": 3,
+            "failures": 0,
+            "errors": 0
+          },
+          "C_full": {
+            "tests": 204,
+            "skips": 33,
+            "failures": 0,
+            "errors": 0
+          },
+          "B": {
+            "tests": 162,
+            "skips": 39,
+            "failures": 0,
+            "errors": 0
+          },
+          "merged_main": {
+            "tests": 351,
+            "skips": 4,
+            "failures": 0,
+            "errors": 0,
+            "note": "at main tip 0eb9374 on this laptop with owned original module and pinned archive"
+          }
+        },
+        "conflicts": [
+          "tools/evidence_readiness.py resolved to C's newer gating plus capability_snapshot; A's equivalent gating semantics validated by retained tests",
+          "tests/test_evidence_readiness.py kept A's superset; C's template fix semantically included"
+        ],
+        "shaBeforeFollowUps": "4c5624259ed9ce876da06d1996e728c63666a398",
+        "followUpCommits": [
+          "18a35f00114eb541a0aa183c91a004c7807a77b4",
+          "92b0036a9f55d318b9b3abfd7007049871e21aba",
+          "0eb93743e14aa17a2643d155c97ea9129244b964"
+        ],
+        "telemetryV2": {
+          "C": {
+            "head": "a29fabfdbd61384c4dfc73cd33de5c51d68b43b9",
+            "merge": "0393794"
+          },
+          "B": {
+            "head": "d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+            "merge": "42d4ec3"
+          },
+          "mergedSuite": {
+            "tests": 380,
+            "skips": 4,
+            "failures": 0,
+            "errors": 0,
+            "runs": 3,
+            "runsGreen": 3,
+            "caveat": "pre-fix flake observed once in seven runs; 3/3 post-fix runs is not proof of general stability"
+          }
+        }
+      }
+    },
+    "bugFixTrack": {
+      "observedOn": "2026-10-24",
+      "ownerStatement": "make sure to add these to the ledger! we are not going on the usual way since we are bug fixing.",
+      "classification": "bug-fix / diagnostics-hardening support track; NOT release criteria or acceptance",
+      "runtimeVerified": false,
+      "cityRelease": "required outcomes 0/23; accepted milestones 0/5",
+      "leaves": {
+        "ZOM-DISC-22": {
+          "issue": 15,
+          "implementation": "d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+          "state": "done",
+          "subject": "recorder atomic-replace read retry"
+        },
+        "ZOM-DISC-23": {
+          "issue": 14,
+          "implementation": "d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+          "state": "active",
+          "subject": "validated rotation builder (live roster verification pending)"
+        },
+        "ZOM-DISC-24": {
+          "issue": 16,
+          "implementation": [
+            "d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+            "a29fabfdbd61384c4dfc73cd33de5c51d68b43b9"
+          ],
+          "state": "active",
+          "subject": "host-stdout sealing + summary consumption (sealed ZDB1 attempt pending)"
+        },
+        "ZOM-DISC-25": {
+          "issue": 13,
+          "implementation": "a29fabfdbd61384c4dfc73cd33de5c51d68b43b9",
+          "state": "done",
+          "subject": "troop histogram + explicit lifecycle events"
+        },
+        "ZOM-DISC-26": {
+          "issue": 6,
+          "implementation": "a29fabfdbd61384c4dfc73cd33de5c51d68b43b9",
+          "state": "done",
+          "subject": "receipt summary CLI"
+        }
+      },
+      "merges": {
+        "main": "42d4ec37b0f44dda693247f8a9bbb67a77a42228",
+        "previousMain": "86100999c494a4b0db710387e439e4dc51d8717f",
+        "C": {
+          "head": "a29fabfdbd61384c4dfc73cd33de5c51d68b43b9",
+          "merge": "0393794"
+        },
+        "B": {
+          "head": "d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+          "merge": "42d4ec3"
+        }
+      },
+      "mergedSuite": {
+        "tests": 380,
+        "skips": 4,
+        "failures": 0,
+        "errors": 0,
+        "runs": 3,
+        "runsGreen": 3
+      },
+      "receiptSummaryVerification": "Attempt 8 sealed dir: verified True (7 files), 4 invalid-faction-id engine errors; gaps include zdbi_stream_not_sealed; runtime_verified=false",
+      "discoveredFraction": "24/26",
+      "umbrellaNote": "Optional ZOM-DISC-27 umbrella not added: the ledger already separates support leaves from required outcomes, and the five upgrades map to ZOM-DISC-22..26."
+    }
+  }
+}

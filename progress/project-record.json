@@ -16,7 +16,7 @@
         "observedOn": "2026-10-24",
         "updatedOn": "2026-10-24",
         "authority": "Proposed owner-review draft authored from v0.1.8 README/ROADMAP/issue inventory; no accepted baseline",
-        "previousSourceFile": "snapshots/ledger-2026-10-24-pre-diag-merge.json",
+        "previousSourceFile": "snapshots/ledger-2026-10-24-pre-wave2-leak.json",
         "snapshotHistory": [
           "scope-changes/2026-10-24-discovered-work.json",
           "scope-changes/2026-10-24-live-incident-amendment.json",
@@ -30,7 +30,8 @@
           "snapshots/ledger-2026-10-24-pre-current-task-refresh.json",
           "snapshots/ledger-2026-10-24-pre-task42-followups.json",
           "snapshots/ledger-2026-10-24-pre-consolidation-tasks.json",
-          "snapshots/ledger-2026-10-24-pre-diag-merge.json"
+          "snapshots/ledger-2026-10-24-pre-diag-merge.json",
+          "snapshots/ledger-2026-10-24-pre-wave2-leak.json"
         ]
       },
       "presentation": {
