@@ -1,0 +1,4 @@
+interface:
+  display_name: "Operate project tracking"
+  short_description: "Recover trackers and maintain trustworthy telemetry"
+  default_prompt: "Use $operate-project-tracking to inspect health, recover output or upgrade this tracking system."

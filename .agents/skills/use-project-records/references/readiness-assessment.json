@@ -1,0 +1,123 @@
+{
+  "recordKind": "repository-readiness-assessment",
+  "repository": null,
+  "revision": null,
+  "assessedAt": null,
+  "policySource": null,
+  "assessmentStore": null,
+  "previousAssessment": null,
+  "readinessLevel": "L0",
+  "levelBasis": "L1 not demonstrated; empty template, no assessment performed.",
+  "targetLevel": null,
+  "dimensions": {
+    "work_definition": {
+      "status": "unknown",
+      "evidence": [],
+      "gaps": [],
+      "owner": null,
+      "nextAction": null
+    },
+    "repository_knowledge": {
+      "status": "unknown",
+      "evidence": [],
+      "gaps": [],
+      "owner": null,
+      "nextAction": null
+    },
+    "reproducible_environment": {
+      "status": "unknown",
+      "evidence": [],
+      "gaps": [],
+      "owner": null,
+      "nextAction": null
+    },
+    "verification_loop": {
+      "status": "unknown",
+      "evidence": [],
+      "gaps": [],
+      "owner": null,
+      "nextAction": null
+    },
+    "architectural_constraints": {
+      "status": "unknown",
+      "evidence": [],
+      "gaps": [],
+      "owner": null,
+      "nextAction": null
+    },
+    "machine_usable_tooling": {
+      "status": "unknown",
+      "evidence": [],
+      "gaps": [],
+      "owner": null,
+      "nextAction": null
+    },
+    "security_boundaries": {
+      "status": "unknown",
+      "evidence": [],
+      "gaps": [],
+      "owner": null,
+      "nextAction": null
+    },
+    "small_batch_reviewability": {
+      "status": "unknown",
+      "evidence": [],
+      "gaps": [],
+      "owner": null,
+      "nextAction": null
+    },
+    "observability_runtime_verification": {
+      "status": "unknown",
+      "evidence": [],
+      "gaps": [],
+      "owner": null,
+      "nextAction": null
+    },
+    "evaluation_governance": {
+      "status": "unknown",
+      "evidence": [],
+      "gaps": [],
+      "owner": null,
+      "nextAction": null
+    }
+  },
+  "environment": {
+    "applicability": "unassessed",
+    "reason": null,
+    "tiers": [],
+    "separationEvidence": [],
+    "promotionEvidence": []
+  },
+  "taskRisk": null,
+  "autonomy": {
+    "R0": "unassessed",
+    "R1": "unassessed",
+    "R2": "unassessed",
+    "R3": "unassessed",
+    "R4": "unassessed",
+    "operationalHealth": "unknown",
+    "policyEvidence": [],
+    "promotionAuthorized": false,
+    "decision": "No authority granted by this template."
+  },
+  "evaluation": {
+    "heldOutResults": [],
+    "realTaskMetrics": [],
+    "thresholds": {},
+    "observationWindow": null
+  },
+  "blockers": [],
+  "selectedRemediation": [],
+  "scopeEffect": null,
+  "nextAssessment": {
+    "onOrBefore": null,
+    "triggers": [
+      "before autonomy increase",
+      "major runtime/build/security change",
+      "incident or undocumented rescue"
+    ],
+    "cadence": "For actively autonomous projects: weekly drift checks, at least monthly full review; not a scheduled job."
+  },
+  "visibility": "private",
+  "centralPersistence": "pending"
+}

@@ -32,3 +32,11 @@ Patch versions are bug fixes. New milestone versions are awarded only after acce
 8. Test Granny's House, Bridge, Shipyard, City, Abandoned Town; then LAN/Tailscale co-op.
 
 No CI, no original assets in Git, no ZOMBIEEE2 dependency, no Bannerlord migration.
+
+## Proposed next baseline (review only; not an adopted milestone update)
+
+A separate Project Record Standard setup branch carries [the scoped proposal](../progress/overview.md) and [24 outcome leaves](../progress/ledger.json). It adds source-grounded zero-configuration Windows setup, external diagnostics and one-click solo hosting before an approved release, without retroactively changing the SemVer or completed status of the historical milestones above. Do not count compiled-script prototypes as passed gameplay gates. Owner approval and the pinned toolkit verification are still pending.
+
+### Owner decision: City-first first playable release (2026-10-23)
+
+First accepted solo release may use **City** only; non-City scenes stay in optional future work and do not block the initial deliverable. Gameplay and source-code maturity remain distinct from runtime-tested release acceptance. Static GitHub Pages tracker publication is separately approved; no CI.

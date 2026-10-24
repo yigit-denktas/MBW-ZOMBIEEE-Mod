@@ -1,0 +1,4 @@
+interface:
+  display_name: "Prepare project delivery"
+  short_description: "Link changelogs, release gates and observed delivery"
+  default_prompt: "Use $prepare-project-delivery to prepare this project’s next release or delivery handoff."

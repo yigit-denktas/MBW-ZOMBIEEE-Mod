@@ -1,0 +1,4 @@
+interface:
+  display_name: "Update project progress"
+  short_description: "Record verified work and explain scope changes"
+  default_prompt: "Use $update-project-progress to update this project from the available evidence."

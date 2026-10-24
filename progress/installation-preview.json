@@ -1,0 +1,13 @@
+{
+  "observedOn": "2026-10-23",
+  "suiteVersion": "0.4.1",
+  "sourceCommit": "ebc6afb0b977ff3d7605893c73ac63021775c4d3",
+  "skillCount": 11,
+  "fileCount": 26,
+  "proposedWrites": 28,
+  "preexistingAGENTS": false,
+  "conflicts": [],
+  "suiteDigest": "6fc2a9f5a89f9163ea3a2e744a01c3e838b85894e0aa374173a6230986520405",
+  "toolkitZipVerification": "pending",
+  "reviewRequiredBeforeMain": true
+}

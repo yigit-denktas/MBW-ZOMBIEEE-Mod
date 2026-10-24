@@ -1,0 +1,4 @@
+interface:
+  display_name: "Verify project accessibility"
+  short_description: "Audit branded tracking against WCAG 2.2 AA"
+  default_prompt: "Use $verify-project-accessibility to audit the tracker, fix accessibility issues and record scoped verification evidence."

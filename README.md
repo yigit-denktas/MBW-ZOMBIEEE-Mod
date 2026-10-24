@@ -6,6 +6,19 @@ A private, City-first compatibility rebuild of the 2012 **ZOMBIEEE (Invasion) Be
 
 **Current project version:** `0.2.0` (runtime-evidenced City candidate; **not release-accepted**).
 
+<!-- project-record:start -->
+[![ZOMBIEEE Remaster · current required scope](./progress.svg)](https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/)
+
+| Measure | Completion | Meaning |
+| --- | ---: | --- |
+| Required work | 0/23 · 0.0% | Completed leaf items in the named required scope. |
+| Accepted milestones | 0/5 · 0.0% | Milestones whose declared outcome gates passed. |
+
+[Interactive roadmap](https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/) · Source file: `progress/ledger.json` (content-addressed file snapshot).
+
+Observed 2026-10-24 against `d6130f26`.
+<!-- project-record:end -->
+
 ## Scope
 
 - **Engine target:** official Warband data format **1.174** under [WSE2 **1.1.5.4**](https://github.com/Ruslan-700/WSE2-Releases/releases/tag/v1.1.5.4).

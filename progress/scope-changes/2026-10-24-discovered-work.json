@@ -1,0 +1,87 @@
+{
+  "schema": "zombieee.scope-change.v1",
+  "observedOn": "2026-10-24",
+  "changeType": "discovered-supporting-work",
+  "requestAuthority": "User explicitly requested adding unplanned bug fixes, audits and integration tasks to the ledger and distinguishing them with a dot; prior proposed release baseline is not thereby accepted.",
+  "before": {
+    "sourcePath": "progress/snapshots/ledger-2026-10-23-original.json",
+    "gitBlob": "c19e866f0e0acdf2d6cc5ee5cf0f20a2ae518140",
+    "retainedItems": 24,
+    "requiredOutcomes": 23,
+    "optionalItems": 1,
+    "requiredDone": 0,
+    "requiredFraction": "0/23",
+    "milestonesAccepted": "0/5",
+    "discovered": "not tracked"
+  },
+  "after": {
+    "sourcePath": "progress/ledger.json",
+    "retainedItems": 39,
+    "requiredOutcomes": 23,
+    "originalOptionalItems": 1,
+    "discoveredSupportItems": 15,
+    "discoveredBoundedDone": 11,
+    "discoveredInReview": 4,
+    "requiredFraction": "0/23",
+    "requiredPercentage": 0,
+    "discoveredFraction": "11/15",
+    "discoveredPercentage": 73.3,
+    "milestonesAccepted": "0/5"
+  },
+  "accounting": "New corrective/supporting leaves reference existing outcome IDs through supportsOutcomeId and required=false, so they are visible in a separate measure and do not double-credit the original 23 outcome leaves.",
+  "marker": {
+    "glyph": "●",
+    "accessibleText": "Discovered task",
+    "style": "small accent dot",
+    "field": "workOrigin=discovered",
+    "categories": [
+      "bug-fix",
+      "hardening",
+      "assurance",
+      "integration-verification",
+      "incident-resolution",
+      "investigation",
+      "governance"
+    ]
+  },
+  "identities": {
+    "retainedOriginalIds": true,
+    "removed": [],
+    "split": [],
+    "merged": [],
+    "added": [
+      "ZOM-DISC-01",
+      "ZOM-DISC-02",
+      "ZOM-DISC-03",
+      "ZOM-DISC-04",
+      "ZOM-DISC-05",
+      "ZOM-DISC-06",
+      "ZOM-DISC-07",
+      "ZOM-DISC-08",
+      "ZOM-DISC-09",
+      "ZOM-DISC-10",
+      "ZOM-DISC-11",
+      "ZOM-DISC-12",
+      "ZOM-DISC-13",
+      "ZOM-DISC-14",
+      "ZOM-DISC-15"
+    ]
+  },
+  "evidenceBoundaries": [
+    "Done on a discovered task means its *bounded source/fixture or documentation criterion*, not a playable runtime outcome.",
+    "Original required outcome acceptance still unapproved, and all five milestone acceptances remain open.",
+    "Agent A reported 149/149 local source tests; B reports archive CRC and official WSE2 binary identity; current C exact source tests and actual WSE2 City boot result were not posted at observation.",
+    "No proprietary original assets, paths or private logs are included."
+  ],
+  "risks": [
+    {
+      "risk": "Static task completion misread as gameplay acceptance",
+      "mitigation": "Separate 0/23 original outcome and 11/15 discovered supporting denominators; no milestone gates changed."
+    },
+    {
+      "risk": "Live boot used historical A/C revision",
+      "mitigation": "Keep historical version scope and exclude from current-candidate signoff."
+    }
+  ],
+  "ownerNextAction": "Agent A review B's path-private completed boot receipt, B's installer P1 tests and C exact-current focused/full suite; no automatic merge or extra owner playtest."
+}

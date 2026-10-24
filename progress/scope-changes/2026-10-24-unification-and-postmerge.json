@@ -1,0 +1,157 @@
+{
+  "schema": "zombieee.scope-change.v1",
+  "observedOn": "2026-10-24",
+  "changeType": "branch-unification-and-postmerge-triage",
+  "amends": "progress/scope-changes/2026-10-24-live-incident-amendment.json",
+  "authority": "Owner requested unifying all branches and keeping the Project Record tracker current; this does not accept the proposed release baseline.",
+  "before": {
+    "sourcePath": "progress/ledger.json",
+    "sourceCommit": "c5eda650db753a7845a37cc7e009c0e95b0e01f2",
+    "retainedItems": 42,
+    "requiredOutcomes": 23,
+    "discovered": 18,
+    "discoveredDone": 11,
+    "discoveredInReview": 6,
+    "discoveredActive": 1,
+    "discoveredFraction": "11/18",
+    "requiredFraction": "0/23",
+    "milestonesAccepted": "0/5"
+  },
+  "after": {
+    "sourcePath": "progress/ledger.json",
+    "retainedItems": 46,
+    "requiredOutcomes": 23,
+    "discovered": 22,
+    "discoveredDone": 21,
+    "discoveredReview": 0,
+    "discoveredActive": 1,
+    "discoveredFraction": "21/22",
+    "discoveredPercentage": 95.5,
+    "requiredFraction": "0/23",
+    "milestonesAccepted": "0/5"
+  },
+  "merges": {
+    "main": "4c5624259ed9ce876da06d1996e728c63666a398",
+    "previousMain": "048564a526de9b36abd55874271c7b80f36e5cf5",
+    "PR #10": {
+      "head": "d3dbef500045062fa9324ada594494a2aaa72f3e",
+      "merge": "9eed34b9e3d66a03fe00b9a35553eba09c0a4e81"
+    },
+    "PR #12": {
+      "head": "675188ac5ac3f240dedc339199d0ef32d821042a",
+      "merge": "0fe86a446b8a8f2c56e97dcdae03dc9e87f51b48"
+    },
+    "PR #11": {
+      "head": "d41aefc0d7b810f0e1ca0c5961c71f107e5d0052",
+      "merge": "4c5624259ed9ce876da06d1996e728c63666a398"
+    },
+    "conflicts": [
+      "tools/evidence_readiness.py",
+      "tests/test_evidence_readiness.py"
+    ]
+  },
+  "adds": [
+    {
+      "id": "ZOM-DISC-19",
+      "subject": "Declare WSE2 msfiles operation metadata for Lua-bound operations",
+      "owner": "C",
+      "state": "done",
+      "evidence": "commit 675188a, docs/CITY_INCIDENT_V1.md"
+    },
+    {
+      "id": "ZOM-DISC-20",
+      "subject": "Bind observed City evidence to candidate identity and separate tactical mode from game type",
+      "owner": "A",
+      "state": "done",
+      "evidence": "commit d3dbef5, reference/CITY_RUNTIME_TRIAGE_2026-10-24.md"
+    },
+    {
+      "id": "ZOM-DISC-21",
+      "subject": "Unify reviewed A/B/C branches and verify merged main",
+      "owner": "A",
+      "state": "done",
+      "evidence": "main 4c56242; merged suite 340 OK/4 skips"
+    },
+    {
+      "id": "ZOM-DISC-22",
+      "subject": "Harden B adapter against transient Windows recorder control-file replace races",
+      "owner": "B",
+      "state": "active",
+      "evidence": "issue #6 comment 6377051343 (1 of 7 merged runs)"
+    }
+  ],
+  "resolves": [
+    {
+      "id": "ZOM-DISC-09",
+      "state": "done",
+      "basis": "C exact-head tests merged; PR #12"
+    },
+    {
+      "id": "ZOM-DISC-10",
+      "state": "done",
+      "basis": "C privacy count fix merged; PR #12"
+    },
+    {
+      "id": "ZOM-DISC-11",
+      "state": "done",
+      "basis": "C round-identity rejection merged; PR #12"
+    },
+    {
+      "id": "ZOM-DISC-15",
+      "state": "done",
+      "basis": "City Incident Report v1 merged; PR #12"
+    },
+    {
+      "id": "ZOM-DISC-16",
+      "state": "done",
+      "basis": "A trigger-14 triage; original, non-causal source scope; PR #10 comment"
+    },
+    {
+      "id": "ZOM-DISC-17",
+      "state": "done",
+      "basis": "C noncausal classification merged"
+    },
+    {
+      "id": "ZOM-DISC-18",
+      "state": "done",
+      "basis": "C identifier safety merged"
+    }
+  ],
+  "observation": {
+    "candidate": {
+      "A": "141a792",
+      "B": "d41aefc",
+      "C": "e455354"
+    },
+    "host": "actual WSE2 1.1.5.4 dedicated host; UDP 127.0.0.1:7240 loopback only",
+    "client": "joined; host heartbeat agents=1 team0=1 team1=0",
+    "heartbeatSamples": 15,
+    "heartbeatWindowSeconds": 225,
+    "heartbeat": "wave=0 round=0 mode=0",
+    "trigger14": "four Invalid Faction ID:-1 at mst_multiplayer_iv trigger 14 consequence lines 24-27, opcode 502",
+    "trigger14Triage": "original Beta 0.4 trailing faction_set_slot(-1,200,trp_invader_multiplayer_ai); byte-identical 25-trigger prefix; non-fatal; not proven causal; no patch",
+    "trigger32": "recurring Illegal lvalue at trigger 32 conditions; root cause pre-fix WSE2 msfiles operation-metadata omission, fixed in C 675188a",
+    "modeField": "probe mode is zdr_defence_mode, not game type; game type 7 was never observed",
+    "causality": "unproven; probe role/sampling was blind server-side before C's fix"
+  },
+  "remainingRuntimeGates": [
+    "G08 server-side City mission/scene evidence with corrected probe",
+    "G09 survivor deployment and movement",
+    "G10 two distinct wave observations with team-1 counts",
+    "G11 round transition and hold-order persistence",
+    "G12 controlled teardown and signed recorder manifest",
+    "G13 owner release decision",
+    "controlled post-fix observation (Lead-coordinated) and B post-merge verification",
+    "ZOM-DISC-22 transient file-replace race fix"
+  ],
+  "notObserved": [
+    "zombie waves",
+    "AI combat",
+    "round transition",
+    "sealed signed recorder manifest",
+    "journaled reversible installer",
+    "engine game type or round-start timer"
+  ],
+  "accounting": "Required City outcomes remain 0/23 and accepted milestones 0/5. The discovered denominator expands 18->22 because four unplanned items were discovered; three are narrowly done and one observed race stays active. No discovered task adds release credit.",
+  "ownerNext": "Lead runs post-merge B verification; controlled corrected-probe City observation; no gameplay acceptance before matching runtime evidence."
+}

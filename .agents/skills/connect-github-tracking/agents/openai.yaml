@@ -1,0 +1,14 @@
+interface:
+  display_name: Connect GitHub tracking
+  short_description: Map issues, labels, milestones and Projects safely
+  default_prompt: Use $connect-github-tracking to connect this project’s work to its
+    existing GitHub tracking.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true

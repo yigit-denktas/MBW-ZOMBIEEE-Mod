@@ -1,0 +1,85 @@
+{
+  "schema": "zombieee.scope-change.v1",
+  "observedOn": "2026-10-24",
+  "changeType": "live-bot-count-roster-respawn",
+  "amends": "progress/scope-changes/2026-10-24-unification-and-postmerge.json",
+  "authority": "Owner requested recording the live bot-count breakthrough, roster/respawn gaps and new issues; this does not accept the release baseline or gameplay.",
+  "before": {
+    "sourcePath": "progress/ledger.json",
+    "sourceCommit": "3b1ce14a366a449053cafac3e806425dcd5545a3",
+    "retainedItems": 46,
+    "requiredOutcomes": 23,
+    "discovered": 22,
+    "discoveredDone": 21,
+    "discoveredActive": 1,
+    "discoveredFraction": "21/22",
+    "requiredFraction": "0/23",
+    "milestonesAccepted": "0/5"
+  },
+  "after": {
+    "sourcePath": "progress/ledger.json",
+    "retainedItems": 48,
+    "requiredOutcomes": 23,
+    "discovered": 24,
+    "discoveredDone": 21,
+    "discoveredActive": 3,
+    "discoveredFraction": "21/24",
+    "requiredFraction": "0/23",
+    "milestonesAccepted": "0/5"
+  },
+  "merges": {
+    "mainAtBreakthrough": "4c5624259ed9ce876da06d1996e728c63666a398",
+    "mainTip": "0eb93743e14aa17a2643d155c97ea9129244b964",
+    "followUpCommits": [
+      "18a35f0 docs/tools bot-count contract and docs",
+      "92b0036 merge C doc note",
+      "0eb9374 docs/tools roster/respawn contract"
+    ],
+    "mergedSuite": {
+      "tip": "0eb93743e14aa17a2643d155c97ea9129244b964",
+      "tests": 351,
+      "skips": 4,
+      "failures": 0,
+      "errors": 0
+    }
+  },
+  "liveObservation": {
+    "candidate": {
+      "main": "4c5624259ed9ce876da06d1996e728c63666a398",
+      "module": "rebuilt City module with opmeta=1 probe"
+    },
+    "baseline": "role=server game_type=7 ready_for_spawn=1 bots_team1=0 team1=0 wave=0 for 90+ s",
+    "alliedConfig": "set_bot_count 1 32 -> agents=33 team0=33 team1=0",
+    "enemyConfig": "set_bot_count 2 32 -> agents=42 team0=1 team1=41 wave=1, wave_change wave=1",
+    "rootCause": "dedicated rotation lacked second-team bot configuration; set_bot_count is 1-based (2 = enemy team); g_multiplayer_num_bots_team_1 names the first team",
+    "rosterDefect": "wave-1 generic bots are faction-default trp_invader_multiplayer_ai (Crazed Civilian), not native Zombie troops",
+    "respawnDefect": "no respawn/new round after player death (team0=0 wave=0); required rotation commands missing",
+    "probeValidation": "C corrected probe reports role=server and a separate game_type=7 field",
+    "sealedReceipt": "pending"
+  },
+  "issues": {
+    "13": "City wave: zombie roster, wave completion and allied defenders (supersedes closed #1)",
+    "14": "Launcher/rotation: team-2 bot count and correct invader roster",
+    "15": "Recorder: transient Windows atomic-replace read race (ZOM-DISC-22)",
+    "16": "Seal dedicated-host ZDB1 stdout inside the flight evidence bundle"
+  },
+  "adds": [
+    {
+      "id": "ZOM-DISC-23",
+      "subject": "Configure second-team bots, respawn and correct invader roster in launcher rotation",
+      "owner": "B",
+      "state": "active",
+      "issue": 14
+    },
+    {
+      "id": "ZOM-DISC-24",
+      "subject": "Seal dedicated-host ZDB1 stdout inside the flight evidence bundle",
+      "owner": "C",
+      "state": "active",
+      "issue": 16
+    }
+  ],
+  "resolves": [],
+  "accounting": "Required City outcomes remain 0/23 and accepted milestones 0/5. Discovered supporting leaves 22 -> 24 (21 done, 3 active). First enemy wave is observed evidence, not wave completion or gameplay acceptance.",
+  "ownerNext": "B launcher/rotation bot-count+respawn+roster work; C recorder write-race fix and host stdout sealing; A keeps evidence ledger; Lead coordinates the next controlled run and no gameplay acceptance before wave 2+/native roster evidence."
+}

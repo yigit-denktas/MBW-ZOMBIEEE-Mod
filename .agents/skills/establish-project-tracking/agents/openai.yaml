@@ -1,0 +1,4 @@
+interface:
+  display_name: "Establish project tracking"
+  short_description: "Scout and set up tracking for a new project"
+  default_prompt: "Use $establish-project-tracking to scout this project and establish its tracking system."

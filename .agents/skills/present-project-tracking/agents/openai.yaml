@@ -1,0 +1,4 @@
+interface:
+  display_name: "Present project tracking"
+  short_description: "Build branded interactive tracking and README views"
+  default_prompt: "Use $present-project-tracking to fit this tracker into the project’s existing brand and website."

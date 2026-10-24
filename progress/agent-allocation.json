@@ -1,0 +1,361 @@
+{
+  "schemaVersion": 1,
+  "createdOn": "2026-10-23",
+  "mainBaseline": "048564a526de9b36abd55874271c7b80f36e5cf5",
+  "project": "yigit-denktas/MBW-ZOMBIEEE-Mod",
+  "recordBranch": "project-record-setup-v041",
+  "trackerUrl": "https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/",
+  "releaseScope": "City first; non-City maps deferred; 23 required leaves / one optional expansion",
+  "releaseEvidence": "2026-10-24 bug-fix/diagnostics-hardening pass: main 42d4ec3 merges C telemetry v2 (a29fabf: bounded troop histogram, explicit observed lifecycle events, fail-closed receipt summary CLI) and B sealing (d1011e2: host stdout tee/add_artifact, atomic-replace read retry, validated rotation builder). Merged suite 380 OK/4 skips over 3 consecutive runs; pre-fix flake observed once in 7 runs. Owner classifies these as bug fixing, not release acceptance: 0/23 required outcomes, 0/5 milestones; discovered leaves 26 (24 done, 2 active).",
+  "coordination": {
+    "lead": "Agent A",
+    "handoff": "GitHub branch/PR + evidence, never chat-only handoffs",
+    "integrator": "Agent A",
+    "user": "Acceptance authority",
+    "branchesFrom": "original main 048564a526de9b36abd55874271c7b80f36e5cf5; unified main 4c56242; main tip 42d4ec37b0f44dda693247f8a9bbb67a77a42228 after C/B telemetry-v2 merges",
+    "approval": "Owner requested branch unification; agents implemented/reviewed in their own branches, then integration merged the three reviewed heads (no unreviewed automatic merge, no CI, no B/C Pages edits). Owner retains release acceptance.",
+    "updates": "Only Agent A edits progress/ledger.json and republishes public gh-pages snapshot after scope/evidence review; others propose updates in PR.",
+    "privacy": "Never commit original RAR, game assets, Windows user paths, logs containing identity, secrets or private readiness assessments.",
+    "integrationRule": "No merge PR #10/#11/#12 until exact branch suite is exercised and identified blockers fixed. Merge then as offline implementation only, never release acceptance.",
+    "interfaceDecision": "DECIDED: B owns host/client child process handles; C is passive recorder armed before any game process; canonical marker zombieee.recorder-ready.v1, authenticated attach/stop. See Agent A handoffs/RECORDER_LIFECYCLE_V1.md. Integration-test evidence pending.",
+    "recorderProtocol": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/agent/a-city-engine/handoffs/RECORDER_LIFECYCLE_V1.md",
+    "discoveredAccounting": "The 24 original assigned leaf IDs remain unchanged. Discovered ZOM-DISC-01..18 are non-additive supporting tasks assigned in lanes' discoveredLedgerIds; completion does not close parent release outcomes."
+  },
+  "lanes": {
+    "A": {
+      "name": "City engine and integrator",
+      "branch": "agent/a-city-engine",
+      "ledgerIds": [
+        "ZOM-REC-01",
+        "ZOM-REC-02",
+        "ZOM-REC-03",
+        "ZOM-ENG-01",
+        "ZOM-ENG-02",
+        "ZOM-ENG-03",
+        "ZOM-AI-01",
+        "ZOM-AI-02",
+        "ZOM-AI-03",
+        "ZOM-WAVE-01",
+        "ZOM-ADMIN-01",
+        "ZOM-MAP-01"
+      ],
+      "firstWave": [
+        "ZOM-ENG-01 — implement original archive integrity/preflight test harness without requiring manual user testing",
+        "ZOM-ENG-02 — WSE2 startup capability research, City boot/mission contract and sandboxed validation fixture",
+        "ZOM-REC-01..03 — reconcile toolkit and tracker tests when possible"
+      ],
+      "owns": [
+        "tools/build.py",
+        "tools/doctor.py",
+        "tools/preflight.py",
+        "tools/patch_defenders.py",
+        "tools/city_defense.py",
+        "tools/all_map_defense.py",
+        "tools/wave_reinforcements.py",
+        "tools/tactical_recovery.py",
+        "tools/private_commands.py",
+        "docs/ENGINE.md",
+        "handoffs/SESSION_CONTRACT.md"
+      ],
+      "avoid": [
+        "tools/diagnostics.py",
+        "overlay/lua/main.lua",
+        "telemetry/**",
+        "launcher/**",
+        "installer/**"
+      ],
+      "later": [
+        "Gameplay bot combat and City positions only after runtime evidence",
+        "Original optional non-City maps stay out of first release"
+      ],
+      "discoveredLedgerIds": [
+        "ZOM-DISC-01",
+        "ZOM-DISC-02",
+        "ZOM-DISC-03",
+        "ZOM-DISC-04",
+        "ZOM-DISC-05",
+        "ZOM-DISC-06",
+        "ZOM-DISC-12",
+        "ZOM-DISC-13",
+        "ZOM-DISC-14",
+        "ZOM-DISC-16",
+        "ZOM-DISC-20",
+        "ZOM-DISC-21"
+      ],
+      "mergedIntoMain": "42d4ec37b0f44dda693247f8a9bbb67a77a42228",
+      "branchState": "merged-and-auto-deleted (local worktree retained for verification)"
+    },
+    "B": {
+      "name": "Windows installer and solo launcher",
+      "branch": "agent/b-windows-launcher",
+      "ledgerIds": [
+        "ZOM-WIN-01",
+        "ZOM-WIN-02",
+        "ZOM-WIN-03",
+        "ZOM-SOLO-01",
+        "ZOM-SOLO-02",
+        "ZOM-LEGAL-01",
+        "ZOM-REL-01"
+      ],
+      "firstWave": [
+        "ZOM-WIN-01 — detector: Steam libraries, custom paths, WSE2 candidates and explicit ambiguity with fixture tests",
+        "ZOM-WIN-02 — reversible dry-run installer + manifest and rollback design",
+        "ZOM-SOLO-01 — private host lifecycle design with fake process, no runtime assertion"
+      ],
+      "owns": [
+        "launcher/**",
+        "installer/**",
+        "tests/test_windows_*.py",
+        "docs/WINDOWS_*.md",
+        "handoffs/AGENT_B.md"
+      ],
+      "avoid": [
+        "tools/build.py",
+        "tools/diagnostics.py",
+        "overlay/lua/**",
+        "progress/**",
+        "README.md",
+        "site/**"
+      ],
+      "later": [
+        "WIN-03 desktop shortcut and launcher UI",
+        "SOLO-02 auto-join gated on observed engine CLI"
+      ],
+      "existingIssues": [
+        8,
+        9
+      ],
+      "currentNext": [
+        "B-1: recorder-ready handshake before game process; tests for start failure/stale marker",
+        "B-2: host-ready vs joined vs actual mission entered; preserve unknown runtime outcome",
+        "B-3: raw path and reparse safety before reversible installation, fixture tests"
+      ],
+      "discoveredLedgerIds": [
+        "ZOM-DISC-07",
+        "ZOM-DISC-08",
+        "ZOM-DISC-22",
+        "ZOM-DISC-23",
+        "ZOM-DISC-24"
+      ],
+      "mergedIntoMain": "42d4ec37b0f44dda693247f8a9bbb67a77a42228",
+      "branchState": "merged-and-auto-deleted (local worktree retained for verification)"
+    },
+    "C": {
+      "name": "Flight recorder and forensic diagnostics",
+      "branch": "agent/c-flight-recorder",
+      "ledgerIds": [
+        "ZOM-OBS-01",
+        "ZOM-OBS-02",
+        "ZOM-PERF-01",
+        "ZOM-QA-01",
+        "ZOM-QA-02"
+      ],
+      "firstWave": [
+        "ZOM-OBS-02 — external crash-resistant, bounded local process/log sidecar with fixture tests",
+        "ZOM-OBS-01 — WSE2 Lua operations audit + event schema with unavailable/unknown semantics",
+        "ZOM-QA-01 — self-contained forensic evidence bundle including launcher metadata, redaction and SHA-256"
+      ],
+      "owns": [
+        "telemetry/**",
+        "tools/diagnostics.py",
+        "tools/tactical_analysis.py",
+        "tools/combat_analysis.py",
+        "tools/evidence_readiness.py",
+        "overlay/lua/**",
+        "tests/test_diagnostics.py",
+        "docs/DIAGNOSTICS.md",
+        "docs/FORENSIC_DIAGNOSTICS.md",
+        "handoffs/AGENT_C.md"
+      ],
+      "avoid": [
+        "tools/build.py",
+        "tools/patch_defenders.py",
+        "launcher/**",
+        "installer/**",
+        "progress/**",
+        "README.md",
+        "site/**"
+      ],
+      "later": [
+        "PERF-01 process, frame metric availability and profiling",
+        "QA-02 evidence report for the eventual one-time final integrated Windows City session"
+      ],
+      "existingIssues": [
+        6
+      ],
+      "currentNext": [
+        "C-1: bounded head+tail crash evidence with explicit gap metadata",
+        "C-2: versioned recorder-ready acknowledgement for B's state machine",
+        "C-3: executed offline tests + reject ancestor symlinks in verified evidence"
+      ],
+      "discoveredLedgerIds": [
+        "ZOM-DISC-09",
+        "ZOM-DISC-10",
+        "ZOM-DISC-11",
+        "ZOM-DISC-15",
+        "ZOM-DISC-17",
+        "ZOM-DISC-18",
+        "ZOM-DISC-19",
+        "ZOM-DISC-24",
+        "ZOM-DISC-25",
+        "ZOM-DISC-26"
+      ],
+      "mergedIntoMain": "42d4ec37b0f44dda693247f8a9bbb67a77a42228",
+      "branchState": "merged-and-auto-deleted (local worktree retained for verification)"
+    }
+  },
+  "interfaces": {
+    "installation": "Agent B discovers executable and original archive candidates; Agent A's tools/build.py remains source of truth for verified RAR and compilation. Agent B invokes it via subprocess/CLI. No private assets in repository.",
+    "session": "Agent B writes local JSON session receipt in per-user directory containing session ID, start/end timestamps, local-only launch mode, module build fingerprint and process status. Agent C consumes read-only; exact v1 contract documented by Agent A.",
+    "events": "Agent C owns ZDB1 Lua events and evidence schema; Agent A does not change Lua telemetry. Unknown getter remains unknown, never 0.",
+    "acceptance": "No runtime tests available until the one final user-guided Windows session. Offline tests may advance implementation but not release-acceptance counts."
+  },
+  "gates": [
+    {
+      "gate": "G0",
+      "goal": "Three independent offline implementations reviewable",
+      "requires": [
+        "A compiled preflight/mission static tests",
+        "B fixture-based discovery/dry-run",
+        "C crash simulation, integrity/redaction tests"
+      ],
+      "userAction": "none"
+    },
+    {
+      "gate": "G1",
+      "goal": "First actual WSE2 City probe with combined harness",
+      "requires": [
+        "A original archive and game compatibility",
+        "B local process orchestration",
+        "C independent recorder and expected manifest"
+      ],
+      "userAction": "one combined Windows evidence session once ready"
+    },
+    {
+      "gate": "G2",
+      "goal": "City first playable candidate",
+      "requires": [
+        "City zombie wave completes",
+        "At least two allied AI actually fight",
+        "Launcher one-click launch/join",
+        "diagnostics capture/verify/replay",
+        "licensing/repair/release review"
+      ],
+      "userAction": "Owner acceptance after evidence"
+    }
+  ],
+  "integrationReviews": {
+    "PR10": {
+      "branch": "agent/a-city-engine",
+      "head": "d3dbef500045062fa9324ada594494a2aaa72f3e",
+      "mergeCommit": "9eed34b9e3d66a03fe00b9a35553eba09c0a4e81",
+      "reviewedOn": "2026-10-24",
+      "status": "merged",
+      "safeToMerge": true,
+      "suites": {
+        "total": 158,
+        "skips": 0,
+        "failures": 0,
+        "errors": 0,
+        "command": "python -m unittest discover -s tests -q",
+        "note": "Windows 11 / Python 3.11.9 with owned original module and pinned archive"
+      },
+      "latestReview": "A City engine, triage tool and acceptance ledger merged after current-head suite.",
+      "mergeCommitUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/9eed34b9e3d66a03fe00b9a35553eba09c0a4e81"
+    },
+    "PR12": {
+      "branch": "agent/c-flight-recorder",
+      "head": "675188ac5ac3f240dedc339199d0ef32d821042a",
+      "mergeCommit": "0fe86a446b8a8f2c56e97dcdae03dc9e87f51b48",
+      "reviewedOn": "2026-10-24",
+      "status": "merged",
+      "safeToMerge": true,
+      "suites": {
+        "focused": {
+          "total": 112,
+          "skips": 3,
+          "failures": 0,
+          "errors": 0
+        },
+        "full": {
+          "total": 204,
+          "skips": 33,
+          "failures": 0,
+          "errors": 0
+        },
+        "note": "records current-head WSE2 msfiles metadata fix; signed recorder wire unchanged"
+      },
+      "latestReview": "C op-metadata root-cause fix and forensic recorder merged; telemetry wire diff empty.",
+      "mergeCommitUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/0fe86a446b8a8f2c56e97dcdae03dc9e87f51b48"
+    },
+    "PR11": {
+      "branch": "agent/b-windows-launcher",
+      "head": "d41aefc0d7b810f0e1ca0c5961c71f107e5d0052",
+      "mergeCommit": "4c5624259ed9ce876da06d1996e728c63666a398",
+      "reviewedOn": "2026-10-24",
+      "status": "merged",
+      "safeToMerge": true,
+      "suites": {
+        "total": 162,
+        "skips": 39,
+        "failures": 0,
+        "errors": 0,
+        "command": "python -m unittest discover -s tests -q"
+      },
+      "latestReview": "B Windows discovery/installer-plan/interop merged after merged-main verification.",
+      "mergeCommitUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/4c5624259ed9ce876da06d1996e728c63666a398"
+    },
+    "mergedMain": {
+      "sha": "4c5624259ed9ce876da06d1996e728c63666a398",
+      "tip": "0eb93743e14aa17a2643d155c97ea9129244b964",
+      "followUpCommits": [
+        "18a35f0",
+        "92b0036",
+        "0eb9374"
+      ],
+      "suite": {
+        "total": 351,
+        "skips": 4,
+        "failures": 0,
+        "errors": 0,
+        "note": "main tip 0eb9374; owned original module + pinned archive"
+      },
+      "live": "first enemy wave observed on candidate (wave=1, team1=41); roster/respawn defects #13/#14 open",
+      "noRuntimeAcceptance": true
+    },
+    "telemetryV2": {
+      "C": {
+        "head": "a29fabfdbd61384c4dfc73cd33de5c51d68b43b9",
+        "merge": "0393794",
+        "suite": {
+          "focused": {
+            "total": 127,
+            "skips": 3
+          },
+          "full": {
+            "total": 366,
+            "skips": 4
+          }
+        }
+      },
+      "B": {
+        "head": "d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+        "merge": "42d4ec3",
+        "suite": {
+          "total": 365,
+          "skips": 87
+        }
+      },
+      "mergedMain": {
+        "sha": "42d4ec37b0f44dda693247f8a9bbb67a77a42228",
+        "tests": 380,
+        "skips": 4,
+        "runs": 3,
+        "failures": 0,
+        "errors": 0
+      },
+      "classification": "bug-fix / diagnostics-hardening support; not acceptance"
+    }
+  },
+  "currentMain": "42d4ec37b0f44dda693247f8a9bbb67a77a42228"
+}

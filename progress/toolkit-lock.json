@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "release": "v0.4.1",
+  "sourceRepository": "interzettel/project-record-standard",
+  "sourceCommit": "ebc6afb0b977ff3d7605893c73ac63021775c4d3",
+  "sourceTreeVerified": true,
+  "skillFilesVerifiedAgainstGitBlobs": 26,
+  "skillSuiteDigest": "6fc2a9f5a89f9163ea3a2e744a01c3e838b85894e0aa374173a6230986520405",
+  "archive": "project-record-standard-0.4.1.zip",
+  "releasePublishedSha256": "a46cdcea938eb987b936497a22db8eab07106aad7dd12a8cfe10b4ad41f74607",
+  "archiveLocallyDownloaded": false,
+  "archiveLocallyVerified": false,
+  "kitVerificationStatus": "blocked: release ZIP unavailable from current runtime; compare local ZIP against published SHA256 before calling kit verified",
+  "contractVersion": "0.2.0",
+  "installationMethod": "Exact file-accurate reproduction of bundled src/project_record/agents.py installer, staged on review branch; direct CLI replay pending verified ZIP availability",
+  "targetBranch": "project-record-setup-v041",
+  "mergeAuthorized": false
+}

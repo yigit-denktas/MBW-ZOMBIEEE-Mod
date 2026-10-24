@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "42d4ec37b0f44dda693247f8a9bbb67a77a42228",
+  "authority": {
+    "scope": "proposed progress/ledger.json pending owner baseline",
+    "discussion": "GitHub issue number and comments",
+    "assignment": "GitHub",
+    "workflow": "not connected",
+    "acceptance": "owner/revision-backed test evidence; no implicit issue closure",
+    "publication": "none"
+  },
+  "crosswalk": [
+    {
+      "issue": 1,
+      "legacyId": "P0",
+      "title": "WSE2 startup and original City wave compatibility",
+      "leafIds": [
+        "ZOM-ENG-01",
+        "ZOM-ENG-02",
+        "ZOM-ENG-03"
+      ],
+      "state": "closed-superseded",
+      "supersededBy": 13,
+      "note": "Closed as superseded by #13 (City wave roster/completion/allies)."
+    },
+    {
+      "issue": 2,
+      "legacyId": "P1",
+      "title": "Invasion bot teams and survivor allies",
+      "leafIds": [
+        "ZOM-AI-01",
+        "ZOM-AI-02",
+        "ZOM-WAVE-01"
+      ]
+    },
+    {
+      "issue": 3,
+      "legacyId": "P2",
+      "title": "Defensible positions on original maps",
+      "leafIds": [
+        "ZOM-AI-03",
+        "ZOM-MAP-01"
+      ]
+    },
+    {
+      "issue": 4,
+      "legacyId": "P3",
+      "title": "Private-host cheats and profiling",
+      "leafIds": [
+        "ZOM-ADMIN-01",
+        "ZOM-PERF-01"
+      ]
+    },
+    {
+      "issue": 5,
+      "legacyId": "P4",
+      "title": "Attribution and legal distribution",
+      "leafIds": [
+        "ZOM-LEGAL-01",
+        "ZOM-REL-01"
+      ]
+    },
+    {
+      "issue": 6,
+      "legacyId": "diagnostic-evidence",
+      "title": "Final-session evidence and WSE2 acceptance",
+      "leafIds": [
+        "ZOM-OBS-01",
+        "ZOM-OBS-02",
+        "ZOM-QA-01",
+        "ZOM-QA-02",
+        "ZOM-DISC-26"
+      ]
+    },
+    {
+      "issue": 8,
+      "legacyId": "windows-installer",
+      "title": "Windows 11 discovery and reversible local install",
+      "leafIds": [
+        "ZOM-WIN-01",
+        "ZOM-WIN-02",
+        "ZOM-WIN-03"
+      ]
+    },
+    {
+      "issue": 9,
+      "legacyId": "solo-local-host",
+      "title": "Automatic private City hosting and join",
+      "leafIds": [
+        "ZOM-SOLO-01",
+        "ZOM-SOLO-02"
+      ]
+    },
+    {
+      "issue": 13,
+      "legacyId": "city-wave-roster",
+      "title": "City wave: zombie roster, wave completion and allied defenders",
+      "leafIds": [
+        "ZOM-AI-01",
+        "ZOM-AI-02",
+        "ZOM-AI-03",
+        "ZOM-WAVE-01",
+        "ZOM-ENG-03",
+        "ZOM-DISC-25"
+      ]
+    },
+    {
+      "issue": 14,
+      "legacyId": "launcher-rotation",
+      "title": "Launcher/rotation: team-2 bot count and correct invader roster",
+      "leafIds": [
+        "ZOM-WIN-02",
+        "ZOM-WIN-03",
+        "ZOM-SOLO-01",
+        "ZOM-SOLO-02",
+        "ZOM-DISC-23"
+      ]
+    },
+    {
+      "issue": 15,
+      "legacyId": "recorder-atomic-replace",
+      "title": "Recorder: transient Windows atomic-replace read race (ZOM-DISC-22)",
+      "leafIds": [
+        "ZOM-DISC-22",
+        "ZOM-OBS-02",
+        "ZOM-QA-01"
+      ]
+    },
+    {
+      "issue": 16,
+      "legacyId": "seal-host-stdout",
+      "title": "Seal dedicated-host ZDB1 stdout inside the flight evidence bundle",
+      "leafIds": [
+        "ZOM-OBS-01",
+        "ZOM-OBS-02",
+        "ZOM-QA-01",
+        "ZOM-QA-02",
+        "ZOM-DISC-24",
+        "ZOM-DISC-26"
+      ]
+    }
+  ],
+  "newIssueDrafts": [
+    "ZOM-WIN-01",
+    "ZOM-WIN-02",
+    "ZOM-WIN-03",
+    "ZOM-SOLO-01",
+    "ZOM-SOLO-02",
+    "ZOM-REC-01",
+    "ZOM-REC-02",
+    "ZOM-REC-03"
+  ],
+  "writeState": "Existing issues #2-#6/#8/#9 and #13-#16 preserved; #1 closed as superseded by #13. Bug-fix/diagnostics-hardening implementation commits linked to leaves; no automatic acceptance change.",
+  "labelsState": "unconfigured",
+  "projectState": "not-configured",
+  "permissions": "No new merge/deploy rights",
+  "bugFixImplementationCommits": {
+    "ZOM-DISC-22": "d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+    "ZOM-DISC-23": "d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+    "ZOM-DISC-24": [
+      "d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+      "a29fabfdbd61384c4dfc73cd33de5c51d68b43b9"
+    ],
+    "ZOM-DISC-25": "a29fabfdbd61384c4dfc73cd33de5c51d68b43b9",
+    "ZOM-DISC-26": "a29fabfdbd61384c4dfc73cd33de5c51d68b43b9"
+  }
+}

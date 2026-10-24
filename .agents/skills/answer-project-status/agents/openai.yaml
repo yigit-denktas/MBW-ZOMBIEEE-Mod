@@ -1,0 +1,4 @@
+interface:
+  display_name: "Answer project status"
+  short_description: "Explain progress, blockers and observation freshness"
+  default_prompt: "Use $answer-project-status to explain this project’s progress and next gates."
