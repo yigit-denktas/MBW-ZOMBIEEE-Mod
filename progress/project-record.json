@@ -16,12 +16,13 @@
         "observedOn": "2026-10-24",
         "updatedOn": "2026-10-24",
         "authority": "Proposed owner-review draft authored from v0.1.8 README/ROADMAP/issue inventory; no accepted baseline",
-        "previousSourceFile": "snapshots/ledger-2026-10-24-pre-live-bot-roster.json",
+        "previousSourceFile": "snapshots/ledger-2026-10-24-pre-bugfix-track.json",
         "snapshotHistory": [
           "scope-changes/2026-10-24-discovered-work.json",
           "scope-changes/2026-10-24-live-incident-amendment.json",
           "scope-changes/2026-10-24-unification-and-postmerge.json",
-          "scope-changes/2026-10-24-live-bot-roster-respawn.json"
+          "scope-changes/2026-10-24-live-bot-roster-respawn.json",
+          "scope-changes/2026-10-24-bugfix-diagnostics-track.json"
         ]
       },
       "presentation": {

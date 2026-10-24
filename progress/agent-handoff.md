@@ -85,3 +85,11 @@ C has pushed implementation updates for log head/tail and path checks, but compa
 - New defects: wave-1 generic bots are faction-default Crazed Civilian, not native Zombie troops (#13/#14); no respawn/new round after player death (#13/#14). Required rotation commands: `max_num_bots`, `set_bot_count 2`, `set_respawn_period 5`, `set_round_max_seconds 1800`, `set_defender_spawn_count 0`, `set_player_respawn_as_bot 0` before `start`.
 - Evidence: #15 recorder atomic-replace race (`ZOM-DISC-22`), #16 seal host ZDB1 stdout (`ZOM-DISC-24`); #1 closed → #13. Main tip `0eb9374`, suite **351 OK/4 skips**; `tools/city_runtime_triage.py --rotation` enforces the contract.
 - No gameplay acceptance: wave 2+/completion, native zombie roster, allied divisions 5-7, round transition, sealed receipt and teardown remain open. Required City outcomes **0/23**, milestones **0/5**.
+
+### Telemetry-v2 bug-fix integration — 2026-10-24
+
+- Main tip `42d4ec37b0f44dda693247f8a9bbb67a77a42228`: C telemetry v2 merge `0393794` (head `a29fabf`), B sealing/retry/rotation merge `42d4ec3` (head `d1011e2`).
+- Merged suite **380 OK/4 skips, 3 consecutive clean runs** (owned module+archive). Pre-fix B interop `PermissionError` flake observed once in 7 runs; 3/3 is not a general stability proof.
+- Five bug-fix upgrades as support leaves: `ZOM-DISC-22` (#15, done), `ZOM-DISC-23` (#14, active — live validated rotation/roster pending), `ZOM-DISC-24` (#16, active — sealed ZDB1 attempt pending), `ZOM-DISC-25` (#13, done — histogram+lifecycle), `ZOM-DISC-26` (#6/#16, done — receipt summary CLI). No `ZOM-DISC-27` umbrella (schema already separates support from outcomes).
+- Verified read-only: `python tools/diagnostics.py summary <attempt8>` → verified True (7 files), 4 invalid-faction-id errors, gaps include `zdbi_stream_not_sealed`, `runtime_verified=false`.
+- Required City outcomes remain **0/23**, milestones **0/5**, `runtime_verified=false`. No gameplay/wave acceptance. Next bug-fix evidence: live validated rotation/roster and a sealed ZDB1-bearing attempt.

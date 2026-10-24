@@ -36,3 +36,7 @@ Public `gh-pages` content was refreshed from the canonical tracker: `progress/le
 ## Publication refresh after live bot-count observation — 2026-10-24
 
 Public `gh-pages` content was refreshed from the canonical tracker: ledger copied byte-identically, page source line updated to main `0eb9374` and the observed first enemy wave with open roster/respawn defects. The public views must show that one observed wave is not wave completion or gameplay acceptance; required City outcomes remain 0/23 and milestones 0/5, discovered support is 21/24 bounded work. No assets, logs, private paths or credentials are published. Interactive browser/assistive verification of the refreshed revision remains pending.
+
+## Publication refresh after telemetry-v2 bug-fix pass — 2026-10-24
+
+Public `gh-pages` content was refreshed from the canonical tracker for main `42d4ec3`: byte-identical ledger, updated page source line naming the bug-fix/diagnostics-hardening pass (`ZOM-DISC-22..26`), merged suite 380 OK/4 skips over three clean runs, and the retained caveats (pre-fix flake observed once in seven runs; no gameplay/wave acceptance; required City outcomes 0/23, milestones 0/5). No assets, logs, private paths or credentials are published. Interactive browser/assistive verification of the refreshed revision remains pending.

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "sourceRevision": "0eb93743e14aa17a2643d155c97ea9129244b964",
+  "sourceRevision": "42d4ec37b0f44dda693247f8a9bbb67a77a42228",
   "authority": {
     "scope": "proposed progress/ledger.json pending owner baseline",
     "discussion": "GitHub issue number and comments",
@@ -68,7 +68,8 @@
         "ZOM-OBS-01",
         "ZOM-OBS-02",
         "ZOM-QA-01",
-        "ZOM-QA-02"
+        "ZOM-QA-02",
+        "ZOM-DISC-26"
       ]
     },
     {
@@ -99,7 +100,8 @@
         "ZOM-AI-02",
         "ZOM-AI-03",
         "ZOM-WAVE-01",
-        "ZOM-ENG-03"
+        "ZOM-ENG-03",
+        "ZOM-DISC-25"
       ]
     },
     {
@@ -133,7 +135,8 @@
         "ZOM-OBS-02",
         "ZOM-QA-01",
         "ZOM-QA-02",
-        "ZOM-DISC-24"
+        "ZOM-DISC-24",
+        "ZOM-DISC-26"
       ]
     }
   ],
@@ -147,8 +150,18 @@
     "ZOM-REC-02",
     "ZOM-REC-03"
   ],
-  "writeState": "Existing issues #2-#6/#8/#9 preserved; #1 closed as superseded by #13. New City-wave (#13), launcher/rotation (#14), recorder race (#15) and evidence-sealing (#16) issues mapped. No automatic issue closure or acceptance change.",
+  "writeState": "Existing issues #2-#6/#8/#9 and #13-#16 preserved; #1 closed as superseded by #13. Bug-fix/diagnostics-hardening implementation commits linked to leaves; no automatic acceptance change.",
   "labelsState": "unconfigured",
   "projectState": "not-configured",
-  "permissions": "No new merge/deploy rights"
+  "permissions": "No new merge/deploy rights",
+  "bugFixImplementationCommits": {
+    "ZOM-DISC-22": "d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+    "ZOM-DISC-23": "d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+    "ZOM-DISC-24": [
+      "d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+      "a29fabfdbd61384c4dfc73cd33de5c51d68b43b9"
+    ],
+    "ZOM-DISC-25": "a29fabfdbd61384c4dfc73cd33de5c51d68b43b9",
+    "ZOM-DISC-26": "a29fabfdbd61384c4dfc73cd33de5c51d68b43b9"
+  }
 }

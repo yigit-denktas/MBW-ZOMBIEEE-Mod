@@ -413,6 +413,18 @@
           "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/16",
           "observedOn": "2026-10-24",
           "acceptance": "open-observation"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/a29fabfdbd61384c4dfc73cd33de5c51d68b43b9",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/0393794",
+          "observedOn": "2026-10-24",
+          "acceptance": "merged-implementation"
         }
       ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
@@ -421,7 +433,7 @@
       "priority": "P0",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
       "criterion": "Bounded, versioned wave, spawn, team and combat events recorded in one actual session with explicit unknown fields",
-      "note": "C forensic source now includes guarded server round identity, strict server+invasion scope, receipt check-count repair and new R030/CITY-I08 for observed faction error. Local partial 10/10 C tests passed at 16a0bad; exact-current focused/full suites pending. Corrected C probe validates role=server, game_type=7, ready_for_spawn and wave fields live; sealed receipt and host ZDB1 retention remain open (#16).",
+      "note": "C forensic source now includes guarded server round identity, strict server+invasion scope, receipt check-count repair and new R030/CITY-I08 for observed faction error. Local partial 10/10 C tests passed at 16a0bad; exact-current focused/full suites pending. Corrected C probe validates role=server, game_type=7, ready_for_spawn and wave fields live; sealed receipt and host ZDB1 retention remain open (#16). Telemetry v2 (bounded histogram + observed lifecycle events) is merged at main 42d4ec3 as bug-fix support; live field capture remains pending.",
       "deferReason": null,
       "implementationLane": "C",
       "review": {
@@ -471,6 +483,30 @@
           "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/16",
           "observedOn": "2026-10-24",
           "acceptance": "open-observation"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/42d4ec3",
+          "observedOn": "2026-10-24",
+          "acceptance": "merged-implementation"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/a29fabfdbd61384c4dfc73cd33de5c51d68b43b9",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/0393794",
+          "observedOn": "2026-10-24",
+          "acceptance": "merged-implementation"
         }
       ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
@@ -479,7 +515,7 @@
       "priority": "P0",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
       "criterion": "Separate recorder retains startup/crash context when game or Lua exits, plus CPU/memory/process status where measurable",
-      "note": "C e455354 recorder started before host, readiness verified and owned host/client PIDs attached per B live report; signed stop, sealed manifest, manual privacy review and City gameplay sampling remain pending. Host ZDB1 stdout is not yet sealed inside the flight evidence bundle (#16); recorder atomic-replace read race is tracked as #15 / ZOM-DISC-22.",
+      "note": "C e455354 recorder started before host, readiness verified and owned host/client PIDs attached per B live report; signed stop, sealed manifest, manual privacy review and City gameplay sampling remain pending. Host ZDB1 stdout is not yet sealed inside the flight evidence bundle (#16); recorder atomic-replace read race is tracked as #15 / ZOM-DISC-22. Host-stdout tee/add_artifact (B d1011e2) and fail-closed receipt summary (C a29fabf) are merged at main 42d4ec3; an actual sealed ZDB1-bearing attempt remains open (#16).",
       "deferReason": null,
       "implementationLane": "C",
       "review": {
@@ -952,6 +988,18 @@
           "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/16",
           "observedOn": "2026-10-24",
           "acceptance": "open-observation"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/a29fabfdbd61384c4dfc73cd33de5c51d68b43b9",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/0393794",
+          "observedOn": "2026-10-24",
+          "acceptance": "merged-implementation"
         }
       ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
@@ -960,7 +1008,7 @@
       "priority": "P2",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
       "criterion": "Checksummed, redacted evidence bundle and rule report explain observed/unknown game outcomes and actionable failures",
-      "note": "C recorder was armed/attached in the live host attempt and C authored R030/CITY-I08 for four Invalid Faction ID:-1 errors. No complete sealed game evidence ZIP or final forensic interpretation has been reported. Evidence gates need sealed host stdout (#16) and stable merged-suite runs (#15).",
+      "note": "C recorder was armed/attached in the live host attempt and C authored R030/CITY-I08 for four Invalid Faction ID:-1 errors. No complete sealed game evidence ZIP or final forensic interpretation has been reported. Evidence gates need sealed host stdout (#16) and stable merged-suite runs (#15). Receipt summary CLI verifies sealed evidence and fails closed on tampering; repeated merged-suite stability is observed post-fix (3/3) but is not proof of general stability.",
       "deferReason": null,
       "implementationLane": "C",
       "review": {
@@ -1004,6 +1052,18 @@
           "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/16",
           "observedOn": "2026-10-24",
           "acceptance": "open-observation"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/42d4ec3",
+          "observedOn": "2026-10-24",
+          "acceptance": "merged-implementation"
         }
       ],
       "completionBasis": "No final criterion acceptance; prototype implementation must not count as Done",
@@ -1012,7 +1072,7 @@
       "priority": "P2",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
       "criterion": "A private City solo run completes the agreed minimum sustained wave test (proposed 10 waves), with reliable AI, no fatal failures and build-linked evidence. Other maps are not part of this gate.",
-      "note": "City-first sustained acceptance only. Optional map expansion ZOM-MAP-01 must not gate this work. Final acceptance requires wave 2+/roster/respawn evidence and sealed receipt (#13/#16).",
+      "note": "City-first sustained acceptance only. Optional map expansion ZOM-MAP-01 must not gate this work. Final acceptance requires wave 2+/roster/respawn evidence and sealed receipt (#13/#16). Merged tip 42d4ec3 suite 380 OK/4 skips over 3 consecutive runs with owned originals; no acceptance.",
       "deferReason": null,
       "implementationLane": "C"
     },
@@ -1925,8 +1985,8 @@
       "title": "Harden B adapter against transient Windows recorder control-file replace races",
       "groupId": "Setup",
       "milestoneId": "M2",
-      "state": "active",
-      "sourceState": "observed integration race assigned; retry/tolerance fix and regression test pending",
+      "state": "done",
+      "sourceState": "bounded source/fixture criterion verified; overall release outcome open",
       "required": false,
       "blocked": false,
       "dependsOn": [],
@@ -1943,15 +2003,27 @@
           "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/15",
           "observedOn": "2026-10-24",
           "acceptance": "open-defect"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/42d4ec3",
+          "observedOn": "2026-10-24",
+          "acceptance": "merged-implementation"
         }
       ],
-      "completionBasis": "Not completed: observed transient integration defect lacks a retry/tolerance fix and stability evidence",
+      "completionBasis": "Narrow supporting criterion met; no parent release-outcome credit",
       "kind": "work-item",
       "owner": "Agent B \u2014 bounded supporting work; owner retains outcome acceptance",
       "priority": "P1",
       "issueUrl": null,
       "criterion": "B recorder adapter must tolerate a Windows os.replace window when reading recorder-ready/attachment-ack files, with a regression test and a stable repeated merged-main run.",
-      "note": "Merged-main full suite: 1 of 7 local runs raised two transient PermissionError readings while C atomic_write replaced control files; the other six and Lead's run were green. Non-deterministic; no gameplay inference from either outcome. Tracked as GitHub issue #15; still active.",
+      "note": "Bounded retry for transient atomic-replace reads implemented in B d1011e2 (`launcher/recorder.py`, injected-failure regression test). Post-fix merged main 42d4ec3 ran 3/3 clean full suites (380 OK/4 skips); the pre-fix flake was observed once in seven runs \u2014 3/3 is not proof of general stability.",
       "deferReason": null,
       "implementationLane": "B",
       "workOrigin": "discovered",
@@ -1966,7 +2038,7 @@
       "groupId": "Solo",
       "milestoneId": "M2",
       "state": "active",
-      "sourceState": "live requirement observed on merged-main candidate; launcher/rotation implementation and tests pending",
+      "sourceState": "implementation merged (B d1011e2); live validated rotation/roster verification pending",
       "required": false,
       "blocked": false,
       "dependsOn": [],
@@ -1983,6 +2055,18 @@
           "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/13",
           "observedOn": "2026-10-24",
           "acceptance": "open-requirement"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/42d4ec3",
+          "observedOn": "2026-10-24",
+          "acceptance": "merged-implementation"
         }
       ],
       "completionBasis": "Not completed: the launcher must emit the observed rotation contract and verify the invader roster",
@@ -1991,7 +2075,7 @@
       "priority": "P0",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/14",
       "criterion": "Generated rotation sets max_num_bots, a positive set_bot_count 2 (1-based enemy team), set_respawn_period, set_round_max_seconds, set_defender_spawn_count 0 and set_player_respawn_as_bot 0 before start; launcher tests cover it and the generic-bot troop roster is verified or replaced with the native invader roster.",
-      "note": "Live bot-count breakthrough on merged main: baseline team1=0/wave=0, set_bot_count 2 32 produced wave=1 and team1=41, but wave-1 generic bots are faction-default trp_invader_multiplayer_ai (Crazed Civilian) and player death showed no respawn (team0=0 wave=0). A's city_runtime_triage --rotation statically enforces the commands.",
+      "note": "Live bot-count breakthrough on merged main: baseline team1=0/wave=0, set_bot_count 2 32 produced wave=1 and team1=41, but wave-1 generic bots are faction-default trp_invader_multiplayer_ai (Crazed Civilian) and player death showed no respawn (team0=0 wave=0). A's city_runtime_triage --rotation statically enforces the commands. Implementation d1011e2: `launcher/rotation.py` `build_rotation()` emits 1-based team-2 bots, respawn/round fields and `start` last, with Session.rotation_commands()/receipt()['rotation_sha256'] and tests; actual live launch with the generated rotation and native-roster verification remain open.",
       "deferReason": null,
       "implementationLane": "B",
       "workOrigin": "discovered",
@@ -2006,7 +2090,7 @@
       "groupId": "Diagnostics",
       "milestoneId": "M1",
       "state": "active",
-      "sourceState": "observed evidence-hardening gap assigned; recorder/evidence implementation pending",
+      "sourceState": "implementation merged (B d1011e2 + C a29fabf); actual sealed ZDB1-bearing attempt pending",
       "required": false,
       "blocked": false,
       "dependsOn": [],
@@ -2017,6 +2101,30 @@
           "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/16",
           "observedOn": "2026-10-24",
           "acceptance": "open-requirement"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/42d4ec3",
+          "observedOn": "2026-10-24",
+          "acceptance": "merged-implementation"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/a29fabfdbd61384c4dfc73cd33de5c51d68b43b9",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/0393794",
+          "observedOn": "2026-10-24",
+          "acceptance": "merged-implementation"
         }
       ],
       "completionBasis": "Not completed: ZDB1 host stdout is not yet sealed inside the recorder evidence bundle",
@@ -2025,7 +2133,7 @@
       "priority": "P1",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/16",
       "criterion": "The recorder evidence bundle includes the dedicated-host ZDB1 stdout for the same owned session, with bounded redaction and manual privacy review.",
-      "note": "Live wave evidence currently comes from captured host stdout; opening issue #16 tracks sealing it inside the flight evidence so role/game_type/wave markers are durable.",
+      "note": "Host stdout sealing mechanism implemented: `launcher/host_session.py` owns child stdout and tees bounded `host_stdout.log`; `PassiveRecorder.add_artifact` copies it into C's session dir before signed stop; C's receipt summary consumes sealed `host_stdout.log` and reports `zdbi_stream_not_sealed` when absent. No sealed attempt containing ZDB1 has been observed yet.",
       "deferReason": null,
       "implementationLane": "C",
       "workOrigin": "discovered",
@@ -2033,19 +2141,124 @@
       "supportsOutcomeId": "ZOM-OBS-02",
       "accountingScope": "supplemental-nonadditive",
       "originReason": "Live merged-main verification showed host stdout was outside the sealed evidence set."
+    },
+    {
+      "id": "ZOM-DISC-25",
+      "title": "Bounded per-team troop histogram and explicit observed lifecycle events",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "done",
+      "sourceState": "bounded source/fixture criterion verified; overall release outcome open",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/a29fabfdbd61384c4dfc73cd33de5c51d68b43b9",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/0393794",
+          "observedOn": "2026-10-24",
+          "acceptance": "merged-implementation"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/main/overlay/lua/main.lua",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/main/tests/test_flight_lua_msfiles.py",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        }
+      ],
+      "completionBasis": "Narrow supporting criterion met; no parent release-outcome credit",
+      "kind": "work-item",
+      "owner": "Agent C \u2014 bounded supporting work; owner retains outcome acceptance",
+      "priority": "P1",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/13",
+      "criterion": "Probe heartbeat/mission_enter carries bounded troops_team0/1 id:count plus capped troop names (<=12 ids and 400 chars per team, <=32-char labels, unknown counted) and emits player_died/player_respawned/round_started/wave_started only from observed server transitions, with no guessed events or unbounded output.",
+      "note": "Implemented in a29fabf (overlay 0.2.0, |opmeta=1|troop_hist=1|lifecycle=1|troop_map=13). Bounded/absent and op-classification tests pass; live histogram/lifecycle capture is still unobserved pending a new sealed attempt.",
+      "deferReason": null,
+      "implementationLane": "C",
+      "workOrigin": "discovered",
+      "workType": "bug-fix",
+      "supportsOutcomeId": "ZOM-OBS-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner requested recording the diagnostics upgrades as bug-fix work after live wave and respawn issues; not part of the release baseline."
+    },
+    {
+      "id": "ZOM-DISC-26",
+      "title": "Receipt summary CLI: verify sealed evidence and report what happened",
+      "groupId": "Diagnostics",
+      "milestoneId": "M1",
+      "state": "done",
+      "sourceState": "bounded source/fixture criterion verified; overall release outcome open",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "unmappedDependencies": [],
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/a29fabfdbd61384c4dfc73cd33de5c51d68b43b9",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/commit/0393794",
+          "observedOn": "2026-10-24",
+          "acceptance": "merged-implementation"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/main/tools/receipt_summary.py",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        },
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/main/tests/test_flight_receipt_summary.py",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static-only"
+        }
+      ],
+      "completionBasis": "Narrow supporting criterion met; no parent release-outcome credit",
+      "kind": "work-item",
+      "owner": "Agent C \u2014 bounded supporting work; owner retains outcome acceptance",
+      "priority": "P1",
+      "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6",
+      "criterion": "`python tools/diagnostics.py summary <attempt-or-session dir>` verifies the recorder manifest (exact member set, safe paths, SHA-256) and fails closed with exit 2 on tampering; it reports session/outcome/probe fields, max/last team counts, bounded troop histogram, waves/rounds, lifecycle events, engine-error classes, evidence gaps and runtime_verified=false.",
+      "note": "Implemented in a29fabf. Verified read-only on sealed attempt 8: verified True (7 files), 4 invalid-faction-id engine errors, gaps zdbi_stream_not_sealed/probe_role_unknown/no_probe_heartbeats/troop_histogram_unavailable/process_exit_not_observed_passive/engine_runtime_unknown, runtime_verified=false. 11 tamper/bounds tests.",
+      "deferReason": null,
+      "implementationLane": "C",
+      "workOrigin": "discovered",
+      "workType": "assurance",
+      "supportsOutcomeId": "ZOM-OBS-02",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner requested a receipt-level 'what happened' summary as part of the bug-fix diagnostics pass."
     }
   ],
   "warnings": [
     "Owner chose City-first release 2026-10-23; 23 required outcome leaves (not yet accepted), one retained optional five-map expansion leaf.",
-    "First enemy wave observed on the merged-main candidate: wave=1, wave_change, team1=41, game_type=7, ready_for_spawn=1; wave 2+ and wave completion remain unobserved.",
+    "Owner explicitly classifies the telemetry upgrades as BUG-FIX / diagnostics-hardening work, not release acceptance: main tip 42d4ec3 merges C telemetry v2 and B sealing as ZOM-DISC-22..26 support leaves.",
+    "Required City outcomes remain 0/23 and accepted milestones 0/5; runtime_verified=false everywhere. No gameplay, wave-completion, AI or release acceptance is claimed.",
+    "Merged main 42d4ec3 full suite: 380 tests OK / 4 skips, three consecutive clean runs with owned module+archive; the pre-fix B interop PermissionError flake was observed once in seven runs and is not proof of general stability.",
+    "First enemy wave remains observed only on the merged-main candidate: wave=1, team1=41; wave 2+/completion, native Zombie roster and allied survivor divisions 5-7 remain open (#13).",
     "Wave-1 generic set_bot_count bots are faction-default trp_invader_multiplayer_ai (Crazed Civilian), not native Zombie troops; roster defect tracked in #13/#14.",
-    "After player death no respawn/new round was observed (team0=0, wave=0); the rotation must set set_respawn_period 5, set_round_max_seconds 1800, set_defender_spawn_count 0 and set_player_respawn_as_bot 0 before start (#13/#14).",
-    "Corrected C probe validated live (opmeta=1, role=server, separate game_type field); sealed recorder receipt and host ZDB1 stdout sealing remain pending (#16).",
-    "Required City outcomes remain 0/23 and accepted milestones 0/5; no gameplay, wave-completion, AI or release acceptance is claimed.",
-    "24 discovered support/investigation leaves: 21 narrowly source/fixture Done, 3 active (#14 launcher rotation/roster, #15 recorder read race, #16 seal ZDB1 stdout); none adds release credit.",
-    "Original 0.4 assets and WSE2 redistributability unresolved; friends/co-op excluded from required solo scope.",
-    "Exact-current Windows suites: A 158 OK/0 skips at d3dbef5; C 112 focused OK/3 skips and 204 full OK/33 skips at 675188a; B 162 OK/39 skips at d41aefc; merged main 340 OK/4 skips at 4c56242 and 351 OK/4 skips at tip 0eb9374.",
-    "Recorder atomic-replace read race was observed once in seven merged-suite runs and remains active as #15 / ZOM-DISC-22.",
+    "Rotation must set max_num_bots, set_bot_count 2, set_respawn_period, set_round_max_seconds, set_defender_spawn_count 0 and set_player_respawn_as_bot 0 before start; B implemented the builder (d1011e2) but a live validated launch remains pending.",
+    "Host stdout sealing mechanism (B d1011e2 + C a29fabf) is merged, but no sealed attempt containing a ZDB1 stream has been observed yet (#16); sealed attempt 8 reports zdbi_stream_not_sealed.",
+    "Telemetry v2 adds bounded per-team troop histograms and explicit observed lifecycle events; live capture of these fields remains unobserved pending a new sealed attempt (#13).",
+    "Receipt summary CLI is merged and fail-closed on tamper; verified read-only on sealed attempt 8 with runtime_verified=false, 4 invalid-faction-id engine errors and explicit evidence gaps.",
+    "26 discovered support/investigation leaves: 24 narrowly source/fixture Done, 2 active (live validated rotation/roster #14; actual sealed ZDB1 attempt #16); none adds release credit.",
     "Four observed Invalid Faction ID:-1 errors were decoded as original Beta 0.4 trailing faction_set_slot writes (trigger 14/opcode 502); remaster introduction rejected, engine causality unproven, no gameplay patch.",
     "Probe field correction remains: mode = zdr_defence_mode, and bots_team1 is the first team's bot count, never the enemy team count."
   ],
@@ -2205,9 +2418,9 @@
       "status": "active-preparation-no-runtime-acceptance",
       "coordinator": "Agent A",
       "source": "progress/agent-allocation.json",
-      "integrationMode": "reviewed branches unified into main 4c56242; post-merge docs/rotation-contract commits to main tip 0eb9374; no unreviewed automatic merge; owner retains release acceptance",
+      "integrationMode": "reviewed branches unified into main 4c56242 with post-merge bug-fix additions; main tip 42d4ec3 merges C telemetry v2 (0393794) and B sealing (42d4ec3); no unreviewed automatic merge; owner retains release acceptance",
       "releaseAcceptanceAuthority": "Repository owner",
-      "currentMain": "0eb93743e14aa17a2643d155c97ea9129244b964"
+      "currentMain": "42d4ec37b0f44dda693247f8a9bbb67a77a42228"
     },
     "discoveredWork": {
       "observedOn": "2026-10-24",
@@ -2219,8 +2432,8 @@
       "requiredReleaseLeavesBefore": 23,
       "requiredReleaseLeavesAfter": 23,
       "originalOptionalLeaves": 1,
-      "additionalSupportingLeaves": 24,
-      "additionalSupportingDone": 21,
+      "additionalSupportingLeaves": 26,
+      "additionalSupportingDone": 24,
       "supportsRule": "Each task has one parent outcome and its own narrow source/fixture criterion. A completed supporting task is not a completed parent outcome.",
       "priorLedger": "progress/snapshots/ledger-2026-10-23-original.json",
       "priorGitBlob": "c19e866f0e0acdf2d6cc5ee5cf0f20a2ae518140",
@@ -2232,7 +2445,7 @@
         "note": "historical pre-merge review heads; superseded by unifiedMain"
       },
       "review": 0,
-      "active": 3,
+      "active": 2,
       "liveHostObservation": {
         "reportedOn": "2026-10-24",
         "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11#issuecomment-6376361668",
@@ -2292,10 +2505,10 @@
           "classification": "observed candidate runtime subset; NOT wave completion or gameplay acceptance"
         }
       },
-      "latestHistory": "progress/scope-changes/2026-10-24-live-bot-roster-respawn.json",
+      "latestHistory": "progress/scope-changes/2026-10-24-bugfix-diagnostics-track.json",
       "unifiedMain": {
         "ref": "main",
-        "sha": "0eb93743e14aa17a2643d155c97ea9129244b964",
+        "sha": "42d4ec37b0f44dda693247f8a9bbb67a77a42228",
         "previousMain": "048564a526de9b36abd55874271c7b80f36e5cf5",
         "mergeCommits": {
           "PR #10 A": "9eed34b9e3d66a03fe00b9a35553eba09c0a4e81",
@@ -2349,8 +2562,92 @@
           "18a35f00114eb541a0aa183c91a004c7807a77b4",
           "92b0036a9f55d318b9b3abfd7007049871e21aba",
           "0eb93743e14aa17a2643d155c97ea9129244b964"
-        ]
+        ],
+        "telemetryV2": {
+          "C": {
+            "head": "a29fabfdbd61384c4dfc73cd33de5c51d68b43b9",
+            "merge": "0393794"
+          },
+          "B": {
+            "head": "d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+            "merge": "42d4ec3"
+          },
+          "mergedSuite": {
+            "tests": 380,
+            "skips": 4,
+            "failures": 0,
+            "errors": 0,
+            "runs": 3,
+            "runsGreen": 3,
+            "caveat": "pre-fix flake observed once in seven runs; 3/3 post-fix runs is not proof of general stability"
+          }
+        }
       }
+    },
+    "bugFixTrack": {
+      "observedOn": "2026-10-24",
+      "ownerStatement": "make sure to add these to the ledger! we are not going on the usual way since we are bug fixing.",
+      "classification": "bug-fix / diagnostics-hardening support track; NOT release criteria or acceptance",
+      "runtimeVerified": false,
+      "cityRelease": "required outcomes 0/23; accepted milestones 0/5",
+      "leaves": {
+        "ZOM-DISC-22": {
+          "issue": 15,
+          "implementation": "d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+          "state": "done",
+          "subject": "recorder atomic-replace read retry"
+        },
+        "ZOM-DISC-23": {
+          "issue": 14,
+          "implementation": "d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+          "state": "active",
+          "subject": "validated rotation builder (live roster verification pending)"
+        },
+        "ZOM-DISC-24": {
+          "issue": 16,
+          "implementation": [
+            "d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+            "a29fabfdbd61384c4dfc73cd33de5c51d68b43b9"
+          ],
+          "state": "active",
+          "subject": "host-stdout sealing + summary consumption (sealed ZDB1 attempt pending)"
+        },
+        "ZOM-DISC-25": {
+          "issue": 13,
+          "implementation": "a29fabfdbd61384c4dfc73cd33de5c51d68b43b9",
+          "state": "done",
+          "subject": "troop histogram + explicit lifecycle events"
+        },
+        "ZOM-DISC-26": {
+          "issue": 6,
+          "implementation": "a29fabfdbd61384c4dfc73cd33de5c51d68b43b9",
+          "state": "done",
+          "subject": "receipt summary CLI"
+        }
+      },
+      "merges": {
+        "main": "42d4ec37b0f44dda693247f8a9bbb67a77a42228",
+        "previousMain": "86100999c494a4b0db710387e439e4dc51d8717f",
+        "C": {
+          "head": "a29fabfdbd61384c4dfc73cd33de5c51d68b43b9",
+          "merge": "0393794"
+        },
+        "B": {
+          "head": "d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+          "merge": "42d4ec3"
+        }
+      },
+      "mergedSuite": {
+        "tests": 380,
+        "skips": 4,
+        "failures": 0,
+        "errors": 0,
+        "runs": 3,
+        "runsGreen": 3
+      },
+      "receiptSummaryVerification": "Attempt 8 sealed dir: verified True (7 files), 4 invalid-faction-id engine errors; gaps include zdbi_stream_not_sealed; runtime_verified=false",
+      "discoveredFraction": "24/26",
+      "umbrellaNote": "Optional ZOM-DISC-27 umbrella not added: the ledger already separates support leaves from required outcomes, and the five upgrades map to ZOM-DISC-22..26."
     }
   }
 }

@@ -6,13 +6,13 @@
   "recordBranch": "project-record-setup-v041",
   "trackerUrl": "https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/",
   "releaseScope": "City first; non-City maps deferred; 23 required leaves / one optional expansion",
-  "releaseEvidence": "2026-10-24 live merged-main candidate: corrected probe role=server game_type=7 ready_for_spawn=1; no team-1 agents at baseline, set_bot_count 2 32 produced wave=1/team1=41; wave-1 generic bots are Crazed Civilian (roster defect #14), player death showed no respawn (#13). Two docs/rotation-contract commits and C doc note merged; main tip 0eb9374 suite 351 OK/4 skips. No gameplay acceptance: 0/23 required outcomes, 0/5 milestones; 24 discovered leaves (21 done, 3 active).",
+  "releaseEvidence": "2026-10-24 bug-fix/diagnostics-hardening pass: main 42d4ec3 merges C telemetry v2 (a29fabf: bounded troop histogram, explicit observed lifecycle events, fail-closed receipt summary CLI) and B sealing (d1011e2: host stdout tee/add_artifact, atomic-replace read retry, validated rotation builder). Merged suite 380 OK/4 skips over 3 consecutive runs; pre-fix flake observed once in 7 runs. Owner classifies these as bug fixing, not release acceptance: 0/23 required outcomes, 0/5 milestones; discovered leaves 26 (24 done, 2 active).",
   "coordination": {
     "lead": "Agent A",
     "handoff": "GitHub branch/PR + evidence, never chat-only handoffs",
     "integrator": "Agent A",
     "user": "Acceptance authority",
-    "branchesFrom": "original main 048564a526de9b36abd55874271c7b80f36e5cf5; reviewed branches merged into main 4c56242; post-merge follow-ups to main tip 0eb93743e14aa17a2643d155c97ea9129244b964",
+    "branchesFrom": "original main 048564a526de9b36abd55874271c7b80f36e5cf5; unified main 4c56242; main tip 42d4ec37b0f44dda693247f8a9bbb67a77a42228 after C/B telemetry-v2 merges",
     "approval": "Owner requested branch unification; agents implemented/reviewed in their own branches, then integration merged the three reviewed heads (no unreviewed automatic merge, no CI, no B/C Pages edits). Owner retains release acceptance.",
     "updates": "Only Agent A edits progress/ledger.json and republishes public gh-pages snapshot after scope/evidence review; others propose updates in PR.",
     "privacy": "Never commit original RAR, game assets, Windows user paths, logs containing identity, secrets or private readiness assessments.",
@@ -82,7 +82,7 @@
         "ZOM-DISC-20",
         "ZOM-DISC-21"
       ],
-      "mergedIntoMain": "0eb93743e14aa17a2643d155c97ea9129244b964",
+      "mergedIntoMain": "42d4ec37b0f44dda693247f8a9bbb67a77a42228",
       "branchState": "merged-and-auto-deleted (local worktree retained for verification)"
     },
     "B": {
@@ -134,9 +134,10 @@
         "ZOM-DISC-07",
         "ZOM-DISC-08",
         "ZOM-DISC-22",
-        "ZOM-DISC-23"
+        "ZOM-DISC-23",
+        "ZOM-DISC-24"
       ],
-      "mergedIntoMain": "0eb93743e14aa17a2643d155c97ea9129244b964",
+      "mergedIntoMain": "42d4ec37b0f44dda693247f8a9bbb67a77a42228",
       "branchState": "merged-and-auto-deleted (local worktree retained for verification)"
     },
     "C": {
@@ -195,9 +196,11 @@
         "ZOM-DISC-17",
         "ZOM-DISC-18",
         "ZOM-DISC-19",
-        "ZOM-DISC-24"
+        "ZOM-DISC-24",
+        "ZOM-DISC-25",
+        "ZOM-DISC-26"
       ],
-      "mergedIntoMain": "0eb93743e14aa17a2643d155c97ea9129244b964",
+      "mergedIntoMain": "42d4ec37b0f44dda693247f8a9bbb67a77a42228",
       "branchState": "merged-and-auto-deleted (local worktree retained for verification)"
     }
   },
@@ -319,7 +322,40 @@
       },
       "live": "first enemy wave observed on candidate (wave=1, team1=41); roster/respawn defects #13/#14 open",
       "noRuntimeAcceptance": true
+    },
+    "telemetryV2": {
+      "C": {
+        "head": "a29fabfdbd61384c4dfc73cd33de5c51d68b43b9",
+        "merge": "0393794",
+        "suite": {
+          "focused": {
+            "total": 127,
+            "skips": 3
+          },
+          "full": {
+            "total": 366,
+            "skips": 4
+          }
+        }
+      },
+      "B": {
+        "head": "d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+        "merge": "42d4ec3",
+        "suite": {
+          "total": 365,
+          "skips": 87
+        }
+      },
+      "mergedMain": {
+        "sha": "42d4ec37b0f44dda693247f8a9bbb67a77a42228",
+        "tests": 380,
+        "skips": 4,
+        "runs": 3,
+        "failures": 0,
+        "errors": 0
+      },
+      "classification": "bug-fix / diagnostics-hardening support; not acceptance"
     }
   },
-  "currentMain": "0eb93743e14aa17a2643d155c97ea9129244b964"
+  "currentMain": "42d4ec37b0f44dda693247f8a9bbb67a77a42228"
 }

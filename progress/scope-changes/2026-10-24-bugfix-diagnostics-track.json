@@ -1,0 +1,103 @@
+{
+  "schema": "zombieee.scope-change.v1",
+  "observedOn": "2026-10-24",
+  "changeType": "bugfix-diagnostics-hardening-track",
+  "amends": "progress/scope-changes/2026-10-24-live-bot-roster-respawn.json",
+  "authority": "Owner: 'make sure to add these to the ledger! we are not going on the usual way since we are bug fixing.' These are support/bug-fix leaves, not release acceptance criteria.",
+  "before": {
+    "sourcePath": "progress/ledger.json",
+    "sourceCommit": "06942a618afd1253a101197a7cb085aa3477127a",
+    "retainedItems": 48,
+    "requiredOutcomes": 23,
+    "discovered": 24,
+    "discoveredDone": 21,
+    "discoveredActive": 3,
+    "discoveredFraction": "21/24",
+    "requiredFraction": "0/23",
+    "milestonesAccepted": "0/5"
+  },
+  "after": {
+    "sourcePath": "progress/ledger.json",
+    "retainedItems": 50,
+    "requiredOutcomes": 23,
+    "discovered": 26,
+    "discoveredDone": 24,
+    "discoveredActive": 2,
+    "discoveredFraction": "24/26",
+    "requiredFraction": "0/23",
+    "milestonesAccepted": "0/5",
+    "runtimeVerified": false
+  },
+  "merges": {
+    "previousMain": "86100999c494a4b0db710387e439e4dc51d8717f",
+    "main": "42d4ec37b0f44dda693247f8a9bbb67a77a42228",
+    "C": {
+      "head": "a29fabfdbd61384c4dfc73cd33de5c51d68b43b9",
+      "merge": "0393794",
+      "suites": {
+        "focused": {
+          "tests": 127,
+          "skips": 3
+        },
+        "full": {
+          "tests": 366,
+          "skips": 4
+        }
+      }
+    },
+    "B": {
+      "head": "d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+      "merge": "42d4ec3",
+      "suites": {
+        "tests": 365,
+        "skips": 87
+      }
+    },
+    "mergedSuite": {
+      "tests": 380,
+      "skips": 4,
+      "runs": 3,
+      "failures": 0,
+      "errors": 0,
+      "caveat": "pre-fix flake observed once in 7 runs; 3/3 post-fix runs is not a general stability proof"
+    }
+  },
+  "bugFixUpgrades": {
+    "ZOM-DISC-22": {
+      "issue": 15,
+      "implementation": "d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+      "state": "done",
+      "deliverable": "atomic-replace read retry + injected-failure test"
+    },
+    "ZOM-DISC-23": {
+      "issue": 14,
+      "implementation": "d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+      "state": "active",
+      "deliverable": "validated rotation builder + receipt hash (live launch/roster pending)"
+    },
+    "ZOM-DISC-24": {
+      "issue": 16,
+      "implementation": [
+        "d1011e2de7c1342a74c658ebcebdb50f8776fe02",
+        "a29fabfdbd61384c4dfc73cd33de5c51d68b43b9"
+      ],
+      "state": "active",
+      "deliverable": "host stdout tee/add_artifact + summary consumption (sealed ZDB1 attempt pending)"
+    },
+    "ZOM-DISC-25": {
+      "issue": 13,
+      "implementation": "a29fabfdbd61384c4dfc73cd33de5c51d68b43b9",
+      "state": "done",
+      "deliverable": "bounded troop histogram + explicit observed lifecycle events"
+    },
+    "ZOM-DISC-26": {
+      "issue": 6,
+      "implementation": "a29fabfdbd61384c4dfc73cd33de5c51d68b43b9",
+      "state": "done",
+      "deliverable": "fail-closed receipt 'what happened' summary CLI"
+    }
+  },
+  "accounting": "Required City outcomes remain 0/23 and accepted milestones 0/5; runtime_verified=false. Discovered support leaves 24 -> 26 (24 done, 2 active). The five diagnostics upgrades are bug-fix support work (ZOM-DISC-22..26); optional ZOM-DISC-27 umbrella not added because the schema already separates support leaves from required outcomes.",
+  "receiptSummaryVerification": "Attempt 8 sealed dir: verified True (7 files), 4 invalid-faction-id engine errors, gaps include zdbi_stream_not_sealed, runtime_verified=false",
+  "ownerNext": "Continue bug-fix pass: live validated rotation/roster and a sealed ZDB1-bearing attempt; no gameplay or release acceptance before matching evidence."
+}
