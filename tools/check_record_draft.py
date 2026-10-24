@@ -31,7 +31,7 @@ readme=(ROOT/"README.md").read_text(encoding="utf-8")
 assert "<!-- project-record:start -->" in readme and "<!-- project-record:end -->" in readme
 assert f"{done}/{len(required)}" in readme and f"{accepted}/{len(ms)}" in readme,"README fraction does not match ledger"
 issue_links = json.loads((ROOT/"progress/issue-mapping.json").read_text(encoding="utf-8"))["crosswalk"]
-assert {1,2,3,4,5,6,8,9} == {row["issue"] for row in issue_links}
+assert {1,2,3,4,5,6,8,9,13,14,15,16} == {row["issue"] for row in issue_links}
 assert all(set(row["leafIds"]).issubset(set(ids)) for row in issue_links)
 assert all(item["owner"].startswith("Agent ") for item in items)
 assert all(not (item["required"] and any(next(d for d in items if d["id"] == dep)["required"] is False for dep in item["dependsOn"])) for item in items), "Required release leaf depends on optional work"
@@ -40,4 +40,5 @@ discovered_done=sum(item["state"]=="done" for item in discovered)
 print(json.dumps({"provisional_required":{"done":done,"total":len(required)},
  "provisional_discovered":{"done":discovered_done,"total":len(discovered)},
  "accepted_milestones":{"done":accepted,"total":len(ms)},
+ "issues_mapped":len(issue_links),
  "source":"progress/ledger.json","official_toolkit_validation":"still required"},indent=2))

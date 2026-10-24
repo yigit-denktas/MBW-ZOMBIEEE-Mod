@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "sourceRevision": "048564a526de9b36abd55874271c7b80f36e5cf5",
+  "sourceRevision": "0eb93743e14aa17a2643d155c97ea9129244b964",
   "authority": {
     "scope": "proposed progress/ledger.json pending owner baseline",
     "discussion": "GitHub issue number and comments",
@@ -18,7 +18,10 @@
         "ZOM-ENG-01",
         "ZOM-ENG-02",
         "ZOM-ENG-03"
-      ]
+      ],
+      "state": "closed-superseded",
+      "supersededBy": 13,
+      "note": "Closed as superseded by #13 (City wave roster/completion/allies)."
     },
     {
       "issue": 2,
@@ -86,6 +89,52 @@
         "ZOM-SOLO-01",
         "ZOM-SOLO-02"
       ]
+    },
+    {
+      "issue": 13,
+      "legacyId": "city-wave-roster",
+      "title": "City wave: zombie roster, wave completion and allied defenders",
+      "leafIds": [
+        "ZOM-AI-01",
+        "ZOM-AI-02",
+        "ZOM-AI-03",
+        "ZOM-WAVE-01",
+        "ZOM-ENG-03"
+      ]
+    },
+    {
+      "issue": 14,
+      "legacyId": "launcher-rotation",
+      "title": "Launcher/rotation: team-2 bot count and correct invader roster",
+      "leafIds": [
+        "ZOM-WIN-02",
+        "ZOM-WIN-03",
+        "ZOM-SOLO-01",
+        "ZOM-SOLO-02",
+        "ZOM-DISC-23"
+      ]
+    },
+    {
+      "issue": 15,
+      "legacyId": "recorder-atomic-replace",
+      "title": "Recorder: transient Windows atomic-replace read race (ZOM-DISC-22)",
+      "leafIds": [
+        "ZOM-DISC-22",
+        "ZOM-OBS-02",
+        "ZOM-QA-01"
+      ]
+    },
+    {
+      "issue": 16,
+      "legacyId": "seal-host-stdout",
+      "title": "Seal dedicated-host ZDB1 stdout inside the flight evidence bundle",
+      "leafIds": [
+        "ZOM-OBS-01",
+        "ZOM-OBS-02",
+        "ZOM-QA-01",
+        "ZOM-QA-02",
+        "ZOM-DISC-24"
+      ]
     }
   ],
   "newIssueDrafts": [
@@ -98,7 +147,7 @@
     "ZOM-REC-02",
     "ZOM-REC-03"
   ],
-  "writeState": "Existing issues #1–#6 preserved; new standalone installer/solo issues #8/#9 created. No automatic issue closure, agent GitHub identity assigned only by branch names.",
+  "writeState": "Existing issues #2-#6/#8/#9 preserved; #1 closed as superseded by #13. New City-wave (#13), launcher/rotation (#14), recorder race (#15) and evidence-sealing (#16) issues mapped. No automatic issue closure or acceptance change.",
   "labelsState": "unconfigured",
   "projectState": "not-configured",
   "permissions": "No new merge/deploy rights"

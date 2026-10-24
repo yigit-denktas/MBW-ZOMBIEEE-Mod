@@ -77,3 +77,11 @@ C has pushed implementation updates for log head/tail and path checks, but compa
 - Windows suites at merge time: A **158 OK/0 skips**; C **112 focused OK/3 skips**, **204 full OK/33 skips**; B **162 OK/39 skips**; merged main **340 OK/4 skips**. Conflicts only in `tools/evidence_readiness.py` (took C's newer gating + capability snapshot) and `tests/test_evidence_readiness.py` (kept A's superset).
 - **Incident conclusions:** trigger-14 `Invalid Faction ID:-1` is original Beta 0.4 trailing `faction_set_slot(-1,200,trp_invader_multiplayer_ai)` content, non-fatal and not proven causal; probe `mode` is `zdr_defence_mode`, not game type; dedicated `role=client`/trigger-32 lvalue were one WSE2 msfiles operation-metadata defect, fixed by C in `675188a` with the signed wire unchanged.
 - **Open:** no runtime acceptance. One corrected-probe controlled City observation (Lead-coordinated), B post-merge verification, the transient B/C file-replace race (`ZOM-DISC-22`), and the original required outcomes/installer/legal gates remain. Required City outcomes stay **0/23**, milestones **0/5**.
+
+### Live bot-count breakthrough and follow-ups — 2026-10-24
+
+- Merged-main candidate first enemy wave: baseline `role=server game_type=7 ready_for_spawn=1 bots_team1=0 team1=0 wave=0`; `set_bot_count 1 32` → allied-only `team0=33`; **`set_bot_count 2 32` → `agents=42 team0=1 team1=41 wave=1`, `wave_change wave=1`**.
+- Root cause of earlier no-AI: dedicated rotation bot configuration (1-based `set_bot_count`; `g_multiplayer_num_bots_team_1` is the first team), not the build.
+- New defects: wave-1 generic bots are faction-default Crazed Civilian, not native Zombie troops (#13/#14); no respawn/new round after player death (#13/#14). Required rotation commands: `max_num_bots`, `set_bot_count 2`, `set_respawn_period 5`, `set_round_max_seconds 1800`, `set_defender_spawn_count 0`, `set_player_respawn_as_bot 0` before `start`.
+- Evidence: #15 recorder atomic-replace race (`ZOM-DISC-22`), #16 seal host ZDB1 stdout (`ZOM-DISC-24`); #1 closed → #13. Main tip `0eb9374`, suite **351 OK/4 skips**; `tools/city_runtime_triage.py --rotation` enforces the contract.
+- No gameplay acceptance: wave 2+/completion, native zombie roster, allied divisions 5-7, round transition, sealed receipt and teardown remain open. Required City outcomes **0/23**, milestones **0/5**.
