@@ -35,7 +35,7 @@ footer{border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
 <h1>Project Record</h1>
 <p>Restore five original zombie-invasion maps, ship an automatic Windows 11 installer, launch solo play in one click, and diagnose failures using evidence rather than guesses.</p>
 <p class="caption">Draft tracker, not a published or accepted release plan. No original game assets are distributed here.</p>
-<nav aria-label="Related sources"><a href="../README.md">Project README</a> · <a href="../progress/overview.md">Overview</a> · <a href="../docs/ROADMAP.md">Historical roadmap</a> · <a href="https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues">GitHub issues</a></nav>
+<nav aria-label="Related sources"><a href="https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/main/README.md">Project README</a> · <a href="https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/project-record-setup-v041/progress/overview.md">Overview</a> · <a href="https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/main/docs/ROADMAP.md">Historical roadmap</a> · <a href="https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues">GitHub issues</a></nav>
 </header>
 <main id="main">
 <div class="warning" role="note"><strong>Evidence boundary:</strong> 0 accepted outcome leaves does not mean no code exists. v0.1.8 has experimental scripts and offline tests, but WSE2 gameplay and the owner-approved scope baseline are outstanding. Agent readiness is L0 provisionally, independent of percentages.</div>
@@ -84,7 +84,7 @@ const region=$('items');region.replaceChildren();active.forEach(it=>{const outer
 $('count').textContent=active.length+' visible of '+record.items.length+' work items · '+record.items.filter(i=>i.workOrigin==='discovered').length+' discovered';
 if(!active.length)region.append(el('p','No work matches those filters.'));
 }
-async function init(){try{const res=await fetch('../progress/ledger.json',{cache:'no-store'});if(!res.ok)throw new Error('HTTP '+res.status);record=await res.json();if(!Array.isArray(record.items)||!Array.isArray(record.milestones))throw Error('Invalid ledger');
+async function init(){try{let res=null;for(const p of ['progress/ledger.json','../progress/ledger.json']){res=await fetch(p,{cache:'no-store'});if(res.ok)break;}if(!res||!res.ok)throw new Error('HTTP '+(res?res.status:'no-response'));record=await res.json();if(!Array.isArray(record.items)||!Array.isArray(record.milestones))throw Error('Invalid ledger');
 const req=record.items.filter(i=>i.required),done=req.filter(i=>i.state==='done');
 const accepted=record.milestones.filter(m=>m.sourceAccepted===true);
 $('work').textContent=done.length+'/'+req.length+' · '+pct(done.length,req.length);
