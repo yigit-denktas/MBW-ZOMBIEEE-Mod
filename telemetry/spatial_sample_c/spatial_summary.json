@@ -26,7 +26,8 @@
     },
     "points": 692,
     "heartbeats": 42,
-    "agents": 53,
+    "agents": 31,
+    "agent_tracks": 53,
     "waves": [
       0,
       1,
@@ -5100,6 +5101,7 @@
     {
       "team": 0,
       "agent_id": 3,
+      "teams_seen": "[0]",
       "troop": 981,
       "class_id": null,
       "division": null,
@@ -5125,6 +5127,7 @@
     {
       "team": 0,
       "agent_id": 4,
+      "teams_seen": "[0]",
       "troop": 983,
       "class_id": null,
       "division": null,
@@ -5150,6 +5153,7 @@
     {
       "team": 0,
       "agent_id": 6,
+      "teams_seen": "[0]",
       "troop": 981,
       "class_id": null,
       "division": null,
@@ -5175,6 +5179,7 @@
     {
       "team": 0,
       "agent_id": 7,
+      "teams_seen": "[0]",
       "troop": 982,
       "class_id": null,
       "division": null,
@@ -5200,6 +5205,7 @@
     {
       "team": 0,
       "agent_id": 9,
+      "teams_seen": "[0]",
       "troop": 983,
       "class_id": null,
       "division": null,
@@ -5225,6 +5231,7 @@
     {
       "team": 0,
       "agent_id": 10,
+      "teams_seen": "[0]",
       "troop": 982,
       "class_id": null,
       "division": null,
@@ -5250,6 +5257,7 @@
     {
       "team": 0,
       "agent_id": 11,
+      "teams_seen": "[0]",
       "troop": 981,
       "class_id": null,
       "division": null,
@@ -5275,6 +5283,7 @@
     {
       "team": 0,
       "agent_id": 12,
+      "teams_seen": "[0]",
       "troop": 981,
       "class_id": null,
       "division": null,
@@ -5300,6 +5309,7 @@
     {
       "team": 0,
       "agent_id": 13,
+      "teams_seen": "[0]",
       "troop": 982,
       "class_id": null,
       "division": null,
@@ -5325,6 +5335,7 @@
     {
       "team": 0,
       "agent_id": 14,
+      "teams_seen": "[0]",
       "troop": 984,
       "class_id": null,
       "division": null,
@@ -5350,6 +5361,7 @@
     {
       "team": 0,
       "agent_id": 15,
+      "teams_seen": "[0]",
       "troop": 984,
       "class_id": null,
       "division": null,
@@ -5375,6 +5387,7 @@
     {
       "team": 0,
       "agent_id": 16,
+      "teams_seen": "[0]",
       "troop": 984,
       "class_id": null,
       "division": null,
@@ -5400,6 +5413,7 @@
     {
       "team": 0,
       "agent_id": 17,
+      "teams_seen": "[0]",
       "troop": 981,
       "class_id": null,
       "division": null,
@@ -5425,6 +5439,7 @@
     {
       "team": 0,
       "agent_id": 18,
+      "teams_seen": "[0]",
       "troop": 983,
       "class_id": null,
       "division": null,
@@ -5450,6 +5465,7 @@
     {
       "team": 0,
       "agent_id": 19,
+      "teams_seen": "[0]",
       "troop": 983,
       "class_id": null,
       "division": null,
@@ -5475,6 +5491,7 @@
     {
       "team": 0,
       "agent_id": 20,
+      "teams_seen": "[0]",
       "troop": 981,
       "class_id": null,
       "division": null,
@@ -5500,6 +5517,7 @@
     {
       "team": 0,
       "agent_id": 22,
+      "teams_seen": "[0]",
       "troop": 981,
       "class_id": null,
       "division": null,
@@ -5525,6 +5543,7 @@
     {
       "team": 0,
       "agent_id": 24,
+      "teams_seen": "[0]",
       "troop": 984,
       "class_id": null,
       "division": null,
@@ -5550,6 +5569,7 @@
     {
       "team": 0,
       "agent_id": 25,
+      "teams_seen": "[0]",
       "troop": 981,
       "class_id": null,
       "division": null,
@@ -5575,6 +5595,7 @@
     {
       "team": 0,
       "agent_id": 26,
+      "teams_seen": "[0]",
       "troop": 981,
       "class_id": null,
       "division": null,
@@ -5600,6 +5621,7 @@
     {
       "team": 0,
       "agent_id": 27,
+      "teams_seen": "[0]",
       "troop": 981,
       "class_id": null,
       "division": null,
@@ -5625,6 +5647,7 @@
     {
       "team": 0,
       "agent_id": 28,
+      "teams_seen": "[0]",
       "troop": 981,
       "class_id": null,
       "division": null,
@@ -5650,6 +5673,7 @@
     {
       "team": 0,
       "agent_id": 30,
+      "teams_seen": "[0]",
       "troop": 984,
       "class_id": null,
       "division": null,
@@ -5675,6 +5699,7 @@
     {
       "team": 0,
       "agent_id": 31,
+      "teams_seen": "[0]",
       "troop": 981,
       "class_id": null,
       "division": null,
@@ -5700,6 +5725,7 @@
     {
       "team": 1,
       "agent_id": 1,
+      "teams_seen": "[1]",
       "troop": 894,
       "class_id": null,
       "division": null,
@@ -5725,6 +5751,7 @@
     {
       "team": 1,
       "agent_id": 2,
+      "teams_seen": "[1]",
       "troop": 894,
       "class_id": null,
       "division": null,
@@ -5750,6 +5777,7 @@
     {
       "team": 1,
       "agent_id": 3,
+      "teams_seen": "[1]",
       "troop": 894,
       "class_id": null,
       "division": null,
@@ -5775,6 +5803,7 @@
     {
       "team": 1,
       "agent_id": 4,
+      "teams_seen": "[1]",
       "troop": 894,
       "class_id": null,
       "division": null,
@@ -5800,6 +5829,7 @@
     {
       "team": 1,
       "agent_id": 5,
+      "teams_seen": "[1]",
       "troop": 894,
       "class_id": null,
       "division": null,
@@ -5825,6 +5855,7 @@
     {
       "team": 1,
       "agent_id": 6,
+      "teams_seen": "[1]",
       "troop": 894,
       "class_id": null,
       "division": null,
@@ -5850,6 +5881,7 @@
     {
       "team": 1,
       "agent_id": 7,
+      "teams_seen": "[1]",
       "troop": 894,
       "class_id": null,
       "division": null,
@@ -5875,6 +5907,7 @@
     {
       "team": 1,
       "agent_id": 8,
+      "teams_seen": "[1]",
       "troop": 894,
       "class_id": null,
       "division": null,
@@ -5900,6 +5933,7 @@
     {
       "team": 1,
       "agent_id": 9,
+      "teams_seen": "[1]",
       "troop": 894,
       "class_id": null,
       "division": null,
@@ -5925,6 +5959,7 @@
     {
       "team": 1,
       "agent_id": 10,
+      "teams_seen": "[1]",
       "troop": 894,
       "class_id": null,
       "division": null,
@@ -5950,6 +5985,7 @@
     {
       "team": 1,
       "agent_id": 11,
+      "teams_seen": "[1]",
       "troop": 894,
       "class_id": null,
       "division": null,
@@ -5975,6 +6011,7 @@
     {
       "team": 1,
       "agent_id": 12,
+      "teams_seen": "[1]",
       "troop": 894,
       "class_id": null,
       "division": null,
@@ -6000,6 +6037,7 @@
     {
       "team": 1,
       "agent_id": 13,
+      "teams_seen": "[1]",
       "troop": 894,
       "class_id": null,
       "division": null,
@@ -6025,6 +6063,7 @@
     {
       "team": 1,
       "agent_id": 14,
+      "teams_seen": "[1]",
       "troop": 894,
       "class_id": null,
       "division": null,
@@ -6050,6 +6089,7 @@
     {
       "team": 1,
       "agent_id": 15,
+      "teams_seen": "[1]",
       "troop": 894,
       "class_id": null,
       "division": null,
@@ -6075,6 +6115,7 @@
     {
       "team": 1,
       "agent_id": 16,
+      "teams_seen": "[1]",
       "troop": 894,
       "class_id": null,
       "division": null,
@@ -6100,6 +6141,7 @@
     {
       "team": 1,
       "agent_id": 17,
+      "teams_seen": "[1]",
       "troop": 894,
       "class_id": null,
       "division": null,
@@ -6125,6 +6167,7 @@
     {
       "team": 1,
       "agent_id": 18,
+      "teams_seen": "[1]",
       "troop": 894,
       "class_id": null,
       "division": null,
@@ -6150,6 +6193,7 @@
     {
       "team": 1,
       "agent_id": 19,
+      "teams_seen": "[1]",
       "troop": 894,
       "class_id": null,
       "division": null,
@@ -6175,6 +6219,7 @@
     {
       "team": 1,
       "agent_id": 20,
+      "teams_seen": "[1]",
       "troop": 894,
       "class_id": null,
       "division": null,
@@ -6200,6 +6245,7 @@
     {
       "team": 1,
       "agent_id": 21,
+      "teams_seen": "[1]",
       "troop": 894,
       "class_id": null,
       "division": null,
@@ -6225,6 +6271,7 @@
     {
       "team": 1,
       "agent_id": 22,
+      "teams_seen": "[1]",
       "troop": 894,
       "class_id": null,
       "division": null,
@@ -6250,6 +6297,7 @@
     {
       "team": 1,
       "agent_id": 23,
+      "teams_seen": "[1]",
       "troop": 894,
       "class_id": null,
       "division": null,
@@ -6275,6 +6323,7 @@
     {
       "team": 1,
       "agent_id": 24,
+      "teams_seen": "[1]",
       "troop": 894,
       "class_id": null,
       "division": null,
@@ -6300,6 +6349,7 @@
     {
       "team": 1,
       "agent_id": 25,
+      "teams_seen": "[1]",
       "troop": 894,
       "class_id": null,
       "division": null,
@@ -6325,6 +6375,7 @@
     {
       "team": 1,
       "agent_id": 26,
+      "teams_seen": "[1]",
       "troop": 894,
       "class_id": null,
       "division": null,
@@ -6350,6 +6401,7 @@
     {
       "team": 1,
       "agent_id": 27,
+      "teams_seen": "[1]",
       "troop": 894,
       "class_id": null,
       "division": null,
@@ -6375,6 +6427,7 @@
     {
       "team": 1,
       "agent_id": 28,
+      "teams_seen": "[1]",
       "troop": 894,
       "class_id": null,
       "division": null,
@@ -6400,6 +6453,7 @@
     {
       "team": 1,
       "agent_id": 29,
+      "teams_seen": "[1]",
       "troop": 894,
       "class_id": null,
       "division": null,

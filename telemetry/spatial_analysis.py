@@ -110,6 +110,18 @@ def _load_input(path: Path):
             "team0": _int(h.get("team0")), "team1": _int(h.get("team1")),
             "alive0": _int(h.get("alive0")), "alive1": _int(h.get("alive1")),
         })
+    # C's exporter carries canonical per-agent metadata even when some point
+    # fields are null; fill the point fields from it where possible.
+    agent_meta = data.get("agents") or {}
+    for p in points:
+        meta = agent_meta.get(str(p["agent_id"])) or agent_meta.get(p["agent_id"]) or {}
+        if p["team"] not in (0, 1):
+            p["team"] = _int(meta.get("team"), -1)
+        for key, alt in (("troop", None), ("class_id", "class_id"), ("division", "division")):
+            if p[key] is None:
+                p[key] = _int(meta.get(key if alt is None else alt))
+        if p["hp"] is None:
+            p["hp"] = _num(meta.get("hp") if meta.get("hp") is not None else meta.get("last_hp"))
     return data.get("run", {}), points, heartbeats, list(data.get("gaps", []))
 
 
@@ -278,7 +290,9 @@ def _analyze(run, points, heartbeats, gaps, bounds=CITY_BOUNDS, cell=CELL):
                     "flow_dy": (sum(v[1] for v in vecs) / len(vecs)) if vecs else None,
                     "mean_step": (sum(mags) / len(mags)) if mags else None,
                 }
-    # agent metrics
+    # agent metrics: team-incarnation tracks (agent ids are reused across teams/
+    # rounds, so unique-id movement would merge teleports); unique ids counted
+    # separately in the run summary.
     agents = []
     agent_groups = defaultdict(list)
     for p in points:
@@ -286,6 +300,7 @@ def _analyze(run, points, heartbeats, gaps, bounds=CITY_BOUNDS, cell=CELL):
             agent_groups[(p["team"], p["agent_id"])].append(p)
     for (team, aid), pts in sorted(agent_groups.items()):
         pts.sort(key=lambda p: p["tick"])
+        teams_seen = [team]
         path = sum(_dist((a["x"], a["y"]), (b["x"], b["y"])) for a, b in zip(pts, pts[1:]))
         net = _dist((pts[0]["x"], pts[0]["y"]), (pts[-1]["x"], pts[-1]["y"]))
         steps = [_dist((a["x"], a["y"]), (b["x"], b["y"])) for a, b in zip(pts, pts[1:])]
@@ -295,7 +310,7 @@ def _analyze(run, points, heartbeats, gaps, bounds=CITY_BOUNDS, cell=CELL):
         over = len(pts) >= 2 and path >= 10.0 and (eff is not None and eff < 0.25)
         near_posts = {k: sum(1 for p in pts if p["near_posts"][str(k)]) / len(pts) for k in POSTS}
         agents.append({
-            "team": team, "agent_id": aid,
+            "team": team, "agent_id": aid, "teams_seen": json.dumps(teams_seen),
             "troop": next((p["troop"] for p in pts if p["troop"] is not None), None),
             "class_id": next((p["class_id"] for p in pts if p["class_id"] is not None), None),
             "division": next((p["division"] for p in pts if p["division"] is not None), None),
@@ -366,9 +381,11 @@ def _analyze(run, points, heartbeats, gaps, bounds=CITY_BOUNDS, cell=CELL):
     cls = any(p["class_id"] is not None for p in points)
     div = any(p["division"] is not None for p in points)
     waves = sorted({p["wave"] for p in points if p["wave"] >= 0})
+    unique_agent_ids = len({p["agent_id"] for p in points if p["agent_id"] >= 0 and p["team"] in (0, 1)})
     summary = {
         "schema": SCHEMA, "run": run, "points": len(points),
-        "heartbeats": len(heartbeats), "agents": len(agents), "waves": waves,
+        "heartbeats": len(heartbeats), "agents": unique_agent_ids,
+        "agent_tracks": len(agents), "waves": waves,
         "ticks": [min((p["tick"] for p in points), default=None), max((p["tick"] for p in points), default=None)],
         "ts_ms_range": [min((p["ts_ms"] for p in points if p["ts_ms"] is not None), default=None),
                         max((p["ts_ms"] for p in points if p["ts_ms"] is not None), default=None)],
@@ -458,7 +475,8 @@ def analyze_bundles(bundles, out: Path, bounds=CITY_BOUNDS, cell=CELL, panels=Fa
             "seed": summary["run"].get("seed"), "spectator_or_overview": summary["run"].get("spectator_or_overview"),
             "sample_interval_s": summary["run"].get("sample_interval_s"),
             "points": summary["points"], "heartbeats": summary["heartbeats"],
-            "agents": summary["agents"], "waves": json.dumps(summary["waves"]),
+            "agents": summary["agents"], "agent_tracks": summary["agent_tracks"],
+            "waves": json.dumps(summary["waves"]),
             "tick_min": summary["ticks"][0], "tick_max": summary["ticks"][1],
             "health_sampled": summary["health_sampled"], "class_sampled": summary["class_sampled"],
             "division_sampled": summary["division_sampled"],
@@ -505,7 +523,8 @@ def analyze_input(path: Path, out: Path, bounds=CITY_BOUNDS, cell=CELL, panels=F
                                           "spectator_or_overview": summary["run"].get("spectator_or_overview"),
                                           "sample_interval_s": summary["run"].get("sample_interval_s"),
                                           "points": summary["points"], "heartbeats": summary["heartbeats"],
-                                          "agents": summary["agents"], "waves": json.dumps(summary["waves"]),
+                                          "agents": summary["agents"], "agent_tracks": summary["agent_tracks"],
+                                          "waves": json.dumps(summary["waves"]),
                                           "tick_min": summary["ticks"][0], "tick_max": summary["ticks"][1],
                                           "health_sampled": summary["health_sampled"],
                                           "class_sampled": summary["class_sampled"],

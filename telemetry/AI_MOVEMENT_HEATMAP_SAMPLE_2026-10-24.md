@@ -16,11 +16,16 @@ tooling is C's branch; this report is the E consumer side.
 
 ## 1. Run inventory and gaps
 
-| Run | Source | Points | Heartbeats | Agents | Waves | Health | Class | Division |
-| --- | --- | ---: | ---: | ---: | --- | --- | --- | --- |
-| `d7bfc372` (task45-wave2) | C export | 692 | 42 | 53 | 0-4 | missing | missing | missing |
-| `d7bfc372` (task45-wave2) | raw bundle | 526 | 42 | 47 | 0-4 | missing | missing | unknown |
-| `257b29b1` (task55-p0) | raw bundle | 572 | 41 | 45 | 0-1 | missing | missing | unknown |
+| Run | Source | Points | Heartbeats | Unique IDs | Team tracks | Waves | Health | Class | Division |
+| --- | --- | ---: | ---: | ---: | ---: | --- | --- | --- | --- |
+| `d7bfc372` (task45-wave2) | C export | 692 | 42 | 31 | 53 | 0-4 | missing | missing | missing |
+| `d7bfc372` (task45-wave2) | raw bundle | 526 | 42 | 30 | 47 | 0-4 | missing | missing | unknown |
+| `257b29b1` (task55-p0) | raw bundle | 572 | 41 | 28 | 45 | 0-1 | missing | missing | unknown |
+
+**ID accounting:** agent ids are reused across teams/rounds. **Unique IDs** match C's
+`agents{}` count (31 for the C export); **team tracks** group by `(team, agent_id)` so
+movement metrics do not merge cross-team teleports. Both are reported; do not compare
+"agents" counts without saying which one.
 
 Common gaps (carried into every run row): no build/probe SHA, formation mode, seed or
 spectator/overview flag; no health/HP, class or valid division in current bundles; sparse
@@ -46,7 +51,8 @@ identity. `run_metadata_partial`, `missing_class`, `missing_division`, `missing_
   mean. Agent movement: path length, net displacement, path efficiency, stationary
   ratio, northward displacement, post/anchor proximity. `under_moving` = <2 units path or
   >80% stationary steps; `over_moving` = >=10 units path with path efficiency <0.25;
-  otherwise `mixed`; these are **proxies**.
+  otherwise `mixed`; these are **proxies** over team-incarnation tracks, not unique agents.
+  Agent ids reused across teams would otherwise create false long paths/teleports.
 - Candidate chokepoints: cells with >=3 samples, >=5% occupancy and <=15% moving steps.
   They are positional candidates only: no collision, blockers, LOS or pathfinding truth.
 - **No health/morale measurement** exists in this sample. Morale/routing is not claimed;
@@ -68,10 +74,11 @@ identity. `run_metadata_partial`, `missing_class`, `missing_division`, `missing_
 - **Team-1 stayed on the southern approaches:** wave 0 centroid (137.6,139.6), spread
   21.4; wave 1 (161.9,155.5), spread 13.5. This is consistent with the SW/S/SSE entry
   clusters and **not** a 360-degree encirclement. No north-side zombie entry is observed.
-- **Movement class proxy:** 64 mixed, 24 over-moving, 4 under-moving across 92 sampled
-  agents; team-1 accounts for 17 over-moving and team-0 for 7; all 4 under-moving are
-  team-0. This is expected to be confounded by role, alive/dead sampling and target
-  availability; no causal/tactical rank follows.
+- **Movement class proxy:** 64 mixed, 24 over-moving, 4 under-moving across **92 team
+  tracks** (58 unique IDs in the two raw runs; C export = 31 unique / 53 tracks); team-1
+  accounts for 17 over-moving and team-0 for 7; all 4 under-moving are team-0. This is
+  expected to be confounded by role, alive/dead sampling and target availability; no
+  causal/tactical rank follows. Counts are track-level, not unique-agent-level.
 - **Chokepoint candidate:** task55 team-0 cell at (167.5,187.5), 15.9% occupancy, moving
   ratio 0.111. This is at the north base/apron, so it is more likely a spawn/base dwell
   cluster than a scene blocker; no collision/navmesh evidence exists.
@@ -97,14 +104,26 @@ A applied the two corrections in `6408595`:
    the same run = 375 / 692 points; task55 raw = 388 / 572 points. Cohesion now reads
    "sample composition, not an ordered formation"; counts are not mixed.
 
+### 3.2 Pipeline check on D's partial pre-round bundle (not evidence)
+
+D supplied a sealed partial (`heatmap-preround-171455.json`): **56 points, 0 heartbeats,
+8 unique IDs**, ticks 0-6, `health/class/division` present in some points, all conditions
+`unknown`, gaps `run_metadata_partial`. Our tool renders it without error
+(`telemetry/spatial_partial/`), confirming the C schema/consumer path. This is **not
+heatmap evidence**: no round, waves, fallback, mode, build/probe SHA, formation, sample
+interval or spectator metadata; D is blocked by the `hit_param_invalid` nil error in the
+installed probe. A full 180 s adaptive/sampled run is pending the C fix + reinstall.
+
 ## 4. Outputs
 
 - `telemetry/spatial_sample/` - raw-bundle sample (2 runs):
   `spatial_runs.csv`, `spatial_cells.csv` (518 rows), `spatial_agents.csv` (92 rows),
   `spatial_cohesion.csv` (44 rows), `spatial_chokepoints.csv`, `spatial_summary.json`,
   `panels/*.svg`.
-- `telemetry/spatial_sample_c/` - C-export sample (task45, 692 points, 53 agents):
-  same table set + SVG panel.
+- `telemetry/spatial_sample_c/` - C-export sample (task45, 692 points, **31 unique IDs /
+  53 team tracks**): same table set + SVG panel.
+- `telemetry/spatial_partial/` - D partial pre-round renderer check (56 points, 0
+  heartbeats; **not** behavior evidence).
 - The tool also accepts any sealed bundle path; C's export is optional.
 
 ## 5. Methods literature / community analogues reused

@@ -1,0 +1,5 @@
+team,wave,condition,ticks,samples,mean_alive,centroid_x,centroid_y,spread_rms_mean,nearest_neighbor_mean,pairwise_mean,near_anchor_share
+0,0,all,7,28,4.0,165.91,183.46,3.012,2.854,4.475,0.964
+0,0,unknown,7,28,4.0,165.91,183.46,3.012,2.854,4.475,0.964
+1,0,all,7,28,4.0,157.55,127.26,32.292,23.699,46.073,0.0
+1,0,unknown,7,28,4.0,157.55,127.26,32.292,23.699,46.073,0.0
