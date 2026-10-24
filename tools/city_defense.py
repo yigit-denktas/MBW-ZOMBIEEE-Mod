@@ -210,9 +210,12 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None,
             ops.append(["1780", "2", str(pos), str(entry)])
             ops.append(["1791", "3", "0", str(group), str(pos)])
             ops.append(["1790", "3", "0", str(group), "0"])  # mordr_hold
-        # Team-wide fire fallback for native bots whose groups do not map to 5..7.
-        ops.append(["1790", "3", "0", "0", "13"])  # fire_at_will (everyone)
-        ops.append(["1790", "3", "0", "0", "16"])  # use_ranged (everyone)
+        # Order-scope sweep: native bots may be assigned any order sub-class
+        # 0..9, so issue fire_at_will/use_ranged to every class. This is order
+        # scope only; target selection stays engine-owned (no focus-fire claim).
+        for sub_class in range(10):
+            ops.append(["1790", "3", "0", str(sub_class), "13"])
+            ops.append(["1790", "3", "0", str(sub_class), "16"])
     else:
         # Native team-0 bots (proven engine spawn path; team-0 add_visitors
         # produced no allies in D's sealed run) are adopted into the reserved
@@ -394,7 +397,7 @@ def apply_module(module: Path, hold_entries: tuple[int, ...] = REAR_HOLD_ENTRIES
             "ai_accuracy_modifier": 100,
             "ai_reload_speed_modifier": 100,
             "prevent_charge": "hold + fire_at_will/use_ranged + no 1730 + 1737=0; no stand_ground/aggressiveness so ranged engagement is not suppressed; measured by positions/attack-action",
-            "order_scope_extra": "team_subclass_0 fire_at_will+use_ranged fallback",
+            "order_scope_extra": "subclasses 0..9 fire_at_will+use_ranged; target selection stays engine-owned",
             "ammo_refill": ("agent_refill_ammo every 5s for team0 AI"
                             if ammo_refill else "off (ammo-burn measurement build)"),
             "accuracy_modifier_note": "2092 readback was 100 in D seal; setter values >100 not observable, so this build claims 100 and relies on proficiency/item accuracy",
