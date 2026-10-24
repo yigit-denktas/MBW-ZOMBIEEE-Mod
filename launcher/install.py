@@ -102,6 +102,20 @@ def _walk_module_files(module_dir, *, max_files=MAX_MODULE_FILES):
             yield path.relative_to(module_dir).as_posix(), path
 
 
+def module_file_hashes(module_dir, *, max_files=MAX_MODULE_FILES):
+    """Per-file SHA-256 ownership inventory for repair/uninstall.
+
+    Bounded and sorted; links are rejected exactly like ``module_inventory``.
+    The result identifies installer-owned bytes so later repair/uninstall can
+    preserve modified or unrecognised user files instead of guessing.
+    """
+    files = []
+    for relative, file_path in _walk_module_files(module_dir, max_files=max_files):
+        files.append({'path': relative, 'sha256': _sha256_file(file_path)})
+    files.sort(key=lambda item: item['path'])
+    return files
+
+
 def module_inventory(module_dir, *, max_files=MAX_MODULE_FILES):
     """Aggregate SHA-256 inventory compatible with the nightly build receipts.
 
@@ -539,7 +553,7 @@ def execute_install(plan, *, build_runner=None, inventory=module_inventory,
         'archive_sha256': (plan.get('archive_identity') or {}).get('actual_sha256'),
         'build_argv': plan.get('build_argv'),
         'journal': plan.get('journal'),
-        'module_sha256': None, 'file_count': None,
+        'module_sha256': None, 'file_count': None, 'files': None,
         'installed_sha256': None, 'installed_file_count': None,
         'status': 'unknown', 'blockers': [], 'error': None,
         'stderr_tail': None, 'verification': None,
@@ -593,7 +607,14 @@ def execute_install(plan, *, build_runner=None, inventory=module_inventory,
                       file_count=verification.get('file_count'))
     built_sha = verification['module_sha256']
     built_count = verification['file_count']
-    journal.step('build_verified', module_sha256=built_sha, file_count=built_count)
+    try:
+        built_files = module_file_hashes(stage_module)
+    except InstallError as exc:
+        receipt['blockers'] = ['ownership_inventory_failed:' + str(exc)][:16]
+        journal.step('ownership_inventory_failed')
+        return finish('build_verification_failed')
+    journal.step('build_verified', module_sha256=built_sha,
+                 file_count=built_count)
 
     had_target = target.exists()
     if had_target:
@@ -656,6 +677,7 @@ def execute_install(plan, *, build_runner=None, inventory=module_inventory,
         pass
     receipt.update({
         'module_sha256': built_sha, 'file_count': built_count,
+        'files': built_files,
         'installed_sha256': installed['module_sha256'],
         'installed_file_count': installed['file_count'],
     })

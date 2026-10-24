@@ -406,6 +406,74 @@ shield build and `--expected-hold forward` accepts forward sectors. Expected
 values are not runtime evidence: the sealed summary still owns positions, wave
 classes and wave completion.
 
+### Installer maintenance: verify, repair and uninstall (ZOM-WIN-02)
+
+The install receipt now carries the per-file SHA-256 **ownership inventory** of
+the bytes the installer wrote. Maintenance commands compare the live module with
+that inventory and never guess ownership:
+
+```powershell
+python -m launcher.play_city verify  --receipt '<install-receipt-<tx>.json>'
+python -m launcher.play_city repair  --receipt '<receipt>' --from-module '<verified build dir>'
+python -m launcher.play_city repair  --receipt '<receipt>' --from-module '<build>' --replace-modified
+python -m launcher.play_city uninstall --receipt '<receipt>'
+python -m launcher.play_city uninstall --receipt '<receipt>' --purge-owned
+```
+
+- `verify` is read-only and reports missing / modified / unrecognised files
+  against the receipt (exit 2 when attention is needed).
+- `repair` copies missing owned files from a module that still passes Agent A's
+  static City checks; modified owned files are **preserved and reported** unless
+  `--replace-modified` is explicit. Unrecognised user files are never touched.
+  Repair refuses while a Warband/WSE2 process is running.
+- `uninstall` is quarantine-first: the whole module is renamed to
+  `Modules/ZOMBIEEE_Remaster.uninstalled-<tx>` and **nothing is deleted by
+  default**. `--purge-owned` may then delete only owned, byte-identical files
+  inside the quarantine; modified and unrecognised files remain, directories are
+  kept, the game/WSE2 and the retained install backup are never touched. A
+  game-process check blocks both repair and uninstall.
+- Both actions write bounded journal/receipt files under the private evidence
+  root; `verify`/`repair`/`uninstall` keep `runtime_verified=false`.
+
+### Desktop control panel, settings and shortcut (ZOM-WIN-03)
+
+- `python -m launcher.control_panel --print-actions` lists the desktop actions:
+  Play Solo City, Settings/profile matrix, Open evidence/logs, Verify/repair,
+  Uninstall (quarantine), Release checks. The Tk window is created lazily and
+  only starts those documented CLI commands as child processes; it never
+  launches the game directly or bypasses the launcher's checks.
+- Private settings (`python -m launcher.play_city settings show|write
+  [--settings <path>]`) store only non-secret launch defaults: `game_root`,
+  `archive`, `evidence_root`, `enemy_profile`, `team0_bots`, `team2_bots`,
+  `max_minutes`, `no_known_folders`. The file defaults to
+  `%LOCALAPPDATA%\ZOMBIEEE\launcher-settings.json` (or repo-local `local/`);
+  passwords, control keys, serials/tokens are refused, unknown safe keys are
+  ignored with a warning, and the CLI always wins over settings.
+- `python -m launcher.play_city shortcut [--output '<path>.lnk' --create]`
+  inspects the shortcut spec by default (no writes). The target is
+  `pythonw.exe -m launcher.control_panel` with the optional `--settings` path;
+  creation is explicit, Windows-only, refuses to overwrite an existing `.lnk`,
+  and passes values to a fixed PowerShell `WScript.Shell` script through
+  environment variables only. The game is never the shortcut target.
+
+### Release delivery checks (ZOM-REL-01 candidate gate)
+
+```powershell
+python -m launcher.release_gate
+python -m launcher.release_gate --json --game-root '<Warband root>'
+```
+
+Read-only candidate gate: required delivery files exist, `VERSION` is
+well-formed/consistent with the installed module receipt, the reproducible
+commands (`launcher.play_city`, `tools/build.py`, `archive_audit`) are documented,
+no proprietary archives/game executables/logs are tracked by Git, no local
+personal install paths or obvious secrets appear in tracked text, and a supplied
+installed module still passes the City structural checks with
+`runtime_verified=false`. The report says `delivery_status=candidate-checks-only`
+and `acceptance=none`; it never claims a playable release, and owner review plus
+D's sealed runtime evidence remain required. Missing runtime evidence is a gap,
+not a pass.
+
 ### Truth boundaries
 
 `summary.json` is C's sealed-bundle summary stored verbatim, not a launcher
@@ -439,11 +507,12 @@ attach, join/mission markers, stop after client exit, artifact-before-stop,
 manifest/summary results, and fail-closed cleanup for bind timeout, recorder
 readiness failure, attachment rejection, recorder death and Ctrl+C. No game,
 recorder subprocess or network probe is started by tests. Latest Windows result:
-`python -B -m unittest discover -s tests -q` → **526 tests, OK, 112
+`python -B -m unittest discover -s tests -q` → **572 tests, OK, 112
 skipped**; the B launcher/C-recorder interop cases run because C's recorder
 is present in the merged tree. Launcher-only suites are green:
 `python -B -m unittest discover -s tests -p "test_windows_*.py" -q` →
-**162 tests, OK, 1 skipped**.
+**186 tests, OK, 1 skipped** (includes the M2 maintenance, settings,
+shortcut/control-panel and release-gate fixtures).
 
 ### Python 3.13 NUL-path regression
 
