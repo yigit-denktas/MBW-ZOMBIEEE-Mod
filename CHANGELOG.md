@@ -7,7 +7,7 @@ Uses [Semantic Versioning](https://semver.org/) for the remaster, not the histor
 **Pre-release candidate — not released, not accepted.** This consolidates the
 UI/launcher/telemetry/AI work merged since 0.2.0 into the SemVer pre-release
 candidate **`0.3.0-beta.1`** (a beta, not an RC: 0.3.0 milestone acceptance is
-still active) at source revision `1e907ea`. The `0.3.0` milestone remains reserved
+still active) at source revision `db3b3ca`. The `0.3.0` milestone remains reserved
 for verified allied survivor/class/loadout acceptance ([docs/ROADMAP.md](docs/ROADMAP.md));
 work-item → PR → commit → version links are in
 [docs/RELEASE_TRACEABILITY.md](docs/RELEASE_TRACEABILITY.md) and
@@ -48,10 +48,6 @@ work-item → PR → commit → version links are in
   merged `8b38f7d`.
   Native Warband/ZOMBIEEE assets have no recorded redistribution right and are
   not bundled.
-- **AI/map/telemetry research and design:** Warband + Bannerlord engine/combat-AI references, City map-defense design (three southern approaches, north safe anchor, private/local asset policy), class-matrix/task definitions and bot-vs-bot balance analyzer — docs-only, no acceptance.
-- **Script-error log cleanup:** raw faction-id probe fix and trigger-14 guard; sealed logs show 0 INT_MIN/opcode-522/trigger-14 errors (implementation-only runtime acceptance pending).
-- **Firearm AI profiles:** accuracy/reload modifiers + wave-mode policy + pre-game fire-mode selector; manual in-game switching blocked on WES2 1.1.5.4 input APIs (#43); reticle icon unproven.
-- **Class matrix + bot-vs-bot analysis:** commando/sniper/scout/lumberjack roles/range/formation/fallback design and a feasibility-gated round-stat report with machine-readable tables; no causal/sensitivity or acceptance claim.
 ### Changed
 - Launcher City default rotation now requests the native team-0 defender squad
   (`set_bot_count 1 8`) with enemy profiles `generic`/`weak-wave1`/`native-only`
@@ -71,9 +67,6 @@ work-item → PR → commit → version links are in
 - Original trigger-14 invalid-faction log guard (`985fee7`/merge `509f16a`,
   ZOM-DISC-60) is included; implementation-only, sustained-runtime acceptance
   pending.
-### Known issue (under investigation)
-- **P0 native-wave build:** slots/speed verified at wave 1, but a run crashed with `EXCEPTION_ACCESS_VIOLATION` in `mbAgent::updateWalkingEffects`; known-good `f57c800` restored. Triage/bisect tracked in issue #50 and `ZOM-DISC-69`; no acceptance.
-
 ### Still not accepted
 - City required outcomes **0/23**, milestones **0/5**, `runtime_verified=false`.
 - Native defender **spawn** is proven, but division 5–7 adoption / stable hold /
@@ -223,34 +216,4 @@ work-item → PR → commit → version links are in
 <!-- task-65 branch metadata-only source revision: 1374abd -->
 
 
-<!-- P0 probe fix metadata-only source revision: 39aa3a7 -->
-
-
-<!-- P0 probe team-order fix metadata-only source revision: 4848ee2 -->
-
-
-<!-- telemetry hardening metadata-only source revision: 08a9546 -->
-
-
-<!-- telemetry hardening metadata-only source revision: d0f7edf -->
-
-
-<!-- telemetry claim-wording metadata-only source revision: 79d7b84 -->
-
-
-<!-- hit mapping metadata-only source revision: 8759eed -->
-
-
-<!-- task-74 heatmap metadata-only source revision: b06f427 -->
-
-
-<!-- task-71 hit-trigger metadata-only source revision: 1845906 -->
-
-
-<!-- heatmap heartbeat nil-fix metadata-only source revision: 9a23857 -->
-
-
-<!-- probe-health metadata-only source revision: 5b5725f -->
-
-
-<!-- hit-param gate metadata-only source revision: 177c4e5 -->
+<!-- task-68 consumer branch metadata-only source revision: b92fa7d -->

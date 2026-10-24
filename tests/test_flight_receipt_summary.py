@@ -889,34 +889,69 @@ class ReceiptSummaryTests(unittest.TestCase):
         self.assertIsNone(fire["shot_intervals_ticks"])  # baseline reset after reload
 
 
-    def test_hit_attribution_from_native_hit_trigger(self):
+    def test_launcher_receipt_echo_is_requested_config_not_observed(self):
         lines = [
-            "ZDB1|heartbeat|count=1|role=server|team0=2|team1=2|wave=1",
+            "ZDB1|heartbeat|count=1|role=server|team0=1|team1=5|wave=1",
             "ZDB1|ai_sample|role=server|tick=1|team=0|id=1|group=5|troop=981"
-            "|weapon=7|ammo=10|alive=1|weapon_mode=ranged|x=1|y=1|kills=0|wave=1",
-            "ZDB1|ai_sample|role=server|tick=1|team=1|id=2|group=0|troop=894"
-            "|weapon=598|ammo=0|alive=1|weapon_mode=melee|x=2|y=2|kills=0|wave=1",
-            "ZDB1|ai_sample|role=server|tick=1|team=1|id=3|group=0|troop=895"
-            "|weapon=598|ammo=0|alive=1|weapon_mode=melee|x=3|y=3|kills=0|wave=1",
-            "ZDB1|hit_sample|victim=2|dealer=1|damage=42|missile=1|kind=missile",
-            "ZDB1|hit_sample|victim=3|dealer=2|damage=9|missile=0|kind=melee",
+            "|defender=1|weapon=7|ammo=10|alive=1|weapon_mode=ranged"
+            "|attack_action=1|accuracy_modifier=135|reload_speed_modifier=145"
+            "|x=10.0|y=10.0|kills=0|wave=1",
+            "ZDB1|ai_sample|role=server|tick=2|team=0|id=1|group=5|troop=981"
+            "|defender=1|weapon=7|ammo=8|alive=1|weapon_mode=ranged"
+            "|attack_action=2|accuracy_modifier=135|reload_speed_modifier=145"
+            "|x=10.0|y=10.0|kills=0|wave=1",
         ]
         with tempfile.TemporaryDirectory() as td:
             session = seal(Path(td), {"host_stdout.log": "\n".join(lines)})
-            summary = summarize_receipt(session)
-            hits = summary["hits"]
-            self.assertEqual(hits["events"], 2)
-            self.assertEqual(hits["damage_total"], 51)
-            self.assertEqual(hits["by_kind"]["missile"], 1)
-            self.assertEqual(hits["by_kind"]["melee"], 1)
-            self.assertEqual(hits["by_dealer_team"], {"0": 1, "1": 1})
-            self.assertEqual(hits["by_victim_team"], {"1": 2})
-            self.assertEqual(hits["by_victim_troop"], {"894": 1, "895": 1})
-            self.assertEqual(hits["friendly_fire"], 1)
-            self.assertNotIn("hit_telemetry_unavailable", summary["evidence_gaps"])
-            self.assertIs(hits["mapping_unverified"], True)
-            self.assertIn("mapping and in-build behavior unverified", hits["source"])
-            self.assertIn("hits:", format_summary(summary))
+            receipt = Path(td) / "launch-receipt.json"
+            receipt.write_text(json.dumps({
+                "schema": "zombieee.city-launch-receipt.v1",
+                "session_id": "abc", "fire_mode": "single",
+                "fire_mode_scope": "pre-game/session-only",
+                "fire_mode_applied": True,
+                "fire_mode_manual_switch_supported": False,
+            }), encoding="utf-8")
+            summary = summarize_receipt(session, launcher_receipt=receipt)
+            sess = summary["session"]
+            self.assertEqual(sess["fire_mode"], "single")
+            self.assertEqual(sess["fire_mode_scope"], "pre-game-session-only")
+            self.assertEqual(sess["fire_mode_source"], "requested_build_or_launcher")
+            self.assertIs(sess["fire_mode_applied"], True)
+            self.assertIs(sess["fire_mode_manual_switch_supported"], False)
+            self.assertIs(sess["fire_mode_mismatch"], True)  # observed burst != requested single
+            self.assertIn("fire_mode_requested_observed_mismatch", summary["evidence_gaps"])
+            # observed side stays under firearms and is not overwritten by the request
+            self.assertEqual(summary["firearms"]["team0"]["fire_modes_observed"],
+                             {"burst": 2})
+
+    def test_launcher_receipt_absent_is_unknown_not_a_gap(self):
+        summary = self.run_summary()
+        sess = summary["session"]
+        self.assertIsNone(sess["fire_mode"])
+        self.assertIsNone(sess["fire_mode_applied"])
+        self.assertIsNone(sess["fire_mode_mismatch"])
+        self.assertNotIn("fire_mode_requested_observed_mismatch",
+                         summary["evidence_gaps"])
+
+    def test_launcher_receipt_ai_mode_compares_against_wave_expected(self):
+        lines = [
+            "ZDB1|heartbeat|count=1|role=server|team0=1|team1=5|wave=1",
+            "ZDB1|ai_sample|role=server|tick=1|team=0|id=1|group=5|troop=981"
+            "|defender=1|weapon=7|ammo=10|alive=1|weapon_mode=ranged"
+            "|attack_action=1|accuracy_modifier=135|reload_speed_modifier=145"
+            "|x=10.0|y=10.0|kills=0|wave=1",
+        ]
+        with tempfile.TemporaryDirectory() as td:
+            session = seal(Path(td), {"host_stdout.log": "\n".join(lines)})
+            receipt = Path(td) / "launch-receipt.json"
+            receipt.write_text(json.dumps({
+                "schema": "zombieee.city-launch-receipt.v1",
+                "fire_mode": "ai", "fire_mode_scope": "pre-game/session-only",
+                "fire_mode_applied": True,
+            }), encoding="utf-8")
+            summary = summarize_receipt(session, launcher_receipt=receipt)
+            self.assertEqual(summary["session"]["fire_mode"], "ai")
+            self.assertIs(summary["session"]["fire_mode_mismatch"], False)
 
 if __name__ == "__main__":
     unittest.main()

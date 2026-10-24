@@ -16,7 +16,7 @@ A private, City-first compatibility rebuild of the 2012 **ZOMBIEEE (Invasion) Be
 
 [Interactive roadmap](https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/) · Source file: `progress/ledger.json` (content-addressed file snapshot).
 
-Observed 2026-10-24 against `215c3508`.
+Observed 2026-10-24 against `1beb5cea`.
 <!-- project-record:end -->
 
 *The generated progress block above is a derived view observed at `c49cd3b9`; it is
@@ -109,7 +109,7 @@ py -3 -m unittest discover -s tests -v
 
 Tests are offline and require **no game launch**. Set `ZOMBIEEE_ORIGINAL_MODULE` and `ZOMBIEEE_ORIGINAL_ARCHIVE` to your private extracted module and original RAR to enable the original-asset source tests; without them those tests skip explicitly rather than pass by default. There is **no CI** by owner choice.
 
-Latest recorded run (2026-10-24, Windows 11, Python 3.11.9, rebased on `main` `1e907ea`): **610 tests, OK, 8 skipped**. Original-asset source tests skip unless `ZOMBIEEE_ORIGINAL_MODULE`/`ZOMBIEEE_ORIGINAL_ARCHIVE` are set; the earlier embedded-NUL Windows discovery bug is fixed and covered by regression tests. The release gate verifies recorded metadata only; test counts are not release acceptance.
+Latest recorded run (2026-10-24, Windows 11, Python 3.11.9, rebased on `main` `db3b3ca`): **595 tests, OK, 115 skipped**. Original-asset source tests skip unless `ZOMBIEEE_ORIGINAL_MODULE`/`ZOMBIEEE_ORIGINAL_ARCHIVE` are set; the earlier embedded-NUL Windows discovery bug is fixed and covered by regression tests. The release gate verifies recorded metadata only; test counts are not release acceptance.
 
 ## Run (target path â€” unverified)
 
@@ -183,34 +183,4 @@ This project deliberately separates **source-verified**, **observed**, **unknown
 <!-- task-65 branch metadata-only source revision: 1374abd (rebased on e80bbf4) -->
 
 
-<!-- P0 probe fix metadata-only source revision: 39aa3a7 -->
-
-
-<!-- P0 probe team-order fix metadata-only source revision: 4848ee2 -->
-
-
-<!-- telemetry hardening metadata-only source revision: 08a9546 -->
-
-
-<!-- telemetry hardening metadata-only source revision: d0f7edf -->
-
-
-<!-- telemetry claim-wording metadata-only source revision: 79d7b84 -->
-
-
-<!-- hit mapping metadata-only source revision: 8759eed -->
-
-
-<!-- task-74 heatmap metadata-only source revision: b06f427 -->
-
-
-<!-- task-71 hit-trigger metadata-only source revision: 1845906 -->
-
-
-<!-- heatmap heartbeat nil-fix metadata-only source revision: 9a23857 -->
-
-
-<!-- probe-health metadata-only source revision: 5b5725f -->
-
-
-<!-- hit-param gate metadata-only source revision: 177c4e5 -->
+<!-- task-68 consumer branch metadata-only source revision: b92fa7d -->

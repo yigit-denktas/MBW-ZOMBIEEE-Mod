@@ -489,6 +489,22 @@ valid-id checks (0/negative/non-number are rejected; valid >0 accepted).
 This is separate from the trigger-14 `-1` faction guard and the faction-id 16
 raw-operand fix.
 
+### Requested fire mode echo (task-68 consumer side)
+
+`tools/receipt_summary.py` accepts an optional external launcher receipt
+(`--launcher-receipt PATH`, schema `zombieee.city-launch-receipt.v1`; also
+auto-discovered at `<evidence-root>/launches/<session_id>/launch-receipt.json`
+from `<evidence-root>/flights/<session_id>`). It exposes only the requested
+configuration under top-level `session.fire_mode*`:
+`fire_mode`, normalized `fire_mode_scope="pre-game-session-only"`,
+`fire_mode_source="requested_build_or_launcher"`, `fire_mode_applied`,
+`fire_mode_manual_switch_supported=false`, and the tuning-only semantics string.
+The sidecar is not signed evidence; absence is `null`/unknown and is not a gap.
+It is never merged into `firearms.*`; `session.fire_mode_mismatch` and the
+`fire_mode_requested_observed_mismatch` gap appear only when both the requested
+mode and observed `fire_modes_observed` exist (ai is compared with wave%3
+expected labels; fixed modes against the observed label). Diagnostic only.
+
 ### Firearm telemetry (task-60)
 
 **Accuracy/reload modifiers and fire-mode labels (task-59/60):** the probe
