@@ -216,7 +216,7 @@ evidence-manifest verification. It never starts or kills a game process. See
 and limits.
 
 Process-level interop fixtures run C's exact checkout (`agent/c-flight-recorder`
-at `1119cca2568f6a3f9c18af4689568a814a7985f4`) and an expendable fake game child:
+at `de3f7f1e4695047058a51d4c79d432bbb17c9a8e`) and an expendable fake game child:
 
 ```powershell
 $env:ZOMBIEEE_RECORDER_DIR = 'C:\path\to\agent-c-flight-recorder'
