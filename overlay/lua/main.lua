@@ -106,6 +106,7 @@ emit("recorder_capabilities",
     .. "|accuracy_getter=" .. binding_flag("agent_get_accuracy_modifier")
     .. "|reload_getter=" .. binding_flag("agent_get_reload_speed_modifier")
     .. "|reticle_getter=0|aim_error_getter=0|fire_mode_getter=0"
+    .. "|invalid_agent_guard=1"
     .. "|speed_modifier_getter=" .. binding_flag("agent_get_speed_modifier")
     .. "|time_multiplier_getter=" .. binding_flag("agent_get_time_speed_multiplier")
     .. "|action_speed_getter=" .. binding_flag("agent_get_action_speed_modifier")
@@ -269,12 +270,14 @@ local function read_group(agent)
     return decode_group_returns(agent, ok, first, second)
 end
 local function is_npc(agent)
+    if type(agent) ~= "number" or agent <= 0 then return false end
     local value = guarded_call(function()
         return game.agent_is_non_player(agent)
     end, false)
     return value == true or value == 1
 end
 local function is_human(agent)
+    if type(agent) ~= "number" or agent <= 0 then return nil end
     local value = guarded_call(function()
         return game.agent_is_human(agent)
     end, nil)
@@ -287,6 +290,7 @@ end
 -- position-object access is inside guarded_call: a WSE2 pos userdata can throw
 -- on field access and must not abort the entire world sample.
 local function agent_position(agent)
+    if type(agent) ~= "number" or agent <= 0 then return nil end
     return guarded_call(function()
         game.agent_get_position(90, agent)
         local position = game.preg[90]
@@ -299,6 +303,7 @@ local function agent_position(agent)
     end, nil)
 end
 local function is_alive(agent)
+    if type(agent) ~= "number" or agent <= 0 then return false end
     local value = guarded_call(function()
         return game.agent_is_alive(agent)
     end, nil)

@@ -375,6 +375,20 @@ D's task-42 sealed runs exposed three readback gaps, now closed:
   `ammo > 0 -> 0` transitions plus `weapon_mode=melee`. This is an inference,
   not a direct AI-mode getter; the note records that explicitly.
 
+### Invalid Agent ID: 0 guard (P0, trigger 32 conditions)
+
+Client/pre-round heartbeat condition callbacks could yield agent id 0 from
+`game.agentsIt()`; direct agent ops then logged
+`SCRIPT ERROR: Invalid Agent ID: 0` at `Trigger [32] Conditions (Lua)`.
+Every agent read helper now rejects non-number/<=0 ids **before** calling an
+engine op: `read_agent_number` (already), `is_alive` -> false, `is_npc` -> false,
+`is_human` -> nil, `agent_position` -> nil, `read_group` (already). The
+recorder capability line reports `invalid_agent_guard=1` so D can confirm the
+fixed probe. Regression tests: static guard/capability surface plus real-Lua
+valid-id checks (0/negative/non-number are rejected; valid >0 accepted).
+This is separate from the trigger-14 `-1` faction guard and the faction-id 16
+raw-operand fix.
+
 ### Firearm telemetry (task-60)
 
 **Accuracy/reload modifiers and fire-mode labels (task-59/60):** the probe

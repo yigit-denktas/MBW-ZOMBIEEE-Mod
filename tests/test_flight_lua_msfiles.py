@@ -505,5 +505,13 @@ class LuaOperationMetadataTests(unittest.TestCase):
                       "|fire_mode_getter=0"):
             self.assertIn(token, self.main)
 
+
+    def test_invalid_agent_id_guard_surface(self):
+        # Trigger 32 condition callbacks must never call an agent op with id 0.
+        self.assertIn("|invalid_agent_guard=1", self.main)
+        self.assertGreaterEqual(self.main.count("agent <= 0 then return false"), 2)
+        self.assertIn("type(agent) ~= \"number\" or agent <= 0 then return nil", self.main)
+        self.assertIn("type(agent) ~= \"number\" or agent <= 0 then return -1", self.main)
+
 if __name__ == "__main__":
     unittest.main()

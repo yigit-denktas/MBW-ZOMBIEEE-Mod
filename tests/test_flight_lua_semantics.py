@@ -202,6 +202,15 @@ checks[#checks + 1] = tostring(read_faction_slot(16, 999, faction_mock) == -1)
 checks[#checks + 1] = tostring(faction_calls == 0)
 checks[#checks + 1] = tostring(read_faction_slot(16, 200, faction_mock) == 360287970189640574)
 checks[#checks + 1] = tostring(faction_calls == 1)
+
+-- Invalid-agent guard: never pass 0/negative/non-number to an agent op.
+local function valid_agent_id(agent)
+    return type(agent) == "number" and agent > 0 and math.floor(agent) == agent
+end
+checks[#checks + 1] = tostring(valid_agent_id(0) == false)
+checks[#checks + 1] = tostring(valid_agent_id(-1) == false)
+checks[#checks + 1] = tostring(valid_agent_id("3") == false)
+checks[#checks + 1] = tostring(valid_agent_id(3) == true)
 return table.concat(checks, ",")
 """
 
@@ -244,7 +253,7 @@ class RealLuaSemanticsTests(unittest.TestCase):
 
     def test_team_tables_arithmetic_and_precedence(self):
         checks = self.run_lua(SEMANTICS_SCRIPT).split(",")
-        self.assertEqual(len(checks), 36)
+        self.assertEqual(len(checks), 40)
         for index, value in enumerate(checks, 1):
             self.assertEqual(value, "true", f"Lua semantics check {index} failed")
 
