@@ -2,6 +2,20 @@
 
 Uses [Semantic Versioning](https://semver.org/) for the remaster, not the historical original.
 
+## [0.2.0] - 2026-10-24
+
+### Added
+- Native Zombie roster 894..911 fixed (faction-conditional compiled bot-troop scan), with 873/874 Crazed Civilian bots absent in sealed evidence.
+- Native allied defender spawn 981..984, group/division adoption path, scripted-destination movement and per-round respawn top-up.
+- Wave 2 observed in the defender-heavy variant (`set_bot_count 1 8 / 2 4`, `player_respawn_as_bot 1`); stock squad remains max wave 1 due native round reset.
+- One-command `python -m launcher.play_city`: discovery, pinned archive audit, backup-first install/rollback, validated rotation, recorder, loopback host, auto-join client, sealed manifest + summary.
+- Sealed ZDB1 probe stream, troop/position/kill telemetry, roster labels, pre-round samples, returned-value lhs fixes, **zero-spam group probe**, and automatic-firearm accuracy profile.
+- README/provenance with archived original-team credits and owner-attested permission basis; redistribution remains uncleared.
+
+### Still not accepted
+- Division 5-7 adoption / stable hold / guard-entry identity is unobservable in this runtime; movement only.
+- Wave 3+/completion, stock-squad wave 2, combat feel, installer/public release, legal redistribution.
+- City required outcomes **0/23**, milestones **0/5**, `runtime_verified=false`; suite caveat retained.
 ## [0.1.8] - 2026-10-23
 
 ### Added

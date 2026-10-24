@@ -4,6 +4,8 @@ A private, City-first compatibility rebuild of the 2012 **ZOMBIEEE (Invasion) Be
 
 > **Status: not accepted as a playable release.** Runtime evidence now exists — native Zombie roster, native allied defenders, hands-off AI-vs-AI combat, wave 2 in a defender-heavy variant, and a live-validated `play_city` path — but the City release still sits at **0/23 required outcomes / 0/5 accepted milestones** with `runtime_verified=false`. Division/hold behavior, wave 3+/completion, combat feel, redistribution and public release gates remain open. Do not treat any build here as an accepted release.
 
+**Current project version:** `0.2.0` (runtime-evidenced City candidate; **not release-accepted**).
+
 ## Scope
 
 - **Engine target:** official Warband data format **1.174** under [WSE2 **1.1.5.4**](https://github.com/Ruslan-700/WSE2-Releases/releases/tag/v1.1.5.4).
@@ -113,7 +115,7 @@ See [docs/MANUAL_TESTS.md](docs/MANUAL_TESTS.md) and [docs/INTEGRATED_CITY_ACCEP
 - **Observed (unsealed, Lead-reported)** on merged main `4c56242` with C's corrected probe: dedicated host loopback-only `127.0.0.1:7240`, `role=server`, `game_type=7`, `ready_for_spawn=1`; `set_bot_count 2 32` produced `team1=41`, `wave=1`. This is a candidate observation, not acceptance.
 - **Open defects:** stable squad hold/guard-entry identity (division 5-7 adoption unobservable); wave 3+/completion and stock-squad wave 2; combat feel with the firearm profile; legal redistribution/public release gates. Native Zombie roster, native defenders, wave 2 in the defender-heavy variant and sealed ZDB1/play_city evidence are demonstrated but are not release acceptance.
 - **Known original quirk:** repeated engine `SCRIPT ERROR: Invalid Faction ID: -1` is decoded as four trailing `faction_set_slot(-1, 200, …)` writes in the 2012 mission (trigger 14), byte-identical to the pinned original prefix. It is non-fatal and not proven causal; no gameplay patch is authorized.
-- **Version:** project version `0.1.8` is a development scaffold. `v0.2.0` is reserved for an actual WSE2 startup + City smoke test, which has not happened. See [CHANGELOG.md](CHANGELOG.md), [docs/ROADMAP.md](docs/ROADMAP.md), [docs/ENGINE.md](docs/ENGINE.md).
+- **Version:** project version `0.2.0` marks the first runtime-evidenced City candidate (WSE2 startup, native Zombie roster, native defenders, wave 2 in the defender-heavy variant). City release acceptance remains **0/23 required outcomes / 0/5 milestones**; `v0.3+` remains reserved for wave-3+/hold/legal release gates. See [CHANGELOG.md](CHANGELOG.md), [docs/ROADMAP.md](docs/ROADMAP.md), [docs/ENGINE.md](docs/ENGINE.md).
 
 ## Attribution and permission
 
