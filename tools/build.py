@@ -24,6 +24,7 @@ from all_map_defense import apply_module as apply_all_maps
 from wave_reinforcements import apply_module as apply_wave_support
 from tactical_recovery import apply_module as apply_tactical_recovery
 from bot_loadouts import apply_module as apply_balanced_ai_loadouts
+from survivor_proficiency import apply_module as apply_survivor_proficiency
 from firearm_balance import apply_module as apply_firearm_balance
 from zombie_block import apply_module as apply_zombie_block
 from solo_assist import apply_module as apply_solo_assist
@@ -202,6 +203,7 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
                 source, wave_global, speed_loop=native_speed_loop == "on")
         balanced = defender_loadouts == "balanced-ai"
         loadout_report = apply_balanced_ai_loadouts(source) if balanced else None
+        proficiency_report = apply_survivor_proficiency(source) if balanced else None
         # Default build profile: automatic firearms get a modest accuracy buff;
         # single-shot firearms and every non-firearm item keep their stats.
         firearm_report = apply_firearm_balance(source, firearm_accuracy)
@@ -378,6 +380,7 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
             "experimental_defender_patch": defender_report,
             "defender_loadout_profile": defender_loadouts,
             "ai_only_loadout_clones": loadout_report,
+            "survivor_proficiency": proficiency_report,
             "solo_assist": solo_report,
             "private_commands": private_report,
             "difficulty": support.name,
