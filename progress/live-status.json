@@ -1,8 +1,8 @@
 ﻿{
-  "updated": "2026-10-24T16:25:00+02:00",
-  "phase": "P0 clean bisect",
-  "build": "Clean-off test build installed (no recovery/wave triggers). Known-good f57c800 backup available.",
-  "now": "C probe ecd3f4b fixes Invalid Agent ID 0 and Invalid Group ID 0; D sealing clean-off bounded 240s.",
-  "next": "If clean-off has no AV, run clean-on; then full pairs. No acceptance.",
+  "updated": "2026-10-24T16:29:00+02:00",
+  "phase": "P0 clean bisect complete",
+  "build": "Clean-off + clean-on sealed, 8 files each; no crash.",
+  "now": "Clean-off: slots 894, speed 100, 0 errors. Clean-on: slots 894, speed 60, 0 errors, no AV.",
+  "next": "Full build pair (recovery+wave) to isolate the crash; then speed-loop decision and integration batch.",
   "acceptance": false
 }
