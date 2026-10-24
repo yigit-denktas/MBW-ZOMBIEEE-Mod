@@ -477,7 +477,11 @@ commands (`launcher.play_city`, `tools/build.py`, `archive_audit`) are documente
 no proprietary archives/game executables/logs are tracked by Git, no local
 personal install paths or obvious secrets appear in tracked text, and a supplied
 installed module still passes the City structural checks with
-`runtime_verified=false`. The report says `delivery_status=candidate-checks-only`
+`runtime_verified=false`. It also requires the release traceability record
+(`docs/release-traceability.json` + `docs/RELEASE_TRACEABILITY.md`) to match
+`VERSION` and the current CHANGELOG heading, with every non-blocked work item
+linked to a PR/commit and every included PR covered. The report says
+`delivery_status=candidate-checks-only`
 and `acceptance=none`; it never claims a playable release, and owner review plus
 D's sealed runtime evidence remain required. Missing runtime evidence is a gap,
 not a pass.
@@ -515,11 +519,11 @@ attach, join/mission markers, stop after client exit, artifact-before-stop,
 manifest/summary results, and fail-closed cleanup for bind timeout, recorder
 readiness failure, attachment rejection, recorder death and Ctrl+C. No game,
 recorder subprocess or network probe is started by tests. Latest Windows result:
-`python -B -m unittest discover -s tests -q` → **572 tests, OK, 112
+`python -B -m unittest discover -s tests -q` → **583 tests, OK, 112
 skipped**; the B launcher/C-recorder interop cases run because C's recorder
 is present in the merged tree. Launcher-only suites are green:
 `python -B -m unittest discover -s tests -p "test_windows_*.py" -q` →
-**186 tests, OK, 1 skipped** (includes the M2 maintenance, settings,
+**194 tests, OK, 1 skipped** (includes the release-traceability, M2 maintenance, settings,
 shortcut/control-panel and release-gate fixtures).
 
 ### Python 3.13 NUL-path regression

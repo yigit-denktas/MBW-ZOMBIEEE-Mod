@@ -1,0 +1,430 @@
+{
+  "schema": "zombieee.release-traceability.v1",
+  "schema_version": 1,
+  "candidate_version": "0.3.0-rc.1",
+  "release_state": "candidate",
+  "acceptance": "none",
+  "runtime_verified": false,
+  "observed_on": "2026-10-24",
+  "source_revision": "1c27514a8738fa88b88a6fdecf5be9442e082369",
+  "version_sources": {
+    "version": "VERSION",
+    "changelog": "CHANGELOG.md#030-rc1-2026-10-24",
+    "roadmap": "docs/ROADMAP.md",
+    "release_gate": "launcher/release_gate.py"
+  },
+  "work_items": [
+    {
+      "id": "ZOM-WIN-02",
+      "title": "Deliver safe install, repair and rollback",
+      "lane": "B",
+      "state": "active",
+      "acceptance": "none",
+      "release": "0.3.0-rc.1",
+      "summary": "Reversible install/rollback plus per-file ownership receipts, verify/repair and quarantine-first uninstall; owner acceptance still pending.",
+      "prs": [
+        {
+          "number": 11,
+          "url": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/11",
+          "merge_commit": "4c5624259ed9ce876da06d1996e728c63666a398"
+        },
+        {
+          "number": 19,
+          "url": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/19",
+          "merge_commit": "156e2758f6bbd758f2180ab63800b4a59d5b7fe9"
+        },
+        {
+          "number": 28,
+          "url": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/28",
+          "merge_commit": "8e7849b2e32cf95cafacd24ba3535c1679a5edc9"
+        }
+      ],
+      "commits": [
+        "579b446292b335656595e776049d6f36bb4b581c"
+      ]
+    },
+    {
+      "id": "ZOM-WIN-03",
+      "title": "Create user desktop launcher and settings",
+      "lane": "B",
+      "state": "backlog",
+      "acceptance": "none",
+      "release": "0.3.0-rc.1",
+      "summary": "Control panel, private schema-validated settings and an explicit desktop shortcut spec; no real Desktop shortcut was created or reviewed.",
+      "prs": [
+        {
+          "number": 28,
+          "url": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/28",
+          "merge_commit": "8e7849b2e32cf95cafacd24ba3535c1679a5edc9"
+        }
+      ],
+      "commits": [
+        "579b446292b335656595e776049d6f36bb4b581c"
+      ]
+    },
+    {
+      "id": "ZOM-SOLO-02",
+      "title": "Join solo player without manual server setup",
+      "lane": "B",
+      "state": "done",
+      "acceptance": "none",
+      "release": "0.3.0-rc.1",
+      "summary": "One-command play_city validated live (loopback host, auto-join, sealed stop); owner acceptance and wave completion remain open.",
+      "prs": [
+        {
+          "number": 19,
+          "url": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/19",
+          "merge_commit": "156e2758f6bbd758f2180ab63800b4a59d5b7fe9"
+        },
+        {
+          "number": 20,
+          "url": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/20",
+          "merge_commit": "2fef70dfe8df324a4cee36d446ad17914fe881d9"
+        },
+        {
+          "number": 21,
+          "url": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/21",
+          "merge_commit": "170153d627f5cbeb5bcc6bd1b3611723f58fc37f"
+        }
+      ],
+      "commits": [
+        "dad2b087c048b52a4478d24656f85f5cb1d328cf"
+      ]
+    },
+    {
+      "id": "ZOM-DISC-23",
+      "title": "Configure second-team bots, respawn and correct invader roster in launcher rotation",
+      "lane": "B",
+      "state": "done",
+      "acceptance": "none",
+      "release": "0.3.0-rc.1",
+      "summary": "Validated rotation, native defender squad set_bot_count 1 8 and enemy profiles; rotation SHA recorded in sealed receipts.",
+      "prs": [
+        {
+          "number": 20,
+          "url": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/20",
+          "merge_commit": "2fef70dfe8df324a4cee36d446ad17914fe881d9"
+        },
+        {
+          "number": 21,
+          "url": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/21",
+          "merge_commit": "170153d627f5cbeb5bcc6bd1b3611723f58fc37f"
+        }
+      ],
+      "commits": [
+        "c86df95e4e0a65d1d1b712376f578579f58b068b",
+        "c301f22becd5c626e8f9164dd000dadc8097b8b4"
+      ]
+    },
+    {
+      "id": "ZOM-DISC-24",
+      "title": "Seal dedicated-host ZDB1 stdout inside the flight evidence bundle",
+      "lane": "B",
+      "state": "done",
+      "acceptance": "none",
+      "release": "0.3.0-rc.1",
+      "summary": "Host stdout tee plus add_artifact before the signed stop; verified 8-file sealed manifests.",
+      "prs": [
+        {
+          "number": 17,
+          "url": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/17",
+          "merge_commit": "42d4ec37b0f44dda693247f8a9bbb67a77a42228"
+        }
+      ],
+      "commits": [
+        "d1011e2de7c1342a74c658ebcebdb50f8776fe02"
+      ]
+    },
+    {
+      "id": "ZOM-DISC-25",
+      "title": "Bounded per-team troop histogram and explicit observed lifecycle events",
+      "lane": "C",
+      "state": "done",
+      "acceptance": "none",
+      "release": "0.3.0-rc.1",
+      "summary": "Troop histogram and observed-only lifecycle events shipped in the ZDB1 probe.",
+      "prs": [
+        {
+          "number": 12,
+          "url": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12",
+          "merge_commit": "0fe86a446b8a8f2c56e97dcdae03dc9e87f51b48"
+        }
+      ],
+      "commits": [
+        "a29fabfdbd61384c4dfc73cd33de5c51d68b43b9"
+      ]
+    },
+    {
+      "id": "ZOM-DISC-26",
+      "title": "Receipt summary CLI: verify sealed evidence and report what happened",
+      "lane": "C",
+      "state": "done",
+      "acceptance": "none",
+      "release": "0.3.0-rc.1",
+      "summary": "Sealed-bundle summary CLI, consumed by the one-command launcher.",
+      "prs": [
+        {
+          "number": 12,
+          "url": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/12",
+          "merge_commit": "0fe86a446b8a8f2c56e97dcdae03dc9e87f51b48"
+        }
+      ],
+      "commits": [
+        "a29fabfdbd61384c4dfc73cd33de5c51d68b43b9",
+        "d1011e2de7c1342a74c658ebcebdb50f8776fe02"
+      ]
+    },
+    {
+      "id": "ZOM-AI-01",
+      "title": "Verify allied defender team and initial spawns",
+      "lane": "A",
+      "state": "done",
+      "acceptance": "none",
+      "release": "0.3.0-rc.1",
+      "summary": "Native team-0 defender spawn path (981..984) merged; live sealed spawn observed.",
+      "prs": [],
+      "commits": [
+        "3950f44",
+        "a6b5fe9"
+      ]
+    },
+    {
+      "id": "ZOM-AI-02",
+      "title": "Establish measurable effective ranged combat",
+      "lane": "A",
+      "state": "active",
+      "acceptance": "none",
+      "release": "0.3.0-rc.1",
+      "summary": "Rear-line hold/fire, standoff and ammo-gated melee merged; KD measurement still being balanced.",
+      "prs": [],
+      "commits": [
+        "f0c3e68",
+        "fdb642f"
+      ]
+    },
+    {
+      "id": "ZOM-AI-03",
+      "title": "Verify guarded positions and recovery behaviour",
+      "lane": "A",
+      "state": "active",
+      "acceptance": "none",
+      "release": "0.3.0-rc.1",
+      "summary": "Rear hold entries [0,1,0] and native-group orders merged; hold-sector identity remains unobservable.",
+      "prs": [],
+      "commits": [
+        "941ed5b",
+        "0884b64"
+      ]
+    },
+    {
+      "id": "ZOM-WAVE-01",
+      "title": "Balance survivor help and zombie wave progression",
+      "lane": "A",
+      "state": "active",
+      "acceptance": "none",
+      "release": "0.3.0-rc.1",
+      "summary": "Slow-894 wave-visitor gating, spawn_agent defender refill and weak generic roster merged; wave 2+/completion unverified.",
+      "prs": [],
+      "commits": [
+        "0884b64",
+        "332560a",
+        "63ba0ee"
+      ]
+    },
+    {
+      "id": "ZOM-DISC-28",
+      "title": "Native team-0 defender squad (981..984) with hold-sector contract",
+      "lane": "A",
+      "state": "active",
+      "acceptance": "none",
+      "release": "0.3.0-rc.1",
+      "summary": "Native defender squad and rear hold merged; group/division adoption and stable hold still unproven.",
+      "prs": [],
+      "commits": [
+        "3950f44",
+        "941ed5b",
+        "0884b64",
+        "8676eaa"
+      ]
+    },
+    {
+      "id": "ZOM-LEGAL-01",
+      "title": "Resolve publication rights and attribution",
+      "lane": "E",
+      "state": "backlog",
+      "acceptance": "none",
+      "release": "0.3.0-rc.1",
+      "summary": "Credits and permission basis recorded; redistribution remains uncleared and no assets were committed.",
+      "prs": [
+        {
+          "number": 18,
+          "url": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/18",
+          "merge_commit": "667ba9c011e11225db01510f30cd024e854f662d"
+        },
+        {
+          "number": 27,
+          "url": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/27",
+          "merge_commit": "406dfead302662101a11206d3ea6e265bf374521"
+        }
+      ],
+      "commits": [
+        "8d542f5"
+      ]
+    },
+    {
+      "id": "ZOM-REL-01",
+      "title": "Package City-first accessible solo v1.0 candidate",
+      "lane": "B",
+      "state": "backlog",
+      "acceptance": "none",
+      "release": "0.3.0-rc.1",
+      "summary": "Read-only delivery gate and desktop/installer surfaces merged; accessibility, legal and owner acceptance gates remain open.",
+      "prs": [
+        {
+          "number": 28,
+          "url": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/28",
+          "merge_commit": "8e7849b2e32cf95cafacd24ba3535c1679a5edc9"
+        }
+      ],
+      "commits": [
+        "579b446292b335656595e776049d6f36bb4b581c"
+      ]
+    },
+    {
+      "id": "ZOM-REC-03",
+      "title": "Validate and review branded progress views",
+      "lane": "A",
+      "state": "backlog",
+      "acceptance": "none",
+      "release": "0.3.0-rc.1",
+      "summary": "Tracker and Pages graph merged; current version line and presentation regeneration pending the publisher.",
+      "prs": [
+        {
+          "number": 7,
+          "url": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/pull/7",
+          "merge_commit": "12deedb1d65d855cfd80994a032c825f749563ea"
+        }
+      ],
+      "commits": [
+        "52171ec"
+      ]
+    },
+    {
+      "id": "ZOM-QA-02",
+      "title": "Complete sustained integrated City solo test",
+      "lane": "D",
+      "state": "blocked",
+      "acceptance": "none",
+      "release": "0.3.0-rc.1",
+      "blocker": "No sustained wave-completion runtime evidence exists; owned by D/owner, not the launcher.",
+      "summary": "Blocked on sustained sealed runtime evidence; no PR or commit can substitute for it.",
+      "prs": [],
+      "commits": []
+    }
+  ],
+  "releases": [
+    {
+      "version": "0.3.0-rc.1",
+      "state": "candidate",
+      "changelog": "CHANGELOG.md#030-rc1-2026-10-24",
+      "acceptance": "none",
+      "runtime_verified": false,
+      "published": false,
+      "release_notes": "Consolidation pre-release candidate; the 0.3.0 milestone remains reserved for verified allied survivor/class/loadout acceptance (docs/ROADMAP.md).",
+      "included_prs": [
+        7,
+        11,
+        12,
+        17,
+        18,
+        19,
+        20,
+        21,
+        23,
+        25,
+        26,
+        27,
+        28
+      ],
+      "included_commits": [
+        "52171ec6203d404084ad82a72495d0caa388cb1b",
+        "c72de64",
+        "a3ed506",
+        "8676eaa",
+        "fdb642f",
+        "f0c3e68",
+        "0884b64",
+        "406dfead302662101a11206d3ea6e265bf374521",
+        "03c6c2dd7d3f7f1cb15fcf64c51e6df5a67f85e3",
+        "8e7849b2e32cf95cafacd24ba3535c1679a5edc9",
+        "57f56ea3bc4645d320475be2737ba2066e0e38d2"
+      ],
+      "support_prs": [
+        {
+          "number": 23,
+          "reason": "launcher defender-count docs"
+        },
+        {
+          "number": 25,
+          "reason": "no-launch AI/profile matrix planner"
+        },
+        {
+          "number": 26,
+          "reason": "matrix summary-schema alignment"
+        }
+      ]
+    }
+  ],
+  "gaps": [
+    "ZOM-QA-02 sustained integrated City solo test: no wave-completion runtime evidence.",
+    "ZOM-REL-01 accessibility/legal/owner gates open; delivery gate is candidate-checks-only.",
+    "ZOM-LEGAL-01 redistribution not cleared; original assets stay local and uncommitted.",
+    "0.3.0 milestone is not awarded: allied survivor/class/loadout acceptance is pending.",
+    "Project Record delivery pipeline replay is unavailable in this runtime (toolkit ZIP unverified); derived Pages/README presentation must be regenerated by the publisher.",
+    "Generated README progress block is a derived view observed at `c49cd3b9` and is stale for the 0.3.0-rc.1 candidate; publisher regeneration is pending (E finding C2).",
+    "Repository LICENSE / THIRD_PARTY_NOTICES.md are absent (owner decision/open risk); absence is reported by the release gate rather than silently passing (E finding C6)."
+  ],
+  "notes": [
+    "Pre-release candidate only: source merges and a CHANGELOG heading establish neither publication nor acceptance.",
+    "Cross-review: E (task-51) must review release/legal claims; the author does not self-approve.",
+    "Historical release facts are never retargeted; this file records the current candidate revision."
+  ],
+  "support_artifacts": [
+    {
+      "id": "C-TASK-35",
+      "kind": "research-docs",
+      "summary": "Community-grounded Warband AI modding research + offline plan prototype; docs-only evidence context, not a runtime or telemetry artifact.",
+      "state": "merged-docs-only",
+      "acceptance": "none",
+      "commits": [
+        "6d47146",
+        "a777039"
+      ],
+      "merge_commit": "4ba24e2"
+    },
+    {
+      "id": "C-TASK-48",
+      "kind": "research-docs",
+      "summary": "Modder diagnostics/telemetry reuse research; docs-only reference and explicitly NOT a runtime/telemetry artifact. Pending final E pass branch commit is not part of this candidate.",
+      "state": "merged-docs-only; final E review pass pending",
+      "acceptance": "none",
+      "commits": [
+        "f74c0c2",
+        "12b8f91"
+      ],
+      "merge_commit": "148f7f3",
+      "pending_branch": "agent/c-task48-final-amend",
+      "pending_commit": "50fa25b"
+    }
+  ],
+  "reviews": [
+    {
+      "reviewer": "Agent E",
+      "record": "reference/CROSS_REVIEW_LEGAL_RELEASE_2026-10-24.md",
+      "date": "2026-10-24",
+      "scope": "release/legal/privacy claims (task-51)",
+      "status": "initial review complete; must-fix items C1\u2013C7 addressed in the task-50 branch; re-review of the pushed branch pending",
+      "acceptance": "none"
+    }
+  ]
+}

@@ -213,9 +213,33 @@ class ReleaseGateTests(unittest.TestCase):
             'launcher/control_panel.py': 'pass\n',
             'launcher/install.py': 'pass\n',
             'launcher/maintenance.py': 'pass\n',
+            'reference/LEGAL_RIGHTS_AND_CREDITS.md': 'legal dossier\n',
+            'reference/CROSS_REVIEW_LEGAL_RELEASE_2026-10-24.md':
+                'review record\n',
             'installer/manifest.py': 'pass\n',
             'tools/build.py': 'pass\n',
             'tools/archive_audit.py': 'pass\n',
+            'CHANGELOG.md': '# Changelog\n\n## [0.2.0] - 2026-10-24\n',
+            'docs/RELEASE_TRACEABILITY.md': 'fixture traceability\n',
+            'docs/release-traceability.json': json.dumps({
+                'schema': 'zombieee.release-traceability.v1',
+                'schema_version': 1, 'candidate_version': '0.2.0',
+                'release_state': 'candidate', 'acceptance': 'none',
+                'runtime_verified': False,
+                'work_items': [{
+                    'id': 'ZOM-WIN-02', 'state': 'active', 'lane': 'B',
+                    'acceptance': 'none', 'release': '0.2.0',
+                    'prs': [{'number': 1,
+                             'url': 'https://github.com/example/repo/pull/1',
+                             'merge_commit': 'a' * 40}],
+                    'commits': []}],
+                'releases': [{
+                    'version': '0.2.0', 'state': 'candidate',
+                    'changelog': 'CHANGELOG.md#020',
+                    'acceptance': 'none', 'runtime_verified': False,
+                    'published': False, 'included_prs': [1]}],
+                'gaps': ['fixture gap'],
+            }, indent=2) + '\n',
         }
         for relative, text in files.items():
             path = Path(root) / relative
