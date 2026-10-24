@@ -1,0 +1,782 @@
+{
+  "schema": "zombieee.ui_icon_map",
+  "version": 0,
+  "status": "proposal-not-implemented",
+  "observed": "2026-10-24",
+  "task": "task-49",
+  "authority": "docs/ICON_MAPPING.md",
+  "sourceCatalogue": "reference/FREE_ASSET_SOURCES.md",
+  "binaryAssetsCommitted": false,
+  "wiredToRuntime": false,
+  "notes": [
+    "Definitions-only proposal. No atlas, BRF, presentation, DDS or font file exists yet.",
+    "No binary data is committed; icon svg/png/dds files must not be added until the licence-cleared asset PR.",
+    "slot.source.primary is the intended canonical art; slot.source.fallback is used only if the primary is rejected in visual QA.",
+    "Attribution strings are generated from this file; every CC BY slot requires author + licence + page URL."
+  ],
+  "atlas": {
+    "runtimeFormat": "dds",
+    "compression": "DXT5",
+    "masterSizePx": 64,
+    "deliveredSizesPx": [64, 32, 16],
+    "feedbackSizesPx": [24, 32],
+    "pages": [256, 512],
+    "paddingPx": 2,
+    "foreground": "#FFFFFF",
+    "background": "transparent",
+    "tintMode": "runtime overlay_set_color",
+    "naming": "ui_zdr_<slot>",
+    "maxSlotsPerPage": 64,
+    "textFallbackRequired": true,
+    "note": "DXT3/DXT5 for alpha textures and dimensions multiple of four are Warband pipeline requirements (reference/FREE_ASSET_SOURCES.md 2.2). Minimum-size QA is required before approval."
+  },
+  "slots": [
+    {
+      "key": "melee",
+      "label": "Melee (sword/axe/polearm)",
+      "category": "weapon",
+      "source": {
+        "primary": {
+          "site": "game-icons.net",
+          "iconId": "crossed-swords",
+          "pageUrl": "https://game-icons.net/1x1/lorc/crossed-swords.html",
+          "author": "Lorc",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Lorc. Available on https://game-icons.net"
+        },
+        "fallback": {
+          "site": "game-icons.net",
+          "iconId": "sword-brandish",
+          "pageUrl": "https://game-icons.net/1x1/delapouite/sword-brandish.html",
+          "author": "Delapouite",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Delapouite. Available on https://game-icons.net"
+        }
+      },
+      "modification": "crop to 64px square, threshold to white, rasterise",
+      "minPx": 16,
+      "fallbackText": "[MELEE]"
+    },
+    {
+      "key": "bow",
+      "label": "Bow",
+      "category": "weapon",
+      "source": {
+        "primary": {
+          "site": "game-icons.net",
+          "iconId": "bow-arrow",
+          "pageUrl": "https://game-icons.net/1x1/delapouite/bow-arrow.html",
+          "author": "Delapouite",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Delapouite. Available on https://game-icons.net"
+        },
+        "fallback": {
+          "site": "game-icons.net",
+          "iconId": "bowman",
+          "pageUrl": "https://game-icons.net/1x1/lorc/bowman.html",
+          "author": "Lorc",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Lorc. Available on https://game-icons.net"
+        }
+      },
+      "modification": "crop to 64px square, threshold to white, rasterise",
+      "minPx": 16,
+      "fallbackText": "[BOW]"
+    },
+    {
+      "key": "crossbow",
+      "label": "Crossbow",
+      "category": "weapon",
+      "source": {
+        "primary": {
+          "site": "game-icons.net",
+          "iconId": "crossbow",
+          "pageUrl": "https://game-icons.net/1x1/carl-olsen/crossbow.html",
+          "author": "Carl Olsen",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Carl Olsen. Available on https://game-icons.net"
+        },
+        "fallback": {
+          "site": "game-icons.net",
+          "iconId": "bow-arrow",
+          "pageUrl": "https://game-icons.net/1x1/delapouite/bow-arrow.html",
+          "author": "Delapouite",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Delapouite. Available on https://game-icons.net"
+        }
+      },
+      "modification": "crop to 64px square, threshold to white, rasterise",
+      "minPx": 16,
+      "fallbackText": "[XBOW]"
+    },
+    {
+      "key": "firearm",
+      "label": "Firearm (generic)",
+      "category": "weapon",
+      "source": {
+        "primary": {
+          "site": "game-icons.net",
+          "iconId": "rifle",
+          "pageUrl": "https://game-icons.net/1x1/sbed/rifle.html",
+          "author": "sbed",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by sbed. Available on https://game-icons.net"
+        },
+        "fallback": {
+          "site": "Font Awesome Free",
+          "iconId": "gun",
+          "pageUrl": "https://fontawesome.com/icons/gun?f=free&s=solid",
+          "author": "Fonticons, Inc.",
+          "licence": "CC-BY-4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "attribution": "Gun icon by Fonticons, Inc. (Font Awesome Free), licensed under CC BY 4.0"
+        }
+      },
+      "modification": "crop to 64px square, threshold to white, rasterise",
+      "minPx": 16,
+      "fallbackText": "[FIREARM]"
+    },
+    {
+      "key": "firearm-rifle",
+      "label": "Firearm - rifle",
+      "category": "weapon-variant",
+      "source": {
+        "primary": {
+          "site": "game-icons.net",
+          "iconId": "ak47",
+          "pageUrl": "https://game-icons.net/1x1/skoll/ak47.html",
+          "author": "Skoll",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Skoll. Available on https://game-icons.net"
+        },
+        "fallback": {
+          "site": "game-icons.net",
+          "iconId": "rifle",
+          "pageUrl": "https://game-icons.net/1x1/sbed/rifle.html",
+          "author": "sbed",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by sbed. Available on https://game-icons.net"
+        }
+      },
+      "modification": "crop to 64px square, threshold to white, rasterise",
+      "minPx": 16,
+      "fallbackText": "[FIREARM]"
+    },
+    {
+      "key": "firearm-smg",
+      "label": "Firearm - SMG",
+      "category": "weapon-variant",
+      "source": {
+        "primary": {
+          "site": "game-icons.net",
+          "iconId": "uzi",
+          "pageUrl": "https://game-icons.net/1x1/delapouite/uzi.html",
+          "author": "Delapouite",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Delapouite. Available on https://game-icons.net"
+        },
+        "fallback": {
+          "site": "game-icons.net",
+          "iconId": "rifle",
+          "pageUrl": "https://game-icons.net/1x1/sbed/rifle.html",
+          "author": "sbed",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by sbed. Available on https://game-icons.net"
+        }
+      },
+      "modification": "crop to 64px square, threshold to white, rasterise",
+      "minPx": 16,
+      "fallbackText": "[FIREARM]"
+    },
+    {
+      "key": "firearm-pistol",
+      "label": "Firearm - pistol/revolver",
+      "category": "weapon-variant",
+      "source": {
+        "primary": {
+          "site": "game-icons.net",
+          "iconId": "revolver",
+          "pageUrl": "https://game-icons.net/1x1/skoll/revolver.html",
+          "author": "Skoll",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Skoll. Available on https://game-icons.net"
+        },
+        "fallback": {
+          "site": "game-icons.net",
+          "iconId": "rifle",
+          "pageUrl": "https://game-icons.net/1x1/sbed/rifle.html",
+          "author": "sbed",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by sbed. Available on https://game-icons.net"
+        }
+      },
+      "modification": "crop to 64px square, threshold to white, rasterise",
+      "minPx": 16,
+      "fallbackText": "[FIREARM]"
+    },
+    {
+      "key": "firearm-bolt",
+      "label": "Firearm - bolt-action",
+      "category": "weapon-variant",
+      "source": {
+        "primary": {
+          "site": "game-icons.net",
+          "iconId": "winchester-rifle",
+          "pageUrl": "https://game-icons.net/1x1/skoll/winchester-rifle.html",
+          "author": "Skoll",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Skoll. Available on https://game-icons.net"
+        },
+        "fallback": {
+          "site": "game-icons.net",
+          "iconId": "lee-enfield",
+          "pageUrl": "https://game-icons.net/1x1/skoll/lee-enfield.html",
+          "author": "Skoll",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Skoll. Available on https://game-icons.net"
+        }
+      },
+      "modification": "crop to 64px square, threshold to white, rasterise",
+      "minPx": 16,
+      "fallbackText": "[FIREARM]"
+    },
+    {
+      "key": "firearm-shotgun",
+      "label": "Firearm - shotgun",
+      "category": "weapon-variant",
+      "source": {
+        "primary": {
+          "site": "game-icons.net",
+          "iconId": "sawed-off-shotgun",
+          "pageUrl": "https://game-icons.net/1x1/delapouite/sawed-off-shotgun.html",
+          "author": "Delapouite",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Delapouite. Available on https://game-icons.net"
+        },
+        "fallback": {
+          "site": "game-icons.net",
+          "iconId": "rifle",
+          "pageUrl": "https://game-icons.net/1x1/sbed/rifle.html",
+          "author": "sbed",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by sbed. Available on https://game-icons.net"
+        }
+      },
+      "modification": "crop to 64px square, threshold to white, rasterise",
+      "minPx": 16,
+      "fallbackText": "[FIREARM]"
+    },
+    {
+      "key": "explosive",
+      "label": "Explosive / thrown",
+      "category": "weapon",
+      "source": {
+        "primary": {
+          "site": "game-icons.net",
+          "iconId": "grenade",
+          "pageUrl": "https://game-icons.net/1x1/sbed/grenade.html",
+          "author": "sbed",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by sbed. Available on https://game-icons.net"
+        },
+        "fallback": {
+          "site": "game-icons.net",
+          "iconId": "crossed-pistols",
+          "pageUrl": "https://game-icons.net/1x1/lorc/crossed-pistols.html",
+          "author": "Lorc",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Lorc. Available on https://game-icons.net"
+        }
+      },
+      "modification": "crop to 64px square, threshold to white, rasterise",
+      "minPx": 16,
+      "fallbackText": "[EXPLOSIVE]"
+    },
+    {
+      "key": "zombie",
+      "label": "Zombie / undead",
+      "category": "faction",
+      "source": {
+        "primary": {
+          "site": "game-icons.net",
+          "iconId": "shambling-zombie",
+          "pageUrl": "https://game-icons.net/1x1/delapouite/shambling-zombie.html",
+          "author": "Delapouite",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Delapouite. Available on https://game-icons.net"
+        },
+        "fallback": {
+          "site": "game-icons.net",
+          "iconId": "dead-head",
+          "pageUrl": "https://game-icons.net/1x1/delapouite/dead-head.html",
+          "author": "Delapouite",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Delapouite. Available on https://game-icons.net"
+        }
+      },
+      "modification": "crop to 64px square, threshold to white, rasterise",
+      "minPx": 16,
+      "fallbackText": "[ZOMBIE]"
+    },
+    {
+      "key": "death",
+      "label": "Death / suicide / bleed-out",
+      "category": "event",
+      "source": {
+        "primary": {
+          "site": "game-icons.net",
+          "iconId": "dead-head",
+          "pageUrl": "https://game-icons.net/1x1/delapouite/dead-head.html",
+          "author": "Delapouite",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Delapouite. Available on https://game-icons.net"
+        },
+        "fallback": {
+          "site": "game-icons.net",
+          "iconId": "pirate-skull",
+          "pageUrl": "https://game-icons.net/1x1/lorc/pirate-skull.html",
+          "author": "Lorc",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Lorc. Available on https://game-icons.net"
+        }
+      },
+      "modification": "crop to 64px square, threshold to white, rasterise",
+      "minPx": 16,
+      "fallbackText": "[DEATH]"
+    },
+    {
+      "key": "teamkill",
+      "label": "Team-kill",
+      "category": "event",
+      "source": {
+        "primary": {
+          "site": "game-icons.net",
+          "iconId": "pirate-skull",
+          "pageUrl": "https://game-icons.net/1x1/lorc/pirate-skull.html",
+          "author": "Lorc",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Lorc. Available on https://game-icons.net"
+        },
+        "fallback": {
+          "site": "game-icons.net",
+          "iconId": "dead-head",
+          "pageUrl": "https://game-icons.net/1x1/delapouite/dead-head.html",
+          "author": "Delapouite",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Delapouite. Available on https://game-icons.net"
+        }
+      },
+      "modification": "crop to 64px square, threshold to white, rasterise",
+      "minPx": 16,
+      "fallbackText": "[TEAMKILL]"
+    },
+    {
+      "key": "headshot",
+      "label": "Headshot / accuracy bonus",
+      "category": "badge",
+      "source": {
+        "primary": {
+          "site": "game-icons.net",
+          "iconId": "archery-target",
+          "pageUrl": "https://game-icons.net/1x1/lorc/archery-target.html",
+          "author": "Lorc",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Lorc. Available on https://game-icons.net"
+        },
+        "fallback": {
+          "site": "game-icons.net",
+          "iconId": "crosshair",
+          "pageUrl": "https://game-icons.net/1x1/delapouite/crosshair.html",
+          "author": "Delapouite",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Delapouite. Available on https://game-icons.net"
+        }
+      },
+      "modification": "crop to 64px square, threshold to white, rasterise",
+      "minPx": 16,
+      "fallbackText": "[HS]"
+    },
+    {
+      "key": "wave",
+      "label": "Wave start",
+      "category": "event",
+      "source": {
+        "primary": {
+          "site": "game-icons.net",
+          "iconId": "raise-zombie",
+          "pageUrl": "https://game-icons.net/1x1/skoll/raise-zombie.html",
+          "author": "Skoll",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Skoll. Available on https://game-icons.net"
+        },
+        "fallback": {
+          "site": "game-icons.net",
+          "iconId": "shambling-zombie",
+          "pageUrl": "https://game-icons.net/1x1/delapouite/shambling-zombie.html",
+          "author": "Delapouite",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Delapouite. Available on https://game-icons.net"
+        }
+      },
+      "modification": "crop to 64px square, threshold to white, rasterise",
+      "minPx": 16,
+      "fallbackText": "[WAVE]"
+    },
+    {
+      "key": "round",
+      "label": "Round start",
+      "category": "event",
+      "source": {
+        "primary": {
+          "site": "game-icons.net",
+          "iconId": "ringing-bell",
+          "pageUrl": "https://game-icons.net/1x1/lorc/ringing-bell.html",
+          "author": "Lorc",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Lorc. Available on https://game-icons.net"
+        },
+        "fallback": {
+          "site": "game-icons.net",
+          "iconId": "archery-target",
+          "pageUrl": "https://game-icons.net/1x1/lorc/archery-target.html",
+          "author": "Lorc",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Lorc. Available on https://game-icons.net"
+        }
+      },
+      "modification": "crop to 64px square, threshold to white, rasterise",
+      "minPx": 16,
+      "fallbackText": "[ROUND]"
+    },
+    {
+      "key": "money-usd",
+      "label": "Money / USD",
+      "category": "currency",
+      "source": {
+        "primary": {
+          "site": "SIL OFL font glyph",
+          "iconId": "U+0024 DOLLAR SIGN",
+          "pageUrl": "https://fonts.google.com/specimen/Inter",
+          "author": "Inter Project Authors",
+          "licence": "OFL-1.1",
+          "licenceUrl": "https://scripts.sil.org/OFL",
+          "attribution": "Inter font (SIL OFL 1.1) Copyright 2020 The Inter Project Authors"
+        },
+        "fallback": {
+          "site": "Font Awesome Free",
+          "iconId": "dollar-sign",
+          "pageUrl": "https://fontawesome.com/icons/dollar-sign?f=free&s=solid",
+          "author": "Fonticons, Inc.",
+          "licence": "CC-BY-4.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "attribution": "Dollar-sign icon by Fonticons, Inc. (Font Awesome Free), licensed under CC BY 4.0"
+        }
+      },
+      "modification": "glyph rasterised from the OFL font atlas; no coin art, no gold-coin icon",
+      "minPx": 16,
+      "fallbackText": "$"
+    },
+    {
+      "key": "money-note",
+      "label": "Money / banknote (unused fallback art)",
+      "category": "currency",
+      "source": {
+        "primary": {
+          "site": "game-icons.net",
+          "iconId": "banknote",
+          "pageUrl": "https://game-icons.net/1x1/delapouite/banknote.html",
+          "author": "Delapouite",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Delapouite. Available on https://game-icons.net"
+        },
+        "fallback": {
+          "site": "game-icons.net",
+          "iconId": "cash",
+          "pageUrl": "https://game-icons.net/1x1/lorc/cash.html",
+          "author": "Lorc",
+          "licence": "CC-BY-3.0",
+          "licenceUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "attribution": "Icons made by Lorc. Available on https://game-icons.net"
+        }
+      },
+      "modification": "kept as an alternative if the typographic $ is rejected; still not a coin",
+      "minPx": 16,
+      "fallbackText": "$"
+    }
+  ],
+  "events": [
+    {
+      "id": "kill.melee",
+      "category": "kill",
+      "rowTemplate": "{killer} killed {victim} with {weapon}",
+      "icon": "melee",
+      "fallbackText": "[MELEE]",
+      "priority": 20,
+      "ttlSeconds": 6,
+      "tint": "default"
+    },
+    {
+      "id": "kill.bow",
+      "category": "kill",
+      "rowTemplate": "{killer} killed {victim} with a bow",
+      "icon": "bow",
+      "fallbackText": "[BOW]",
+      "priority": 20,
+      "ttlSeconds": 6,
+      "tint": "default"
+    },
+    {
+      "id": "kill.crossbow",
+      "category": "kill",
+      "rowTemplate": "{killer} killed {victim} with a crossbow",
+      "icon": "crossbow",
+      "fallbackText": "[XBOW]",
+      "priority": 20,
+      "ttlSeconds": 6,
+      "tint": "default"
+    },
+    {
+      "id": "kill.firearm",
+      "category": "kill",
+      "rowTemplate": "{killer} killed {victim} with {weapon}",
+      "icon": "firearm",
+      "fallbackText": "[FIREARM]",
+      "priority": 25,
+      "ttlSeconds": 6,
+      "tint": "default"
+    },
+    {
+      "id": "kill.thrown",
+      "category": "kill",
+      "rowTemplate": "{killer} killed {victim} with a thrown weapon",
+      "icon": "explosive",
+      "fallbackText": "[THROWN]",
+      "priority": 30,
+      "ttlSeconds": 7,
+      "tint": "warning"
+    },
+    {
+      "id": "kill.explosive",
+      "category": "kill",
+      "rowTemplate": "{killer} killed {victim} with an explosion",
+      "icon": "explosive",
+      "fallbackText": "[EXPLOSIVE]",
+      "priority": 30,
+      "ttlSeconds": 7,
+      "tint": "warning"
+    },
+    {
+      "id": "kill.zombie",
+      "category": "kill",
+      "rowTemplate": "{killer} put down {zombie}",
+      "icon": "zombie",
+      "fallbackText": "[ZOMBIE]",
+      "priority": 15,
+      "ttlSeconds": 5,
+      "tint": "hostile"
+    },
+    {
+      "id": "kill.headshot",
+      "category": "badge",
+      "rowTemplate": "Headshot",
+      "icon": "headshot",
+      "fallbackText": "[HS]",
+      "priority": 25,
+      "ttlSeconds": 5,
+      "tint": "accent"
+    },
+    {
+      "id": "kill.teamkill",
+      "category": "kill",
+      "rowTemplate": "{killer} team-killed {victim}",
+      "icon": "teamkill",
+      "fallbackText": "[TEAMKILL]",
+      "priority": 40,
+      "ttlSeconds": 8,
+      "tint": "danger"
+    },
+    {
+      "id": "death.suicide",
+      "category": "death",
+      "rowTemplate": "{player} died",
+      "icon": "death",
+      "fallbackText": "[DEATH]",
+      "priority": 30,
+      "ttlSeconds": 6,
+      "tint": "muted"
+    },
+    {
+      "id": "death.bleedout",
+      "category": "death",
+      "rowTemplate": "{player} bled out",
+      "icon": "death",
+      "fallbackText": "[DEATH]",
+      "priority": 30,
+      "ttlSeconds": 6,
+      "tint": "muted"
+    },
+    {
+      "id": "wave.start",
+      "category": "state",
+      "rowTemplate": "Wave {n}",
+      "icon": "wave",
+      "fallbackText": "[WAVE]",
+      "priority": 35,
+      "ttlSeconds": 5,
+      "tint": "hostile"
+    },
+    {
+      "id": "round.start",
+      "category": "state",
+      "rowTemplate": "Round {n}",
+      "icon": "round",
+      "fallbackText": "[ROUND]",
+      "priority": 35,
+      "ttlSeconds": 5,
+      "tint": "neutral"
+    },
+    {
+      "id": "money.gain",
+      "category": "currency",
+      "rowTemplate": "+${amount}",
+      "icon": "money-usd",
+      "fallbackText": "$",
+      "priority": 10,
+      "ttlSeconds": 4,
+      "tint": "positive"
+    },
+    {
+      "id": "money.spend",
+      "category": "currency",
+      "rowTemplate": "-${amount}",
+      "icon": "money-usd",
+      "fallbackText": "$",
+      "priority": 10,
+      "ttlSeconds": 4,
+      "tint": "negative"
+    },
+    {
+      "id": "money.bounty",
+      "category": "currency",
+      "rowTemplate": "Bounty +${amount}",
+      "icon": "money-usd",
+      "fallbackText": "$",
+      "priority": 20,
+      "ttlSeconds": 5,
+      "tint": "accent"
+    },
+    {
+      "id": "money.insufficient",
+      "category": "currency",
+      "rowTemplate": "Not enough money",
+      "icon": "money-usd",
+      "fallbackText": "$",
+      "priority": 10,
+      "ttlSeconds": 4,
+      "tint": "negative"
+    }
+  ],
+  "weaponClasses": [
+    { "itemTypeFlag": "itp_type_one_handed_wpn", "valueHex": "0x0000000000000002", "icon": "melee", "confident": true },
+    { "itemTypeFlag": "itp_type_two_handed_wpn", "valueHex": "0x0000000000000003", "icon": "melee", "confident": true },
+    { "itemTypeFlag": "itp_type_polearm", "valueHex": "0x0000000000000004", "icon": "melee", "confident": true },
+    { "itemTypeFlag": "itp_type_arrows", "valueHex": "0x0000000000000005", "icon": null, "confident": true, "note": "ammo only; no kill-row icon" },
+    { "itemTypeFlag": "itp_type_bolts", "valueHex": "0x0000000000000006", "icon": null, "confident": true, "note": "ammo only; no kill-row icon" },
+    { "itemTypeFlag": "itp_type_bow", "valueHex": "0x0000000000000008", "icon": "bow", "confident": true },
+    { "itemTypeFlag": "itp_type_crossbow", "valueHex": "0x0000000000000009", "icon": "crossbow", "confident": true },
+    { "itemTypeFlag": "itp_type_thrown", "valueHex": "0x000000000000000a", "icon": "explosive", "confident": false, "note": "policy decision: throwing knives/axes may use melee instead" },
+    { "itemTypeFlag": "itp_type_pistol", "valueHex": "0x0000000000000010", "icon": "firearm", "confident": true, "note": "Warband firearms class" }
+  ],
+  "currency": {
+    "symbol": "$",
+    "codepoint": "U+0024",
+    "primaryGlyph": "money-usd (OFL font rasterisation)",
+    "fallbackGlyph": "Font Awesome dollar-sign (CC-BY-4.0)",
+    "noGoldCoin": true,
+    "format": {
+      "style": "prefix-symbol grouping",
+      "examples": ["$0", "$12", "$1,234"],
+      "negative": "-$12",
+      "maxFeedDigits": 7,
+      "storeUnit": "integer minor units"
+    },
+    "events": ["money.gain", "money.spend", "money.bounty", "money.insufficient"]
+  },
+  "nativeRisk": [
+    {
+      "nativeElement": "mesh_mp_score_a/b, mesh_mp_ingame_menu, mesh_mp_ui_host_main, mesh_load_window, mp_inventory_slot_*",
+      "status": "TaleWorlds game assets; not redistributable",
+      "replacement": "ui_zdr_* atlas + custom presentation overlays"
+    },
+    {
+      "nativeElement": "native item meshes (inventory icons)",
+      "status": "TaleWorlds/original-mod assets; not redistributable",
+      "replacement": "authored item meshes from licence-cleared sources, or private-only build"
+    },
+    {
+      "nativeElement": "font_data.xml + font.dds",
+      "status": "TaleWorlds game assets; not redistributable",
+      "replacement": "OFL font rasterised into our own font_data.xml + font.dds (font files not committed)"
+    },
+    {
+      "nativeElement": "hard-coded native sound ids",
+      "status": "TaleWorlds game assets; not redistributable",
+      "replacement": "CC0/CC-BY sounds with new module_sounds.py ids"
+    },
+    {
+      "nativeElement": "native multiplayer kill notification",
+      "status": "engine UI; internals unverified in this pass",
+      "replacement": "additive presentation with text fallback; no native UI hook claimed"
+    }
+  ],
+  "attribution": {
+    "generated": false,
+    "rules": [
+      "CC-BY-3.0 icons: 'Icons made by {author}. Available on https://game-icons.net' + licence link + note of changes",
+      "CC-BY-4.0 Font Awesome icons: 'Dollar-sign/Gun icon by Fonticons, Inc. (Font Awesome Free), licensed under CC BY 4.0' + licence link",
+      "OFL-1.1 fonts: keep copyright line + OFL link; do not ship modified font files under a Reserved Font Name",
+      "CC0 sources: courtesy credit (Kenney, Poly Haven, ambientCG, KayKit, OpenGameArt CC0)",
+      "No brand logos, no endorsement implication"
+    ]
+  },
+  "openItems": [
+    "No atlas/BRF/presentation/font exists; nothing tested in Warband.",
+    "Native kill-feed internals unverified (forum source Cloudflare-blocked).",
+    "DDS sprite/mipmap behaviour for HUD scale unverified in-engine.",
+    "Attribution register not generated yet.",
+    "Agent E licence review pending before merge.",
+    "No acceptance claim for any ledger leaf, legal gate or City outcome."
+  ]
+}
