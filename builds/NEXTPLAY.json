@@ -5,8 +5,8 @@
   "source_base": "ce600ee (agent/a-ranged-fix / PLAYBUILD)",
   "branch": "agent/a-nextplay",
   "package": "C:\\Users\\yigit\\AppData\\Local\\Temp\\zombieee-a\\nextplay\\ZOMBIEEE_Remaster",
-  "module_sha256": "4e90e0460934acaf8c1751d0142effd0304c61d0be7e0d9c764d1992424f358b",
-  "receipt_sha256": "24ad50f47f3b41371b7a38104dd502882ec94e17dc039247ae439475fc1f0f52",
+  "module_sha256": "40d131db856ef4b0e491ca816099432dc9ee9abff7bf2a54765410aa3c91cae2",
+  "receipt_sha256": "0ee358e2f86818f7f58800150b913b1a1e39a4760e0ee3d57047b2487b48cc4f",
   "included": [
     "task-84 hold-ground/no-chase: mordr_stand_ground(11)+hold/fire_at_will/use_ranged, no 1730, 1737=0, aggressiveness 0",
     "task-81 zombie targets: speed base 50 +4/wave cap 85; HP target 67.5% via strength (actual per-troop recorded); proficiency x0.5; wave counts x2 (1->2,8->16,1->2,1->2)",
@@ -126,5 +126,12 @@
     "H task-87: mordr_stand_ground is a halt corrective, not a hard no-chase leash; hold/stand_ground/stance claims must be measured by positions/attack-action, not assumed. Ranged screen/pavise and target-focus are engine/data-blocked (no shield on clones, no target setter).",
     "D seal showed 0 shots with stand_ground(11)+aggressiveness0; both removed. HOLD_FIRE_ORDERS restored to hold/fire_at_will/use_ranged; 1737=0 and no 1730 retained.",
     "Low fire volume fix: add team sub-class 0 fire_at_will/use_ranged fallback (native groups may not map to 5..7) and agent_refill_ammo(1728) for team0 every 5s. Stand_ground/aggressiveness removed."
-  ]
+  ],
+  "shield_policy": {
+    "mode": "stock",
+    "gate": "passed",
+    "shield_skill": 0,
+    "wooden_shield_troops": [],
+    "cosmetic_troops": []
+  }
 }

@@ -1,0 +1,23 @@
+{
+  "schema": "zombieee.playbuild.v1",
+  "name": "PLAYBUILD task-89",
+  "source_branch": "agent/a-nextplay",
+  "package": "C:\\Users\\yigit\\AppData\\Local\\Temp\\zombieee-a\\nextplay\\ZOMBIEEE_Remaster",
+  "manifest": "builds/NEXTPLAY.json",
+  "module_sha256": "40d131db856ef4b0e491ca816099432dc9ee9abff7bf2a54765410aa3c91cae2",
+  "receipt_sha256": "0ee358e2f86818f7f58800150b913b1a1e39a4760e0ee3d57047b2487b48cc4f",
+  "shield_policy": {
+    "mode": "stock",
+    "gate": "passed",
+    "shield_skill": 0,
+    "wooden_shield_troops": [],
+    "cosmetic_troops": []
+  },
+  "accuracy_modifiers": 100,
+  "ammo_refill": "off (ammo-burn measurement build)",
+  "notes": [
+    "stock shield policy default: zero shields, shield skill 0; cosmetic-half available separately",
+    "no acceptance"
+  ],
+  "runtime_verified": false
+}

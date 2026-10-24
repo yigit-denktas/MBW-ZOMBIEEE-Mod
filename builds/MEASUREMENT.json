@@ -23,16 +23,26 @@
     "rear": {
       "path": "C:\\Users\\yigit\\AppData\\Local\\Temp\\zombieee-a\\nextplay-measure\\rear\\ZOMBIEEE_Remaster",
       "module_sha256": "40d131db856ef4b0e491ca816099432dc9ee9abff7bf2a54765410aa3c91cae2",
-      "receipt_sha256": "5e5fdda98922a417fe7a145697314180920bb58cb8721e066b0433e87b73600c",
+      "receipt_sha256": "0ee358e2f86818f7f58800150b913b1a1e39a4760e0ee3d57047b2487b48cc4f",
       "ammo_refill": "off (ammo-burn measurement build)",
-      "defensive_line": true
+      "defensive_line": true,
+      "shield_policy": {
+        "mode": "stock",
+        "gate": "passed",
+        "shield_skill": 0
+      }
     },
     "forward": {
       "path": "C:\\Users\\yigit\\AppData\\Local\\Temp\\zombieee-a\\nextplay-measure\\forward\\ZOMBIEEE_Remaster",
       "module_sha256": "e84bb70a950dcf7896bb9e33446c0b056cb0e001d0c0f3870edd7b22a479ffdb",
-      "receipt_sha256": "95b8d3134547ca1f1926e18e30aeb34763a293a5d62e35303c60e61cd00efe0f",
+      "receipt_sha256": "b474175eaca97875b450457f640b293a4ca2cecc7d6fcafe0b607fdeb9f11c9d",
       "ammo_refill": "off (ammo-burn measurement build)",
-      "defensive_line": false
+      "defensive_line": false,
+      "shield_policy": {
+        "mode": "stock",
+        "gate": "passed",
+        "shield_skill": 0
+      }
     }
   },
   "gate": {
