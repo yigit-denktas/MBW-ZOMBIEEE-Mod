@@ -204,7 +204,7 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
                 if "g_multiplayer_game_type" not in variables:
                     raise RuntimeError("Missing g_multiplayer_game_type for defender roster")
                 game_type_global = GLOBAL_BASE + variables.index("g_multiplayer_game_type")
-            invader_range = ((902, 907) if zombie_bot_roster == "weak"
+            invader_range = ((894, 895) if zombie_bot_roster == "weak"
                              else (894, 912))
             roster_report = apply_native_roster(source, defender_range=defender_range,
                                                 game_type_global=game_type_global,
@@ -402,7 +402,7 @@ def main():
     parser.add_argument("--private-commands", action="store_true", help="EXPERIMENTAL solo listen-host-only Ctrl+F7/F8/F9 actions, audited by counters")
     parser.add_argument("--difficulty", choices=tuple(PROFILES), default="standard", help="Survivor-support difficulty: controls reinforcement wave and fallback thresholds")
     parser.add_argument("--firearm-accuracy", choices=("default", "stock"), default="default", help="Default build profile buffs automatic firearm accuracy (+5..10 pts); stock keeps original stats")
-    parser.add_argument("--zombie-bot-roster", choices=("weak", "full"), default="weak", help="City generic invader bots: weak 894..897 only or full native 894..911 roster")
+    parser.add_argument("--zombie-bot-roster", choices=("weak", "full"), default="weak", help="City generic invader bots: weak original Zombie 894 only or full native 894..911 roster")
     parser.add_argument("--zombie-block", choices=("default", "stock"), default="default", help="Give City invader troops a shield for block capability; stock keeps original equipment")
     parser.add_argument("--defensive-line", choices=("rear", "forward"), default="rear", help="City defender hold line: rear/spawn line (default) or the old forward guard sectors")
     args = parser.parse_args()

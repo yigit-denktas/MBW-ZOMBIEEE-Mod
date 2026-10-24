@@ -319,10 +319,13 @@ Bare invocation defaults to `play`; `play --rebuild` forces a fresh build.
    passed with `-r`; they are never written into the game tree or the repo.
    Because one-click City always builds/uses A's City defender profile, the
    default rotation requests A's **native team-0 allied squad** with
-   `set_bot_count 1 4` (1-based rotation team 1 = telemetry team 0; A's roster
-   patch maps faction 15 + `g_multiplayer_game_type==7` bots to survivor
-   troops 981..984). `set_bot_count 2 32` and `set_defender_spawn_count 0`
-   stay unchanged. Override with `--team0-bots N` (alias `--team1-bots`);
+   `set_bot_count 1 8` (named default `DEFENDER_SQUAD_BOTS = 8`, 1-based
+   rotation team 1 = telemetry team 0; A's roster patch maps faction 15 +
+   `g_multiplayer_game_type==7` bots to survivor troops 981..984, so the eight
+   native bots share the four clone troop types). Eight bodies are kept on the
+   rear hold line and native refill replaces losses; four were observed wiped
+   against the wave-1 horde. The size is a normal `--team0-bots N` parameter
+   (alias `--team1-bots`), so tuning does not need another flag;
    `--stock-rotation` / `--team0-bots 0` keeps the stock zero-ally rotation
    for a module built without defenders. `build_rotation()` itself keeps its
    stock default; `build_defender_rotation()` is the explicit profile.
@@ -332,7 +335,7 @@ Bare invocation defaults to `play`; `play --rebuild` forces a fresh build.
    team-2 bots) or `--enemy-profile native-only` (`set_bot_count 2 0`: no
    generic team-2 bots, only native wave visitors; the historical no-wave
    failure makes this an evidence-gated experiment). `--team2-bots N`
-   overrides the count. Defender squad (`set_bot_count 1 4`), loopback bind
+   overrides the count. Defender squad (`set_bot_count 1 8`), loopback bind
    and the sealed stop are unchanged. Plan and launch receipt record
    `enemy_profile` and `team2_bots`; e.g.
    `python -m launcher.play_city --enemy-profile native-only --max-minutes 3 --json`.
