@@ -329,5 +329,10 @@ Two independent effects, both expected to be visible live:
 - The build compared is the latest **staged** City build present at review time, bound by its
   receipt (`final_native_sha256`, `runtime_verified=false`). It is not a release acceptance and
   may be superseded by D's next rebuild.
+- **Supersession note:** while this review was being finalised, `main` merged A's task-30 fixes
+  (`d141119` — stop scripted destinations overriding combat, weak wave-1 bot roster, zombie
+  shields — and `021d9aa` — sustained-fire cartridge stacks). The compared staged build predates
+  those merges, so re-check §5 deltas against D's next built module (`runtime_verified` must still
+  be `false` until sealed evidence exists).
 - REA was not used: the compiled mission/scripts/tables are plain text and were decoded directly;
   no binary reverse engineering or external tool installation was required.
