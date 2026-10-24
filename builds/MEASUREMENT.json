@@ -1,0 +1,44 @@
+{
+  "schema": "zombieee.measurement-build.v1",
+  "purpose": "task-89 fire-volume measurement only: ammo_refill OFF so ammo-delta shots are valid",
+  "source": "agent/a-nextplay (1ae0211 order fix + refill switch)",
+  "included": [
+    "per-division hold + fire_at_will/use_ranged",
+    "team sub-class 0 fire fallback",
+    "no stand_ground/aggressiveness",
+    "no 1730; 1737=0",
+    "accuracy/reload 100",
+    "task81 zombie nerf/speed/counts",
+    "task84 hold/no-chase attempt"
+  ],
+  "excluded": [
+    "ammo_refill (off)",
+    "formation abc6e51",
+    "heroes/morale",
+    "ammo panic",
+    "heatmap/hit",
+    "specials"
+  ],
+  "packages": {
+    "rear": {
+      "path": "C:\\Users\\yigit\\AppData\\Local\\Temp\\zombieee-a\\nextplay-measure\\rear\\ZOMBIEEE_Remaster",
+      "module_sha256": "40d131db856ef4b0e491ca816099432dc9ee9abff7bf2a54765410aa3c91cae2",
+      "receipt_sha256": "5e5fdda98922a417fe7a145697314180920bb58cb8721e066b0433e87b73600c",
+      "ammo_refill": "off (ammo-burn measurement build)",
+      "defensive_line": true
+    },
+    "forward": {
+      "path": "C:\\Users\\yigit\\AppData\\Local\\Temp\\zombieee-a\\nextplay-measure\\forward\\ZOMBIEEE_Remaster",
+      "module_sha256": "e84bb70a950dcf7896bb9e33446c0b056cb0e001d0c0f3870edd7b22a479ffdb",
+      "receipt_sha256": "95b8d3134547ca1f1926e18e30aeb34763a293a5d62e35303c60e61cd00efe0f",
+      "ammo_refill": "off (ammo-burn measurement build)",
+      "defensive_line": false
+    }
+  },
+  "gate": {
+    "first_shot_s": "<30",
+    "agents_fired_ratio": ">=0.4",
+    "shots_per_minute": ">=5",
+    "no_acceptance": true
+  }
+}

@@ -53,7 +53,8 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None,
                    defender_orders: bool = True,
                    game_type_operand: int | None = None,
                    round_ended_operand: int | None = None,
-                   round_start_operand: int | None = None) -> str:
+                   round_start_operand: int | None = None,
+                   ammo_refill: bool = True) -> str:
     """City hold-order trigger body.
 
     With ``wave_global`` provided, each wave rotates the three sector posts by
@@ -148,7 +149,8 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None,
             ops.append(["2092", "2", l1, "100"])
             ops.append(["2094", "2", l1, "100"])
             ops.append(["1737", "2", l1, "0"])
-            ops.append(["1728", "1", l1])                # refill ammo (team0 AI)
+            if ammo_refill:
+                ops.append(["1728", "1", l1])            # refill ammo (team0 AI)
         ops.append(["2120", "3", l0, l0, "1"])             # count += 1
         ops.append(["3", "0"])                             # try_end
         if defender_target:
@@ -274,7 +276,8 @@ def patch_orders(original: str, scene_idx: int,
                  defender_orders: bool = True,
                  game_type_operand: int | None = None,
                  round_ended_operand: int | None = None,
-                 round_start_operand: int | None = None) -> str:
+                 round_start_operand: int | None = None,
+                 ammo_refill: bool = True) -> str:
     lines = original.splitlines(keepends=True)
     count_line, count, insert_at = mission_bounds(lines)
     if count != 26:
@@ -313,7 +316,8 @@ def patch_orders(original: str, scene_idx: int,
                                             zombie_speed, defender_orders,
                                             game_type_operand,
                                             round_ended_operand,
-                                            round_start_operand) + newline)
+                                            round_start_operand,
+                                            ammo_refill) + newline)
     updated = "".join(lines)
     if mission_bounds(updated.splitlines(keepends=True))[1] != 27:
         raise PatchError("Invalid tactical trigger count")
@@ -324,7 +328,8 @@ def apply_module(module: Path, hold_entries: tuple[int, ...] = REAR_HOLD_ENTRIES
                  wave_visitors: str = "slow",
                  defender_target: int = DEFAULT_DEFENDER_TARGET,
                  zombie_speed: bool = True,
-                 defender_orders: bool = True) -> dict:
+                 defender_orders: bool = True,
+                 ammo_refill: bool = True) -> dict:
     module = Path(module)
     scene_path = module / "SceneObj" / "scn_tbfc_invasion_4.sco"
     mission_path = module / "mission_templates.txt"
@@ -356,7 +361,7 @@ def apply_module(module: Path, hold_entries: tuple[int, ...] = REAR_HOLD_ENTRIES
                                     wave_visitors, defender_target,
                                     zombie_speed, defender_orders,
                                     game_type_operand, round_ended_operand,
-                                    round_start_operand)
+                                    round_start_operand, ammo_refill)
     if len(decode_scene(changed_scene)["objects"]) != len(decode_scene(original_scene)["objects"]) + 3:
         raise PatchError("Scene overlay failed binary roundtrip")
     # All validations happen before writes. On a mission-write failure, restore the SCO.
@@ -390,7 +395,8 @@ def apply_module(module: Path, hold_entries: tuple[int, ...] = REAR_HOLD_ENTRIES
             "ai_reload_speed_modifier": 100,
             "prevent_charge": "hold + fire_at_will/use_ranged + no 1730 + 1737=0; no stand_ground/aggressiveness so ranged engagement is not suppressed; measured by positions/attack-action",
             "order_scope_extra": "team_subclass_0 fire_at_will+use_ranged fallback",
-            "ammo_refill": "agent_refill_ammo every 5s for team0 AI",
+            "ammo_refill": ("agent_refill_ammo every 5s for team0 AI"
+                            if ammo_refill else "off (ammo-burn measurement build)"),
             "accuracy_modifier_note": "2092 readback was 100 in D seal; setter values >100 not observable, so this build claims 100 and relies on proficiency/item accuracy",
             "warning": "Navmesh-derived posts; movement, fire and runtime LOS unverified.\n"
                        "Sectors rotate once per original wave_number parity; D validates positions."}

@@ -104,7 +104,8 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
           zombie_speed: str = "slow",
           defender_orders: str = "hold-fire",
           native_speed_loop: str = "off",
-          wave_count_multiplier: int = 1) -> dict:
+          wave_count_multiplier: int = 1,
+          ammo_refill: str = "on") -> dict:
     support = profile(difficulty)
     if difficulty != "standard" and not wave_reinforcements:
         raise ValueError("Nonstandard difficulty needs --wave-reinforcements")
@@ -136,6 +137,8 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         raise ValueError("Unknown --native-speed-loop profile")
     if wave_count_multiplier not in (1, 2, 3):
         raise ValueError("--wave-count-multiplier must be 1, 2 or 3")
+    if ammo_refill not in ("on", "off"):
+        raise ValueError("--ammo-refill must be on or off")
     if defender_orders not in ("hold-fire", "stock"):
         raise ValueError("Unknown --defender-orders profile")
     if defender_loadouts != "original" and not experimental_defenders:
@@ -272,7 +275,8 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
                 wave_visitors=wave_visitors,
                 defender_target=defender_target if defender_reinforce == "default" else 0,
                 zombie_speed=zombie_speed == "slow",
-                defender_orders=defender_orders == "hold-fire")
+                defender_orders=defender_orders == "hold-fire",
+                ammo_refill=ammo_refill == "on")
             updated = report_for_module(source)
             if not updated["ok"] or updated["mission"]["triggers"] != 27:
                 raise RuntimeError("City defence failed static post-apply validation")
@@ -458,6 +462,7 @@ def main():
     parser.add_argument("--zombie-speed", choices=("slow", "stock"), default="slow", help="City zombie pace: native per-agent speed modifier ~70%% with wave scaling, stock unchanged")
     parser.add_argument("--native-speed-loop", choices=("off", "on"), default="off", help="Bisect switch: append the trigger-15 native team-1 speed loop (default off)")
     parser.add_argument("--wave-count-multiplier", type=int, choices=(1, 2, 3), default=1, help="Task-81 wave count multiplier for original trigger-15 visitors")
+    parser.add_argument("--ammo-refill", choices=("on", "off"), default="on", help="Measurement switch: refill team0 ammo every 5s (off exposes ammo-burn)")
     parser.add_argument("--defender-orders", choices=("hold-fire", "stock"), default="hold-fire", help="City team hold/fire orders (hold, hold_fire, fire_at_will, use_ranged) on native groups")
     args = parser.parse_args()
     try:
@@ -468,7 +473,7 @@ def main():
                          args.zombie_bot_roster, args.zombie_block, args.defensive_line,
                          args.wave_visitors, args.defender_reinforce, args.defender_target,
                          args.zombie_speed, args.defender_orders, args.native_speed_loop,
-                             args.wave_count_multiplier), indent=2))
+                             args.wave_count_multiplier, args.ammo_refill), indent=2))
     except (RuntimeError, FileNotFoundError, FileExistsError, ValueError, subprocess.CalledProcessError) as exc:
         print(f"Build refused: {exc}", file=sys.stderr)
         raise SystemExit(2)
