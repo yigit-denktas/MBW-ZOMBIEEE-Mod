@@ -18,6 +18,7 @@ tooling is C's branch; this report is the E consumer side.
 
 | Run | Source | Points | Heartbeats | Unique IDs | Team tracks | Waves | Health | Class | Division |
 | --- | --- | ---: | ---: | ---: | ---: | --- | --- | --- | --- |
+| `task76-heatmap-hit` | C export + meta | **229** | **14** | **20** | **28** | 0-1 | **present (sampled)** | **present** | **present** |
 | `d7bfc372` (task45-wave2) | C export | 692 | 42 | 31 | 53 | 0-4 | missing | missing | missing |
 | `d7bfc372` (task45-wave2) | raw bundle | 526 | 42 | 30 | 47 | 0-4 | missing | missing | unknown |
 | `257b29b1` (task55-p0) | raw bundle | 572 | 41 | 28 | 45 | 0-1 | missing | missing | unknown |
@@ -27,11 +28,13 @@ tooling is C's branch; this report is the E consumer side.
 movement metrics do not merge cross-team teleports. Both are reported; do not compare
 "agents" counts without saying which one.
 
-Common gaps (carried into every run row): no build/probe SHA, formation mode, seed or
-spectator/overview flag; no health/HP, class or valid division in current bundles; sparse
-15 s sample cadence (not per-frame); no collision/navmesh/oracle; no exact round-end
-identity. `run_metadata_partial`, `missing_class`, `missing_division`, `missing_health`,
-`no_ts_ms_probe_relative` are explicit where C's exporter reports them.
+Older bundles (task45/task55) lack build/probe SHA, formation mode, seed or
+spectator/overview flag, and health/HP/class/valid division. **task76** carries
+mission/scripts SHA, probe head/reported SHA, map/template, survivor-idle perspective,
+8/8 bot config, frames count and probe-health ok — but still has **no formation_mode,
+seed, entry ids or round-end**, and only wave 1. All samples are sparse 15 s cadence, no
+collision/navmesh/oracle. `run_metadata_partial`, `missing_class`, `missing_division`,
+`missing_health`, `no_ts_ms_probe_relative` are explicit where C's exporter reports them.
 
 ## 2. Method
 
@@ -72,6 +75,7 @@ python -m tools.telemetry_studio probe-health <sealed-bundle> --json
 | --- | --- | --- | --- |
 | task45-wave2 | **warn** (`ok=true`) | 42 | hit counters absent (old probe); `SCRIPT ERROR x4` |
 | task55-p0 | **warn** (`ok=true`) | 41 | hit counters absent; no critical error family |
+| **task76-heatmap-hit** | **ok** | **14** | adaptive active; hit 0 attempts/296 (broken, not heatmap blocker); no critical errors |
 | D partial pre-round | **fail** (`ok=false`) | 0 | `no_heartbeat_events`; trigger registered but heartbeat path not emitting |
 
 Gate rule: **zero heartbeats ⇒ stop, do not treat as heatmap evidence**. Warnings
@@ -133,8 +137,38 @@ D supplied a sealed partial (`heatmap-preround-171455.json`): **56 points, 0 hea
 (`no_heartbeat_events`)**; our tool still renders it without error
 (`telemetry/spatial_partial/`), confirming the C schema/consumer path. This is **not
 heatmap evidence**: no round, waves, fallback, mode, build/probe SHA, formation, sample
-interval or spectator metadata; D is blocked by the `hit_param_invalid` nil error in the
-installed probe. A full 180 s adaptive/sampled run is pending the C fix + reinstall.
+interval or spectator metadata; D was blocked by the `hit_param_invalid` nil error in the
+installed probe. The later task76 run below is the first heartbeat-bearing baseline.
+
+### 3.3 task76 full baseline (heartbeat-bearing; not A/B)
+
+D's sealed task76 bundle passes `probe-health` (**ok**, 14 heartbeats, adaptive active, no
+critical errors) and exports **229 points / 14 heartbeats / 20 unique IDs / 28 team
+tracks**, waves 0-1, class+division+HP sampled for all 28 tracks, conditions **160
+outnumbered / 61 even / 8 unknown**, no fallback condition.
+
+Run metadata (from `heatmap_run_metadata_task76.json`, sanitized into
+`spatial_task76/spatial_summary.json`): mission SHA `df21ae88…`, scripts SHA `b6a7cdde…`,
+probe head `bf39a37` / reported `78AB1AE8`, map `tbfc_invasion_4`, template
+`mst_multiplayer_iv`, fixed 15 s sampling, survivor-idle perspective, team 8/8, 31 frames.
+Missing: **formation_mode, seed, entry ids, round-ended event**; `runtime_verified=false`;
+screenshots are faction-screen only (join clicks flaky) — **no usable visual frames**.
+
+Bounded observations (descriptive only):
+
+- team-0 wave 0 centroid (165.35,176.81), spread 6.81, mean alive 3.75, anchor share
+  0.667; wave 1 (166.33,152.62), spread 7.14, mean alive 2.55, anchor share 0.0.
+- team-1 wave 0 centroid (157.49,128.08), spread 27.25; wave 1 (164.87,151.99), spread
+  11.32. Both teams remain south of the north anchor in the sampled wave-1 window; this is
+  **not** a fallback validation (no fallback condition/round-end).
+- Movement proxy: 21 mixed / 7 over-moving / 0 under-moving across 28 tracks; no candidate
+  chokepoint cell survives the threshold. Class/division values are 0/1 only and D marks
+  them **source-troop-fallback**, not verified role identities.
+- Hit attribution: **hit_events=0 / attempts=296**, params invalid — heatmap input is
+  unaffected, but this run does **not** validate hit attribution.
+
+Panels: `telemetry/spatial_task76/panels/spatial_panel_task76-heatmap-hit.svg`. This is a
+single baseline sample, **not** a baseline-vs-variant result; no visual/acceptance claim.
 
 ## 4. Outputs
 
@@ -146,7 +180,10 @@ installed probe. A full 180 s adaptive/sampled run is pending the C fix + reinst
   53 team tracks**): same table set + SVG panel.
 - `telemetry/spatial_partial/` - D partial pre-round renderer check (56 points, 0
   heartbeats; **not** behavior evidence).
-- The tool also accepts any sealed bundle path; C's export is optional.
+- `telemetry/spatial_task76/` - first heartbeat-bearing baseline (229 points, 14
+  heartbeats, 20 unique IDs / 28 tracks, class/HP/division sampled; wave 1 max; no A/B).
+- The tool also accepts any sealed bundle path; C's export is optional; `--meta` accepts
+  D's `zombieee.heatmap-run-metadata.v1` JSON.
 
 ## 5. Methods literature / community analogues reused
 
@@ -191,6 +228,7 @@ python telemetry/spatial_analysis.py \
 # C heatmap export input
 python -m tools.telemetry_studio heatmap-export <sealed-run> --out points.json
 python telemetry/spatial_analysis.py --input points.json \
+  --meta <heatmap-run-metadata.json> \
   --out telemetry/spatial_sample_c --panels
 ```
 

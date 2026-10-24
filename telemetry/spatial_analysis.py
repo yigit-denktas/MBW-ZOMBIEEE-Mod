@@ -512,8 +512,66 @@ def analyze_bundles(bundles, out: Path, bounds=CITY_BOUNDS, cell=CELL, panels=Fa
             "cohesion": cohesion_rows, "chokepoints": choke_rows}
 
 
-def analyze_input(path: Path, out: Path, bounds=CITY_BOUNDS, cell=CELL, panels=False):
+def _load_run_meta(path: Path):
+    """Map D's heatmap-run-metadata.v1 into run fields + a sanitized summary."""
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if data.get("schema") != "zombieee.heatmap-run-metadata.v1":
+        raise SystemExit("unsupported run metadata schema")
+    build = data.get("build") or {}
+    mapinfo = data.get("map") or {}
+    sampling = data.get("sampling") or {}
+    join = data.get("join") or {}
+    frames = data.get("frames") or {}
+    run = {
+        "run_id": data.get("run_tag"),
+        "build_sha": build.get("mission_templates_sha256"),
+        "probe_sha": build.get("probe_sha_reported_by_lead"),
+        "formation_mode": None,
+        "map": mapinfo.get("scene"),
+        "entry_ids": None,
+        "seed": None,
+        "sample_interval_s": sampling.get("sampling_interval_s"),
+        "spectator_or_overview": join.get("spectator"),
+        "mission_template": mapinfo.get("mission_template"),
+        "scripts_sha256": build.get("scripts_sha256"),
+        "probe_head": build.get("probe_head"),
+        "perspective": join.get("perspective"),
+        "frames_count": frames.get("count"),
+        "runtime_verified": data.get("runtime_verified"),
+    }
+    meta_summary = {
+        "schema": data.get("schema"), "run_tag": data.get("run_tag"),
+        "mission_templates_sha256": build.get("mission_templates_sha256"),
+        "scripts_sha256": build.get("scripts_sha256"),
+        "probe_version": build.get("probe_version"), "probe_head": build.get("probe_head"),
+        "probe_sha_reported_by_lead": build.get("probe_sha_reported_by_lead"),
+        "receipt": build.get("receipt"),
+        "scene": mapinfo.get("scene"), "mission_template": mapinfo.get("mission_template"),
+        "game_type": mapinfo.get("game_type"), "sampling_mode": sampling.get("mode"),
+        "adaptive": sampling.get("adaptive"), "sample_interval_s": sampling.get("sampling_interval_s"),
+        "frames_every_s": sampling.get("frames_every_s"), "frames_count": frames.get("count"),
+        "perspective": join.get("perspective"), "spectator": join.get("spectator"),
+        "team0_bots": join.get("team0_bots"), "team1_bots": join.get("team1_bots"),
+        "screens": sampling.get("screenshots") or [],
+        "runtime_verified": data.get("runtime_verified"), "notes": data.get("notes"),
+    }
+    return run, meta_summary
+
+
+def analyze_input(path: Path, out: Path, bounds=CITY_BOUNDS, cell=CELL, panels=False, meta_path=None):
     run, points, heartbeats, gaps = _load_input(path)
+    if meta_path:
+        meta_run, meta_summary = _load_run_meta(meta_path)
+        for key, value in meta_run.items():
+            if value is not None:
+                run[key] = value
+        run["meta_summary"] = meta_summary
+        gaps = list(gaps) + [
+            "formation_mode absent from run metadata",
+            "seed absent from run metadata",
+            "entry_ids absent from run metadata",
+            "mission/scripts SHA are in meta_summary but bundle export run fields were partial",
+        ]
     summary, cells, agents, cohesion, chokes = _analyze(run, points, heartbeats, gaps, bounds, cell)
     out.mkdir(parents=True, exist_ok=True)
     (out / "spatial_summary.json").write_text(json.dumps({
@@ -527,6 +585,12 @@ def analyze_input(path: Path, out: Path, bounds=CITY_BOUNDS, cell=CELL, panels=F
                                           "probe_sha": summary["run"].get("probe_sha"),
                                           "seed": summary["run"].get("seed"),
                                           "spectator_or_overview": summary["run"].get("spectator_or_overview"),
+                                          "mission_template": summary["run"].get("mission_template"),
+                                          "scripts_sha256": summary["run"].get("scripts_sha256"),
+                                          "probe_head": summary["run"].get("probe_head"),
+                                          "perspective": summary["run"].get("perspective"),
+                                          "frames_count": summary["run"].get("frames_count"),
+                                          "runtime_verified": summary["run"].get("runtime_verified"),
                                           "sample_interval_s": summary["run"].get("sample_interval_s"),
                                           "points": summary["points"], "heartbeats": summary["heartbeats"],
                                           "agents": summary["agents"], "agent_tracks": summary["agent_tracks"],
@@ -550,6 +614,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--bundle", action="append", default=[], help="sealed recorder directory")
     ap.add_argument("--input", type=Path, help="zombieee.heatmap-input.v1 JSON")
+    ap.add_argument("--meta", type=Path, help="optional zombieee.heatmap-run-metadata.v1 JSON")
     ap.add_argument("--out", type=Path, default=Path("telemetry/spatial_out"))
     ap.add_argument("--panels", action="store_true")
     ap.add_argument("--cell", type=float, default=CELL)
@@ -559,7 +624,7 @@ def main():
     if len(parts) != 4:
         raise SystemExit("bounds must be x0,x1,y0,y1")
     if args.input:
-        result = analyze_input(args.input, args.out, tuple(parts), args.cell, args.panels)
+        result = analyze_input(args.input, args.out, tuple(parts), args.cell, args.panels, args.meta)
         print(json.dumps(result["summary"], indent=2)[:3000])
     elif args.bundle:
         result = analyze_bundles(args.bundle, args.out, tuple(parts), args.cell, args.panels)
