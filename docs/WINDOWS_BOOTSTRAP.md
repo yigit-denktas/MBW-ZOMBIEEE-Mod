@@ -370,7 +370,7 @@ attach, join/mission markers, stop after client exit, artifact-before-stop,
 manifest/summary results, and fail-closed cleanup for bind timeout, recorder
 readiness failure, attachment rejection, recorder death and Ctrl+C. No game,
 recorder subprocess or network probe is started by tests. Latest Windows result:
-`python -B -m unittest discover -s tests -q` → **458 tests, OK, 96 skipped**
+`python -B -m unittest discover -s tests -q` → **475 tests, OK, 103 skipped**
 (the interop cases run because C's recorder is present in the merged tree).
 
 ### Python 3.13 NUL-path regression
