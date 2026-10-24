@@ -26,6 +26,11 @@
 
 multiplayer_is_server = 417
 agent_is_alive = 1702
+# Classifies an agent by type: false means the agent is not human (a horse).
+# 1704 is corroborated by the original compiled mission templates, where it is
+# used 67 times as a one-argument boolean condition and always followed by
+# agent_get_troop_id / str_store_troop_name - i.e. a human-only naming path.
+agent_is_human = 1704
 agent_is_non_player = 1707
 agent_get_position = 1710
 agent_get_troop_id = 1718
@@ -48,5 +53,6 @@ lhs_operations = [
 can_fail_operations = [
     multiplayer_is_server,
     agent_is_alive,
+    agent_is_human,
     agent_is_non_player,
 ]

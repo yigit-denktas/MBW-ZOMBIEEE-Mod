@@ -305,9 +305,170 @@ def summarize_receipt(target: Path) -> dict:
     lifecycle = _lifecycle(events)
     poll_failures = sum(1 for e in events if e["event"] == "log_unavailable")
 
-    gaps = []
+    # Team composition (playerless AI-vs-AI aware): every category is a measured
+    # per-team agent count; a category with no usable getter stays None.
+    composition_keys = ("humans", "players", "bots", "horses")
+    comp_max = {key: {0: None, 1: None} for key in composition_keys}
+    def _composition_field(key, team):
+        # The native bots_team1 global keeps its own ZDB1 field; AI bot counts
+        # use bot_agents_teamX so the two meanings never collide.
+        name = "bot_agents" if key == "bots" else key
+        return f"{name}_team{team}"
+
+    for event in samples:
+        for team in (0, 1):
+            for key in composition_keys:
+                value = _bounded_int(event["fields"].get(_composition_field(key, team)))
+                if value is not None and value >= 0:
+                    current = comp_max[key][team]
+                    comp_max[key][team] = value if current is None else max(current, value)
+    team_comp = {team: {key: comp_max[key][team] for key in composition_keys}
+                 for team in (0, 1)}
+    players_known = (team_comp[0]["players"] is not None
+                     and team_comp[1]["players"] is not None)
+    if not players_known:
+        comp_mode = "unknown"
+    elif team_comp[0]["players"] == 0 and team_comp[1]["players"] == 0:
+        others = sum((team_comp[team][key] or 0) for team in (0, 1)
+                     for key in ("bots", "horses"))
+        comp_mode = "no_human_player_observed" if others > 0 else "unknown_no_agents_observed"
+    else:
+        comp_mode = "human_present"
+    composition = {
+        "mode": comp_mode,
+        "team0": team_comp[0],
+        "team1": team_comp[1],
+        "players_unknown": not players_known,
+        "player_events_expected": comp_mode != "no_human_player_observed",
+        "note": ("No human player observed; player_* lifecycle absence is expected "
+                 "for this mode, not a measured zero."
+                 if comp_mode == "no_human_player_observed" else
+                 "Per-team agent categories from measured predicates; a missing "
+                 "category stays unknown, never zero."),
+    }
+
+    def _max_field(prefix):
+        values = {0: None, 1: None}
+        for event in samples:
+            for team in (0, 1):
+                value = _bounded_int(event["fields"].get(f"{prefix}_team{team}"))
+                if value is not None and value >= 0:
+                    values[team] = value if values[team] is None else max(values[team], value)
+        return values
+
+    bots_max = _max_field("bot_agents")
+    horses_max = _max_field("horses")
+    alive_max = _max_field("alive")
+    teams.update({
+        "bots_team0": bots_max[0], "bots_team1": bots_max[1],
+        "horses_team0": horses_max[0], "horses_team1": horses_max[1],
+        "alive_team0": alive_max[0], "alive_team1": alive_max[1],
+    })
+
+    # no_player: explicit probe marker; None when the probe could not measure it.
+    no_player = None
+    for event in reversed(events):
+        raw = _bounded_int(event["fields"].get("no_player"))
+        if raw in (0, 1):
+            no_player = raw == 1
+            break
+    if no_player is None and composition["mode"] == "no_human_player_observed":
+        no_player = True
+    elif no_player is None and composition["mode"] == "human_present":
+        no_player = False
+
+    def _max_kills(team):
+        values = [v for v in (_bounded_int(e["fields"].get(f"kills_team{team}"), minimum=0)
+                              for e in samples) if v is not None]
+        return max(values) if values else None
+
+    engagement = {"kills_team0": _max_kills(0), "kills_team1": _max_kills(1)}
+
+    def _number_pair(raw):
+        if not isinstance(raw, str):
+            return None
+        parts = raw.split(":")
+        if len(parts) != 2:
+            return None
+        try:
+            x, y = float(parts[0]), float(parts[1])
+        except ValueError:
+            return None
+        if not (-100000 <= x <= 100000 and -100000 <= y <= 100000):
+            return None
+        return {"x": round(x, 3), "y": round(y, 3)}
+
+    def _bbox(raw):
+        if not isinstance(raw, str):
+            return None
+        parts = raw.split(":")
+        if len(parts) != 4:
+            return None
+        try:
+            values = [float(part) for part in parts]
+        except ValueError:
+            return None
+        if any(not -100000 <= v <= 100000 for v in values):
+            return None
+        return {"min_x": round(values[0], 3), "min_y": round(values[1], 3),
+                "max_x": round(values[2], 3), "max_y": round(values[3], 3)}
+
+    ai_events = [e for e in events if e["event"] == "ai_sample"][:512]
+    positions = {}
+    for team in (0, 1):
+        centroid = spread = sampled = None
+        for event in reversed(samples):
+            fields = event["fields"]
+            if centroid is None:
+                centroid = _number_pair(fields.get(f"pos_team{team}"))
+            if spread is None:
+                spread = _bbox(fields.get(f"bbox_team{team}"))
+            if sampled is None:
+                sampled = _bounded_int(fields.get(f"pos_sampled_team{team}"), minimum=0)
+            if centroid is not None or spread is not None or sampled is not None:
+                break
+        tracks = {}
+        for event in ai_events:
+            if _bounded_int(event["fields"].get("team"), minimum=0, maximum=1) != team:
+                continue
+            agent = _bounded_int(event["fields"].get("id"), minimum=0)
+            pair = _number_pair(event["fields"].get("x", "") + ":" + event["fields"].get("y", ""))
+            if agent is None or pair is None:
+                continue
+            tracks.setdefault(agent, set()).add((pair["x"], pair["y"]))
+        moving = sum(1 for points in tracks.values() if len(points) >= 2)
+        positions[f"team{team}"] = {
+            "centroid": centroid,
+            "spread": spread,
+            "sampled": sampled,
+            "samples": sum(1 for event in ai_events
+                           if _bounded_int(event["fields"].get("team"), minimum=0, maximum=1) == team),
+            "distinct_bots": len(tracks),
+            "moving_bots": moving if tracks else None,
+        }
+
+    event_counts = {}
+    for event in events:
+        kind = event["event"]
+        event_counts[kind] = event_counts.get(kind, 0) + 1
+    bounded_counts = dict(sorted(event_counts.items(), key=lambda kv: (-kv[1], kv[0]))[:24])
+    event_section = {"zdbi_lines": len(events), "zdbi_sealed": bool(events),
+                     "counts": bounded_counts}
+
+    if no_player is None:
+        gaps_hint = ["player_presence_unknown"]
+    else:
+        gaps_hint = []
+    if positions["team0"]["centroid"] is None and positions["team1"]["centroid"] is None:
+        gaps_hint.append("position_telemetry_unavailable")
+    if engagement["kills_team0"] is None and engagement["kills_team1"] is None:
+        gaps_hint.append("kill_telemetry_unavailable")
+
+    gaps = list(gaps_hint)
     if not events:
         gaps.append("zdbi_stream_not_sealed")
+    if composition["mode"] in ("unknown", "unknown_no_agents_observed"):
+        gaps.append("team_composition_unknown")
     if probe["role"] in (None, "unknown"):
         gaps.append("probe_role_unknown")
     if not heartbeats:
@@ -340,6 +501,11 @@ def summarize_receipt(target: Path) -> dict:
         "duration_seconds": duration,
         "probe": probe,
         "teams": teams,
+        "no_player": no_player,
+        "composition": composition,
+        "positions": positions,
+        "engagement": engagement,
+        "events": event_section,
         "troops": troops,
         "waves": {"observed": waves, "max": waves[-1] if waves else None,
                   "multiple_observed": len([w for w in waves if w >= 1]) >= 2},
@@ -376,6 +542,35 @@ def format_summary(summary: dict) -> str:
         f"teams:           max team0={teams['max_team0']} team1={teams['max_team1']}; "
         f"last team0={teams['last_team0']} team1={teams['last_team1']}",
     ]
+    comp = summary["composition"]
+
+    def _category(team, key):
+        value = comp[team].get(key)
+        return "unknown" if value is None else value
+
+    for team in ("team0", "team1"):
+        lines.append(
+            f"composition {team}: humans={_category(team, 'humans')} "
+            f"players={_category(team, 'players')} bots={_category(team, 'bots')} "
+            f"horses={_category(team, 'horses')}")
+    lines.append(f"composition mode: {comp['mode']}")
+    lines.append(f"no_player:       {summary['no_player']}")
+    if comp["mode"] == "no_human_player_observed" or summary["no_player"] is True:
+        lines.append("playerless:      no human player observed; player_* lifecycle "
+                     "events are absent by design, not measured zero")
+    for team in ("team0", "team1"):
+        position = summary["positions"][team]
+        centroid = position["centroid"]
+        spread = position["spread"]
+        lines.append(
+            f"positions {team}: centroid={centroid} spread={spread} "
+            f"sampled={position['sampled']} distinct_bots={position['distinct_bots']} "
+            f"moving_bots={position['moving_bots']}")
+    engage = summary["engagement"]
+    lines.append(f"engagement:      kills_team0={engage['kills_team0']} "
+                 f"kills_team1={engage['kills_team1']}")
+    lines.append(f"events:          {summary['events']['zdbi_lines']} ZDB1 lines "
+                 f"{summary['events']['counts']}")
     troops = summary["troops"]
     if troops["team1"] or troops["team0"]:
         names = troops["names"] or {}

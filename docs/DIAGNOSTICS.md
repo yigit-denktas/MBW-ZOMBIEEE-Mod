@@ -179,6 +179,65 @@ The ZDB1 stream can only be read when the launcher/recorder seals
 cannot capture another process's stdout, and attempts 7/8 sealed no ZDB1
 stream at all.
 
+## Playerless AI-vs-AI team composition
+
+The v2 probe also reports per-team agent composition in `mission_enter` and
+every heartbeat: `humans_team0/1`, `players_team0/1` (human, non-AI agents),
+`bots_team0/1` (human AI agents), `horses_team0/1`, plus `alive_players_team0`
+for lifecycle context. `agent_is_horse` does not exist in this engine/WSE2
+surface, so the bounded fallback is the native type predicate
+`agent_is_human` (opcode 1704, declared as can-fail; corroborated by the
+original compiled mission templates where it appears 67 times as a
+one-argument boolean agent condition and is always followed by troop-id or
+troop-name operations): human == false is counted as a horse, human == true +
+non-player is a bot, human == true + player is a human. A missing predicate
+leaves that category `-1` (unknown), never 0. Category counts are
+per-agent-iteration (spawned agents), so a category may include agents that are
+not currently alive; lifecycle events still use explicit alive predicates.
+
+Composition labels extend the bounded `msfiles/ID_troops.py` roster aid with
+the observed ids: `874=trp_invaderb_multiplayer_ai`,
+`32=trp_mercenary_horseman`, `33=trp_mercenary_cavalry` (16 documented entries
+total). Labels remain an aid: ids outside the table stay numeric and are
+counted in `troop_ids_unknown`.
+
+Engagement and position evidence is emitted in the same heartbeat/mission_enter
+line: `no_player` (1/0/-1), `alive_team0/1`, `kills_team0/1` (sum of
+`agent_get_kill_count` over observed agents per team), `pos_team0/1` (centroid
+`x:y` of sampled non-player bots), `bbox_team0/1` (`min_x:min_y:max_x:max_y`)
+and `pos_sampled_team0/1`. Positions are read only for non-player bots through
+position register 90, never for a human player; at most 8 bot samples per
+heartbeat are emitted as `ai_sample` events (`team/id/x/y/kills/wave/tick`). A
+missing position/kill/alive getter, or no successful sample, leaves the
+aggregate `-1`/`none` (unknown), never 0.
+
+Field naming: the pre-existing `bots_team1` ZDB1 field is the native
+`g_multiplayer_num_bots_team_1` global and is kept for backward compatibility;
+AI bot counts per team use `bot_agents_team0/1`, so the two meanings never
+collide. The receipt summary exposes the stable no-client harness keys:
+`no_player` (bool or null), `teams` with `max_team0/max_team1`,
+`bots_team0/1`, `horses_team0/1`, `alive_team0/1`, `positions.{team0,team1}`
+(bounded centroid + spread bbox + sampled/distinct bots + `moving_bots`
+derived from `ai_sample` displacement), `engagement.{kills_team0,kills_team1}`
+(absent -> null, never 0-as-unknown) and `events` (ZDB1 line count, sealed
+flag, bounded event-type counts). `player_*` lifecycle events remain
+observed-only and are reported as absent, not zero, in playerless mode.
+
+A module rebuild is required for a live run to emit the new fields: copy
+`overlay/lua/main.lua`, `overlay/lua/msfiles/header_operations.py` and
+`overlay/lua/msfiles/ID_troops.py` into the built module (the normal
+`tools/build.py` overlay step) and install that build. The recorder and
+`summary` command need no rebuild; they read whatever the probe sealed.
+
+The receipt summary derives a `composition` block with max per-team
+humans/players/bots/horses, a `mode` (`no_human_player_observed`,
+`human_present`, `unknown`, `unknown_no_agents_observed`) and
+`player_events_expected`. In `no_human_player_observed` mode the text output
+prints an explicit playerless note: absent `player_*` lifecycle events are
+expected by construction, not a measured zero, while `round_started` /
+`wave_started` and the troop histogram still report whether AIs spawned and
+advanced. No summary promotes this composition to gameplay acceptance.
+
 ## Agent C: external flight recorder (development prototype)
 
 **Status: offline prototype on `agent/c-flight-recorder`; Windows/WSE2 integration not verified.** The recorder runs as a separate Python process, observes a subprocess launched with `--` or a pre-existing PID with `--observe-pid`, and independently stores atomic, bounded evidence snapshots. No game memory injection, shell execution, external telemetry or background uploads. It does not replace the final WSE2 session.

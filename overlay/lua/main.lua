@@ -11,6 +11,7 @@ local MAX_HIST_TROOPS = 12
 local MAX_HIST_LINE = 400
 local MAX_TROOP_NAME = 32
 local MAX_PLAYER_IDS = 8
+local MAX_AI_SAMPLES = 8
 local function emit(event, details)
     print("ZDB1|" .. event .. "|version=" .. VERSION .. (details or ""))
 end
@@ -78,6 +79,8 @@ emit("recorder_capabilities",
     .. "|team_getter=" .. binding_flag("agent_get_team")
     .. "|troop_getter=" .. binding_flag("agent_get_troop_id")
     .. "|alive_getter=" .. binding_flag("agent_is_alive")
+    .. "|human_getter=" .. binding_flag("agent_is_human")
+    .. "|composition=1|engagement=1|position_summary=1"
     .. "|group_getter=" .. binding_flag("agent_get_group")
     .. "|npc_getter=" .. binding_flag("agent_is_non_player")
     .. "|position_getter=" .. binding_flag("agent_get_position")
@@ -113,6 +116,22 @@ local function is_npc(agent)
         return game.agent_is_non_player(agent)
     end, false)
     return value == true or value == 1
+end
+local function is_human(agent)
+    local value = guarded_call(function()
+        return game.agent_is_human(agent)
+    end, nil)
+    if value == true or value == 1 then return true end
+    if value == false or value == 0 then return false end
+    return nil
+end
+-- Reads a bounded agent world position through pos register 90 (never a
+-- human player position: only non-player bots are sampled).
+local function agent_position(agent)
+    return guarded_call(function()
+        game.agent_get_position(90, agent)
+        return game.preg[90]
+    end, nil)
 end
 local function is_alive(agent)
     local value = guarded_call(function()
@@ -158,9 +177,20 @@ local function sample_world()
     local supports_team = type(game.agent_get_team) == "function"
     local supports_troop = type(game.agent_get_troop_id) == "function"
     local supports_npc = type(game.agent_is_non_player) == "function"
+    local supports_human = type(game.agent_is_human) == "function"
+    local supports_alive = type(game.agent_is_alive) == "function"
+    local supports_kills = type(game.agent_get_kill_count) == "function"
+    local supports_pos = type(game.agent_get_position) == "function"
     local ok, world = pcall(function()
         local result = { ok = true, total = 0, team0 = 0, team1 = 0,
                          measured = true, troop_measured = supports_troop,
+                         human_measured = supports_human, npc_measured = supports_npc,
+                         humans = {0, 0}, bots = {0, 0}, horses = {0, 0},
+                         alive = {0, 0}, kills = {0, 0}, ai_samples = {},
+                         pos_count = {0, 0}, pos_sum = {{0, 0}, {0, 0}},
+                         pos_min = {{nil, nil}, {nil, nil}},
+                         pos_max = {{nil, nil}, {nil, nil}},
+                         pos_text = {"", ""}, bbox_text = {"", ""},
                          hist0 = {}, hist1 = {}, players = {}, player_count = 0 }
         local n = 0
         for agent in game.agentsIt() do
@@ -186,14 +216,70 @@ local function sample_world()
                     hist[troop] = (hist[troop] or 0) + 1
                 end
             end
-            if side == 0 and supports_npc then
-                if not is_npc(agent) then
-                    local alive = is_alive(agent)
-                    if #result.players < MAX_PLAYER_IDS then
-                        result.players[#result.players + 1] =
-                            { id = agent, alive = alive == true }
+            -- Composition: agent_is_horse does not exist in this engine, so the
+            -- bounded fallback is the native type predicate agent_is_human
+            -- (1704): human == false is a horse, human == true is a person, and
+            -- a non-player person is a bot. Every category is a measured count;
+            -- a missing predicate leaves its category unknown (-1), never 0.
+            if side ~= nil then
+                local human = nil
+                if supports_human then human = is_human(agent) end
+                if human == false then
+                    result.horses[side] = result.horses[side] + 1
+                elseif human == true and supports_npc then
+                    if is_npc(agent) then
+                        result.bots[side] = result.bots[side] + 1
+                    else
+                        result.humans[side] = result.humans[side] + 1
+                        if side == 0 then
+                            local alive = is_alive(agent)
+                            if #result.players < MAX_PLAYER_IDS then
+                                result.players[#result.players + 1] =
+                                    { id = agent, alive = alive == true }
+                            end
+                            if alive == true then result.player_count = result.player_count + 1 end
+                        end
                     end
-                    if alive == true then result.player_count = result.player_count + 1 end
+                end
+            end
+            if side ~= nil then
+                if supports_alive and is_alive(agent) == true then
+                    result.alive[side] = result.alive[side] + 1
+                end
+                if supports_kills then
+                    local kills = read_agent_number("agent_get_kill_count", agent)
+                    if kills >= 0 then result.kills[side] = result.kills[side] + kills end
+                end
+                -- Bounded bot position samples (max MAX_AI_SAMPLES per heartbeat)
+                -- give the no-player summary positions/movement without ever
+                -- reading a human player's position.
+                if supports_pos and supports_human and supports_npc
+                    and #result.ai_samples < MAX_AI_SAMPLES
+                    and is_human(agent) == true and is_npc(agent)
+                    and is_alive(agent) == true then
+                    local position = agent_position(agent)
+                    if position and position.o then
+                        local x, y = tonumber(position.o.x), tonumber(position.o.y)
+                        if x and y then
+                            x = math.floor(x * 10 + 0.5) / 10
+                            y = math.floor(y * 10 + 0.5) / 10
+                            result.pos_count[side] = result.pos_count[side] + 1
+                            result.pos_sum[side][1] = result.pos_sum[side][1] + x
+                            result.pos_sum[side][2] = result.pos_sum[side][2] + y
+                            if result.pos_min[side][1] == nil or x < result.pos_min[side][1] then
+                                result.pos_min[side][1] = x end
+                            if result.pos_min[side][2] == nil or y < result.pos_min[side][2] then
+                                result.pos_min[side][2] = y end
+                            if result.pos_max[side][1] == nil or x > result.pos_max[side][1] then
+                                result.pos_max[side][1] = x end
+                            if result.pos_max[side][2] == nil or y > result.pos_max[side][2] then
+                                result.pos_max[side][2] = y end
+                            local kills = supports_kills
+                                and read_agent_number("agent_get_kill_count", agent) or -1
+                            result.ai_samples[#result.ai_samples + 1] =
+                                { team = side, id = agent, x = x, y = y, kills = kills }
+                        end
+                    end
                 end
             end
             if n >= 4096 then break end
@@ -205,6 +291,37 @@ local function sample_world()
             end
         else
             result.team0, result.team1 = -1, -1
+        end
+        result.humans[0] = result.humans[0] + result.bots[0]
+        result.humans[1] = result.humans[1] + result.bots[1]
+        if result.human_measured and result.npc_measured and result.total > 0 then
+            local players = (result.humans[0] - result.bots[0])
+                + (result.humans[1] - result.bots[1])
+            result.no_player = players == 0 and 1 or 0
+        else
+            result.no_player = -1
+        end
+        if not supports_alive then result.alive[0], result.alive[1] = -1, -1 end
+        if not supports_kills then result.kills[0], result.kills[1] = -1, -1 end
+        if not supports_pos then result.pos_count[0], result.pos_count[1] = -1, -1 end
+        for team = 0, 1 do
+            if result.pos_count[team] > 0 then
+                local cx = math.floor(result.pos_sum[team][1] / result.pos_count[team] * 10 + 0.5) / 10
+                local cy = math.floor(result.pos_sum[team][2] / result.pos_count[team] * 10 + 0.5) / 10
+                result.pos_text[team] = cx .. ":" .. cy
+                result.bbox_text[team] = result.pos_min[team][1] .. ":" .. result.pos_min[team][2]
+                    .. ":" .. result.pos_max[team][1] .. ":" .. result.pos_max[team][2]
+            else
+                result.pos_text[team] = "none"
+                result.bbox_text[team] = "none"
+            end
+        end
+        if not result.human_measured then
+            result.humans[0], result.humans[1] = -1, -1
+            result.horses[0], result.horses[1] = -1, -1
+            result.bots[0], result.bots[1] = -1, -1
+        elseif not result.npc_measured then
+            result.bots[0], result.bots[1] = -1, -1
         end
         local t0, n0, u0, x0 = histogram_text(result.hist0)
         local t1, n1, u1, x1 = histogram_text(result.hist1)
@@ -256,11 +373,35 @@ local function state_fields(world)
             .. "|troop_names_team1=" .. names1
             .. "|troop_ids_unknown=" .. world.troop_unknown
             .. "|troops_truncated=" .. world.troop_truncated
-            .. "|players_team0=" .. world.player_count
+            .. "|humans_team0=" .. world.humans[0]
+            .. "|humans_team1=" .. world.humans[1]
+            .. "|players_team0=" .. world.humans[0] - math.max(world.bots[0], 0)
+            .. "|players_team1=" .. world.humans[1] - math.max(world.bots[1], 0)
+            .. "|bot_agents_team0=" .. world.bots[0]
+            .. "|bot_agents_team1=" .. world.bots[1]
+            .. "|horses_team0=" .. world.horses[0]
+            .. "|horses_team1=" .. world.horses[1]
+            .. "|alive_players_team0=" .. world.player_count
+            .. "|no_player=" .. world.no_player
+            .. "|alive_team0=" .. world.alive[0]
+            .. "|alive_team1=" .. world.alive[1]
+            .. "|kills_team0=" .. world.kills[0]
+            .. "|kills_team1=" .. world.kills[1]
+            .. "|pos_team0=" .. world.pos_text[0]
+            .. "|pos_team1=" .. world.pos_text[1]
+            .. "|bbox_team0=" .. world.bbox_text[0]
+            .. "|bbox_team1=" .. world.bbox_text[1]
+            .. "|pos_sampled_team0=" .. world.pos_count[0]
+            .. "|pos_sampled_team1=" .. world.pos_count[1]
     else
         fields = fields .. "|troops_team0=-1|troop_names_team0=-1"
             .. "|troops_team1=-1|troop_names_team1=-1"
-            .. "|troop_ids_unknown=-1|troops_truncated=-1|players_team0=-1"
+            .. "|troop_ids_unknown=-1|troops_truncated=-1"
+            .. "|humans_team0=-1|humans_team1=-1|players_team0=-1|players_team1=-1"
+            .. "|bot_agents_team0=-1|bot_agents_team1=-1|horses_team0=-1|horses_team1=-1"
+            .. "|alive_players_team0=-1|no_player=-1|alive_team0=-1|alive_team1=-1"
+            .. "|kills_team0=-1|kills_team1=-1|pos_team0=-1|pos_team1=-1"
+            .. "|bbox_team0=-1|bbox_team1=-1|pos_sampled_team0=-1|pos_sampled_team1=-1"
     end
     return fields
 end
@@ -371,6 +512,16 @@ local function sample_command_counters()
         end
     end
 end
+-- Bounded AI samples are emitted only on the server and only for non-player
+-- bots, so a human player's position is never collected.
+local function emit_ai_samples(world, role, wave, tick)
+    if role ~= "server" or not world or not world.ok then return end
+    for _, sample in ipairs(world.ai_samples or {}) do
+        emit("ai_sample", "|role=server|tick=" .. tick .. "|team=" .. sample.team
+            .. "|id=" .. sample.id .. "|x=" .. sample.x .. "|y=" .. sample.y
+            .. "|kills=" .. (sample.kills or -1) .. "|wave=" .. wave)
+    end
+end
 local function first_entry()
     if mission_seen then return false end
     mission_seen = true
@@ -393,6 +544,7 @@ local function first_entry()
             .. lifecycle_fields(role, wave, world))
     end
     player_events(role, wave, world)
+    emit_ai_samples(world, role, wave, 0)
     return false
 end
 local ok_entry, idx = pcall(game.addTrigger, MISSION, 1.0, 0, 0, first_entry)
@@ -439,6 +591,7 @@ local function heartbeat()
                 previous_mode = mode
             end
             player_events("server", wave, world)
+            emit_ai_samples(world, role, wave, heartbeat_count)
             sample_defenders(heartbeat_count, mode, wave)
             sample_command_counters()
         end
