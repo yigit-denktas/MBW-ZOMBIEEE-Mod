@@ -3308,20 +3308,27 @@
       "title": "Modder diagnostics/telemetry reuse research",
       "groupId": "Diagnostics",
       "milestoneId": "M1",
-      "state": "active",
+      "state": "done",
       "sourceState": "research pending",
       "required": false,
       "blocked": false,
       "dependsOn": [
         "ZOM-DISC-44"
       ],
-      "evidence": [],
-      "completionBasis": "Research pending",
+      "evidence": [
+        {
+          "kind": "reviewed-delivery-source",
+          "source": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/e0c76ac/reference/MODDER_DIAGNOSTICS_RESEARCH.md",
+          "observedOn": "2026-10-24",
+          "acceptance": "bounded-static"
+        }
+      ],
+      "completionBasis": "Research reference merged; runtime checks delegated to D/E",
       "kind": "work-item",
       "owner": "Agent C — research; Agent D validation",
       "priority": "P1",
       "criterion": "Existing Warband/WSE2 diagnostics/telemetry patterns are cited and mapped to our gaps instead of reinventing.",
-      "note": "Community tools/mods, debug logs, WSE2 instrumentation; adopt/adapt/ignore.",
+      "note": "Community tools/mods, debug logs, WSE2 instrumentation; adopt/adapt/ignore. | Merged f74c0c2: adopt WSE2 rgl_log/crash logs as secondary evidence; adapt profiler/console getters; ignore display/print in sealed runs; keep ZDB1. Community tooling does not fill behavior/native-order/shield gaps.",
       "deferReason": "Supplemental diagnostics research; not part of the required denominator.",
       "implementationLane": "C",
       "workOrigin": "discovered",
