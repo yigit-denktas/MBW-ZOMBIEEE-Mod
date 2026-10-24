@@ -1230,7 +1230,7 @@
       "priority": "P2",
       "issueUrl": "https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/5",
       "criterion": "Original and OSP contributors credited; installer asset distribution reviewed; unlicensed material never bundled",
-      "note": "E's docs lane records archived-OP credits (Artizan, Nemerius, Nemerius (OP spells Nemeruis), Belendor, BattalGaziTR, Hayalperest, Artintrex + OSP), owner attestation, explicit unknown on a free-reuse sentence, Nirecotive base readme, and no redistribution clearance. State remains backlog; no acceptance. E dossier reference/LEGAL_RIGHTS_AND_CREDITS.md (PR #27): archived OP credits verified; installer distribution reviewed bounded (user-supplied RAR, no bundling, dry-run planner); third-party/OSP asset provenance conditional/open; leaf stays backlog/required, no acceptance.",
+      "note": "E's docs lane records archived-OP credits (Artizan, Nemerius (OP spells Nemeruis), Belendor, BattalGaziTR, Hayalperest, Artintrex + OSP), owner attestation, explicit unknown on a free-reuse sentence, Nirecotive base readme, and no redistribution clearance. State remains backlog; no acceptance. E dossier reference/LEGAL_RIGHTS_AND_CREDITS.md (PR #27): archived OP credits verified; installer distribution reviewed bounded (user-supplied RAR, no bundling, dry-run planner); third-party/OSP asset provenance conditional/open; leaf stays backlog/required, no acceptance.",
       "deferReason": null,
       "implementationLane": "B"
     },
