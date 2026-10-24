@@ -122,6 +122,8 @@ This is the central namespace confusion behind "native groups 26/28/29/31". Evid
 
 So in the multiplayer bot path, **group = owning/leading player id**. It is a different namespace from the 0–9 sub-class used by `team_give_order`.
 
+**Header-comment trap (review-b2, 2026-10-24):** the public header comment for `add_visitors_to_current_scene` names the fifth argument `<group_no>` / "multiplayer only", which is **misleading** for the MP bot path — the Native call passes a **leader/owner player id** there, not a formation slot. Read the call sites, not the header comment. `-1`/`0` as a "no leader" sentinel is **unverified**; do not pass formation 5/6/7.
+
 ### 4.3 Correcting the "26/28/29/31" evidence
 
 Earlier project docs (`docs/DIAGNOSTICS.md`, written while the `agent_get_group` call convention was still being fixed) recorded native defender bots "in groups 26/28/29/31". The sealed logs show the getter has never produced a trustworthy value:
