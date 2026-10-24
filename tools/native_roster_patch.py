@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""City-only native roster fix: make faction bots spawn the Zombie troop block.
+"""City-only native roster fix: make faction bots spawn Zombie and defender troops.
 
 Compiled Native script ``multiplayer_find_bot_troop_and_group_for_spawn`` scans a
 hard-coded multiplayer-AI troop range (855..874) and keeps only troops whose
@@ -8,16 +8,24 @@ troops (894..911) after ``trp_multiplayer_end``, so for the invader faction the
 engine could only ever select the two placeholder Crazed-Civilian troops
 (873/874). Result: ``set_bot_count 2 N`` populates team 1 with Crazed Civilians.
 
-This patch inserts a faction-conditional troop range without touching troops,
-factions, equipment or mission triggers:
+In City builds the same function is also the native spawn path for allied team-0
+bots: team 0's faction (fac_kingdom_1, 15) would spawn Swadian AI troops from
+855..874. An optional defender range makes City-mode team-0 bots use the build's
+private survivor troop block instead (981..984, or 875..878 for the original
+loadout profile). D's sealed run proved that native bot spawning works on the
+dedicated host while team-0 ``add_visitors`` produced no allied agents, so this
+becomes the reliable allied-squad spawn path.
 
-- team faction ``fac_kingdom_invaders`` (16) scans the native Zombie block
-  894..911 (end-exclusive 912);
-- every other team faction keeps the original 855..874 range.
+Patch shape (inserted after the one team-faction read, before the scan loops):
+
+- faction 16 (fac_kingdom_invaders) -> 894..911 native Zombies;
+- faction 15 (fac_kingdom_1) AND ``$g_multiplayer_game_type == 7`` -> defender
+  range when the build supplies one;
+- every other faction/game type keeps the original 855..874 range.
 
 The compiled script body is rewritten in place and validated by re-decoding.
 ``runtime_verified`` is always false: only a sealed WSE2 run can prove the
-engine actually spawns the Zombie roster.
+engine actually spawns the roster.
 """
 from __future__ import annotations
 
@@ -31,6 +39,7 @@ SECOND_TEAM_FACTION = "fac_kingdom_invaders"
 FACTION_BASE = 432345564227567616
 TROOP_BASE = 360287970189639680
 LOCAL_BASE = 1224979098644774912
+GLOBAL_BASE = 144115188075855872
 # original compiled multiplayer-AI block
 ORIGINAL_TROOP_BEGIN = 855
 ORIGINAL_TROOP_END = 875  # exclusive
@@ -44,6 +53,9 @@ EQ = 31
 TRY_BEGIN = 4
 ELSE_TRY = 5
 TRY_END = 3
+
+DEFENDER_FACTION_ID = 15  # fac_kingdom_1, team 0
+CITY_GAME_TYPE = 7
 
 
 class RosterPatchError(ValueError):
@@ -79,12 +91,50 @@ def _body_from_ops(ops: list[tuple[int, tuple[int, ...]]]) -> list[int]:
     return body
 
 
-def patch_ops(ops: list[tuple[int, tuple[int, ...]]]) -> list[tuple[int, tuple[int, ...]]]:
+def _roster_block(defender_range: tuple[int, int] | None,
+                  game_type_global: int | None,
+                  defender_faction_id: int = DEFENDER_FACTION_ID,
+                  ) -> list[tuple[int, tuple[int, ...]]]:
+    l5 = LOCAL_BASE + 5
+    l12, l13 = LOCAL_BASE + 12, LOCAL_BASE + 13
+    block = [
+        (TRY_BEGIN, ()),
+        (EQ, (l5, FACTION_BASE + 16)),
+        (ASSIGN, (l12, TROOP_BASE + INVADER_TROOP_BEGIN)),
+        (ASSIGN, (l13, TROOP_BASE + INVADER_TROOP_END)),
+    ]
+    if defender_range is not None:
+        begin, end = defender_range
+        if not (0 <= begin < end <= 9000):
+            raise RosterPatchError("Invalid defender troop range")
+        if game_type_global is None:
+            raise RosterPatchError("Defender range requires the game-type global")
+        block += [
+            (ELSE_TRY, ()),
+            (EQ, (l5, FACTION_BASE + defender_faction_id)),
+            (EQ, (game_type_global, CITY_GAME_TYPE)),
+            (ASSIGN, (l12, TROOP_BASE + begin)),
+            (ASSIGN, (l13, TROOP_BASE + end)),
+        ]
+    block += [
+        (ELSE_TRY, ()),
+        (ASSIGN, (l12, TROOP_BASE + ORIGINAL_TROOP_BEGIN)),
+        (ASSIGN, (l13, TROOP_BASE + ORIGINAL_TROOP_END)),
+        (TRY_END, ()),
+    ]
+    return block
+
+
+def patch_ops(ops: list[tuple[int, tuple[int, ...]]],
+              defender_range: tuple[int, int] | None = None,
+              game_type_global: int | None = None,
+              ) -> list[tuple[int, tuple[int, ...]]]:
     """Return the faction-conditional roster variant of the Native script."""
-    if any(opcode == EQ and args == (LOCAL_BASE + 5, FACTION_BASE + 16)
+    l5 = LOCAL_BASE + 5
+    if any(opcode == EQ and args == (l5, FACTION_BASE + 16)
            for opcode, args in ops):
         raise RosterPatchError("Script already carries the roster patch")
-    l0, l5, l6, l10 = (LOCAL_BASE + n for n in (0, 5, 6, 10))
+    l0, l6, l10 = LOCAL_BASE, LOCAL_BASE + 6, LOCAL_BASE + 10
     l12, l13 = LOCAL_BASE + 12, LOCAL_BASE + 13
     faction_read = (TEAM_GET_FACTION, (l5, l0))
     if ops.count(faction_read) != 1:
@@ -102,16 +152,7 @@ def patch_ops(ops: list[tuple[int, tuple[int, ...]]]) -> list[tuple[int, tuple[i
     if ops.count(second_loop) != 1:
         raise RosterPatchError("Unexpected second multiplayer troop range")
 
-    block = [
-        (TRY_BEGIN, ()),
-        (EQ, (l5, FACTION_BASE + 16)),
-        (ASSIGN, (l12, TROOP_BASE + INVADER_TROOP_BEGIN)),
-        (ASSIGN, (l13, TROOP_BASE + INVADER_TROOP_END)),
-        (ELSE_TRY, ()),
-        (ASSIGN, (l12, TROOP_BASE + ORIGINAL_TROOP_BEGIN)),
-        (ASSIGN, (l13, TROOP_BASE + ORIGINAL_TROOP_END)),
-        (TRY_END, ()),
-    ]
+    block = _roster_block(defender_range, game_type_global)
     patched = []
     for opcode, args in ops:
         if (opcode, args) == faction_read:
@@ -144,16 +185,21 @@ def troop_factions(module: Path) -> dict[int, int]:
     return result
 
 
-def expected_candidates(module: Path, faction_id: int) -> list[int]:
+def expected_candidates(module: Path, faction_id: int,
+                        troop_range: tuple[int, int] | None = None) -> list[int]:
     factions = troop_factions(module)
-    if faction_id == 16:
+    if troop_range is not None:
+        begin, end = troop_range
+    elif faction_id == 16:
         begin, end = INVADER_TROOP_BEGIN, INVADER_TROOP_END
     else:
         begin, end = ORIGINAL_TROOP_BEGIN, ORIGINAL_TROOP_END
     return [index for index in range(begin, end) if factions.get(index) == faction_id]
 
 
-def patch_text(text: str, module: Path) -> tuple[str, dict]:
+def patch_text(text: str, module: Path,
+               defender_range: tuple[int, int] | None = None,
+               game_type_global: int | None = None) -> tuple[str, dict]:
     lines = text.splitlines(keepends=True)
     headers = [i for i, line in enumerate(lines)
                if line.split()[:1] == [SCRIPT_NAME] and line.strip().endswith("-1")]
@@ -164,8 +210,9 @@ def patch_text(text: str, module: Path) -> tuple[str, dict]:
         raise RosterPatchError("Missing bot-troop script body")
     body = list(map(int, lines[header + 1].split()))
     ops = _ops_from_body(body)
-    patched_ops = patch_ops(ops)
-    if len(patched_ops) != len(ops) + 8:
+    patched_ops = patch_ops(ops, defender_range, game_type_global)
+    expected_delta = len(_roster_block(defender_range, game_type_global))
+    if len(patched_ops) - len(ops) != expected_delta:
         raise RosterPatchError("Roster patch produced an unexpected operation count")
     patched_body = _body_from_ops(patched_ops)
     # Re-decode before writing anything.
@@ -181,21 +228,30 @@ def patch_text(text: str, module: Path) -> tuple[str, dict]:
         "original_troop_range": [ORIGINAL_TROOP_BEGIN, ORIGINAL_TROOP_END],
         "invader_troop_range": [INVADER_TROOP_BEGIN, INVADER_TROOP_END],
         "invader_candidates": expected_candidates(module, 16),
+        "defender_troop_range": list(defender_range) if defender_range else None,
+        "defender_candidates": (expected_candidates(module, DEFENDER_FACTION_ID,
+                                                    defender_range)
+                                if defender_range else []),
+        "defender_game_type_global": game_type_global,
         "foreign_faction_candidates_unchanged": True,
         "runtime_verified": False,
-        "warning": "Static compiled-script patch only; the sealed WSE2 run must prove the "
-                   "engine spawns the Zombie roster.",
+        "warning": "Static compiled-script patch only; the sealed WSE2 run must prove "
+                   "the engine spawns the Zombie roster and native team-0 defender bots.",
     }
+    if defender_range:
+        receipt["defender_faction"] = DEFENDER_FACTION_ID
+        receipt["defender_game_type"] = CITY_GAME_TYPE
     return "".join(lines), receipt
 
 
-def apply_module(module: Path) -> dict:
+def apply_module(module: Path, defender_range: tuple[int, int] | None = None,
+                 game_type_global: int | None = None) -> dict:
     """Patch the staged module's compiled scripts table in place."""
     module = Path(module)
     path = module / "scripts.txt"
     original = path.read_bytes()
     text = original.decode("utf-8")
-    changed, receipt = patch_text(text, module)
+    changed, receipt = patch_text(text, module, defender_range, game_type_global)
     receipt = dict(receipt)
     receipt["sha256_before"] = hashlib.sha256(original).hexdigest()
     receipt["sha256_after"] = hashlib.sha256(changed.encode("utf-8")).hexdigest()
@@ -206,15 +262,22 @@ def apply_module(module: Path) -> dict:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--module", type=Path, required=True)
+    parser.add_argument("--defender-range", help="BEGIN,END for City team-0 bot troops")
+    parser.add_argument("--game-type-global", type=int)
     parser.add_argument("--apply", action="store_true")
     args = parser.parse_args()
+    defender_range = None
+    if args.defender_range:
+        begin, end = map(int, args.defender_range.split(","))
+        defender_range = (begin, end)
     try:
         text = (args.module / "scripts.txt").read_text(encoding="utf-8")
-        changed, receipt = patch_text(text, args.module)
+        changed, receipt = patch_text(text, args.module, defender_range,
+                                      args.game_type_global)
         if not args.apply:
             receipt = dict(receipt, dry_run=True, changed_characters=len(changed) - len(text))
         else:
-            receipt = apply_module(args.module)
+            receipt = apply_module(args.module, defender_range, args.game_type_global)
     except (OSError, ValueError, RosterPatchError) as exc:
         print(json.dumps({"applied": False, "error": type(exc).__name__ + ": " + str(exc)}))
         return 2

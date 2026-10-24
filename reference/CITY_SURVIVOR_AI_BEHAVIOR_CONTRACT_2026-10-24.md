@@ -30,3 +30,19 @@
 - Branch suite: 399 tests OK / 4 skips; targeted `test_city_defense` asserts dynamic ops (`2119` wave parity, `2121` division-5, `2120` entry math) and still exactly 3 `1780`/`1791`/`1790` per trigger.
 - `verify_city_chain` reproduced 25->26->27->29->31 with static + final gates accepted and `runtime_verified=false`.
 - **Engine proof still pending:** D's sealed no-client run must show C's `pos_team0` moving toward guard entries 2/3/4, `bbox`/`ai_sample` spread, survivors holding near posts, fallback/regroup transitions, and team1 Zombie ids 894..911. No gameplay acceptance before that.
+
+## Runtime correction (D's canonical sealed evidence, 2026-10-24)
+
+- Team-1 native Zombie roster **confirmed in engine**: team1 agents 900/901/907
+  (`trp_invader7/8/6_multiplayer_ai`), no 873/874.
+- Private-squad `add_visitors(team=0, entry 0/1)` did **not** create agents on the
+  dedicated host (`team0=1` human only; `bot_agents_team0=0`; division 5-7 never
+  sampled). No `tactical_change`, so the wave-gated recovery trigger never helped.
+- Fix: native team-0 bot spawn path (rotation `set_bot_count 1 4`) now selects the
+  build's defender troop block via the roster patch (faction 15 + game_type 7 ->
+  981..984), and the periodic City order trigger adopts those bots into divisions
+  5-7 before issuing the hold/sector orders. Native respawn supplies per-round
+  top-up. `add_visitors` stays only as a fallback.
+- Validation still pending: a sealed run with `set_bot_count 1 4` must show team0
+  bots 981..984 in divisions 5-7 moving to guard entries 2/3/4 and holding.
+

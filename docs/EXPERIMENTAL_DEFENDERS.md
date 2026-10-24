@@ -59,3 +59,30 @@ This is not `v0.2.0`. Successful gameplay evidence, not static parsing, determin
 - **Zombie horde:** City-only builds patch the compiled bot-troop selection so invader bots use native Zombie troops 894..911 instead of Crazed Civilian placeholders; no team-1 tactical AI is added (simple aggressive seek stays).
 - Full behavior contract: `reference/CITY_SURVIVOR_AI_BEHAVIOR_CONTRACT_2026-10-24.md`. Runtime validation is D's sealed no-client run; no acceptance is claimed here.
 
+## Native team-0 bot spawn path (2026-10-24, runtime evidence)
+
+D's sealed idle-client run proved that **native bot spawning works for team 0** while
+the mission-template `add_visitors_to_current_scene(team=0, ...)` calls produced no
+allied agents (`team0=1` human only for the whole run, `bot_agents_team0=0`, no
+`tactical_change`). The build therefore now relies on the native bot path for the
+City allied squad:
+
+- `native_roster_patch` gained an optional City defender branch: faction 15
+  (`fac_kingdom_1`) **and** `$g_multiplayer_game_type == 7` map to the build's
+  survivor troop block (981..984 with `--defender-loadouts balanced-ai`, 875..878
+  with `original`), while faction 16 keeps the Zombie block 894..911 and every
+  other faction keeps the original 855..874 range.
+- The periodic City order trigger adopts native team-0 non-player agents into
+  reserved divisions 5-7 round-robin (`agent_set_division`) and then issues the
+  5 s hold/sector-rotate orders. Native respawn keeps the configured bot squad
+  alive across rounds.
+- **Runtime rotation requirement:** `set_bot_count 1 4` (not `1 0`) so the engine
+  spawns four team-0 bots. The earlier `add_visitors` squad trigger and 3 s
+  recovery top-up remain as harmless fallbacks; with the native bots adopted into
+  divisions 5-7 the top-up count sees a full squad and does not duplicate them.
+
+Offline: 480 tests OK / 7 skips; build receipt records
+`native_roster_patch.defender_troop_range=[981,985]`,
+`defender_candidates=[981,982,983,984]`, `defender_faction=15`. Runtime proof of
+team-0 bots/positions is D's next sealed run; no acceptance claimed.
+

@@ -34,8 +34,10 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None) -> str:
     With ``wave_global`` provided, each wave rotates the three sector posts by
     one step per division using the original ``wave_number`` global (dynamic
     entry numbers 2..4), so the squad re-uses adjacent map sectors instead of
-    standing in one spot forever while still holding. Without it (unit tests),
-    the original fixed assignments are emitted.
+    standing in one spot forever while still holding. The same trigger adopts
+    native team-0 bots into divisions 5-7; D proved native spawning works while
+    team-0 add_visitors produced no allied agents on the dedicated host.
+    Without ``wave_global`` (unit tests) the original fixed assignments run.
     """
     conditions = ["417", "0", "2211", "1", str(LOCAL0),
                   "31", "2", str(LOCAL0), str(SCENE_BASE + scene_idx)]
@@ -47,15 +49,30 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None) -> str:
             ops.append(["1791", "3", "0", str(group), str(pos)])
             ops.append(["1790", "3", "0", str(group), "0"])
     else:
-        # l1 = wave_number % 2; per division: entry = 2 + ((division-5 + l1) % 3)
-        l1, l2, l3 = (str(LOCAL0 + n) for n in (1, 2, 3))
-        ops.append(["2119", "3", l1, str(wave_global), "2"])  # store_mod parity
+        # Native team-0 bots (proven engine spawn path; team-0 add_visitors
+        # produced no allies in D's sealed run) are adopted into the reserved
+        # divisions 5-7 round-robin before the sector orders are issued.
+        l0, l1, l2, l3 = (str(LOCAL0 + n) for n in (0, 1, 2, 3))
+        ops.append(["2133", "2", l0, "0"])                 # count = 0
+        ops.append(["12", "1", l1])                        # try_for_agents
+        ops.append(["1702", "1", l1])                      # agent_is_alive
+        ops.append(["1707", "1", l1])                      # non-player
+        ops.append(["1770", "2", l2, l1])                  # agent_get_team
+        ops.append(["31", "2", l2, "0"])                   # team 0
+        ops.append(["2119", "3", l3, l0, "3"])             # count % 3
+        ops.append(["2120", "3", l3, l3, "5"])             # division 5..7
+        ops.append(["1783", "2", l1, l3])                  # agent_set_division
+        ops.append(["2120", "3", l0, l0, "1"])             # count += 1
+        ops.append(["3", "0"])                             # try_end
+        # l5 = wave parity; per division: entry = 2 + ((division-5 + parity) % 3)
+        l5, l6, l7 = (str(LOCAL0 + n) for n in (5, 6, 7))
+        ops.append(["2119", "3", l5, str(wave_global), "2"])  # store_mod parity
         for group in DIVISIONS:
-            ops.append(["2121", "3", l2, str(group), "5"])  # division - 5
-            ops.append(["2120", "3", l3, l2, l1])           # + parity
-            ops.append(["2119", "3", l3, l3, "3"])          # % 3 sectors
-            ops.append(["2120", "3", l3, l3, "2"])          # + first guard entry
-            ops.append(["1780", "2", str(pos), l3])         # dynamic entry position
+            ops.append(["2121", "3", l6, str(group), "5"])  # division - 5
+            ops.append(["2120", "3", l7, l6, l5])           # + parity
+            ops.append(["2119", "3", l7, l7, "3"])          # % 3 sectors
+            ops.append(["2120", "3", l7, l7, "2"])          # + first guard entry
+            ops.append(["1780", "2", str(pos), l7])         # dynamic entry position
             ops.append(["1791", "3", "0", str(group), str(pos)])
             ops.append(["1790", "3", "0", str(group), "0"])  # mordr_hold
     tokens = [token for row in ops for token in row]

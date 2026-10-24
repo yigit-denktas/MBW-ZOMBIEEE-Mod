@@ -17,7 +17,7 @@ from city_acceptance import audit_city
 from final_city_gate import audit_final_city_controls
 from patch_defenders import (mission_bounds, patch_file, index_troops,
                              TROOP_BASE, SURVIVOR_CLASSES)
-from native_roster_patch import apply_module as apply_roster
+from native_roster_patch import GLOBAL_BASE, apply_module as apply_roster
 from city_defense import apply_module as apply_city
 from wave_reinforcements import apply_module as apply_wave
 from tactical_recovery import apply_module as apply_recovery
@@ -127,9 +127,13 @@ def verify(original: Path, archive: Path | None = None) -> dict:
             apply_wave(stage, cap=4, city_only=True,
                        balanced_ai=variant == "balanced-ai")
             chain.append(mission_check(stage, original, 29))
-            roster = apply_roster(stage)
             classes = CLONES if variant == "balanced-ai" else SURVIVOR_CLASSES
             troop_ids = index_troops(stage / "troops.txt")
+            defense_ids = [troop_ids[name] for name in classes]
+            game_type_global = GLOBAL_BASE + (stage / "variables.txt").read_text(
+                encoding="utf-8").splitlines().index("g_multiplayer_game_type")
+            roster = apply_roster(stage, defender_range=(min(defense_ids), max(defense_ids) + 1),
+                                  game_type_global=game_type_global)
             respawn_troops = tuple(TROOP_BASE + troop_ids[name] for name in classes)
             apply_recovery(stage, city_only=True, defender_cap=4,
                            defender_troops=respawn_troops)
@@ -187,8 +191,12 @@ def verify(original: Path, archive: Path | None = None) -> dict:
         patch_file(solo, 4, city_only=True)
         apply_city(solo)
         apply_wave(solo, cap=4, city_only=True)
-        apply_roster(solo)
         solo_troops = index_troops(solo / "troops.txt")
+        solo_defense_ids = [solo_troops[name] for name in SURVIVOR_CLASSES]
+        solo_game_type = GLOBAL_BASE + (solo / "variables.txt").read_text(
+            encoding="utf-8").splitlines().index("g_multiplayer_game_type")
+        apply_roster(solo, defender_range=(min(solo_defense_ids), max(solo_defense_ids) + 1),
+                     game_type_global=solo_game_type)
         apply_recovery(solo, city_only=True, defender_cap=4,
                        defender_troops=tuple(TROOP_BASE + solo_troops[name]
                                              for name in SURVIVOR_CLASSES))
