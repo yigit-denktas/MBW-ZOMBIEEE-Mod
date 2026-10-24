@@ -26,6 +26,7 @@ from tactical_recovery import apply_module as apply_tactical_recovery
 from bot_loadouts import apply_module as apply_balanced_ai_loadouts
 from survivor_proficiency import apply_module as apply_survivor_proficiency
 from zombie_nerf import apply_module as apply_zombie_nerf
+from zombie_head_armor import apply_module as apply_zombie_head_armor
 from firearm_balance import apply_module as apply_firearm_balance
 from zombie_block import apply_module as apply_zombie_block
 from solo_assist import apply_module as apply_solo_assist
@@ -105,7 +106,8 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
           defender_orders: str = "hold-fire",
           native_speed_loop: str = "off",
           wave_count_multiplier: int = 1,
-          ammo_refill: str = "on") -> dict:
+          ammo_refill: str = "on",
+          zombie_head_armor: str = "removed") -> dict:
     support = profile(difficulty)
     if difficulty != "standard" and not wave_reinforcements:
         raise ValueError("Nonstandard difficulty needs --wave-reinforcements")
@@ -123,6 +125,8 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         raise ValueError("Unknown --zombie-bot-roster profile")
     if zombie_block not in ("stock", "cosmetic-half"):
         raise ValueError("Unknown --zombie-block profile")
+    if zombie_head_armor not in ("removed", "stock"):
+        raise ValueError("Unknown --zombie-head-armor profile")
     if defensive_line not in ("rear", "forward"):
         raise ValueError("Unknown --defensive-line profile")
     if wave_visitors not in ("slow", "original"):
@@ -208,6 +212,7 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
                 raise RuntimeError("Missing wave_number for native wave patch")
             wave_global = GLOBAL_BASE + variables.index("wave_number")
             zombie_nerf_report = apply_zombie_nerf(source)
+            zombie_head_report = apply_zombie_head_armor(source, zombie_head_armor)
             native_wave_report = apply_native_wave_patch(
                 source, wave_global, speed_loop=native_speed_loop == "on",
                 wave_count_multiplier=wave_count_multiplier)
@@ -405,6 +410,7 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
             "experimental_city_guardposts": city_report,
             "native_wave_patch": native_wave_report,
             "zombie_nerf": zombie_nerf_report,
+            "zombie_head_armor": zombie_head_report,
             "experimental_all_map_defenses": all_maps_report,
             "experimental_wave_reinforcements": wave_report,
             "experimental_tactical_recovery": recovery_report,
@@ -456,6 +462,7 @@ def main():
     parser.add_argument("--firearm-accuracy", choices=("default", "stock"), default="default", help="Default build profile buffs automatic firearm accuracy (+5..10 pts); stock keeps original stats")
     parser.add_argument("--zombie-bot-roster", choices=("weak", "full"), default="weak", help="City generic invader bots: weak original Zombie 894 only or full native 894..911 roster")
     parser.add_argument("--zombie-block", choices=("stock", "cosmetic-half"), default="stock", help="Canonical invader shield policy: stock = zero shields (default); cosmetic-half = alternate practice shield with shield skill 0 (no block)")
+    parser.add_argument("--zombie-head-armor", choices=("removed", "stock"), default="removed", help="Task-81 headshot slice: remove invader head-armor items (default removed) or keep stock")
     parser.add_argument("--defensive-line", choices=("rear", "forward"), default="rear", help="City defender hold line: rear/spawn line (default) or the old forward guard sectors")
     parser.add_argument("--wave-visitors", choices=("slow", "original"), default="slow", help="City wave visitors: slow Zombie 894 only (default) or original 0.4 wave table")
     parser.add_argument("--defender-reinforce", choices=("default", "stock"), default="default", help="City defender spawn_agent refill to --defender-target; stock disables")
@@ -474,7 +481,8 @@ def main():
                          args.zombie_bot_roster, args.zombie_block, args.defensive_line,
                          args.wave_visitors, args.defender_reinforce, args.defender_target,
                          args.zombie_speed, args.defender_orders, args.native_speed_loop,
-                             args.wave_count_multiplier, args.ammo_refill), indent=2))
+                             args.wave_count_multiplier, args.ammo_refill,
+                             args.zombie_head_armor), indent=2))
     except (RuntimeError, FileNotFoundError, FileExistsError, ValueError, subprocess.CalledProcessError) as exc:
         print(f"Build refused: {exc}", file=sys.stderr)
         raise SystemExit(2)

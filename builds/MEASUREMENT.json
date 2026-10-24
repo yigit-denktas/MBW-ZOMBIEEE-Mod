@@ -21,7 +21,7 @@
   ],
   "packages": {
     "rear": {
-      "path": "C:\\Users\\yigit\\AppData\\Local\\Temp\\zombieee-a\\nextplay-measure\\rear\\ZOMBIEEE_Remaster",
+      "path": "private://MEASUREMENT/ZOMBIEEE_Remaster",
       "module_sha256": "40d131db856ef4b0e491ca816099432dc9ee9abff7bf2a54765410aa3c91cae2",
       "receipt_sha256": "0ee358e2f86818f7f58800150b913b1a1e39a4760e0ee3d57047b2487b48cc4f",
       "ammo_refill": "off (ammo-burn measurement build)",
@@ -33,7 +33,7 @@
       }
     },
     "forward": {
-      "path": "C:\\Users\\yigit\\AppData\\Local\\Temp\\zombieee-a\\nextplay-measure\\forward\\ZOMBIEEE_Remaster",
+      "path": "private://MEASUREMENT/ZOMBIEEE_Remaster",
       "module_sha256": "e84bb70a950dcf7896bb9e33446c0b056cb0e001d0c0f3870edd7b22a479ffdb",
       "receipt_sha256": "b474175eaca97875b450457f640b293a4ca2cecc7d6fcafe0b607fdeb9f11c9d",
       "ammo_refill": "off (ammo-burn measurement build)",
@@ -50,5 +50,6 @@
     "agents_fired_ratio": ">=0.4",
     "shots_per_minute": ">=5",
     "no_acceptance": true
-  }
+  },
+  "acceptance": "none"
 }

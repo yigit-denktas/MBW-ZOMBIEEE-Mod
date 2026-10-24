@@ -4,7 +4,7 @@
   "generated_utc": "2026-10-24T18:30:00Z",
   "source_base": "ce600ee (agent/a-ranged-fix / PLAYBUILD)",
   "branch": "agent/a-nextplay",
-  "package": "C:\\Users\\yigit\\AppData\\Local\\Temp\\zombieee-a\\nextplay\\ZOMBIEEE_Remaster",
+  "package": "private://NEXTPLAY/ZOMBIEEE_Remaster",
   "module_sha256": "4e90e0460934acaf8c1751d0142effd0304c61d0be7e0d9c764d1992424f358b",
   "receipt_sha256": "24b7612694a715370597796df589f322c17e04d8aa04685d3385195b817862e3",
   "included": [
@@ -125,7 +125,7 @@
     "console adaptive_sample spam is C probe; must be gated server-side for clean screenshots",
     "H task-87: mordr_stand_ground is a halt corrective, not a hard no-chase leash; hold/stand_ground/stance claims must be measured by positions/attack-action, not assumed. Ranged screen/pavise and target-focus are engine/data-blocked (no shield on clones, no target setter).",
     "D seal showed 0 shots with stand_ground(11)+aggressiveness0; both removed. HOLD_FIRE_ORDERS restored to hold/fire_at_will/use_ranged; 1737=0 and no 1730 retained.",
-    "Low fire volume fix: add team sub-class 0 fire_at_will/use_ranged fallback (native groups may not map to 5..7) and agent_refill_ammo(1728) for team0 every 5s. Stand_ground/aggressiveness removed."
+    "Fire-volume status UNKNOWN; candidate slice: add team sub-class 0 fire_at_will/use_ranged fallback (native groups may not map to 5..7) and agent_refill_ammo(1728) for team0 every 5s. Stand_ground/aggressiveness removed."
   ],
   "shield_policy": {
     "mode": "stock",

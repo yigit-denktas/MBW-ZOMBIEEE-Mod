@@ -2,7 +2,7 @@
   "schema": "zombieee.playbuild.v1",
   "name": "PLAYBUILD task-89 cosmetic-half",
   "source_branch": "agent/a-nextplay",
-  "package": "C:\\Users\\yigit\\AppData\\Local\\Temp\\zombieee-a\\nextplay-cosmetic\\ZOMBIEEE_Remaster",
+  "package": "private://PLAYBUILD/ZOMBIEEE_Remaster",
   "manifest": "builds/NEXT_COSMETIC.json",
   "module_sha256": "95282d3d84eb8b60ccd5afc3466376739c7f5d689efc7e275b961ccd57a7117a",
   "receipt_sha256": "8bf0aaa05c63f87f35058320202324a8b35882fa7530ac75ad6cdcc9094f26e0",
@@ -29,5 +29,6 @@
     "cosmetic-half verified: wooden_shield_troops empty, shield_skill 0, 9 alternate cosmetic troops",
     "no acceptance"
   ],
-  "runtime_verified": false
+  "runtime_verified": false,
+  "acceptance": "none"
 }

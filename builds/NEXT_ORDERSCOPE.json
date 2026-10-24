@@ -2,7 +2,7 @@
   "schema": "zombieee.nextplay.v1",
   "name": "NEXT-ORDERSCOPE (task-89 slice)",
   "source": "agent/a-nextplay dcf8311 + order-scope slice",
-  "package": "C:\\Users\\yigit\\AppData\\Local\\Temp\\zombieee-a\\nextplay-orderscope\\ZOMBIEEE_Remaster",
+  "package": "private://NEXT_ORDERSCOPE/ZOMBIEEE_Remaster",
   "module_sha256": "95282d3d84eb8b60ccd5afc3466376739c7f5d689efc7e275b961ccd57a7117a",
   "receipt_sha256": "7c35777b34d25be89724db64cf6321e98da921a56de0dc655760722fd0b4f4c7",
   "included": [
@@ -26,8 +26,29 @@
       "gate": "passed",
       "shield_skill": 0
     },
-    "ammo_refill": "agent_refill_ammo every 5s for team0 AI"
+    "ammo_refill": "agent_refill_ammo every 5s for team0 AI",
+    "zombie_block": {
+      "mode": "stock",
+      "gate": "passed",
+      "shield_skill": 0,
+      "cosmetic_troops": [],
+      "wooden_shield_troops": []
+    },
+    "zombie_head_armor": {
+      "mode": null,
+      "removed_pairs": null,
+      "remaining_head_armor_pairs": null
+    }
   },
   "acceptance": "none",
-  "runtime_verified": false
+  "runtime_verified": false,
+  "package_tree_sha256": "28cdc8cb69dfe3e12364ab75d6572c8be893b7d662ee046725272fc8cc021d47",
+  "file_sha256": {
+    "mission_templates.txt": "95282d3d84eb8b60ccd5afc3466376739c7f5d689efc7e275b961ccd57a7117a",
+    "troops.txt": "d9e2d8ac8c202f0297e23d0285f635d563e4611395a965346541351131d9c9e3",
+    "item_kinds1.txt": "3ae702ff1362b8cd4be316523e2323b7303ae3b0718f0d5d9bee57ffe6284316"
+  },
+  "notes": [
+    "Package identity is package_tree_sha256 + per-file hashes; mission_templates is identical across shield/headshot variants, troops.txt differs."
+  ]
 }

@@ -2,7 +2,7 @@
   "schema": "zombieee.nextplay.v1",
   "name": "NEXT-COSMETIC-HALF (task-89 slice)",
   "source": "agent/a-nextplay 567120f",
-  "package": "C:\\Users\\yigit\\AppData\\Local\\Temp\\zombieee-a\\nextplay-cosmetic\\ZOMBIEEE_Remaster",
+  "package": "private://NEXT_COSMETIC/ZOMBIEEE_Remaster",
   "module_sha256": "95282d3d84eb8b60ccd5afc3466376739c7f5d689efc7e275b961ccd57a7117a",
   "receipt_sha256": "8bf0aaa05c63f87f35058320202324a8b35882fa7530ac75ad6cdcc9094f26e0",
   "shield_policy": {
@@ -37,5 +37,38 @@
     "target setter"
   ],
   "acceptance": "none",
-  "runtime_verified": false
+  "runtime_verified": false,
+  "package_tree_sha256": "c0287deceabc93128ac778c5d43a8b3d05a6ae2966b221133e7bef7a112dad28",
+  "file_sha256": {
+    "mission_templates.txt": "95282d3d84eb8b60ccd5afc3466376739c7f5d689efc7e275b961ccd57a7117a",
+    "troops.txt": "52bf30f142a214d1544266777201b39347117b9c2290d31f985ab3ae2a7f378f",
+    "item_kinds1.txt": "3ae702ff1362b8cd4be316523e2323b7303ae3b0718f0d5d9bee57ffe6284316"
+  },
+  "receipt": {
+    "zombie_block": {
+      "mode": "cosmetic-half",
+      "gate": "passed",
+      "shield_skill": 0,
+      "cosmetic_troops": [
+        894,
+        896,
+        898,
+        900,
+        902,
+        904,
+        906,
+        908,
+        910
+      ],
+      "wooden_shield_troops": []
+    },
+    "zombie_head_armor": {
+      "mode": null,
+      "removed_pairs": null,
+      "remaining_head_armor_pairs": null
+    }
+  },
+  "notes": [
+    "Package identity is package_tree_sha256 + per-file hashes; mission_templates is identical across shield/headshot variants, troops.txt differs."
+  ]
 }
