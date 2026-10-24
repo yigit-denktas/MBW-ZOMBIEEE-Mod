@@ -108,11 +108,19 @@ a placeholder destination, so this call can bind **agent_id = 0** - exactly the 
 the native argument order. v2's own probe lines (`group_convention=unknown`; anomaly at
 agent=1) show the probe already doubted its own call.
 
-C's unfrozen fix branch `agent/c-invalid-agent-guard` @ `2e837c2` corrects this:
+C's unfrozen fix branch `agent/c-invalid-agent-guard` @ **`ecd3f4b`** corrects this
+(`2e837c2` is superseded):
 
-- parent `39aa3a7` changes `read_group` to `fn(0, agent)` and adds an `agent_live` guard;
+- `39aa3a7` changes `read_group` to `fn(0, agent)` and adds an `agent_live` guard;
 - `4e888a0` adds "never call agent ops with id 0 in trigger-32 condition path";
-- `2e837c2` is the metadata-only head revision.
+- `ecd3f4b` (code `4848ee2`, metadata-only head) adds a **second regression fix** exposed by
+  D's speed-off run: `Invalid Group ID: 0` at opcodes **1785/1786/1787**. It makes
+  team-order readback server-heartbeat-only, rejects group 0 / non-0..1 team before the
+  call, counts `skipped_invalid_group`, and advertises
+  `team_order_guard=1|team_order_group_range=1..9|team_order_server_only=1`.
+- Existing guards remain: `group_reader=destination_agent|group_call_convention=two_arg|group_live_guard=1|invalid_agent_guard=1`,
+  with invalid/dead skip counters. C reports 615 tests / 0 failures and a green release
+  gate for `ecd3f4b` (C-supplied status; not independently re-run here).
 
 This is the **strongest evidence-matched hypothesis for the script error**: a probe
 call-convention bug, not a P0 speed-loop opcode. The 28 s-later AV remains engine-side and
@@ -174,50 +182,59 @@ bridge is unknown.
 
 ## 9. Minimal bisect matrix for A/D
 
-A supplied two package pairs from branch `9b97e15` (packages not located in this shared
-workspace; ask A for absolute paths before D runs):
+A supplied two package pairs from branch `9b97e15`; all four module roots were verified
+present on 2026-10-24 at `<temp>\zombieee-a\p0bisect\...` (absolute paths are provided to D
+outside this repo; do not commit user-specific temp paths):
 
-- **clean pair:** `...\p0bisect\clean-off` and `clean-on` - 27 triggers, **no tactical
-  recovery and no wave reinforcement**; speed loop off/on.
-- **full pair:** `...\p0bisect\build-off` and `build-on` - recovery/wave enabled; speed
-  loop off/on (matches the crash build shape more closely).
+- **clean pair:** `<temp>\zombieee-a\p0bisect\clean-off\ZOMBIEEE_Remaster` and
+  `clean-on\ZOMBIEEE_Remaster` - **27 triggers**, no tactical recovery/wave triggers;
+  receipt `native_wave_patch.trigger15_speed_loop_appended` = `false` (off) / `true` (on).
+- **full pair:** `<temp>\zombieee-a\p0bisect\build-off\ZOMBIEEE_Remaster` and
+  `build-on\ZOMBIEEE_Remaster` - **31 triggers**, recovery + wave enabled; speed
+  appended off/on.
 
-D should seal **clean-off vs clean-on with C's corrected probe (`2e837c2`) first**. If
-clean-off crashes, the probe/other path is implicated; if only clean-on crashes, the speed
-loop is implicated.
+D should seal **clean-off vs clean-on with the frozen corrected probe `ecd3f4b` first**
+(not `2e837c2`). If clean-off crashes, the probe/other path is implicated; if only
+clean-on crashes, the speed loop is implicated. Pass criteria now also include no
+`Invalid Group ID: 0` / opcodes 1785-1787.
 
 | # | Build | Probe | Speed loop | Other loops | Purpose |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | clean-off (`9b97e15`) | **corrected** `2e837c2` | **off** | none (no recovery/wave) | control; must be crash-free |
-| 2 | clean-on (`9b97e15`) | corrected | **per-tick with alive/non-player/team guard** | none | isolates the trigger-15 speed loop |
+| 1 | clean-off (`9b97e15`) | **frozen `ecd3f4b`** | **off** | none (no recovery/wave) | control; must be crash-free |
+| 2 | clean-on (`9b97e15`) | frozen `ecd3f4b` | **per-tick with alive/non-player/team guard** | none | isolates the trigger-15 speed loop |
 | 3 | clean-off | **old single-arg** `fn(agent)` | off | none | reproduces probe invalid-agent path only |
 | 4 | clean-on | **old single-arg** | per-tick | none | probe + loop without recovery confound |
-| 5 | clean-on | corrected | **one-shot** on wave transition/spawn | none | discriminates one-shot vs per-tick |
-| 6 | clean-on | corrected | per-tick + **explicit valid-id>0 guard** (re-check before 2093) | none | tests guard, not cadence |
-| 7 | full-off (`build-off`) | corrected | off | recovery + wave enabled | tests recovery/wave without speed |
-| 8 | full-on (`build-on`) | corrected | per-tick | recovery + wave enabled | reproduces crash-build shape; control |
-| 9 | full-off | corrected, **tactical recovery disabled** | off | wave only | isolates the 1765 recovery loop |
-| 10 | full-on | corrected, **tactical recovery disabled** | per-tick | wave only | speed loop without 1765 recovery loop |
+| 5 | clean-on | frozen `ecd3f4b` | **one-shot** on wave transition/spawn | none | discriminates one-shot vs per-tick |
+| 6 | clean-on | frozen `ecd3f4b` | per-tick + **explicit valid-id>0 guard** (re-check before 2093) | none | tests guard, not cadence |
+| 7 | full-off (`build-off`) | frozen `ecd3f4b` | off | recovery + wave enabled | tests recovery/wave without speed |
+| 8 | full-on (`build-on`) | frozen `ecd3f4b` | per-tick | recovery + wave enabled | reproduces crash-build shape; control |
+| 9 | full-off | frozen `ecd3f4b`, **tactical recovery disabled** | off | wave only | isolates the 1765 recovery loop |
+| 10 | full-on | frozen `ecd3f4b`, **tactical recovery disabled** | per-tick | wave only | speed loop without 1765 recovery loop |
 
-**Pass/fail per row:** no `Invalid Agent ID: 0`; no `EXCEPTION_ACCESS_VIOLATION`; stable
-heartbeat; sealed crash log + dump; exact module receipt + compiled/probe trigger map.
-Any crash must be reported with its bundle and exact build receipt, not folded into a
-generic "P0 crashes" claim.
+**Pass/fail per row:** no `Invalid Agent ID: 0`; no `Invalid Group ID: 0`; no
+1765/1785-1787 errors; no `EXCEPTION_ACCESS_VIOLATION`; stable heartbeat; sealed crash
+log + dump; exact module receipt + compiled/probe trigger map. Any crash must be reported
+with its bundle and exact build receipt, not folded into a generic "P0 crashes" claim.
 
 Suggested order: **1 -> 2 -> 3 -> 4 -> 5 -> 6**, then 7-10 only if the clean pair is
 contradictory. This tests the probe-first hypothesis before changing A's loop.
 
 ## 10. Required evidence / actions
 
-1. **C:** merge/freeze the unfrozen probe fix branch `agent/c-invalid-agent-guard`
-   (`2e837c2`; parent `39aa3a7` changes `read_group` to `fn(0, agent)` + `agent_live`;
-   `4e888a0` no-id0 trigger-32 path). Add a negative test for id 0 and verify the
-   installed build's Lua probe hash in each sealed run.
-2. **A:** provide absolute `p0bisect` package paths; keep per-tick speed only for bisect;
-   implement the one-shot wave-transition/spawn alternative with valid-id + alive guard;
-   record `native_speed_loop=off|on` and the compiled/probe trigger map in the receipt.
-3. **D:** seal the clean pair first with the corrected probe; then full/recovery rows.
-   Include crash log + dump + module receipt + trigger map per run.
+1. **C:** freeze the probe fix branch `agent/c-invalid-agent-guard` @ **`ecd3f4b`**
+   (code `4848ee2`; supersedes `2e837c2`). It fixes `read_group` to `fn(0, agent)` +
+   `agent_live`/invalid-id guards and the second regression
+   `Invalid Group ID: 0`/1785-1787 via server-only, group-1..9 team-order reads. C reports
+   615 tests / 0 failures and a green release gate (C-supplied). Verify the installed
+   build's Lua probe hash in each sealed run.
+2. **A:** absolute `p0bisect` paths are supplied (module roots verified; use
+   `<temp>\zombieee-a\p0bisect\...` and give D the exact absolute form). Keep per-tick
+   speed only for bisect; implement the one-shot wave-transition/spawn alternative with
+   valid-id + alive guard; record `native_speed_loop=off|on` and the compiled/probe
+   trigger map in the receipt.
+3. **D:** seal the clean pair first with frozen probe `ecd3f4b`; then full/recovery rows.
+   Include crash log + dump + module receipt + trigger map per run; check no
+   `Invalid Agent ID: 0`, no `Invalid Group ID: 0`, no 1765/1785-1787 errors.
 4. **No P0 seal/relaunch** until the matrix is clean and the crash is root-caused; keep
    `f57c800` known-good.
 5. **Trigger-32 map:** no longer a module mismatch; record it as **compiled 31 + probe
