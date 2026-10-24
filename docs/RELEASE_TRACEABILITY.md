@@ -130,3 +130,6 @@ Source revision for the heatmap heartbeat nil-fix metadata-only receipt: `9a2385
 
 
 Source revision for the probe-health metadata-only receipt: `5b5725f`.
+
+
+Source revision for the hit-param gate metadata-only receipt: `177c4e5`.

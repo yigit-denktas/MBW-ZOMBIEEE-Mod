@@ -244,3 +244,6 @@ work-item → PR → commit → version links are in
 
 
 <!-- probe-health metadata-only source revision: 5b5725f -->
+
+
+<!-- hit-param gate metadata-only source revision: 177c4e5 -->
