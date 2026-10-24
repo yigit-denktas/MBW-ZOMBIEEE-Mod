@@ -22,6 +22,7 @@ from all_map_defense import apply_module as apply_all_maps
 from wave_reinforcements import apply_module as apply_wave_support
 from tactical_recovery import apply_module as apply_tactical_recovery
 from bot_loadouts import apply_module as apply_balanced_ai_loadouts
+from firearm_balance import apply_module as apply_firearm_balance
 from solo_assist import apply_module as apply_solo_assist
 from private_commands import apply_module as apply_private_commands
 from difficulty import profile, PROFILES
@@ -88,7 +89,8 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
           city_guardposts: bool = False, all_map_defenses: bool = False,
           wave_reinforcements: bool = False, tactical_recovery: bool = False,
           defender_loadouts: str = "original", solo_assist: bool = False,
-          private_commands: bool = False, difficulty: str = "standard") -> dict:
+          private_commands: bool = False, difficulty: str = "standard",
+          firearm_accuracy: str = "default") -> dict:
     support = profile(difficulty)
     if difficulty != "standard" and not wave_reinforcements:
         raise ValueError("Nonstandard difficulty needs --wave-reinforcements")
@@ -100,6 +102,8 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         raise ValueError("--experimental-defenders must be between 0 and 8")
     if defender_loadouts not in ("original", "balanced-ai"):
         raise ValueError("Unknown --defender-loadouts profile")
+    if firearm_accuracy not in ("default", "stock"):
+        raise ValueError("Unknown --firearm-accuracy profile")
     if defender_loadouts != "original" and not experimental_defenders:
         raise ValueError("AI-only loadouts require experimental defenders")
     if tactical_recovery and not wave_reinforcements:
@@ -158,6 +162,13 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         apply_overlay(source)
         balanced = defender_loadouts == "balanced-ai"
         loadout_report = apply_balanced_ai_loadouts(source) if balanced else None
+        # Default build profile: automatic firearms get a modest accuracy buff;
+        # single-shot firearms and every non-firearm item keep their stats.
+        firearm_report = apply_firearm_balance(source, firearm_accuracy)
+        if (firearm_accuracy == "default" and
+                firearm_report.get("changed_count") !=
+                len(firearm_report["automatic_items"])):
+            raise RuntimeError("Firearm accuracy profile did not patch every automatic weapon")
         # City-only native roster fix: the compiled Native bot-troop script can
         # only see the 2012 multiplayer-AI troop block, so the invader faction's
         # appended Zombie troops are otherwise unreachable and team 2 spawns
@@ -287,6 +298,7 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
             "final_trigger_count": (31 if tactical_recovery else 29 if wave_reinforcements else 27 if city_guardposts else 26 if experimental_defenders else 25) + int(solo_assist) + (4 if private_commands else 0),
             "preflight": preflight,
             "native_roster_patch": roster_report,
+            "firearm_accuracy": firearm_report,
             "experimental_defender_patch": defender_report,
             "defender_loadout_profile": defender_loadouts,
             "ai_only_loadout_clones": loadout_report,
@@ -348,12 +360,13 @@ def main():
     parser.add_argument("--solo-assist", action="store_true", help="EXPERIMENTAL: only local non-dedicated host in a 1-player session gets periodic health/ammo")
     parser.add_argument("--private-commands", action="store_true", help="EXPERIMENTAL solo listen-host-only Ctrl+F7/F8/F9 actions, audited by counters")
     parser.add_argument("--difficulty", choices=tuple(PROFILES), default="standard", help="Survivor-support difficulty: controls reinforcement wave and fallback thresholds")
+    parser.add_argument("--firearm-accuracy", choices=("default", "stock"), default="default", help="Default build profile buffs automatic firearm accuracy (+5..10 pts); stock keeps original stats")
     args = parser.parse_args()
     try:
         print(json.dumps(build(args.archive, args.out, args.replace, args.experimental_defenders,
                          args.city_guardposts, args.all_map_defenses, args.wave_reinforcements,
                          args.tactical_recovery, args.defender_loadouts, args.solo_assist,
-                         args.private_commands, args.difficulty), indent=2))
+                         args.private_commands, args.difficulty, args.firearm_accuracy), indent=2))
     except (RuntimeError, FileNotFoundError, FileExistsError, ValueError, subprocess.CalledProcessError) as exc:
         print(f"Build refused: {exc}", file=sys.stderr)
         raise SystemExit(2)

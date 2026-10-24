@@ -66,3 +66,16 @@ See [Diagnostic policy](DIAGNOSTICS.md), [Tactical recovery](TACTICAL_RECOVERY.m
 ## v0.1.8 — actual private hotkeys and support difficulty
 
 The previous timed `--solo-assist` remains optional. The new `--private-commands` is a **different, mutually exclusive** set of local host keypress actions (Left Ctrl+F7/F8/F9) and requires the full tactical build, one non-dedicated player and a living team-0 host. Each successful command increments an appended diagnostic global variable. See [Forensic diagnostics](FORENSIC_DIAGNOSTICS.md). Survivor-support difficulty profile changes reinforcement start and fallback thresholds only; original zombies are unmodified. Keyboard and permissions remain unverified in WSE2.
+
+## Firearm accuracy build profile (task-22, 2026-10-24)
+
+The build now applies a default **automatic-firearm accuracy** profile: every
+item sharing the automatic-weapon flag mask (M249, FAMAS, AK47, FN SCAR-L, MP5,
+HK MP5K, HK MP7, P90, Mk12 SPR, M16A2) gains `+clamp(round(old*0.10), 5, 10)`
+accuracy points (+8..+10 on the pinned values). Single-shot firearms (Remington
+700, Browning Cynergy, pistols including Beretta 92FS/SW5904, M82) and all
+non-firearm items are byte-identical. `--firearm-accuracy stock` keeps original
+stats; the receipt records changed items and SHA-256 before/after with
+`runtime_verified=false`. See `reference/CITY_FIREARM_BALANCE_2026-10-24.md`.
+No gameplay validation is claimed; D/Lead validate in a sealed run.
+
