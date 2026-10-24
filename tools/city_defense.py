@@ -148,6 +148,7 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None,
             ops.append(["2092", "2", l1, "100"])
             ops.append(["2094", "2", l1, "100"])
             ops.append(["1737", "2", l1, "0"])
+            ops.append(["1728", "1", l1])                # refill ammo (team0 AI)
         ops.append(["2120", "3", l0, l0, "1"])             # count += 1
         ops.append(["3", "0"])                             # try_end
         if defender_target:
@@ -207,6 +208,9 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None,
             ops.append(["1780", "2", str(pos), str(entry)])
             ops.append(["1791", "3", "0", str(group), str(pos)])
             ops.append(["1790", "3", "0", str(group), "0"])  # mordr_hold
+        # Team-wide fire fallback for native bots whose groups do not map to 5..7.
+        ops.append(["1790", "3", "0", "0", "13"])  # fire_at_will (everyone)
+        ops.append(["1790", "3", "0", "0", "16"])  # use_ranged (everyone)
     else:
         # Native team-0 bots (proven engine spawn path; team-0 add_visitors
         # produced no allies in D's sealed run) are adopted into the reserved
@@ -249,6 +253,10 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None,
             ops.append(["1780", "2", str(pos), l7])         # dynamic entry position
             ops.append(["1791", "3", "0", str(group), str(pos)])
             ops.append(["1790", "3", "0", str(group), "0"])  # mordr_hold
+        # Order-scope fallback: native AI may not map its groups to 5..7.
+        # Re-issue fire discipline to the whole team sub-class 0 as well.
+        ops.append(["1790", "3", "0", "0", "13"])  # fire_at_will (everyone)
+        ops.append(["1790", "3", "0", "0", "16"])  # use_ranged (everyone)
     tokens = [token for row in ops for token in row]
     # Periodic 5 s upkeep: re-issues hold positions after dedicated round
     # resets / squad respawns and re-selects the sector on each new wave.
@@ -381,6 +389,8 @@ def apply_module(module: Path, hold_entries: tuple[int, ...] = REAR_HOLD_ENTRIES
             "ai_accuracy_modifier": 100,
             "ai_reload_speed_modifier": 100,
             "prevent_charge": "hold + fire_at_will/use_ranged + no 1730 + 1737=0; no stand_ground/aggressiveness so ranged engagement is not suppressed; measured by positions/attack-action",
+            "order_scope_extra": "team_subclass_0 fire_at_will+use_ranged fallback",
+            "ammo_refill": "agent_refill_ammo every 5s for team0 AI",
             "accuracy_modifier_note": "2092 readback was 100 in D seal; setter values >100 not observable, so this build claims 100 and relies on proficiency/item accuracy",
             "warning": "Navmesh-derived posts; movement, fire and runtime LOS unverified.\n"
                        "Sectors rotate once per original wave_number parity; D validates positions."}
