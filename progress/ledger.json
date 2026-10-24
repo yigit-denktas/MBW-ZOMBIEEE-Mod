@@ -4391,6 +4391,12 @@
           "source": "local/session/ai-idle-20261024-183102-nextplay-visual-10m",
           "observedOn": "2026-10-24",
           "acceptance": "sealed-8-file-verified"
+        },
+        {
+          "kind": "sealed-evidence",
+          "source": "local/session/ai-idle-20261024-184518-ranged-fix2-10m",
+          "observedOn": "2026-10-24",
+          "acceptance": "sealed-8-file-verified"
         }
       ],
       "completionBasis": "P2 fixes/rebase + play build/run pending",
@@ -4398,7 +4404,7 @@
       "owner": "Agent A fixes; Lead install; D 10-min play",
       "priority": "P0",
       "criterion": "P2s fixed, P0 rebased, play build installed, 10-min survivor run with only visible blockers fixed.",
-      "note": "review-b2: P0 9b97e15 accepted no P0/P1; P2 add_visitors group_no premise + verifier speed-on bug. No new telemetry branches. | A e90763d P2-fixed play candidate ready; D 10-min survivor play running (17:55). | Canonical playbuild builds/PLAYBUILD.json: a-ranged-fix ce600ee, zombie_block stock (no shields), mission 7A48C83D; do not install mid-run. | Installed clean no-shield ranged play build (mission 7A48C83D, zombie_block=null); D clean 10-min run active with frame capture. | Nextplay C62F0BCD installed: hold-ground/stand_ground, zombie speed50+4 cap85, HP67.5%, counts x2, no shields. | Clean visual reseal 183102: join success, 43 hb/57 frames, no console spam; 0 shots/ammo burn across 3564 adaptive samples; charge .592; wave1; KD15/7. Likely stand_ground/fire-order regression. | No-fire fix candidate d882691 installed mission EF6E332C: hold+fire_at_will+use_ranged, no stand_ground/aggressiveness.",
+      "note": "review-b2: P0 9b97e15 accepted no P0/P1; P2 add_visitors group_no premise + verifier speed-on bug. No new telemetry branches. | A e90763d P2-fixed play candidate ready; D 10-min survivor play running (17:55). | Canonical playbuild builds/PLAYBUILD.json: a-ranged-fix ce600ee, zombie_block stock (no shields), mission 7A48C83D; do not install mid-run. | Installed clean no-shield ranged play build (mission 7A48C83D, zombie_block=null); D clean 10-min run active with frame capture. | Nextplay C62F0BCD installed: hold-ground/stand_ground, zombie speed50+4 cap85, HP67.5%, counts x2, no shields. | Clean visual reseal 183102: join success, 43 hb/57 frames, no console spam; 0 shots/ammo burn across 3564 adaptive samples; charge .592; wave1; KD15/7. Likely stand_ground/fire-order regression. | No-fire fix candidate d882691 installed mission EF6E332C: hold+fire_at_will+use_ranged, no stand_ground/aggressiveness. | Ranged-fix2 run 184518: ammo_burn4/shots4, 2/15 agents, first shot15s, shots/min1.599, charge.683, KD16/8, clean screenshots. Gate passes but volume low.",
       "deferReason": "Converts diagnostics to visible progress.",
       "implementationLane": "A",
       "workOrigin": "discovered",
@@ -4457,7 +4463,7 @@
       "owner": "Agent A AI/skills; C telemetry; D play",
       "priority": "P0",
       "criterion": "Gun survivors hold ranged, do not charge, time-to-first-shot/shots-per-min improve without fake damage.",
-      "note": "firearm_balance.py: 2012 module treats firearms as crossbow-type; raise crossbow/archery proficiency, fire_at_will/use_ranged, prevent scripted charge. | Confirmed firearms crossbow-type; task assigned. | C support branch 80684c0: firearms time_to_first_shot/shots_per_minute/weapon_modes, charge/backward projection; summary-only. | Clean run shows zero shots; fix order precedence so fire_at_will/use_ranged survives stand_ground.",
+      "note": "firearm_balance.py: 2012 module treats firearms as crossbow-type; raise crossbow/archery proficiency, fire_at_will/use_ranged, prevent scripted charge. | Confirmed firearms crossbow-type; task assigned. | C support branch 80684c0: firearms time_to_first_shot/shots_per_minute/weapon_modes, charge/backward projection; summary-only. | Clean run shows zero shots; fix order precedence so fire_at_will/use_ranged survives stand_ground. | Next checks: order scope to defender sub-classes, extra ammo stacks, forced short-range engagement.",
       "deferReason": "Supplemental AI/combat behavior.",
       "implementationLane": "A",
       "workOrigin": "discovered",
