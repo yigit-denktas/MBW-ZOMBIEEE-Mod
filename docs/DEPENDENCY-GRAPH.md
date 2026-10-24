@@ -24,5 +24,9 @@ Generated from the authoritative `progress/ledger.json` on the current source sn
 - Start at the required milestone gates at the top. A gate is accepted only when its own criterion is met; a discovery node cannot substitute for it.
 - A solid arrow means the dependent node is blocked until its prerequisite is at least resolved. `ZOM-DISC-35` (speed/hold patch) depends on research (`30`), rear line/refill (`33`) and wave gating (`34`).
 - A dashed arrow is not acceptance: it is the discovered work opening or supporting a required outcome (for example `30 → ZOM-AI-03`, `34 → ZOM-WAVE-01`).
-- The current frontier is `ZOM-DISC-35` (A implementing), `ZOM-DISC-34` (wave-2 not yet observed), `ZOM-DISC-37` (M2 installer/release) and `ZOM-DISC-38` (M4 legal gate). `ZOM-DISC-38` keeps `ZOM-REL-01` blocked.
+- The current frontier is `ZOM-DISC-42` (task-42 sealed validation), `ZOM-DISC-40` (standoff implementation), `ZOM-DISC-34` (wave-2 not observed), and the open required gates. F's M2 installer/release work is merged, and E's legal dossier is delivered but `ZOM-LEGAL-01` remains open, so `ZOM-REL-01` stays blocked.
 - `ZOM-DISC-39` is evidence, not acceptance: sealed 8-file task-34 run with 8 defenders refilled, rear positions and wave-1 894 only; wave 2 stayed unobserved in the 3-minute window.
+| ZOM-DISC-40 | Agent A — implementation; Agent D validation | owner standoff/explosives design note | active | ZOM-DISC-35 | ZOM-AI-02 | Blocks ZOM-AI-02/03 behavioral acceptance until sealed. |
+| ZOM-DISC-41 | Agent D — sealed validation; owner retains acceptance | task-38 validation queue | done | ZOM-DISC-34, ZOM-DISC-35 | ZOM-QA-02 | Supports QA-02; wave-2 gate still unobserved. |
+| ZOM-DISC-42 | Agent D — sealed validation; owner retains acceptance | task-42 validation queue | active | ZOM-DISC-40, ZOM-DISC-41 | ZOM-QA-02 | Final validation gate before standoff can be judged; supports QA-02. |
+| ZOM-DISC-43 | Lead — UI/tracker integration | owner Pages/dependency-map feedback | done | — | ZOM-REC-03 | Supports REC-03 progress-view validation; no required credit. |

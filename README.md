@@ -7,16 +7,16 @@ A private, City-first compatibility rebuild of the 2012 **ZOMBIEEE (Invasion) Be
 **Current project version:** `0.2.0` (runtime-evidenced City candidate; **not release-accepted**).
 
 <!-- project-record:start -->
-[![ZOMBIEEE Remaster Â· current required scope](./progress.svg)](https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/)
+[![ZOMBIEEE Remaster · current required scope](./progress.svg)](https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/)
 
 | Measure | Completion | Meaning |
 | --- | ---: | --- |
-| Required work | 8/23 Â· 34.8% | Completed leaf items in the named required scope. |
-| Accepted milestones | 0/5 Â· 0.0% | Milestones whose declared outcome gates passed. |
+| Required work | 8/23 · 34.8% | Completed leaf items in the named required scope. |
+| Accepted milestones | 0/5 · 0.0% | Milestones whose declared outcome gates passed. |
 
-[Interactive roadmap](https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/) Â· Source file: `progress/ledger.json` (content-addressed file snapshot).
+[Interactive roadmap](https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/) · Source file: `progress/ledger.json` (content-addressed file snapshot).
 
-Observed 2026-10-24 against `57915156`.
+Observed 2026-10-24 against `2192da04`.
 <!-- project-record:end -->
 
 ## Work dependency graph

@@ -1,0 +1,32 @@
+{
+  "id": "2026-10-24-current-task-refresh",
+  "date": "2026-10-24",
+  "reason": "Owner asked that all currently active agent tasks be added to the record/graph.",
+  "denominatorEffect": "none — supplemental discovered work; required 23 unchanged.",
+  "added": [
+    "ZOM-DISC-40",
+    "ZOM-DISC-41",
+    "ZOM-DISC-42",
+    "ZOM-DISC-43"
+  ],
+  "updated": [
+    "ZOM-DISC-37 done",
+    "ZOM-DISC-38 done (legal gate open)"
+  ],
+  "dependencies": {
+    "ZOM-DISC-40": [
+      "ZOM-DISC-35"
+    ],
+    "ZOM-DISC-41": [
+      "ZOM-DISC-34",
+      "ZOM-DISC-35"
+    ],
+    "ZOM-DISC-42": [
+      "ZOM-DISC-40",
+      "ZOM-DISC-41"
+    ],
+    "ZOM-DISC-43": []
+  },
+  "milestoneEffect": "M3/M4 support edges only; 0/5 accepted.",
+  "authority": "Proposed owner-review record."
+}
