@@ -25,6 +25,7 @@ from private_commands import apply_module as apply_private
 from solo_assist import apply_module as apply_solo
 from bot_loadouts import apply_module as apply_loadouts, CLONES
 from firearm_balance import apply_module as apply_firearm_balance
+from zombie_block import apply_module as apply_zombie_block
 from trace_calls import read_mission_calls
 from preflight import report_for_module
 
@@ -133,7 +134,9 @@ def verify(original: Path, archive: Path | None = None) -> dict:
             game_type_global = GLOBAL_BASE + (stage / "variables.txt").read_text(
                 encoding="utf-8").splitlines().index("g_multiplayer_game_type")
             roster = apply_roster(stage, defender_range=(min(defense_ids), max(defense_ids) + 1),
-                                  game_type_global=game_type_global)
+                                  game_type_global=game_type_global,
+                                  invader_range=(894, 898))
+            zombie = apply_zombie_block(stage)
             respawn_troops = tuple(TROOP_BASE + troop_ids[name] for name in classes)
             apply_recovery(stage, city_only=True, defender_cap=4,
                            defender_troops=respawn_troops)
@@ -163,6 +166,9 @@ def verify(original: Path, archive: Path | None = None) -> dict:
                 "firearm_accuracy": {key: firearm[key] for key in
                                      ("applied", "changed_count", "automatic_items",
                                       "sha256_before", "sha256_after")},
+                "zombie_block": {key: zombie[key] for key in
+                                 ("applied", "shield_item", "troops",
+                                  "sha256_before", "sha256_after")},
                 "final_native_sha256": final["final_native_sha256"],
                 "global_count": len((stage / "variables.txt").read_text().splitlines()),
                 "runtime_verified": False,
@@ -171,7 +177,7 @@ def verify(original: Path, archive: Path | None = None) -> dict:
                 raise RuntimeError("Unexpected 35-trigger global count")
             if variant == "standard":
                 allowed = {"mission_templates.txt", "variables.txt",
-                           "scripts.txt", "item_kinds1.txt",
+                           "scripts.txt", "item_kinds1.txt", "troops.txt",
                            "SceneObj/scn_tbfc_invasion_4.sco"}
                 changed = {name for name, digest in complete_original_inventory.items()
                            if not (stage / name).is_file() or sha(stage / name) != digest}
@@ -196,7 +202,8 @@ def verify(original: Path, archive: Path | None = None) -> dict:
         solo_game_type = GLOBAL_BASE + (solo / "variables.txt").read_text(
             encoding="utf-8").splitlines().index("g_multiplayer_game_type")
         apply_roster(solo, defender_range=(min(solo_defense_ids), max(solo_defense_ids) + 1),
-                     game_type_global=solo_game_type)
+                     game_type_global=solo_game_type, invader_range=(894, 898))
+        apply_zombie_block(solo)
         apply_recovery(solo, city_only=True, defender_cap=4,
                        defender_troops=tuple(TROOP_BASE + solo_troops[name]
                                              for name in SURVIVOR_CLASSES))

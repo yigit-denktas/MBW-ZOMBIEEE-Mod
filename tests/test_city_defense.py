@@ -113,7 +113,7 @@ class CityDefenseTests(unittest.TestCase):
     def test_orders_rotate_sectors_per_wave(self):
         wave_global = 144115188075855872 + 1209  # original wave_number index
         orders = orders_trigger(0, wave_global).split()
-        self.assertEqual(orders.count("1780"), 4)
+        self.assertEqual(orders.count("1780"), 3)
         self.assertEqual(orders.count("1791"), 3)
         self.assertEqual(orders.count("1790"), 3)
         self.assertIn("2119", orders)  # wave parity / sector modulo
@@ -121,8 +121,7 @@ class CityDefenseTests(unittest.TestCase):
         self.assertIn("2120", orders)  # entry math
         self.assertIn("1783", orders)  # native team-0 bot division adoption
         self.assertIn("1766", orders)  # group assignment used by team orders
-        self.assertIn("1730", orders)  # per-agent scripted destination fallback
-        self.assertEqual(orders.count("1730"), 1)
+        self.assertNotIn("1730", orders)  # no scripted destination override of combat AI
         self.assertIn("12", orders)  # try_for_agents adoption loop
         self.assertEqual(orders.count("1783"), 1)
         self.assertIn(str(wave_global), orders)
