@@ -66,8 +66,10 @@ def _prefix_matches_patched_original(stage: Path, original: Path,
                    if "wave_number" in variables else None)
     original_text = (original / "mission_templates.txt").read_text(encoding="utf-8")
     for speed_loop in (False, True):
+      for wave_mult in (1, 2, 3):
         expected_text, _ = native_wave_patch_text(
-            original_text, wave_global, speed_loop=speed_loop)
+            original_text, wave_global, speed_loop=speed_loop,
+            wave_count_multiplier=wave_mult)
         elines = expected_text.splitlines(keepends=True)
         ep, ec, ee = mission_bounds(elines)
         expected = [line.rstrip("\r\n") for line in elines[ep + 1:ep + 26]]

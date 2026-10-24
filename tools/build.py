@@ -25,6 +25,7 @@ from wave_reinforcements import apply_module as apply_wave_support
 from tactical_recovery import apply_module as apply_tactical_recovery
 from bot_loadouts import apply_module as apply_balanced_ai_loadouts
 from survivor_proficiency import apply_module as apply_survivor_proficiency
+from zombie_nerf import apply_module as apply_zombie_nerf
 from firearm_balance import apply_module as apply_firearm_balance
 from zombie_block import apply_module as apply_zombie_block
 from solo_assist import apply_module as apply_solo_assist
@@ -102,7 +103,8 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
           defender_target: int = 8,
           zombie_speed: str = "slow",
           defender_orders: str = "hold-fire",
-          native_speed_loop: str = "off") -> dict:
+          native_speed_loop: str = "off",
+          wave_count_multiplier: int = 1) -> dict:
     support = profile(difficulty)
     if difficulty != "standard" and not wave_reinforcements:
         raise ValueError("Nonstandard difficulty needs --wave-reinforcements")
@@ -132,6 +134,8 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
         raise ValueError("Unknown --zombie-speed profile")
     if native_speed_loop not in ("off", "on"):
         raise ValueError("Unknown --native-speed-loop profile")
+    if wave_count_multiplier not in (1, 2, 3):
+        raise ValueError("--wave-count-multiplier must be 1, 2 or 3")
     if defender_orders not in ("hold-fire", "stock"):
         raise ValueError("Unknown --defender-orders profile")
     if defender_loadouts != "original" and not experimental_defenders:
@@ -191,6 +195,7 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
                              original_evidence / "SceneObj" / scene_name)
         apply_overlay(source)
         native_wave_report = None
+        zombie_nerf_report = None
         if city_guardposts and not all_map_defenses:
             # Original City wave-controller patch: trigger 14 table -> 894,
             # invalid writes redirected to slot 245, trigger 15 gains the
@@ -199,8 +204,10 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
             if "wave_number" not in variables:
                 raise RuntimeError("Missing wave_number for native wave patch")
             wave_global = GLOBAL_BASE + variables.index("wave_number")
+            zombie_nerf_report = apply_zombie_nerf(source)
             native_wave_report = apply_native_wave_patch(
-                source, wave_global, speed_loop=native_speed_loop == "on")
+                source, wave_global, speed_loop=native_speed_loop == "on",
+                wave_count_multiplier=wave_count_multiplier)
         balanced = defender_loadouts == "balanced-ai"
         loadout_report = apply_balanced_ai_loadouts(source) if balanced else None
         proficiency_report = apply_survivor_proficiency(source) if balanced else None
@@ -392,6 +399,7 @@ def build(archive: Path, out: Path, replace: bool = False, experimental_defender
                                        else "original-baseline"),
             "experimental_city_guardposts": city_report,
             "native_wave_patch": native_wave_report,
+            "zombie_nerf": zombie_nerf_report,
             "experimental_all_map_defenses": all_maps_report,
             "experimental_wave_reinforcements": wave_report,
             "experimental_tactical_recovery": recovery_report,
@@ -449,6 +457,7 @@ def main():
     parser.add_argument("--defender-target", type=int, default=8, metavar="N", help="City team-0 defender target (1..8) for reinforcement")
     parser.add_argument("--zombie-speed", choices=("slow", "stock"), default="slow", help="City zombie pace: native per-agent speed modifier ~70%% with wave scaling, stock unchanged")
     parser.add_argument("--native-speed-loop", choices=("off", "on"), default="off", help="Bisect switch: append the trigger-15 native team-1 speed loop (default off)")
+    parser.add_argument("--wave-count-multiplier", type=int, choices=(1, 2, 3), default=1, help="Task-81 wave count multiplier for original trigger-15 visitors")
     parser.add_argument("--defender-orders", choices=("hold-fire", "stock"), default="hold-fire", help="City team hold/fire orders (hold, hold_fire, fire_at_will, use_ranged) on native groups")
     args = parser.parse_args()
     try:
@@ -458,7 +467,8 @@ def main():
                          args.private_commands, args.difficulty, args.firearm_accuracy,
                          args.zombie_bot_roster, args.zombie_block, args.defensive_line,
                          args.wave_visitors, args.defender_reinforce, args.defender_target,
-                         args.zombie_speed, args.defender_orders, args.native_speed_loop), indent=2))
+                         args.zombie_speed, args.defender_orders, args.native_speed_loop,
+                             args.wave_count_multiplier), indent=2))
     except (RuntimeError, FileNotFoundError, FileExistsError, ValueError, subprocess.CalledProcessError) as exc:
         print(f"Build refused: {exc}", file=sys.stderr)
         raise SystemExit(2)

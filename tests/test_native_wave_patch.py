@@ -49,7 +49,7 @@ class NativeWavePatchTests(unittest.TestCase):
         ops = _speed_ops(self.wave_global)
         mult = [(op, args) for op, args in ops if op == 2122]
         self.assertTrue(mult)
-        self.assertTrue(all(args[1] == self.wave_global and args[2] == 5
+        self.assertTrue(all(args[1] == self.wave_global and args[2] == 4
                             for _op, args in mult))
         self.assertFalse(any(op == 2123 for op, _ in ops))
         used = {a for _op, args in ops for a in args if LOCAL0 <= a < LOCAL0 + 64}

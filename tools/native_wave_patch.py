@@ -27,9 +27,9 @@ UNUSED_SLOT = 245
 WAVE_TABLE_SLOTS = tuple(range(200, 245))
 TRIGGER14 = 14
 TRIGGER15 = 15
-SPEED_BASE = 55
-SPEED_PER_WAVE = 5
-SPEED_CAP = 100
+SPEED_BASE = 50
+SPEED_PER_WAVE = 4
+SPEED_CAP = 85
 
 
 class NativeWavePatchError(ValueError):
@@ -82,7 +82,8 @@ def _speed_ops(wave_global: int | None) -> list[tuple[int, tuple[int, ...]]]:
 
 
 def patch_mission_text(text: str, wave_global: int | None = None,
-                       speed_loop: bool = False) -> tuple[str, dict]:
+                       speed_loop: bool = False,
+                       wave_count_multiplier: int = 1) -> tuple[str, dict]:
     lines = text.splitlines(keepends=True)
     p, count, end = mission_bounds(lines)
     if count < 16:
@@ -117,6 +118,20 @@ def patch_mission_text(text: str, wave_global: int | None = None,
     # Trigger 15: append the per-tick team-1 speed loop to the original wave
     # controller's consequence block. Its own conditions are unchanged.
     prefix15, conditions15, ops15, tail15 = _decode(rows[TRIGGER15].strip())
+    scaled_counts = []
+    if wave_count_multiplier != 1:
+        if wave_count_multiplier not in (2, 3):
+            raise NativeWavePatchError("Wave count multiplier must be 1, 2 or 3")
+        scaled = []
+        for op, args in ops15:
+            if op == 1265 and len(args) == 5:
+                old_count = args[2]
+                new_count = old_count * wave_count_multiplier
+                scaled.append((op, (args[0], args[1], new_count, args[3], args[4])))
+                scaled_counts.append({"before": old_count, "after": new_count})
+            else:
+                scaled.append((op, args))
+        ops15 = scaled
     if speed_loop:
         ops15 = [*ops15, *_speed_ops(wave_global)]
         rows[TRIGGER15] = _encode(prefix15, conditions15, ops15, tail15) + newline
@@ -134,15 +149,20 @@ def patch_mission_text(text: str, wave_global: int | None = None,
         "speed_per_wave": SPEED_PER_WAVE,
         "speed_cap": SPEED_CAP,
         "wave_composition_changed": True,
+        "wave_count_multiplier": wave_count_multiplier,
+        "wave_counts_scaled": scaled_counts,
+        "wave_count_cap": "engine/native-visible cap; no extra City spawn cap",
     }
     return output, report
 
 
 def apply_module(module: Path, wave_global: int | None = None,
-                 speed_loop: bool = False) -> dict:
+                 speed_loop: bool = False,
+                 wave_count_multiplier: int = 1) -> dict:
     path = Path(module) / "mission_templates.txt"
     updated, report = patch_mission_text(path.read_text(encoding="utf-8"),
                                          wave_global=wave_global,
-                                         speed_loop=speed_loop)
+                                         speed_loop=speed_loop,
+                                         wave_count_multiplier=wave_count_multiplier)
     path.write_text(updated, encoding="utf-8", newline="")
     return report

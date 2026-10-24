@@ -1,0 +1,127 @@
+{
+  "schema": "zombieee.nextplay.v1",
+  "name": "NEXTPLAY task-89",
+  "generated_utc": "2026-10-24T18:30:00Z",
+  "source_base": "ce600ee (agent/a-ranged-fix / PLAYBUILD)",
+  "branch": "agent/a-nextplay",
+  "package": "C:\\Users\\yigit\\AppData\\Local\\Temp\\zombieee-a\\nextplay\\ZOMBIEEE_Remaster",
+  "module_sha256": "c62f0bcd0d0b6aff3959df1f753eee1dbb0f528e548d00442f24da54fd52aa88",
+  "receipt_sha256": "f3e03ed5ec32d037a756fb63ad5c9cfb20efc80ee23104e25633b357480a3772",
+  "included": [
+    "task-84 hold-ground/no-chase: mordr_stand_ground(11)+hold/fire_at_will/use_ranged, no 1730, 1737=0, aggressiveness 0",
+    "task-81 zombie targets: speed base 50 +4/wave cap 85; HP target 67.5% via strength (actual per-troop recorded); proficiency x0.5; wave counts x2 (1->2,8->16,1->2,1->2)",
+    "task-82 ranged base: crossbow/archery +50/+20, firearm accuracy item +10..15, no 1730",
+    "P2 play base: add_visitors group_no 5..7, native speed off/on verifier, P0 trigger14 table/guard"
+  ],
+  "excluded": [
+    "formation abc6e51",
+    "heroes/morale",
+    "ammo panic",
+    "heatmap/hit",
+    "special zombies"
+  ],
+  "receipt": {
+    "native_wave_patch": {
+      "schema": "zombieee.native-wave-patch.v1",
+      "trigger14_wave_table_patched": true,
+      "trigger14_slot_writes_changed": 25,
+      "invalid_faction_writes_guarded": 4,
+      "trigger15_speed_loop_appended": true,
+      "speed_loop_disabled_for_bisect": false,
+      "slow_troop": 894,
+      "speed_base": 50,
+      "speed_per_wave": 4,
+      "speed_cap": 85,
+      "wave_composition_changed": true,
+      "wave_count_multiplier": 2,
+      "wave_counts_scaled": [
+        {
+          "before": 1,
+          "after": 2
+        },
+        {
+          "before": 8,
+          "after": 16
+        },
+        {
+          "before": 1,
+          "after": 2
+        },
+        {
+          "before": 1,
+          "after": 2
+        }
+      ],
+      "wave_count_cap": "engine/native-visible cap; no extra City spawn cap"
+    },
+    "zombie_nerf": {
+      "changed_count": 14,
+      "hp_factor_target": 0.675,
+      "hp_formula": "35 + 2*strength (2012 module convention)",
+      "proficiency_factor": 0.5,
+      "armor_unchanged": true,
+      "headshot_lethality": "not changed in this build; separate item/armor task"
+    },
+    "survivor_proficiency": {
+      "archery_delta": 20,
+      "crossbow_delta": 50,
+      "changed": [
+        {
+          "troop": "trp_zdr_commando_bot",
+          "archery_before": 80,
+          "archery_after": 100,
+          "crossbow_before": 150,
+          "crossbow_after": 200
+        },
+        {
+          "troop": "trp_zdr_sniper_bot",
+          "archery_before": 80,
+          "archery_after": 100,
+          "crossbow_before": 180,
+          "crossbow_after": 230
+        },
+        {
+          "troop": "trp_zdr_scout_bot",
+          "archery_before": 80,
+          "archery_after": 100,
+          "crossbow_before": 120,
+          "crossbow_after": 170
+        },
+        {
+          "troop": "trp_zdr_lumberjack_bot",
+          "archery_before": 80,
+          "archery_after": 100,
+          "crossbow_before": 100,
+          "crossbow_after": 150
+        }
+      ]
+    },
+    "city": {
+      "defensive_line": true,
+      "hold_entries": [
+        0,
+        1,
+        0
+      ],
+      "firearm_class": "crossbow_type_ranged",
+      "ai_accuracy_modifier": 100,
+      "ai_reload_speed_modifier": 100,
+      "prevent_charge": "mordr_stand_ground/hold + fire_at_will/use_ranged + no 1730 + 1737=0 + aggressiveness=0",
+      "accuracy_modifier_note": "2092 readback was 100 in D seal; setter values >100 not observable, so this build claims 100 and relies on proficiency/item accuracy"
+    }
+  },
+  "validation": {
+    "build": "pass",
+    "chain_off": "pass",
+    "chain_on": "pass",
+    "suite": "617 tests, only two pre-existing release-traceability failures",
+    "runtime_verified": false
+  },
+  "acceptance": "none",
+  "notes": [
+    "accuracy 2092/2094 set to 100 because D seal read back 100 (setter >100 not observable); accuracy buff comes from crossbow proficiency/item accuracy",
+    "zombie HP formula assumption 35+2*strength; per-troop realized ratios in receipt; armor/headshot unchanged (gap)",
+    "wave count cap is engine/native-visible; no extra City spawn cap",
+    "console adaptive_sample spam is C probe; must be gated server-side for clean screenshots"
+  ]
+}
