@@ -223,6 +223,38 @@ derived from `ai_sample` displacement), `engagement.{kills_team0,kills_team1}`
 flag, bounded event-type counts). `player_*` lifecycle events remain
 observed-only and are reported as absent, not zero, in playerless mode.
 
+### Roster classes for sealed AI evidence
+
+The bounded `msfiles/ID_troops.py` label table now covers the documented
+Zombie/defender roster: generic faction-default placeholders `873`/`874`, the
+native invader block `894..911` (the exact range A's `native_roster_patch`
+scans for `fac_kingdom_invaders`, end-exclusive `912`), defender clones
+`981..984` (`trp_zdr_commando_bot`/`sniper`/`scout`/`lumberjack`), old
+survivor troops `875..878` and mercenary `32`/`33`. The 2012 module has
+duplicated invader names, so later duplicates carry an explicit id suffix
+(e.g. `trp_invader4_multiplayer_ai_905`); classification is always by ID
+range, so a label cannot change the class.
+
+The summary adds `troops.classes` (`generic`, `native_zombie`, `defender`,
+`survivor`, `unknown`) and `troops.roster`
+(`generic/native_zombie/defender_observed`, `*_ids`, `unknown_id_count`) on
+top of the per-team histograms. Unknown ids stay numeric and counted. When a
+histogram is sealed but no `894..911` id appears, the summary raises
+`native_zombie_roster_not_observed`; it never upgrades a label to a roster
+claim.
+
+**Telemetry side effects of A's `native_roster_patch` (read-only review):** it
+edits only the compiled body of `multiplayer_find_bot_troop_and_group_for_spawn`
+(the faction-conditional troop range); it inserts **no mission trigger**, so
+the C probe's appended trigger indices (`boot|triggers=31`, entry=`31`,
+heartbeat=`32`) and the historical trigger-14/32 evidence mapping stay valid.
+It appends troop records `981..984` after the original `981` (IDs `0..980`
+unchanged), adds globals, and assigns defenders to divisions 5–7 with hold
+orders — which C's existing `combat_sample` path already samples for
+non-player team-0 agents. The build receipt gains `native_roster_patch`
+(ignored by C's allowlisted collector). No ZDB1 or recorder-wire change is
+required.
+
 A module rebuild is required for a live run to emit the new fields: copy
 `overlay/lua/main.lua`, `overlay/lua/msfiles/header_operations.py` and
 `overlay/lua/msfiles/ID_troops.py` into the built module (the normal

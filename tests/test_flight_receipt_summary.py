@@ -361,5 +361,37 @@ class ReceiptSummaryTests(unittest.TestCase):
         self.assertIsNone(summary["teams"]["bots_team0"])
         self.assertIsNone(summary["teams"]["bots_team1"])
 
+
+    def test_roster_classification_separates_generic_native_and_defender(self):
+        lines = [
+            "ZDB1|heartbeat|count=1|role=server|team0=8|team1=41|wave=1"
+            "|game_type=7|ready_for_spawn=1|troops_team0=981:4,877:4"
+            "|troops_team1=873:32,894:9,897:5,700:2"
+            "|troop_names_team1=894:trp_invader1_multiplayer_ai"
+            "|troop_names_team0=981:trp_zdr_commando_bot",
+        ]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        classes = summary["troops"]["classes"]
+        self.assertEqual(classes["generic"], {873: 32})
+        self.assertEqual(classes["native_zombie"], {894: 9, 897: 5})
+        self.assertEqual(classes["defender"], {981: 4})
+        self.assertEqual(classes["survivor"], {877: 4})
+        self.assertEqual(classes["unknown"], {700: 2})
+        roster = summary["troops"]["roster"]
+        self.assertTrue(roster["native_zombie_observed"])
+        self.assertTrue(roster["generic_observed"])
+        self.assertTrue(roster["defender_observed"])
+        self.assertEqual(roster["unknown_id_count"], 1)
+        self.assertNotIn("native_zombie_roster_not_observed", summary["evidence_gaps"])
+        text = format_summary(summary)
+        self.assertIn("roster:", text)
+
+    def test_missing_native_zombie_roster_is_flagged(self):
+        lines = ["ZDB1|heartbeat|count=1|role=server|team0=1|team1=41|wave=1"
+                 "|troops_team1=873:32"]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        self.assertFalse(summary["troops"]["roster"]["native_zombie_observed"])
+        self.assertIn("native_zombie_roster_not_observed", summary["evidence_gaps"])
+
 if __name__ == "__main__":
     unittest.main()
