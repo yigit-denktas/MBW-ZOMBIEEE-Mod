@@ -1195,6 +1195,11 @@ if ok_entry then
 else
     emit("probe_failed", "|kind=entry")
 end
+-- Heartbeat counters must be locals declared before the function; otherwise
+-- the heartbeat references nil globals (Lua error every 15 s).
+local hit_events = 0
+local hit_attempts = 0
+local hit_param_invalid = 0
 local function heartbeat()
     heartbeat_count = heartbeat_count + 1
     -- At most 480 periodic records (~2 h at 15 s each).
@@ -1237,8 +1242,9 @@ local function heartbeat()
             .. "|team0=" .. (world.ok and world.team0 or -1)
             .. "|team1=" .. (world.ok and world.team1 or -1)
             .. "|template=" .. current_mission() .. state_fields(world) .. skip_fields(world)
-            .. "|hit_attempts=" .. hit_attempts .. "|hit_events=" .. hit_events
-            .. "|hit_param_invalid=" .. hit_param_invalid)
+            .. "|hit_attempts=" .. (hit_attempts or 0)
+            .. "|hit_events=" .. (hit_events or 0)
+            .. "|hit_param_invalid=" .. (hit_param_invalid or 0))
         local round_start = global_int("g_round_start_time")
         if role == "server" then
             if wave >= 0 and wave ~= previous_wave then
@@ -1305,9 +1311,6 @@ local function heartbeat()
     end
     return false
 end
-local hit_events = 0
-local hit_attempts = 0
-local hit_param_invalid = 0
 local hit_handler_anomaly_emitted = false
 local hit_cap_emitted = false
 local MAX_HIT_EVENTS = 2000

@@ -560,5 +560,14 @@ class LuaOperationMetadataTests(unittest.TestCase):
             source = header_text() if token.endswith(("1772", "1773", "1720")) else self.main
             self.assertIn(token, source)
 
+
+    def test_heartbeat_counters_nil_safe_and_declared_first(self):
+        hb = self.main.index("local function heartbeat()")
+        for token in ("local hit_events = 0", "local hit_attempts = 0",
+                      "local hit_param_invalid = 0"):
+            self.assertLess(self.main.index(token), hb, token)
+        self.assertIn("(hit_param_invalid or 0)", self.main)
+        self.assertIn("(hit_attempts or 0)", self.main)
+
 if __name__ == "__main__":
     unittest.main()
