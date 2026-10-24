@@ -1516,7 +1516,9 @@ local function on_agent_hit_consequence()
         hit_param_invalid = hit_param_invalid + 1
         if not hit_handler_anomaly_emitted then
             hit_handler_anomaly_emitted = true
-            emit("probe_anomaly", "|kind=hit_params_invalid|attempt=" .. hit_attempts)
+            emit("probe_anomaly", "|kind=hit_params_invalid|attempt=" .. hit_attempts
+                .. "|generic_type=" .. type(game.store_trigger_param)
+                .. "|specific_type=" .. type(game.store_trigger_param_1))
         end
         return
     end
