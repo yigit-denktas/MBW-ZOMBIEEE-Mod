@@ -26,6 +26,29 @@ from pathlib import Path
 from .install import MODULE_NAME, InstallError, read_module_manifest
 
 SCHEMA = 'zombieee.profile-matrix.v1'
+SUMMARY_SCHEMA = 'zombieee.receipt-summary.v1'
+SUMMARY_PATHS = {
+    'team0_bots_latest': 'composition.team0.bots',
+    'team0_bots_max': 'teams.bots_team0',
+    'team0_agents_max': 'teams.max_team0',
+    'team1_troops': 'troops.team1',
+    'native_zombie_ids': 'troops.roster.native_zombie_ids',
+    'generic_ids': 'troops.roster.generic_ids',
+    'wave1_team1_classes': 'waves.wave1.team1_classes',
+    'defender_troops': 'defenders.troops',
+    'defender_observed': 'defenders.observed',
+    'defender_division_source': 'defenders.division_source',
+    'team0_positions': 'positions.team0',
+    'defender_guard_entries_reached': 'defenders.guard_entries_reached',
+    'defenders_moving': 'defenders.moving',
+    'waves_observed': 'waves.observed',
+    'waves_max': 'waves.max',
+    'rounds_count': 'rounds.count',
+    'composition_mode': 'composition.mode',
+    'no_player': 'no_player',
+    'evidence_gaps': 'evidence_gaps',
+    'runtime_verified': 'runtime_verified',
+}
 REAR_HOLD_ENTRIES = [0, 1, 0]
 RECEIPT_FIELDS = (
     'enemy_profile',
@@ -358,18 +381,35 @@ def build_profile_matrix(plan, *, installed=None, expected_zombie_block='stock',
             'defender_loadout_profile': installed.get('defender_loadout_profile'),
             'rotation_sha256': plan.get('rotation_sha256'),
             'receipt_fields': list(RECEIPT_FIELDS),
+            'summary_schema': SUMMARY_SCHEMA,
+            'summary_paths': dict(SUMMARY_PATHS),
             'summary_checks': [
-                'composition/teams: team-0 bots == %s (native defenders)'
+                'composition.team0.bots == %s (latest snapshot; null = '
+                'unknown, not 0); corroborate with teams.bots_team0 / '
+                'teams.max_team0'
                 % plan.get('team0_bots'),
-                'troops.team0: defender troop ids %s'
+                'defenders.troops contains 981..984 (%s) when '
+                'defenders.observed; cross-check defenders.division_source, '
+                'troops.team0 and troops.roster.defender_ids'
                 % (installed.get('defender_troops') or 'unknown from receipt'),
-                'troops.team1 generic candidates: %s'
+                'troops.team1 + troops.roster.native_zombie_ids/generic_ids '
+                'should show %s; wave scope: waves.wave1.team1_classes'
                 % ((installed.get('invader_troops') or 'unknown')
-                   if plan.get('team2_bots') else 'none (native-only)'),
-                'hold: positions near rear spawn line entries 0/1; sector '
-                'rotation is per wave parity',
-                'zombie block: %s; runtime block behaviour only from the '
-                'sealed summary' % expected_zombie_block,
+                   if plan.get('team2_bots') else 'no generic bots (native-only)'),
+                'hold: positions.team0.centroid/spread/sampled near rear '
+                'entries 0/1; defenders.moving/positions_sampled; '
+                'defenders.guard_entries_reached is a bounded cap-16 coarse '
+                'proxy, NOT guard-entry identity',
+                'zombie block is unavailable from telemetry: '
+                'defenders.shield is always null and '
+                'shield_telemetry_unavailable is an evidence gap; assert '
+                'troop ids / waves.wave1.team1_classes, not shields '
+                '(receipt expects %s)' % expected_zombie_block,
+                'waves.observed/max/multiple_observed, rounds.count/'
+                'multiple_observed/identity_unstable, composition.mode, '
+                'no_player, events.pre_round_only; a pre-round-only run has '
+                'waves.max=null plus an evidence_gaps entry (expected, not '
+                'negative evidence)',
                 'wave-1 visitors: %s gating (slow = wave slots 200..244 '
                 'resolve to Zombie 894 only)' % expected_wave_visitors,
                 'defender refill: spawn_agent to target %s (%s) when below '
@@ -377,8 +417,9 @@ def build_profile_matrix(plan, *, installed=None, expected_zombie_block='stock',
                 % (installed.get('defender_target'),
                    'enabled' if installed.get('defender_reinforce')
                    else 'disabled'),
-                'waves/rounds: expected from the sealed summary when a round '
-                'starts with a connected player',
+                'top-level evidence_gaps lists unknowns (not "gaps"); '
+                'runtime_verified stays false; no_player reads the last '
+                'heartbeat so read it with composition.mode',
             ],
         },
         'installed': installed,

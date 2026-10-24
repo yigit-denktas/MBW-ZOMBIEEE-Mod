@@ -385,7 +385,15 @@ native-only `fbfb3d93…237e`), the expected wave-1 generic troop ids from the
 installed build receipt (`894` only for A's weak roster), defender troop ids
 (`981..984` for the balanced-ai clones), rear hold entries `[0, 1, 0]`, zombie
 block mode (stock vs shield patch), map scope/trigger count and the launch
-receipt fields D must assert.
+receipt fields D must assert. `expected.summary_paths` maps each assertion to
+C's `zombieee.receipt-summary.v1` paths (`composition.team0.bots`,
+`teams.bots_team0`, `defenders.troops`, `troops.team1`,
+`waves.wave1.team1_classes`, `positions.team0.centroid`,
+`defenders.guard_entries_reached` as a bounded cap-16 coarse proxy, top-level
+`evidence_gaps`); `defenders.shield` is always `null` (no shield getter), so
+the planner never encodes a shield expectation and reports block as
+telemetry-unavailable. A pre-round-only sealed run legitimately shows
+`waves.max=null` plus an `evidence_gaps` entry.
 
 A's task-34 wave gating/refill receipt fields are covered too: the planner
 reports `wave_visitors` (`slow` = every native wave slot 200..244 resolves to
