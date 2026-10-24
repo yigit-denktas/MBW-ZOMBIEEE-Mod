@@ -82,6 +82,34 @@ A locally authored minimal `overlay/lua/msfiles/header_operations.py` maps only 
 New offline codes: **R023** candidate ammunition depletion, **R024** prolonged engagement with no observed defender kill increments, **R025** hotkey execution inconsistent with build receipt, **R026** missing AI combat observability. The final JSON and Markdown reports include an **acceptance evidence matrix** for engine startup, mission entry, zombie waves, allied agents, combat activity, fallback/regroup and private commands. Unknown does not mean failed or passed. An error-free log is not proof of playability. [Full forensic reference](FORENSIC_DIAGNOSTICS.md).
 
 
+## Dedicated bot-count configuration is not bot telemetry
+
+The v0.1.8 probe now emits `|opmeta=1` in `recorder_capabilities` and adds
+`game_type` (`g_multiplayer_game_type`), `ready_for_spawn`
+(`g_multiplayer_ready_for_spawning_agent`), `bots_team1`
+(`g_multiplayer_num_bots_team_1`) and `round_start` (`g_round_start_time`)
+next to the existing tactical `mode` (`zdr_defence_mode`), which is never the
+game type. These are read-only `game.gvar` reads; a missing global is `-1`
+(unknown), never 0.
+
+**First observed enemy wave (2026-10-24, merged `main@4c56242` rebuild):** an
+unconfigured dedicated rotation produced `team1=0 wave=0` while the corrected
+probe already reported `role=server`, `game_type=7`,
+`ready_for_spawn=1`. Adding the 1-based second-team bot count to the
+dedicated rotation (`set_bot_count 2 32`) produced
+`agents=42 team0=1 team1=41 wave=1` and a `wave_change` event. The earlier
+absence of team-1 agents was therefore a dedicated rotation configuration
+gap, not a build or probe artefact.
+
+`bots_team1` is the `g_multiplayer_num_bots_team_1` global and stayed 0 even
+while team 1 held 41 agents: the rotation command is 1-based
+(`set_bot_count 2 ...` addresses the enemy team) while that global names the
+first team. **Do not read `bots_team1=0` as "no enemy bots"** and never infer
+population from it — the measured `team1` agent count is the only evidence.
+The launcher/installer must establish bot counts before `start` (B's lane).
+One observed `wave=1` is not wave completion, AI combat or gameplay
+acceptance.
+
 ## Agent C: external flight recorder (development prototype)
 
 **Status: offline prototype on `agent/c-flight-recorder`; Windows/WSE2 integration not verified.** The recorder runs as a separate Python process, observes a subprocess launched with `--` or a pre-existing PID with `--observe-pid`, and independently stores atomic, bounded evidence snapshots. No game memory injection, shell execution, external telemetry or background uploads. It does not replace the final WSE2 session.
