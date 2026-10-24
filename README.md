@@ -1,101 +1,148 @@
-# ZOMBIEEE — Restoration & Remaster
+# ZOMBIEEE — Remaster & Preservation
 
-Modernization of the **2012 ZOMBIEEE (Invasion) Beta 0.4** mod for *Mount & Blade: Warband*. Original contributors retain credit and ownership of their work.
+A private, City-first compatibility rebuild of the 2012 **ZOMBIEEE (Invasion) Beta 0.4** multiplayer mod for *Mount & Blade: Warband* — built from a legally owned original archive, instrumented with a local flight recorder, and documented without overclaiming.
 
-**Current project version:** `0.1.8` (development scaffold; **not yet playable/engine-verified**).  
-**Target:** Warband official 1.174 data format under [WSE2](https://github.com/Ruslan-700/WSE2-Releases/releases/tag/v1.1.5.4) 1.1.5.4 (14 October 2026).  
-**Scope:** preserve the original guns, zombies, wave mode, maps and feel; restore current-runtime compatibility; add AI survivor teammates, defensible hold points, quality-of-life features, private cheats, and later LAN co-op. **ZOMBIEEE2 is explicitly excluded.**
+> **Status: not playable and not engine-verified.** This repository is a development and evidence scaffold. The real play loop has not been accepted, the City wave roster is still being fixed, and the City release sits at **0/23 required outcomes / 0/5 accepted milestones** with `runtime_verified=false` everywhere. Do not treat any build here as a working game or a release.
 
-## Requirements and local development
+## Scope
 
-Obtain a legitimate Warband installation, your own original `ZOMBIEEEBeta04.rar`, 7-Zip and Python 3.10+. The source archive is **not** distributed here.
+- **Engine target:** official Warband data format **1.174** under [WSE2 **1.1.5.4**](https://github.com/Ruslan-700/WSE2-Releases/releases/tag/v1.1.5.4).
+- **Historical input:** *your own* 2012 `ZOMBIEEEBeta04.rar`; no original assets are distributed here.
+- **First release scope:** the original **City** invasion (`tbfc_invasion_4` / mission `multiplayer_iv`) only. The other four original maps are deferred; the independent *ZOMBIEEE2* continuation is excluded.
+- **Goal:** preserve the original guns, zombies, wave mode, maps and feel; restore current-runtime compatibility; then add survivor AI, defensible hold points, quality-of-life options and, later, private LAN co-op.
+
+## What works today (offline only)
+
+- **Deterministic build from your own archive.** `tools/build.py` verifies the pinned archive identity (size/SHA-256), runs a real 7-Zip integrity/extraction pass, stages a clean copy, applies a small reviewed overlay and refuses to overwrite an existing install without `--replace`. It does not modify or redistribute the original RAR.
+- **City-only native variants.** Optional append-only patches add allied defenders, navmesh-derived City guard posts, once-per-wave survivor top-ups and a fallback/regroup controller. The original 25 invasion triggers are preserved byte-identically in default mode; each optional variant is statically validated and counted in the build receipt (`city_static_acceptance`, `city_final_acceptance`).
+- **Read-only static verifiers.** Archive identity/CRC audit, compiled-mission preflight, City chain verification, doctor and round-lifecycle audit all run without starting the game.
+- **Local flight recorder and diagnostics.** The recorder seals a hashed, redacted session bundle; `tools/diagnostics.py summary <attempt-dir>` verifies the manifest and reports what was actually observed, failing closed on tampering.
+- **Windows discovery/rotation groundwork.** Offline discovery of owned Warband/WSE2 installs and a validated dedicated-host rotation builder, both exercised only against fake fixtures so far.
+- **Offline regression suite.** See [Testing](#testing) for the current count on this machine.
+
+## What does not work yet
+
+- **No accepted end-to-end play loop.** Launch → join → City mission → weapon/supply use → wave progression → round transition → clean stop has not been demonstrated with sealed evidence.
+- **AI/roster work is in progress.** A first real enemy wave was observed on a merged-main candidate (`set_bot_count 2 32` → `team1=41`, `wave=1`), but those bots were the faction-default **Crazed Civilian**, not native Zombie troops. Native roster selection, wave 2+, allied defender divisions 5–7 and respawn/round behaviour remain open (issues [#13](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/13), [#14](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/14)).
+- **Evidence is not sealed yet.** Host-stdout sealing and the receipt summary are merged (issue [#16](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/16), now closed), but no sealed attempt containing the live `ZDB1` probe stream has been accepted.
+- **One-click launcher/installer is not finished.** Install planning is dry-run only; there is no journaled installer, desktop shortcut or automatic join that has actually run (issues [#8](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/8), [#9](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/9)).
+
+## Prerequisites
+
+You must supply, and keep private, everything proprietary:
+
+1. A **legitimately owned** *Mount & Blade: Warband* installation using the official **1.174** data format.
+2. Your own copy of **`ZOMBIEEEBeta04.rar`** (ZOMBIEEE Beta 0.4, 2012). It is **not** provided by this repository. Pinned identity: `167,493,071` bytes, SHA-256 `9be100ff41ce6f8ebadd4aa27377f70f402883fab271999a8cab8cc1da001d1e` (see [reference/ARCHIVE.txt](reference/ARCHIVE.txt)).
+3. [WSE2 v1.1.5.4](https://github.com/Ruslan-700/WSE2-Releases/releases/tag/v1.1.5.4) installed separately. WSE2 is a third-party runtime, not an official release and not Bannerlord.
+4. **7-Zip** available on `PATH`, since the builder performs the real archive integrity and extraction pass.
+5. **Python 3.10+** as `py -3` (or `python`). The offline tooling and tests also run on non-Windows systems.
+
+## Build
+
+Paths below are examples only — never commit real local paths.
+
+```powershell
+# 1. Verify the archive identity and (optionally) its member CRC with 7-Zip.
+py -3 tools\archive_audit.py --archive "D:\path\to\ZOMBIEEEBeta04.rar" --verify-crc --json
+
+# 2. Build the current City tactical variant into your Warband Modules\ folder.
+py -3 tools\build.py --archive "D:\path\to\ZOMBIEEEBeta04.rar" `
+  --out "D:\Warband\Modules\ZOMBIEEE_Remaster" `
+  --experimental-defenders 4 --city-guardposts --wave-reinforcements --tactical-recovery
+
+# 3. Read-only static checks against the built module.
+py -3 tools\doctor.py --module "D:\Warband\Modules\ZOMBIEEE_Remaster"
+py -3 tools\preflight.py --module "D:\Warband\Modules\ZOMBIEEE_Remaster" --json
+py -3 tools\verify_city_chain.py --original "D:\path\to\extracted\ZOMBIEEE" `
+  --archive "D:\path\to\ZOMBIEEEBeta04.rar" --json
+```
+
+| Variant | Extra flags |
+| --- | --- |
+| Baseline original invasion (25 triggers) | *(none)* |
+| City tactical core | `--experimental-defenders 4 --city-guardposts --wave-reinforcements --tactical-recovery` |
+| Balanced AI-only loadouts | add `--defender-loadouts balanced-ai` (requires defenders) |
+| Support difficulty | add `--difficulty story\|standard\|hard\|nightmare` (non-standard requires `--wave-reinforcements`) |
+| Private host controls / solo assist | add `--private-commands` *(requires `--tactical-recovery`)* **or** `--solo-assist` — mutually exclusive |
+| All five original maps (deferred scope) | `--all-map-defenses` instead of `--city-guardposts` |
+
+`tools/build.py` refuses to overwrite an existing destination; move it aside or pass `--replace` only after taking a backup. The complete optional profiles are counted in the receipt and are **not** claimed playable.
+
+## Testing
 
 ```powershell
 py -3 -m unittest discover -s tests -v
-py -3 tools\build.py --archive "C:\Downloads\ZOMBIEEEBeta04.rar" --out "C:\Games\MountBlade Warband\Modules\ZOMBIEEE_Remaster"
-py -3 tools\doctor.py --module "C:\Games\MountBlade Warband\Modules\ZOMBIEEE_Remaster"
-py -3 tools\preflight.py --module "C:\Games\MountBlade Warband\Modules\ZOMBIEEE_Remaster" --json
-py -3 tools\trace_calls.py --module "C:\Games\MountBlade Warband\Modules\ZOMBIEEE_Remaster" --json
 ```
 
-Install [WSE2](https://github.com/Ruslan-700/WSE2-Releases/releases/tag/v1.1.5.4) separately. Select `ZOMBIEEE_Remaster` in the launcher. The installer checks the original archive digest and 7-Zip integrity, stages a clean copy, applies a small overlay, and refuses to overwrite an existing installation without `--replace`.
+Tests are offline and require **no game launch**. Set `ZOMBIEEE_ORIGINAL_MODULE` and `ZOMBIEEE_ORIGINAL_ARCHIVE` to your private extracted module and original RAR to enable the original-asset source tests; without them those tests skip explicitly rather than pass by default. There is **no CI** by owner choice.
 
-## Project documents
+Latest recorded run (2026-10-24, Windows 11, Python 3.11.9, rebased on `main` `3823168`): **410 tests discovered, 7 skipped, 1 error**. The error is a pre-existing Windows-only launcher bug (`test_windows_discovery…` passes an embedded-NUL path to `os.scandir`) and also fails on unmodified `main`; it is not caused by docs changes, but the suite must not be described as green until it is fixed.
 
-- [Development roadmap](docs/ROADMAP.md)
-- [Manual engine validation](docs/MANUAL_TESTS.md)
-- [Provenance and redistribution](docs/PROVENANCE.md)
-- [Engine target](docs/ENGINE.md)
-- [Next development handoff](docs/NEXT_RUN.md)
-- [Original invasion bot-call reconstruction](docs/BOT_RECON.md)
-- [Experimental allied defenders](docs/EXPERIMENTAL_DEFENDERS.md)
-- [City tactical defence overlay](docs/CITY_DEFENSE.md)
-- [Five-map defences and wave reinforcements](docs/FIVE_MAP_WAVES.md)
-- [Tactical fallback, regroup and movement diagnostics](docs/TACTICAL_RECOVERY.md)
-- [AI loadouts and solo-host assistance](docs/COMBAT_BALANCE.md)
-- [Forensic recorder, private keys and difficulty](docs/FORENSIC_DIAGNOSTICS.md)
-- [End-of-development diagnostics](docs/DIAGNOSTICS.md)
-- [Version history](CHANGELOG.md)
+## Run (target path — unverified)
 
-## Versioning and status
+The following is the intended private, local-only path. It has **not** been accepted; treat it as a design target:
 
-This project follows [SemVer](https://semver.org/). The historic original mod version `0.4` is **not** a remaster release number. `v0.1.0` identifies tooling and an initial compatibility target, not a working game. Milestone `v0.2.0` requires actual WSE2 startup and wave gameplay evidence. **No CI**; run local tests and capture manual gameplay results. The original 0.4 preflight detects 64 entry points, 25 invasion triggers and 30/30 referenced BRF resources in the supplied original 0.4 archive; these are *static findings*, not a playable game certification.
+1. Build or place `ZOMBIEEE_Remaster` in your Warband `Modules\` folder (step 2 above writes it there).
+2. Launch Warband through **WSE2 1.1.5.4** and select `ZOMBIEEE_Remaster`.
+3. Start the original City invasion locally: mission `multiplayer_iv`, map `tbfc_invasion_4`; keep the listener on loopback (`127.0.0.1`) and make no firewall, port-forwarding or public-server changes.
+4. If you arm the recorder, keep the whole evidence bundle private and inspect it with `py -3 tools\diagnostics.py summary <sealed-attempt-dir>` rather than uploading it.
 
-## Attribution and licensing
+See [docs/MANUAL_TESTS.md](docs/MANUAL_TESTS.md) and [docs/INTEGRATED_CITY_ACCEPTANCE_2026-10-24.md](docs/INTEGRATED_CITY_ACCEPTANCE_2026-10-24.md) for the evidence gates a run must satisfy before anyone may call it working.
 
-Original ZOMBIEEE creators: Artizan, Nemerius, Belendor, BattalGaziTR, Hayalperest and Artintrex; see [PROVENANCE](docs/PROVENANCE.md) for OSP credits. [Original TaleWorlds discussion](https://forums.taleworlds.com/index.php?threads/wb-zombieee-invasion-we-need-your-advice.219327/).
+## Evidence and project record
 
-**Original RAR content, Warband binaries, sounds, textures, models, scenes, and third-party OSP assets must not be committed.** There is no blanket license to redistribute the original material. No CI workflows or third-party executables belong here.
+- **Canonical Project Record ledger** (tracker branch): [progress/ledger.json](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/project-record-setup-v041/progress/ledger.json) — 23 required City outcomes, 0 accepted; milestones 0/5; additional leaves are explicitly non-additive support work.
+- **Public static tracker** (GitHub Pages, documented as observed in the tracker): <https://yigit-denktas.github.io/MBW-ZOMBIEEE-Mod/>
+- **Integrated City acceptance ledger** (14 gates G00–G13, evidence classes and strict semantics): [docs/INTEGRATED_CITY_ACCEPTANCE_2026-10-24.md](docs/INTEGRATED_CITY_ACCEPTANCE_2026-10-24.md)
+- **Diagnostics, recorder and sealed receipts:** [docs/DIAGNOSTICS.md](docs/DIAGNOSTICS.md), [docs/CITY_INCIDENT_V1.md](docs/CITY_INCIDENT_V1.md)
+- **Ownership, permission and archive provenance:** [docs/PROVENANCE.md](docs/PROVENANCE.md), [reference/ARCHIVE.txt](reference/ARCHIVE.txt)
+- **Open work:** [#5](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/5) attribution/legal, [#6](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/6) final-session evidence, [#8](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/8)/[#9](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/9) Windows launcher, [#13](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/13)/[#14](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/14) roster/rotation, [#15](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/15) recorder read race. (`#16` sealing is closed; the live sealed-attempt gate is still open.)
 
-**Experimental 0.1.2:** append `--experimental-defenders 4` to the installer command for four allied survivor bots (allowed 1–8, default off). This adds one server-only mission trigger; no original 0.4 trigger is replaced. Static tests pass, but WSE2 runtime and AI behavior remain unverified. [Full guide](docs/EXPERIMENTAL_DEFENDERS.md). No CI.
+**Evidence bundles never enter Git.** `local/`, `evidence/`, `*.rar`, `*.exe`, `*.dll`, `Modules/` and logs are ignored. The public repository contains tooling, documentation and tests only — no game assets, executables, serial keys, session logs or personal paths.
 
-### No intermediate playtesting required
+## Current status — 2026-10-24
 
-Development continues with static analysis and automated local tests. When the **final integrated candidate** is ready, exit Warband after one private session and run:
+- **Release reality:** City required outcomes **0/23**, accepted milestones **0/5**, `runtime_verified=false`. Every "done" item in the ledger is bounded support work, not release acceptance.
+- **Observed (unsealed, Lead-reported)** on merged main `4c56242` with C's corrected probe: dedicated host loopback-only `127.0.0.1:7240`, `role=server`, `game_type=7`, `ready_for_spawn=1`; `set_bot_count 2 32` produced `team1=41`, `wave=1`. This is a candidate observation, not acceptance.
+- **Open defects:** generic Crazed-Civilian bots instead of native Zombie troops; allied survivor divisions 5–7 not observed taking/holding positions; wave 2+ and round transitions unproven; no sealed `ZDB1` receipt; no journaled installer or automatic join.
+- **Known original quirk:** repeated engine `SCRIPT ERROR: Invalid Faction ID: -1` is decoded as four trailing `faction_set_slot(-1, 200, …)` writes in the 2012 mission (trigger 14), byte-identical to the pinned original prefix. It is non-fatal and not proven causal; no gameplay patch is authorized.
+- **Version:** project version `0.1.8` is a development scaffold. `v0.2.0` is reserved for an actual WSE2 startup + City smoke test, which has not happened. See [CHANGELOG.md](CHANGELOG.md), [docs/ROADMAP.md](docs/ROADMAP.md), [docs/ENGINE.md](docs/ENGINE.md).
 
-    .\tools\Collect-Diagnostics.ps1 -WarbandRoot 'C:\Program Files (x86)\Steam\steamapps\common\MountBlade Warband' -Session final-solo
+## Attribution and permission
 
-This creates a **local, redacted, hashed** evidence ZIP and Markdown diagnostic report. The bundle contains engine logs, mission lifecycle markers, agent counts (if WSE2 exposes them), module hashes and version data. It neither sends data externally nor asks for repeated testing. See [the diagnostics guide](docs/DIAGNOSTICS.md). **Windows gameplay remains unverified.**
+The original **ZOMBIEEE (Invasion) Beta 0.4** was publicly released in 2012 for the Warband community. Its team and credits below were verified from the **archived original TaleWorlds thread OP** (Wayback capture of 2023-10-08; permalink `…/threads/wb-zombieee-invasion-we-need-your-advice.219327/`, first post `/post-5251005`). The live TaleWorlds forum now blocks automated access behind Cloudflare.
 
-### New experimental City positions (v0.1.4)
+**Original team (as listed in the OP):**
 
-Three AI-mesh-derived City guard posts are placed in a **COPY** of the 2012 scene. A private defender squad is split into groups 5, 6 and 7 and receives server-authoritative hold-position orders only when the current map is City. Original 25 triggers and all original zombie entries remain intact. This option is disabled unless explicitly requested:
+| Name | Role |
+| --- | --- |
+| **Artizan** | Scripter, 3D modeller (co-founder) |
+| **Nemerius** (spelled *Nemeruis* in the OP) | Scripter, 3D modeller, textures, 2D art, sounds, music, map editor (thread starter, co-founder) |
+| **Belendor** | Scripter |
+| **BattalGaziTR** | Rigs, animations |
+| **Hayalperest** | Scene prop 3D modeller |
+| **Artintrex** | Research |
 
-```powershell
-py -3 tools\build.py --archive "C:\Downloads\ZOMBIEEEBeta04.rar" --out "C:\Games\MountBlade Warband\Modules\ZOMBIEEE_Remaster" --experimental-defenders 4 --city-guardposts
-```
+**OSP / third-party credits (same OP):** Shredzor's OSP, Arch3r's Invasion OSP, Modern Buildings OSP, Thel's OSP, Polished Landscapes, MatBerserker, Highlander, Revan Shan, Specialist, BattleOfValmy, Belendor, Shikimaru and the WTF clan.
 
-Normal build: 25 invasion triggers. Experimental allies: 26. Allies plus City defence: 27. **Offline compatibility verified against supplied scene and compiled mission data; Windows engine gameplay and AI behaviour remain unverified.** See [technical analysis](docs/CITY_DEFENSE.md).
+**Permission record.** The repository owner personally knew the original ZOMBIEEE team and attests that the original TaleWorlds page explicitly allowed anyone to take and play the mod; this private, local preservation build is treated as authorized on that basis. That attestation is recorded in [docs/PROVENANCE.md](docs/PROVENANCE.md) together with the archived evidence and the list of what remains **unverified** — notably, no re-checkable free-reuse sentence was found in the archived thread pages, because the live page is bot-blocked.
 
-### Experimental 0.1.5: all original maps + wave-aware reinforcements
+**Redistribution is not implied.** The original RAR, its assets, Warband/WSE2 binaries and all third-party OSP content stay under their own terms and **out of this repository**. This project's own code and documentation are separate from the historical mod. If a public packaged release is ever considered, issue [#5](https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues/5) tracks the per-asset provenance/permission work that must happen first.
 
-The original `wave_number` global drives a *separate* server-side survivor top-up to the requested cap once per wave after wave 1. Survivors are counted only if alive, non-player, team 0, in reserved groups 5–7. All five maps now have opt-in navmesh-derived defence markers and map-scoped orders. Source RAR and original zombie waves remain untouched.
+**RAR readme note.** The distributed archive's top-level `Readme.txt` is the 2010 **Nirecotive** readme (*"This is Nirecotive mod. Made by Nireco"*), i.e. the ZOMBIEEE module was built on the Nirecotive multiplayer base. It is not a ZOMBIEEE credits file; see [docs/PROVENANCE.md](docs/PROVENANCE.md).
 
-```powershell
-py -3 tools\build.py --archive "C:\Downloads\ZOMBIEEEBeta04.rar" --out "C:\Games\MountBlade Warband\Modules\ZOMBIEEE_Remaster" --experimental-defenders 4 --all-map-defenses --wave-reinforcements
-```
+## Repository map
 
-The mode is disabled by default. Expected compiled invasion trigger counts: original **25**, allies **26**, map defences **27**, with wave reinforcement **29**. Changes to `variables.txt` and every modified original map are fingerprinted in the final-session diagnostic bundle. Offline scene/mission integration passed; **in-engine behavior is not verified**. [Details](docs/FIVE_MAP_WAVES.md).
+| Path | Contents |
+| --- | --- |
+| `tools/` | Build/install, archive audit, preflight, verification, triage and diagnostics CLIs |
+| `launcher/`, `installer/` | Offline Windows discovery, rotation, host/recorder adapters and install planning |
+| `overlay/` | The remaster module overlay (Lua probe, msfiles metadata) applied at build time |
+| `telemetry/`, `handoffs/` | Recorder protocol contracts and agent/integration handoffs |
+| `docs/` | Provenance, engine target, roadmaps, diagnostics and acceptance ledgers |
+| `reference/` | Archive identity and source-verification reports |
+| `tests/` | Offline regression suite (no game launch) |
 
-### Experimental v0.1.6 — tactical fallback and regroup
+## Notes on honest reporting
 
-A further opt-in native controller counts **living non-player team-0 defenders in reserved groups 5–7** every three seconds. On one or fewer survivors, they are ordered back to the original survivor spawn. Once the squad has recovered to at least three through the existing wave-limited reinforcements, they regroup at the current map's navigation-mesh-derived guard posts. The separate thresholds prevent repeated order switching.
-
-    py -3 tools\build.py --archive "C:\Downloads\ZOMBIEEEBeta04.rar" --out "C:\Games\MountBlade Warband\Modules\ZOMBIEEE_Remaster" --experimental-defenders 4 --all-map-defenses --wave-reinforcements --tactical-recovery
-
-This option requires at least 3 defenders. The full variant contains **31** compiled invasion triggers and **1,222** globals; all 25 original triggers are retained. The default remains the unmodified original 25-trigger invasion. Final-session diagnostics now inspect real wave/tactical values, stalled waves, oscillation and optional defender movement samples when WSE2 exposes the required getters. **No gameplay is yet verified.** Read [the tactical recovery report](docs/TACTICAL_RECOVERY.md).
-
-### v0.1.7 — optional AI loadouts and local solo assistance
-
-Four appended AI-only troops can be enabled via `--defender-loadouts balanced-ai`, leaving all playable class records untouched. Wave reinforcements now rotate class by original wave number. `--solo-assist` adds a separate host-only, one-player/non-dedicated health-and-ammo refill trigger; it does not disable anti-cheat and is disabled by default. The complete optional build has 985 troop entries, 1,222 variables and 32 invasion triggers; baseline remains 981 troops/25 triggers. Gameplay remains unverified.
-
-See [combat and solo assistance](docs/COMBAT_BALANCE.md) for full flags and limitations.
-
-### v0.1.8 — Diagnosable private host commands and support difficulty
-
-- `--private-commands`: one-player listen-host-only **Left Ctrl+F7** heal host, **Ctrl+F8** refill host ammo, **Ctrl+F9** heal/rearm reserved AI defenders. Adds auditable native command counters. Requires full tactical build; disabled by default and mutually exclusive with periodic `--solo-assist`.
-- `--difficulty story|standard|hard|nightmare`: modifies survivor *reinforcement timing and fallback thresholds*, not original zombie HP or wave sizes. Requires `--wave-reinforcements` unless standard.
-- WSE2 read-only Lua operation mappings for bounded defender weapon, ammo, kill-count and movement sampling. Offline forensic analyzer now includes crash/wave/team/combat/command leads, source hashes and an evidence matrix that distinguishes **observed** from **unknown**.
-- Full private-command variant: **35 invasion triggers, 1,225 globals, 985 troops**, with 25 original triggers intact. This is **not a certified playable release**; a single final WSE2/Windows session will produce our integrated evidence.
-
-[See the detailed forensic plan](docs/FORENSIC_DIAGNOSTICS.md).
+This project deliberately separates **source-verified**, **observed**, **unknown** and **failed** evidence, and forbids promoting one class to another. A static build receipt, a self-reported test count or a log line is not playability. If a run is incomplete, missing telemetry is reported as `unknown`, never as zero, pass or success.

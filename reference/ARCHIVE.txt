@@ -3,6 +3,44 @@ Size: 167493071 bytes
 SHA-256: 9be100ff41ce6f8ebadd4aa27377f70f402883fab271999a8cab8cc1da001d1e
 Format: RAR4
 Historical release: ZOMBIEEE Beta 0.4 (2012)
-Original archival inspection: 1086 archive entries.
-Some decoder methods reported 99 member errors; re-test with Windows 7-Zip before deploying.
+Original archival inspection: 1,086 archive blocks = 1,068 files in 18 folders, extracted size
+  375,675,811 bytes, file timestamps 2010-2012.
 Original mod files are not part of this public repository.
+
+Archive layout
+- One top-level directory, `ZOMBIEEE/`, containing the compiled module data (`*.txt`),
+  `Resource/` BRF files, `Textures/`, `Sounds/`, `Music/`, `SceneObj/`, `languages/` and a few loose
+  images. No installer, no source `.py` module system and no standalone licence document.
+- The archive is a **client/demo-style release of Beta 0.4**, not a build from the original module
+  sources. Treat every file in it as third-party historical content.
+
+Credits / readme inside the archive
+- The only top-level readme is `ZOMBIEEE/Readme.txt` (495 bytes, dated 2010-10-16, SHA-256
+  `BFA9CE6452954A6F59622C573351B4481DFD6E1FC44DDB15D3429CCC68552C29`). It reads
+  "This is Nirecotive mod. Made by Nireco" and lists Nirecotive server features, so it is the base
+  mod's readme left in place — **not** a ZOMBIEEE credits file. `Data/`, `Textures/`, `Resource/`,
+  `Music/` and `languages/` contain only the stock Warband placeholder readmes.
+- ZOMBIEEE's own authorship and credits therefore come from the **archived original TaleWorlds
+  thread** (post `/post-5251005`, Wayback capture 2023-10-08), not from the archive. Team, roles,
+  OSP credits and the permission record are in [`docs/PROVENANCE.md`](../docs/PROVENANCE.md).
+
+Integrity
+- The pinned size/SHA-256 identity above is enforced by `tools/archive_audit.py` and
+  `tools/build.py` before extraction or installation.
+- A full member-CRC test requires 7-Zip. A Windows `7z t` run on 2026-10-23 was reported to pass all
+  1,068 files (see [`docs/ENGINE.md`](../docs/ENGINE.md)); an older libarchive-based inspection could
+  not decode 99 members and must never be used to install. Always re-run `7z t`/`build.py` with
+  real 7-Zip before deploying.
+
+Redistribution and handling
+- The archive is owner-supplied and private. Never commit it, extract it into a tracked path,
+  publish it, or bundle it with any release or diagnostic artifact.
+- `tools/build.py` refuses to overwrite an existing install; back up before passing `--replace`.
+- All extracted/built original assets stay local (`local/` and `evidence/` are gitignored). See
+  [`docs/PROVENANCE.md`](../docs/PROVENANCE.md) §4 for the asset/evidence boundary.
+
+Read-only inspection commands
+
+   7z l ZOMBIEEEBeta04.rar
+   7z t ZOMBIEEEBeta04.rar
+   py -3 tools\archive_audit.py --archive "path\to\ZOMBIEEEBeta04.rar" --verify-crc --json
