@@ -52,7 +52,11 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None) -> str:
         # Native team-0 bots (proven engine spawn path; team-0 add_visitors
         # produced no allies in D's sealed run) are adopted into the reserved
         # divisions 5-7 round-robin before the sector orders are issued.
-        l0, l1, l2, l3 = (str(LOCAL0 + n) for n in (0, 1, 2, 3))
+        l0, l1, l2, l3, l4 = (str(LOCAL0 + n) for n in (0, 1, 2, 3, 4))
+        l5, l6, l7 = (str(LOCAL0 + n) for n in (5, 6, 7))
+        # Sector rotation parity is computed once and shared by the scripted
+        # destination fallback and the team orders below.
+        ops.append(["2119", "3", l5, str(wave_global), "2"])  # store_mod parity
         ops.append(["2133", "2", l0, "0"])                 # count = 0
         ops.append(["12", "1", l1])                        # try_for_agents
         ops.append(["1702", "1", l1])                      # agent_is_alive
@@ -63,11 +67,17 @@ def orders_trigger(scene_idx: int, wave_global: int | None = None) -> str:
         ops.append(["2120", "3", l3, l3, "5"])             # division 5..7
         ops.append(["1783", "2", l1, l3])                  # agent_set_division
         ops.append(["1766", "2", l1, l3])                  # agent_set_group (order sub_class)
+        # Per-agent scripted destination fallback: even if the engine ignores
+        # the group of a native team-0 bot, the bot still moves to and holds its
+        # rotated sector post instead of staying at the spawn point.
+        ops.append(["2121", "3", l4, l3, "5"])            # division - 5
+        ops.append(["2120", "3", l4, l4, l5])               # + wave parity
+        ops.append(["2119", "3", l4, l4, "3"])             # % 3 sectors
+        ops.append(["2120", "3", l4, l4, "2"])             # + first guard entry
+        ops.append(["1780", "2", str(pos), l4])            # dynamic entry position
+        ops.append(["1730", "4", l1, str(pos), "1", "0"])  # agent_set_scripted_destination
         ops.append(["2120", "3", l0, l0, "1"])             # count += 1
         ops.append(["3", "0"])                             # try_end
-        # l5 = wave parity; per division: entry = 2 + ((division-5 + parity) % 3)
-        l5, l6, l7 = (str(LOCAL0 + n) for n in (5, 6, 7))
-        ops.append(["2119", "3", l5, str(wave_global), "2"])  # store_mod parity
         for group in DIVISIONS:
             ops.append(["2121", "3", l6, str(group), "5"])  # division - 5
             ops.append(["2120", "3", l7, l6, l5])           # + parity
