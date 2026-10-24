@@ -4333,7 +4333,7 @@
       "owner": "Agent D capture; A param; C data; E/F site",
       "priority": "P1",
       "criterion": "Reviewable round/fight GIFs on Pages incl. baseline vs one-parameter variant with metadata and non-acceptance labels.",
-      "note": "site/replays/task71-survivor-sample.gif live; adaptive 1s and A/B placeholders. | Raw captures removed (404); derived heatmap GIF 200; A/B protocol c9b69c9; valid defender_target 8 vs 4 pair pending.",
+      "note": "adaptive 1s and A/B placeholders. | Raw captures removed (404); derived heatmap GIF 200; A/B protocol c9b69c9; valid defender_target 8 vs 4 pair pending.",
       "deferReason": "Supplemental review/presentation; not denominator.",
       "implementationLane": "D",
       "workOrigin": "discovered",
