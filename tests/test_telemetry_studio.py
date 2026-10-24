@@ -370,5 +370,26 @@ class ProbeHealthTests(unittest.TestCase):
             self.assertFalse(health["ok"])
             self.assertIn("invalid_faction_negative_spam", health["gaps"])
 
+
+    def test_hit_params_invalid_fails_gate(self):
+        lines = [
+            "ZDB1|boot|triggers=34",
+            "ZDB1|recorder_capabilities|opmeta=1|group_getter=1|alive_getter=1"
+            "|hit_trigger=-28|hit_attribution=1|hit_events_cap=2000",
+            "ZDB1|probe_registered|kind=entry|index=31",
+            "ZDB1|probe_registered|kind=hit|index=32",
+            "ZDB1|probe_registered|kind=heartbeat|index=33",
+            "ZDB1|heartbeat|count=1|role=server|hit_attempts=14|hit_events=15"
+            "|hit_param_invalid=14",
+        ]
+        with tempfile.TemporaryDirectory() as td:
+            root = _bundle(Path(td), lines, sealed=False)
+            health = probe_health(ingest_bundle(root, allow_unsealed=True))
+            self.assertFalse(health["ok"])
+            self.assertEqual(health["status"], "fail")
+            self.assertIn("hit_params_invalid", health["gaps"])
+            hit_check = next(c for c in health["checks"] if c["id"] == "hit_trigger")
+            self.assertEqual(hit_check["status"], "fail")
+
 if __name__ == "__main__":
     unittest.main()

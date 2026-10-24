@@ -139,12 +139,26 @@ def probe_health(ingest: dict[str, Any]) -> dict[str, Any]:
                    "adaptive heartbeat counters present")
 
     if caps.get("hit_trigger") == "-28":
-        if not hits and _int(latest_hb.get("hit_attempts")) in (None, 0):
+        attempts = _int(latest_hb.get("hit_attempts")) or 0
+        hit_event_count = _int(latest_hb.get("hit_events")) or 0
+        invalid = _int(latest_hb.get("hit_param_invalid")) or 0
+        if attempts > 0 and (hit_event_count == 0 or invalid > 0 or not hits):
+            _check(checks, "hit_trigger", "fail",
+                   f"attempts={attempts} events={hit_event_count} invalid={invalid} "
+                   f"hit_samples={len(hits)}; params not decoding")
+            gaps.append("hit_params_invalid")
+            if not hits:
+                gaps.append("hit_samples_zero")
+        elif hit_event_count > attempts:
+            _check(checks, "hit_trigger", "fail",
+                   f"impossible counters: hit_events={hit_event_count} > attempts={attempts}")
+            gaps.append("hit_counter_inconsistent")
+        elif attempts == 0:
             _check(checks, "hit_trigger", "warn",
                    "hit trigger registered but no hits/attempts observed yet")
         else:
             _check(checks, "hit_trigger", "ok",
-                   f"hit_samples={len(hits)} attempts={latest_hb.get('hit_attempts')}")
+                   f"hit_samples={len(hits)} attempts={attempts} events={hit_event_count}")
 
     errors = ingest.get("max_errors") or {}
     spam = {key: value for key, value in errors.items()

@@ -115,6 +115,7 @@ emit("recorder_capabilities",
     .. "|reticle_getter=0|aim_error_getter=0|fire_mode_getter=0"
     .. "|invalid_agent_guard=1"
     .. "|hit_trigger=-28|hit_attribution=1|hit_events_cap=2000"
+    .. "|hit_param_api=generic_0_index_or_specific"
     .. "|class_getter=" .. binding_flag("agent_get_class")
     .. "|division_getter=" .. binding_flag("agent_get_division")
     .. "|hp_getter=" .. binding_flag("store_agent_hit_points")
@@ -1315,6 +1316,15 @@ local hit_handler_anomaly_emitted = false
 local hit_cap_emitted = false
 local MAX_HIT_EVENTS = 2000
 local function hit_param(index)
+    -- WSE2 guide's mission-trigger form is game.store_trigger_param(0,index);
+    -- the specific store_trigger_param_N(0) form works for item/scene triggers
+    -- but returned invalid params for this mission event. Try generic first,
+    -- then fall back to the specific getter.
+    local generic = game.store_trigger_param
+    if type(generic) == "function" then
+        local ok, value = pcall(generic, 0, index)
+        if ok and type(value) == "number" then return math.floor(value) end
+    end
     local fn = game["store_trigger_param_" .. index]
     if type(fn) ~= "function" then return -1 end
     local ok, value = pcall(fn, 0)
