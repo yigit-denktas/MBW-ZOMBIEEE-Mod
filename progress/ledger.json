@@ -4181,7 +4181,7 @@
       "owner": "Agent E — environment/analysis; C tooling; D runs; A interpretation",
       "priority": "P1",
       "criterion": "Reusable 2D occupancy/flow/health/morale analysis per round/wave with defensive posts/blockers and explicit gaps.",
-      "note": "Owner request: see how AI behaves spatially as round develops; over/under movement, health, morale; reusable for future maps. | C heatmap input branch 721b655 (heatmap-export); E owns spatial_analysis.py; D heatmap-bearing run pending.",
+      "note": "Owner request: see how AI behaves spatially as round develops; over/under movement, health, morale; reusable for future maps. | C heatmap input branch 721b655 (heatmap-export); E owns spatial_analysis.py; D heatmap-bearing run pending. | E deliverable branch 3568a3d/PR #58 (spatial_analysis.py + sample report); held for metadata batch. D heatmap build installed mission DF21AE88; sealed run pending.",
       "deferReason": "Supplemental spatial analysis; not denominator.",
       "implementationLane": "E",
       "workOrigin": "discovered",
