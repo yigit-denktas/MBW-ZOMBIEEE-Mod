@@ -1,8 +1,8 @@
 ﻿{
-  "updated": "2026-10-24T16:29:00+02:00",
-  "phase": "P0 clean bisect complete",
-  "build": "Clean-off + clean-on sealed, 8 files each; no crash.",
-  "now": "Clean-off: slots 894, speed 100, 0 errors. Clean-on: slots 894, speed 60, 0 errors, no AV.",
-  "next": "Full build pair (recovery+wave) to isolate the crash; then speed-loop decision and integration batch.",
+  "updated": "2026-10-24T16:31:00+02:00",
+  "phase": "P0 bisect passed",
+  "build": "Full-on (speed loop enabled) installed; 600s validation running.",
+  "now": "Four sealed bisect runs (clean/full x off/on): no crash, no Invalid Agent/Group errors. Full-on reads slots 894 and team-1 speed 60.",
+  "next": "600s full-on for wave-2/896 + crash absence; then P0 merge/batch decision. No acceptance yet.",
   "acceptance": false
 }
