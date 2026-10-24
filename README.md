@@ -190,3 +190,6 @@ This project deliberately separates **source-verified**, **observed**, **unknown
 
 
 <!-- telemetry hardening metadata-only source revision: 08a9546 -->
+
+
+<!-- telemetry hardening metadata-only source revision: d0f7edf -->

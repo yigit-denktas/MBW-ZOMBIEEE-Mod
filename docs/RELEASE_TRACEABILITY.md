@@ -109,3 +109,6 @@ Source revision for the P0 probe team-order fix metadata-only receipt: `4848ee2`
 
 
 Source revision for the telemetry hardening metadata-only receipt: `08a9546`.
+
+
+Source revision for the telemetry hardening metadata-only receipt: `d0f7edf`.

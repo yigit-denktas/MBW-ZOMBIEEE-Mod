@@ -223,3 +223,6 @@ work-item → PR → commit → version links are in
 
 
 <!-- telemetry hardening metadata-only source revision: 08a9546 -->
+
+
+<!-- telemetry hardening metadata-only source revision: d0f7edf -->
