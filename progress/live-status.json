@@ -1,8 +1,8 @@
-{
-  "updated": "2026-10-24T18:05:00+02:00",
-  "phase": "Survivor stance design",
-  "build": "Ranged-fix play build queued; D play run pending.",
-  "now": "New cards: hold guard posts/no chase; ranged assist/focus-fire + special swarm; wave escalation/battle-size cap; Rhodok crossbow stance research.",
-  "next": "Finish D play run, install ranged build, then stance/focus-fire implementation. No acceptance.",
+﻿{
+  "updated": "2026-10-24T18:03:00+02:00",
+  "phase": "Ranged-fix play build",
+  "build": "Ranged-fix build installed: mission 18E821DE, probe 4CA92366, backup …180226.",
+  "now": "D running 10-min survivor POV with 10-attempt join retry, screenshots and cadence metrics. Join flakiness is harness-side, not build.",
+  "next": "Review real gameplay frames/time-to-first-shot/charge events; fix visible blockers only. No acceptance.",
   "acceptance": false
 }
