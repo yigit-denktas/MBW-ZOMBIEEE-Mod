@@ -214,3 +214,6 @@ work-item → PR → commit → version links are in
 
 
 <!-- task-65 branch metadata-only source revision: 1374abd -->
+
+
+<!-- task-68 consumer branch metadata-only source revision: b92fa7d -->

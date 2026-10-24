@@ -100,3 +100,6 @@ runtime or telemetry artifact and neither affects `runtime_verified`:
 
 
 Source revision for the task-65 branch metadata-only receipt: `1374abd`.
+
+
+Source revision for the task-68 consumer-side branch metadata-only receipt: `b92fa7d`.
