@@ -140,3 +140,62 @@ task-50 is merge-ready. Re-review the actual 0.3.0 branch/SHA when F pushes it.
 
 **No acceptance claims. No game launch. No third-party code/assets copied. Findings are advisory to G/F/C
 and the Lead; the owners decide changes.**
+---
+
+## F. Post-push addendum (same day) — artifact review
+
+### F1. G PR #31 (`agent/g-free-assets` @ `6bccc91`) — file-level review
+Reviewed the pushed catalogue/JSON/icon contract (`reference/FREE_ASSET_SOURCES.md`,
+`docs/ICON_MAPPING.md`, `configs/ui_icon_map.json`). **Verdict: no blockers to merge as a docs-only,
+definitions-only pre-review catalogue**, after five non-blocking fixes:
+1. rebase/coordinate the `[Unreleased]` CHANGELOG entry with F PR #29 (`0.3.0-rc.1`) so release
+   metadata has one owner and no duplicate/conflicting section;
+2. native-asset wording: use the legal dossier's "no redistribution right recorded; treat as
+   non-redistributable" phrasing in `nativeRisk`/§2.7/§5 and link `LEGAL_RIGHTS_AND_CREDITS.md`
+   (R-03/R-05), rather than an absolute legal determination;
+3. CC0 wording: "CC0 1.0 (public-domain-equivalent waiver with fallback licence)", not "public
+   domain" universally;
+4. name the future `THIRD_PARTY_NOTICES.md`/`docs/CREDITS.md` attribution register and state it is
+   generated from `configs/ui_icon_map.json` (`attribution.generated=false` is correct today);
+5. after folding, update §9 from "review pending" to "independent licence review by E completed
+   2026-10-24; findings folded; no legal clearance/acceptance claimed", linking this record.
+
+**Verified independently on the pushed branch:** JSON = 18 slots / 17 events / 9 classes / 7 currency
+entries; **0 missing** author/licence/licenceUrl/pageUrl/attribution fields across primary+fallback;
+no binary files in the PR; `binaryAssetsCommitted=false`, `wiredToRuntime=false`. All 25 game-icon
+author/page URLs resolve HTTP 200; spot checks: OGA guns page CC0, Google Fonts Inter/Oswald/Cinzel/
+Rajdhani OFL 1.1 files valid, Persistent World LICENSE BSD-like. The QAL/Sonniss/Sketchfab
+"unsuitable for an unpacked bundle" readings are **defensible**, and the CC BY/no-LICENSE answer
+(attribution-only, compatible) is correct. Review recorded as a PR comment (GitHub blocks approve
+because the tooling account is also the PR author).
+
+### F2. C final branch (`agent/c-task48-final-amend` @ `50fa25b`) — final pass
+All four requested fixes are present and correct in the pushed file: `log_rgl` corrected to the Lua
+API rename (engine log stays `rgl_log.txt`; rotated/dedicated logs noted); `display_debug_message`
+split/qualified with `bEditMode` marked unverified; privacy recipe now bounded (200 lines/≤64 KB),
+redacts paths/usernames/chat/server secrets/IPs/Steam IDs, hashes the redacted artifact, stays
+local-only/never committed; unverified claims explicitly marked "none found in reviewed sources".
+Veehats/ZeroBrane/`execute_server_console_command` 3514/PR #30 citations are recorded correctly.
+**Verdict: no blockers for C's docs-only research file.** Only cosmetic suggestion: use a
+`<game-install>` placeholder instead of the example `D:\Program Files…\rgl_log.txt` path in prose.
+
+### F3. F PR #29 (`agent/f-release-semver` @ `0446e9d`) — final merge-gate review
+Independently verified on the actual head:
+- traceability JSON: 16 work items, 13 included PRs, 3 support PRs, **5 gaps**; every work-item
+  commit and every PR `merge_commit` is an ancestor of the declared source revision `52171ec`;
+  all 13 included PRs are **MERGED**; `acceptance=none`, `runtime_verified=false`,
+  `release_state=candidate`, `published=false`;
+- focused gate tests 7 OK; full suite on this head with original module/archive env set:
+  **582 tests, OK, 7 skips** (the 112-skip figure is the no-env run; consistent with documented
+  skip behaviour);
+- no false acceptance/publication claim; no asset/serial/personal-path leak in the changed files;
+  `0.3.0-rc.1` is valid SemVer and explicitly does not award 0.3.0.
+**Verdict: APPROVE with four non-blocking findings** (recorded as a PR comment; GitHub blocks
+approve because the tooling account is the PR author): (1) `0.3.0-rc.1` vs ROADMAP — acceptable only
+as an explicitly labelled pre-release candidate/owner decision, else use alpha/beta; (2) release gate
+does not verify merge/ancestry state (current data passes an independent check — add it so stale
+links fail closed); (3) privacy scan allowlist (`tests/`, `reference/`) and Windows-only path regex
+remain from the pre-PR state; (4) stale generated README revision `c5619993` and missing legal-dossier
+link in README attribution; minor wording "implementation vs runtime acceptance" in the AI entry.
+
+No game launch, no copied assets, no acceptance claims in any of the three reviews.
