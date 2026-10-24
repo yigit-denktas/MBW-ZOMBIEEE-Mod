@@ -51,6 +51,9 @@ OPS = {
     "agent_get_position": (1710, "lhs"),
     "agent_get_troop_id": (1718, "lhs"),
     "agent_get_kill_count": (1723, "lhs"),
+    "agent_get_attack_action": (1763, "lhs"),
+    "agent_get_accuracy_modifier": (2066, "lhs"),
+    "agent_get_reload_speed_modifier": (2068, "lhs"),
     "agent_get_wielded_item": (1726, "lhs"),
     "agent_get_ammo": (1727, "lhs"),
     "agent_get_group": (1765, "lhs"),
@@ -489,6 +492,18 @@ class LuaOperationMetadataTests(unittest.TestCase):
         self.assertIn("local wave_slot_read_enabled = false", self.main)
         self.assertIn('role == "server"', self.main)
         self.assertIn('current_mission() == "mst_multiplayer_iv"', self.main)
+
+
+    def test_task60_firearm_attack_action_surface(self):
+        self.assertIn("agent_get_attack_action = 1763", header_text())
+        self.assertIn("agent_get_accuracy_modifier = 2066", header_text())
+        self.assertIn("agent_get_reload_speed_modifier = 2068", header_text())
+        for token in ("|attack_action=", "|attack_action_getter=",
+                      "|accuracy_getter=", "|reload_getter=",
+                      "|accuracy_modifier=", "|reload_speed_modifier=",
+                      "|reticle_getter=0", "|aim_error_getter=0",
+                      "|fire_mode_getter=0"):
+            self.assertIn(token, self.main)
 
 if __name__ == "__main__":
     unittest.main()

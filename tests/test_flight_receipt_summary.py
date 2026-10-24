@@ -825,5 +825,64 @@ class ReceiptSummaryTests(unittest.TestCase):
         self.assertIsNone(summary["waves"]["faction_slots"])
         self.assertIsNone(summary["waves"]["slots_slow"])
 
+
+    def test_firearm_ammo_delta_shot_and_action_telemetry(self):
+        lines = [
+            "ZDB1|heartbeat|count=1|role=server|team0=1|team1=5|wave=1",
+            "ZDB1|ai_sample|role=server|tick=1|team=0|id=1|group=5|troop=981"
+            "|defender=1|weapon=7|ammo=10|alive=1|weapon_mode=ranged"
+            "|attack_action=1|x=10.0|y=10.0|kills=0|wave=1",
+            "ZDB1|ai_sample|role=server|tick=2|team=0|id=1|group=5|troop=981"
+            "|defender=1|weapon=7|ammo=8|alive=1|weapon_mode=ranged"
+            "|attack_action=2|x=10.0|y=10.0|kills=0|wave=1",
+            "ZDB1|ai_sample|role=server|tick=3|team=0|id=1|group=5|troop=981"
+            "|defender=1|weapon=7|ammo=8|alive=1|weapon_mode=ranged"
+            "|attack_action=0|x=10.0|y=10.0|kills=1|wave=1",
+            "ZDB1|ai_sample|role=server|tick=4|team=0|id=1|group=5|troop=981"
+            "|defender=1|weapon=7|ammo=5|alive=1|weapon_mode=ranged"
+            "|attack_action=2|x=10.0|y=10.0|kills=1|wave=1",
+        ]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        fire = summary["firearms"]["team0"]
+        self.assertEqual(fire["samples"], 4)
+        self.assertEqual(fire["agents"], 1)
+        self.assertEqual(fire["shots_observed"], 5)
+        self.assertEqual(fire["ammo_burn"], 5)
+        self.assertEqual(fire["reloads_observed"], 0)
+        self.assertEqual(fire["shot_intervals_ticks"],
+                         {"count": 1, "min": 2, "avg": 2.0, "max": 2})
+        self.assertEqual(fire["kills_delta_observed"], 1)
+        self.assertEqual(fire["shot_to_kill_ratio"], 5.0)
+        self.assertEqual(fire["attack_actions"], {"1": 1, "2": 2, "0": 1})
+        self.assertIsNone(fire["weapon_fire_modes"])
+        self.assertIsNone(fire["aim_error_proxy"])
+        self.assertIsNone(fire["reticle_width"])
+        for gap in ("shot_telemetry_ammo_delta_only", "hit_telemetry_unavailable",
+                    "aim_error_unavailable", "reticle_telemetry_unavailable",
+                    "weapon_fire_mode_unavailable",
+                    "player_accuracy_state_unavailable"):
+            self.assertIn(gap, summary["evidence_gaps"])
+        self.assertNotIn("attack_action_unavailable", summary["evidence_gaps"])
+        self.assertIn("firearms:", format_summary(summary))
+
+    def test_firearm_reload_resets_interval_baseline(self):
+        lines = [
+            "ZDB1|heartbeat|count=1|role=server|team0=1|team1=5|wave=1",
+            "ZDB1|ai_sample|role=server|tick=1|team=0|id=1|group=5|troop=981"
+            "|defender=1|weapon=7|ammo=3|alive=1|weapon_mode=ranged"
+            "|attack_action=2|x=10.0|y=10.0|kills=0|wave=1",
+            "ZDB1|ai_sample|role=server|tick=2|team=0|id=1|group=5|troop=981"
+            "|defender=1|weapon=7|ammo=10|alive=1|weapon_mode=ranged"
+            "|attack_action=5|x=10.0|y=10.0|kills=0|wave=1",
+            "ZDB1|ai_sample|role=server|tick=3|team=0|id=1|group=5|troop=981"
+            "|defender=1|weapon=7|ammo=8|alive=1|weapon_mode=ranged"
+            "|attack_action=2|x=10.0|y=10.0|kills=0|wave=1",
+        ]
+        summary = self.run_summary(files={"host_stdout.log": "\n".join(lines)})
+        fire = summary["firearms"]["team0"]
+        self.assertEqual(fire["shots_observed"], 2)
+        self.assertEqual(fire["reloads_observed"], 1)
+        self.assertIsNone(fire["shot_intervals_ticks"])  # baseline reset after reload
+
 if __name__ == "__main__":
     unittest.main()

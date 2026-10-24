@@ -375,6 +375,50 @@ D's task-42 sealed runs exposed three readback gaps, now closed:
   `ammo > 0 -> 0` transitions plus `weapon_mode=melee`. This is an inference,
   not a direct AI-mode getter; the note records that explicitly.
 
+### Firearm telemetry (task-60)
+
+**Accuracy/reload modifiers and fire-mode labels (task-59/60):** the probe
+also reads WSE2 `agent_get_accuracy_modifier` (2066) and
+`agent_get_reload_speed_modifier` (2068) per sampled bot (ai_sample and
+combat_sample), with capability flags `accuracy_getter`/`reload_getter`.
+`firearms.team0/1` exposes `accuracy_modifiers`, `reload_speed_modifiers`,
+`attack_action_transitions`, `release_actions`, `reload_actions`, and
+`fire_modes_observed` — the latter is a **label inferred** by matching the
+observed accuracy/reload pair against A's documented policy (single 150/120,
+burst 135/145, auto 115/165), compared with `wave % 3` as
+`fire_mode_expected` / `fire_mode_match_samples` / `fire_mode_mismatch_samples`.
+It is **not** an engine single/burst/auto mode readback; no such getter exists.
+The item-accuracy build patch and manual/reticle UI state are not runtime
+readable here, so `item_accuracy_patch`, `manual_fire_mode`, `reticle_width`,
+`target_icon_width`, `player_accuracy_state` and `aim_error_proxy` stay `None`
+with explicit gaps (`item_accuracy_patch_receipt_only`,
+`manual_fire_mode_unavailable`, ...).
+
+
+
+Per-bot `attack_action` (`agent_get_attack_action`, 1763; declared lhs) is now
+sampled in `ai_sample` and `combat_sample` alongside weapon/ammo. The summary
+adds `firearms.team0`/`team1` with observed:
+
+- `samples`, `agents`, `agents_with_shots`, `weapon_ids`;
+- `shots_observed`, `ammo_burn`, `reloads_observed` — **inferred from ammo
+  decreases/increases between samples**, not from an engine shot event;
+- `shot_intervals_ticks` (count/min/avg/max) in sample tick units; a reload
+  resets the interval baseline; wall-clock cadence is unknown;
+- `kills_delta_observed` and `shot_to_kill_ratio` (lower bound; no hit counter);
+- `attack_actions` histogram (0 free, 1 readying, 2 releasing, 3 completing,
+  4 parried, 5 reloading, 6 after release, 7 cancelling).
+
+Unavailable fields stay `None` with explicit gaps:
+`shot_telemetry_ammo_delta_only`, `hit_telemetry_unavailable`,
+`aim_error_unavailable`, `reticle_telemetry_unavailable`,
+`weapon_fire_mode_unavailable`, `player_accuracy_state_unavailable`, and
+`attack_action_unavailable` when no action samples exist. There is no verified
+readable fire-mode, reticle/target-icon width, player accuracy-state or
+aim-error getter in this build; the probe capability line reports
+`accuracy_getter=0|reticle_getter=0|aim_error_getter=0|fire_mode_getter=0`.
+Never report inferred shots as hit/accuracy evidence.
+
 ### Task-55 P0: wave-table faction-slot and scene readback
 
 **Faction-id and error-spam guard (2026-10-24 follow-up):** WSE2 Lua's
