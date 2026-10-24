@@ -1,8 +1,1 @@
-﻿{
-  "updated": "2026-10-24T18:44:00+02:00",
-  "phase": "Clean visuals / fire regression",
-  "build": "Installed nextplay b3cfe69 + probe c77363e (mission C62F0BCD).",
-  "now": "Clean 10-min run joined: 43 hb/57 frames, no console spam. But 0 shots/ammo burn across 3564 adaptive samples; survivors hold at line without firing. charge ratio .592; wave max 1; KD 15/7.",
-  "next": "A fixes stand_ground/fire order precedence; next candidate must prove ammo_burn>0 and first shot <30s. No acceptance.",
-  "acceptance": false
-}
+﻿{"updated":"2026-10-24T18:45:00+02:00","phase":"Nextplay no-fire fix","build":"Installed EF6E332C: hold+fire_at_will+use_ranged, stand_ground/aggressiveness removed, no 1730, accuracy 100.","now":"D running 10-min survivor POV reseal; acceptance ammo_burn>0 and first shot <30s.","next":"If still zero shots, isolate team-order fire suppression/range state. No acceptance.","acceptance":false}
