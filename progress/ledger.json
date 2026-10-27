@@ -1232,7 +1232,15 @@
       "criterion": "Original and OSP contributors credited; installer asset distribution reviewed; unlicensed material never bundled",
       "note": "E's docs lane records archived-OP credits (Artizan, Nemerius (OP spells Nemeruis), Belendor, BattalGaziTR, Hayalperest, Artintrex + OSP), owner attestation, explicit unknown on a free-reuse sentence, Nirecotive base readme, and no redistribution clearance. State remains backlog; no acceptance. E dossier reference/LEGAL_RIGHTS_AND_CREDITS.md (PR #27): archived OP credits verified; installer distribution reviewed bounded (user-supplied RAR, no bundling, dry-run planner); third-party/OSP asset provenance conditional/open; leaf stays backlog/required, no acceptance.",
       "deferReason": null,
-      "implementationLane": "B"
+      "implementationLane": "B",
+      "handoff": {
+        "from": "B",
+        "to": "owner",
+        "reviewer": "E",
+        "status": "owner-action",
+        "artifact": "reference/LEGAL_RIGHTS_AND_CREDITS.md (PR #27)",
+        "unblock": "Owner confirms redistribution and attribution clearance for original and OSP assets before this required gate can proceed."
+      }
     },
     {
       "id": "ZOM-REL-01",
@@ -3936,7 +3944,7 @@
       "owner": "Agent G — assets; E licence review; I/E map",
       "priority": "P2",
       "criterion": "Licence-cleared environment/barricade props and male/female armour/hairstyle candidates catalogued.",
-      "note": "No binaries until cleared; Warband pipeline compatible. | PR #52 head 8cdfabe: reticle overlay concept (additive only), candidates/licences, screenshot plan; E review pending; no binaries/claim.",
+      "note": "No binaries until cleared; Warband pipeline compatible. PR #52 merged at head cbdeb71; docs/licence review passed; binaries/screenshots still require owner+E clearance. No acceptance.",
       "deferReason": "Supplemental asset work; not part of required denominator.",
       "implementationLane": "G",
       "workOrigin": "discovered",
@@ -3945,7 +3953,15 @@
       "accountingScope": "supplemental-nonadditive",
       "originReason": "Owner asked for barricades/environment and gender/cosmetic variety.",
       "discoveredDuring": "owner live feedback 2026-10-24",
-      "graphImpact": "Feeds map defense and representation."
+      "graphImpact": "Feeds map defense and representation.",
+      "handoff": {
+        "from": "G",
+        "to": "E",
+        "reviewer": "E",
+        "status": "review-passed",
+        "artifact": "PR #52 merged head cbdeb71",
+        "unblock": "Asset binaries still require owner approval + E clearance + D screenshots; docs review is complete."
+      }
     },
     {
       "id": "ZOM-DISC-68",
@@ -4821,7 +4837,15 @@
       "accountingScope": "supplemental-nonadditive",
       "originReason": "Owner: granular tracking; small fixes must be visible.",
       "discoveredDuring": "2026-10-24 consolidation",
-      "graphImpact": "Progress visibility"
+      "graphImpact": "Progress visibility",
+      "handoff": {
+        "from": "F",
+        "to": "Lead",
+        "reviewer": "E",
+        "status": "waiting-external",
+        "artifact": "archive/2026-10-24/agent/f-gate-escaped-paths @ ccb6798 (PR #76 closed, unmerged)",
+        "unblock": "Rebase PKG-02 onto current main, tighten gate tests, reviewer re-check, then integrate."
+      }
     },
     {
       "id": "ZOM-DISC-97",
@@ -4848,7 +4872,15 @@
       "accountingScope": "supplemental-nonadditive",
       "originReason": "Owner: granular tracking; small fixes must be visible.",
       "discoveredDuring": "2026-10-24 consolidation",
-      "graphImpact": "Progress visibility"
+      "graphImpact": "Progress visibility",
+      "handoff": {
+        "from": "A",
+        "to": "review-b2",
+        "reviewer": "review-b2",
+        "status": "changes-requested",
+        "artifact": "archive/2026-10-24/agent/a-nextplay @ 50cc201 (branch refs archived)",
+        "unblock": "Resolve stacked manifests, document the tree hash, and add included/excluded file lists before re-review."
+      }
     },
     {
       "id": "ZOM-DISC-98",
@@ -4875,7 +4907,15 @@
       "accountingScope": "supplemental-nonadditive",
       "originReason": "Owner: granular tracking; small fixes must be visible.",
       "discoveredDuring": "2026-10-24 consolidation",
-      "graphImpact": "Progress visibility"
+      "graphImpact": "Progress visibility",
+      "handoff": {
+        "from": "F",
+        "to": "review-b2",
+        "reviewer": "review-b2",
+        "status": "waiting-external",
+        "artifact": "archive/2026-10-24/agent/f-parallel-lanes @ 733610d (PR #75 closed)",
+        "unblock": "Fix the lane2 lifecycle, then run the runtime lane test and re-request review-b2."
+      }
     },
     {
       "id": "ZOM-DISC-99",
@@ -4936,18 +4976,25 @@
       "title": "Tracker P1: execution queues + handoff tracking",
       "groupId": "Gameplay",
       "milestoneId": "M3",
-      "state": "active",
-      "sourceState": "tracked",
+      "state": "done",
+      "sourceState": "review — pkg/101-handoffs implementation complete, awaiting review-b2",
       "required": false,
       "blocked": false,
       "dependsOn": [],
-      "evidence": [],
-      "completionBasis": "Pending P1/P2 tracker package",
+      "evidence": [
+        {
+          "kind": "commit",
+          "source": "de07ba2",
+          "observedOn": "2026-10-27",
+          "acceptance": "review-pass"
+        }
+      ],
+      "completionBasis": "PKG-101 integrated: derived queues + handoffs; reviewer PASS at 491d741; contract test 4/4.",
       "kind": "work-item",
       "owner": "Lead/F; review-b2",
       "priority": "P1",
       "criterion": "Every queue distinct; handoffs show reviewer/artifact/unblock action.",
-      "note": "Frontier now derives readiness; separate ready/active/waiting/owner-action queues and requester→implementer→reviewer→approver handoffs remain.",
+      "note": "Execution queues are explicit (Ready now, In progress, Waiting dependency, Waiting external, Owner action) and derive from dependsOn + workflow state + optional handoff; legacy blocked is not used for readiness. Independent recomputation at this revision: ready 3, in-progress 16, waiting-dependency 32, waiting-external 2, owner-action 1, done 72, open 54, total 126. DOM/keyboard behavior remains UNKNOWN until a reproducible browser test is committed.",
       "deferReason": "Supplemental tracker/release work; not a required City outcome.",
       "implementationLane": "A",
       "workOrigin": "discovered",
@@ -4956,7 +5003,15 @@
       "accountingScope": "supplemental-nonadditive",
       "originReason": "Owner audit 2026-10-24.",
       "discoveredDuring": "2026-10-24 tracker audit",
-      "graphImpact": "Operational dependency tracking"
+      "graphImpact": "Operational dependency tracking",
+      "handoff": {
+        "from": "C",
+        "to": "Lead",
+        "reviewer": "review-b2",
+        "status": "integrated",
+        "artifact": "pkg/101-handoffs @ 491d741; integrated de07ba2",
+        "unblock": "None; DOM/keyboard behavior remains documented UNKNOWN."
+      }
     },
     {
       "id": "ZOM-DISC-102",
@@ -4990,18 +5045,25 @@
       "title": "Tracker P2: bottleneck/impact + optional schedule",
       "groupId": "Gameplay",
       "milestoneId": "M3",
-      "state": "active",
+      "state": "done",
       "sourceState": "tracked",
       "required": false,
       "blocked": false,
       "dependsOn": [],
-      "evidence": [],
-      "completionBasis": "Pending P1/P2 tracker package",
+      "evidence": [
+        {
+          "kind": "commit",
+          "source": "1ef7ff6",
+          "observedOn": "2026-10-27",
+          "acceptance": "review-pass"
+        }
+      ],
+      "completionBasis": "PKG-103 integrated: structural impact/ranking tool + tests; schedule_unknown explicit; no CPM/durations.",
       "kind": "work-item",
       "owner": "Lead/C",
       "priority": "P1",
       "criterion": "Impact chain ranked; no fabricated durations; CPM only if real timing data exists.",
-      "note": "Bottleneck dependent counts now shown; full upstream/downstream impact, dependency types, CPM/float remain, and durations are not modeled.",
+      "note": "Bottleneck dependent counts now shown; full upstream/downstream impact, dependency types, CPM/float remain, and durations are not modeled. | Integrated PKG-103; review PASS at 6a50a6b.",
       "deferReason": "Supplemental tracker/release work; not a required City outcome.",
       "implementationLane": "A",
       "workOrigin": "discovered",
