@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Publish the reviewed tracker snapshot to a gh-pages worktree.
 
-Copies only the public tracker files plus generated publish metadata. Never
-copies README/CHANGELOG (they contain relative links that 404 on Pages).
+Copies only the public tracker files, the generated dependency-impact snapshot
+and generated publish metadata. Never copies README/CHANGELOG (they contain
+relative links that 404 on Pages).
 """
 from __future__ import annotations
 
@@ -15,6 +16,14 @@ from pathlib import Path
 
 from publish_tracker_meta import main as generate_meta
 
+PUBLISHED = (
+    'site/index.html',
+    'progress/ledger.json',
+    'progress/live-status.json',
+    'progress/publish-meta.json',
+    'progress/dependency-impact.json',
+)
+
 
 def main() -> int:
     parser = argparse.ArgumentParser()
@@ -26,14 +35,16 @@ def main() -> int:
 
     root = args.root
     pages = args.gh_pages
+    missing = [rel for rel in PUBLISHED if not (root / rel).is_file()]
+    if missing:
+        raise SystemExit('publish_tracker: missing required files: ' + ', '.join(missing))
     sha = args.source_sha or subprocess.check_output(
         ['git', '-C', str(root), 'rev-parse', 'HEAD'], text=True).strip()
     import sys
     sys.argv = ['publish_tracker_meta.py', '--root', str(root), '--source-sha', sha]
     generate_meta()
 
-    for rel in ('site/index.html', 'progress/ledger.json',
-                'progress/live-status.json', 'progress/publish-meta.json'):
+    for rel in PUBLISHED:
         target = pages / (Path(rel).name if rel.startswith('site/') else rel)
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(root / rel, target)
