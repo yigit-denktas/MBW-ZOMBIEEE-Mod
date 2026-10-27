@@ -2,8 +2,7 @@
 
 Scope of these tests
 --------------------
-* `LedgerLayoutTests` recompute the expected depth, queue and path data from
-  `progress/ledger.json` and compare it with what the page actually renders.
+* Ledger-derived depth/queue/path expectations are checked against the page and static markup.
 * `BrowserMapTests` drive `site/index.html` in headless Chrome over a local HTTP
   server: rendered depth columns, deterministic crossing-reduced order, focus
   path highlighting, keyboard navigation, zoom/pan, queue/handoff UI, and 320 px
@@ -200,7 +199,14 @@ class BrowserMapTests(unittest.TestCase):
         cls.port = cls.httpd.server_address[1]
         cls.thread = threading.Thread(target=cls.httpd.serve_forever, daemon=True)
         cls.thread.start()
-        cls.pw = sync_playwright().start()
+        try:
+            cls.pw = sync_playwright().start()
+        except Exception as exc:
+            try:
+                cls.httpd.shutdown()
+            except Exception:
+                pass
+            raise unittest.SkipTest("Playwright browser driver unavailable: " + str(exc))
         cls.browser = None
         for channel in ("chrome", "msedge", None):
             try:
@@ -420,32 +426,47 @@ class BrowserMapTests(unittest.TestCase):
 
 # -------------------------------------------------------------------- static
     def test_edges_attach_to_their_nodes(self):
-        """Every edge start must lie on the source node, not in the column gap."""
-        worst = self.page.evaluate("""() => {
+        """Every edge endpoint must attach to its source/target node, not the column gap."""
+        result = self.page.evaluate("""() => {
           const svg = document.getElementById('dep-edges');
           const map = document.getElementById('dep-map');
-          if (!svg || !map) return 9999;
+          if (!svg || !map) return {worst: 9999, start: 9999, end: 9999, count: 0};
           const vb = svg.viewBox.baseVal;
           const sr = svg.getBoundingClientRect();
           const scale = vb.width ? sr.width / vb.width : 1;
           const mr = map.getBoundingClientRect();
-          let worst = 0;
-          document.querySelectorAll('.dep-edge').forEach(p => {
-            const match = /^M\s+([\d.]+)\s+([\d.]+)/.exec(p.getAttribute('d') || '');
-            if (!match) return;
-            const x = parseFloat(match[1]), y = parseFloat(match[2]);
-            const node = document.querySelector('.dep-node[data-work-id="' + p.dataset.from + '"]');
-            if (!node) return;
+          const rect = id => {
+            const node = document.querySelector('.dep-node[data-work-id="' + id + '"]');
+            if (!node) return null;
             const r = node.getBoundingClientRect();
-            const nx = (r.left - mr.left) / scale, ny = (r.top - mr.top) / scale;
-            const nw = r.width / scale, nh = r.height / scale;
-            const dx = Math.max(nx - x, 0, x - (nx + nw));
-            const dy = Math.max(ny - y, 0, y - (ny + nh));
-            worst = Math.max(worst, Math.hypot(dx, dy));
+            return {x: (r.left - mr.left) / scale, y: (r.top - mr.top) / scale,
+                    w: r.width / scale, h: r.height / scale};
+          };
+          const dist = (r, x, y) => Math.hypot(
+            Math.max(r.x - x, 0, x - (r.x + r.w)),
+            Math.max(r.y - y, 0, y - (r.y + r.h)));
+          let worst = 0, startWorst = 0, endWorst = 0, count = 0;
+          document.querySelectorAll('.dep-edge').forEach(p => {
+            const d = p.getAttribute('d') || '';
+            const first = /^M\s+([\d.]+)\s+([\d.]+)/.exec(d);
+            const points = d.match(/([\d.]+)\s+([\d.]+)/g) || [];
+            const last = points.length ? points[points.length - 1].split(/\s+/).map(Number) : null;
+            const a = rect(p.dataset.from), b = rect(p.dataset.to);
+            if (!first || !last || !a || !b) return;
+            count += 1;
+            const s = dist(a, +first[1], +first[2]);
+            const e = dist(b, last[0], last[1]);
+            startWorst = Math.max(startWorst, s);
+            endWorst = Math.max(endWorst, e);
+            worst = Math.max(worst, s, e);
           });
-          return worst;
+          return {worst, start: startWorst, end: endWorst, count};
         }""")
-        self.assertLess(worst, 2.0, f"edge start is {worst:.1f}px away from its node")
+        self.assertEqual(result["count"], len(self.expected_edges),
+                         "rendered edges do not match ledger edges")
+        self.assertLess(result["worst"], 2.0,
+                        f"edge endpoint is {result['worst']:.1f}px away from its node")
+
 
 class StaticMarkupTests(unittest.TestCase):
     @classmethod
