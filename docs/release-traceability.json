@@ -6,7 +6,7 @@
   "acceptance": "none",
   "runtime_verified": false,
   "observed_on": "2026-10-24",
-  "source_revision": "10ec4fa865e2abcb4091ce5ea97ffc309d9cd132",
+  "source_revision": "3949b55c4f063e1d72e447c8f37ed39bfba32818",
   "version_sources": {
     "version": "VERSION",
     "changelog": "CHANGELOG.md#030-beta1-2026-10-24",
