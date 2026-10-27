@@ -312,7 +312,7 @@ function depNode(it,d,i,count,g){
  b.addEventListener('blur',()=>{if(depFocusedId===it.id)depFocusedId=null;depRestorePath()});
  return b;
 }
-function depNodeBox(n){const x=n.offsetLeft,y=n.offsetTop,w=n.offsetWidth,h=n.offsetHeight;return {x:x,y:y,w:w,h:h,left:x,right:x+w,cx:x+w/2,cy:y+h/2}}
+function depNodeBox(n){const map=$('dep-map'),cs=map?getComputedStyle(map):null,ox=cs?(parseFloat(cs.paddingLeft)||0):0,oy=cs?(parseFloat(cs.paddingTop)||0):0;const x=n.offsetLeft+ox,y=n.offsetTop+oy,w=n.offsetWidth,h=n.offsetHeight;return {x:x,y:y,w:w,h:h,left:x,right:x+w,cx:x+w/2,cy:y+h/2}}
 function depNaturalWidth(){const map=$('dep-map'),cols=$('dep-columns');if(!map||!cols)return 0;const cs=getComputedStyle(map);return Math.ceil(cols.offsetWidth+(parseFloat(cs.paddingLeft)||0)+(parseFloat(cs.paddingRight)||0)+2)}
 function depDrawEdges(g){
  const map=$('dep-map'),svg=$('dep-edges'),paths=$('dep-paths');if(!map||!svg||!paths)return;

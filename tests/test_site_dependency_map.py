@@ -419,6 +419,34 @@ class BrowserMapTests(unittest.TestCase):
 
 
 # -------------------------------------------------------------------- static
+    def test_edges_attach_to_their_nodes(self):
+        """Every edge start must lie on the source node, not in the column gap."""
+        worst = self.page.evaluate("""() => {
+          const svg = document.getElementById('dep-edges');
+          const map = document.getElementById('dep-map');
+          if (!svg || !map) return 9999;
+          const vb = svg.viewBox.baseVal;
+          const sr = svg.getBoundingClientRect();
+          const scale = vb.width ? sr.width / vb.width : 1;
+          const mr = map.getBoundingClientRect();
+          let worst = 0;
+          document.querySelectorAll('.dep-edge').forEach(p => {
+            const match = /^M\s+([\d.]+)\s+([\d.]+)/.exec(p.getAttribute('d') || '');
+            if (!match) return;
+            const x = parseFloat(match[1]), y = parseFloat(match[2]);
+            const node = document.querySelector('.dep-node[data-work-id="' + p.dataset.from + '"]');
+            if (!node) return;
+            const r = node.getBoundingClientRect();
+            const nx = (r.left - mr.left) / scale, ny = (r.top - mr.top) / scale;
+            const nw = r.width / scale, nh = r.height / scale;
+            const dx = Math.max(nx - x, 0, x - (nx + nw));
+            const dy = Math.max(ny - y, 0, y - (ny + nh));
+            worst = Math.max(worst, Math.hypot(dx, dy));
+          });
+          return worst;
+        }""")
+        self.assertLess(worst, 2.0, f"edge start is {worst:.1f}px away from its node")
+
 class StaticMarkupTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
