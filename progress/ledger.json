@@ -3944,7 +3944,7 @@
       "owner": "Agent G — assets; E licence review; I/E map",
       "priority": "P2",
       "criterion": "Licence-cleared environment/barricade props and male/female armour/hairstyle candidates catalogued.",
-      "note": "No binaries until cleared; Warband pipeline compatible. | PR #52 head 8cdfabe: reticle overlay concept (additive only), candidates/licences, screenshot plan; E review pending; no binaries/claim. | PR #52 merged head cbdeb71; review-passed for docs/licences; no binaries.",
+      "note": "No binaries until cleared; Warband pipeline compatible. PR #52 merged at head cbdeb71; docs/licence review passed; binaries/screenshots still require owner+E clearance. No acceptance.",
       "deferReason": "Supplemental asset work; not part of required denominator.",
       "implementationLane": "G",
       "workOrigin": "discovered",
@@ -4987,7 +4987,7 @@
       "owner": "Lead/F; review-b2",
       "priority": "P1",
       "criterion": "Every queue distinct; handoffs show reviewer/artifact/unblock action.",
-      "note": "Execution queues are explicit (Ready now, In progress, Waiting dependency, Waiting external, Owner action) and derive from dependsOn + workflow state + optional handoff; the legacy blocked flag is not used for readiness. Handoff fields (from/to/reviewer/status/artifact/unblock) render in card detail; queue chips filter the work list and support Tab/Enter/Space plus Left/Right arrows. Observed in headless Chrome: 3 ready, 19 in progress, 32 waiting dependency, 1 waiting external, 1 owner action, 56 open / 70 done / 126 total. Branch pkg/101-handoffs; review-b2 pending. | Corrected: DOM/keyboard claim removed; queue counts independently recomputed; handoff artifacts updated to merged/archived refs.",
+      "note": "Execution queues are explicit (Ready now, In progress, Waiting dependency, Waiting external, Owner action) and derive from dependsOn + workflow state + optional handoff; legacy blocked is not used for readiness. Independent recomputation at this revision: ready 3, in-progress 17, waiting-dependency 32, waiting-external 2, owner-action 1, done 71, open 55, total 126. DOM/keyboard behavior remains UNKNOWN until a reproducible browser test is committed.",
       "deferReason": "Supplemental tracker/release work; not a required City outcome.",
       "implementationLane": "A",
       "workOrigin": "discovered",
@@ -5002,7 +5002,7 @@
         "to": "review-b2",
         "reviewer": "review-b2",
         "status": "in-review",
-        "artifact": "pkg/101-handoffs @ a74f4bd; site/index.html + progress/ledger.json",
+        "artifact": "pkg/101-handoffs @ 2f2b2cb; site/index.html + progress/ledger.json; contract test in tests/test_handoff_contract.py",
         "unblock": "Review the derived queue counts and keyboard queue filter; approve or return changes."
       }
     },
