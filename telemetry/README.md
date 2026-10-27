@@ -1,4 +1,4 @@
-﻿# Telemetry Studio loop log
+# Telemetry Studio loop log
 
 This directory holds the **iteration receipts** produced by the telemetry studio
 (Ralph-style loop). The toolkit itself is `tools/telemetry_studio/`; it is
@@ -51,3 +51,18 @@ claim.
 
 CLI:
 `python telemetry/spatial_analysis.py --input points.json --out-dir telemetry/spatial_out`
+
+## Dependency impact (structural only)
+
+`telemetry/dependency_impact.py` reads `progress/ledger.json` and writes a JSON
+report plus Markdown: direct/transitive dependents, a consequential blocker
+ranking, owner and `implementationLane` rollups, cycle detection, dangling or
+duplicate edges, and an explicit gap list.
+
+CLI:
+`python -m telemetry.dependency_impact --ledger progress/ledger.json --json-out telemetry/dependency-impact.json --md-out telemetry/DEPENDENCY_IMPACT.md`
+
+The ledger has no duration/effort/start/finish data, so the report always emits
+`schedule_unknown` and computes no float or critical path. A cycle is reported
+as undefined dependency order, not as a schedule conclusion; `done` is not
+acceptance.
