@@ -44,7 +44,7 @@ Testing order: `AGENTS_TESTING.md`. Role/review rules: root `AGENTS.md` + `AGENT
 
 | Symptom | Actual cause | Rule |
 |---|---|---|
-| `no_personal_local_paths: clean` but manifests contain `C:\\Users\\...` | Scanner only matched single backslashes | Treat JSON-escaped/mixed separators as paths; add fixtures; never trust a clean line alone |
+| `no_personal_local_paths: clean` but manifests contain `<local> JSON-escaped path` | Scanner only matched single backslashes | Treat JSON-escaped/mixed separators as paths; add fixtures; never trust a clean line alone |
 | Gate passes but a PR merged the old head | Source revision/head guard not enforced | Fail closed on stale source/merge; re-check the actual merged SHA |
 | `release-check` exits 2 and a test is “fixed” to expect 0/2 broadly | Exit code hides blockers | Parse JSON; accept only explicitly known blockers, not any 2 |
 | Feature branch cannot satisfy `source_revision == HEAD` | Self-referential revision is impossible | Metadata PRs stay metadata-only; feature allowance is invocation-only, never persisted |

@@ -23,7 +23,7 @@ Observed in this project on 2026-10-24, before this skill existed:
 - A package reported "44 OK"/"tests pass" while the reviewed head differed; the claim was only true after re-running the exact SHA.
 - A branch manifest claimed "617 tests"; the actual suite at that head was 618.
 - A reviewer (review-b2) accepted the public header comment `<group_no>` as the `add_visitors` 5th argument and wrote a wrong P2; the Native call site (leader/owner id) showed the header comment was misleading. The source, not the comment, was authority.
-- A gate check reported `no_personal_local_paths: clean` while committed JSON contained `C:\\Users\\...`; the JSON-escaped form bypassed the regex (false clean).
+- A gate check reported `no_personal_local_paths: clean` while committed JSON contained `<local> JSON-escaped path`; the JSON-escaped form bypassed the regex (false clean).
 - Concurrent WSE2 support and a fire-volume claim were carried as if features while their evidence was UNKNOWN/missing.
 - Builders asked for "just sign off, tests pass" under time pressure; accepting would have been self/peer review.
 
