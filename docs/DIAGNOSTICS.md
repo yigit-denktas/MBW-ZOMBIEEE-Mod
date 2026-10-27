@@ -16,7 +16,7 @@
 
 After installing the game and final remaster, close Warband and run from the repository root on Windows:
 
-    .\tools\Collect-Diagnostics.ps1 -WarbandRoot 'C:\Program Files (x86)\Steam\steamapps\common\MountBlade Warband' -Session final-solo
+    .\tools\Collect-Diagnostics.ps1 -WarbandRoot '<warband-root>' -Session final-solo
 
 Produces timestamped local files under evidence/: ZOMBIEEE-evidence-*.zip and ZOMBIEEE-report-*.md. It does not launch Warband, install CI or send data over the network. If WSE2 uses an unusual log location, add -AdditionalLogs @('<local>/path/to/custom.log').
 
@@ -822,7 +822,7 @@ Run the full offline suite with `py -3 -m unittest discover -s tests -v` before 
 # Agent B generates a fresh random key and correlation ID for each attempt.
 # The environment variable is PRIVATE to the C process.
 $env:ZOMBIEEE_RECORDER_CONTROL_KEY = '<64 hex digits generated securely by B>'
-py -3 -m telemetry.flight_recorder --passive --output-root '.\\evidence\\flight' --session city-attempt-1 --attempt attempt-1 --recorder-start-id '<opaque-id>' --log 'C:\\path\\to\\rgl_log.txt' --timeout 3600
+py -3 -m telemetry.flight_recorder --passive --output-root '.\\evidence\\flight' --session city-attempt-1 --attempt attempt-1 --recorder-start-id '<opaque-id>' --log '<local>/path/to/rgl_log.txt' --timeout 3600
 ```
 
 Agent B owns the supervising process and writes authenticated control JSON from the same user account; the command above runs until a signed stop message or timeout. It **does not** launch Warband. B waits for `recorder-ready.json` before proceeding. When C finishes, `py -3 tools\\diagnostics.py collect --flight-root .\\evidence\\flight\\city-attempt-1 --output .\\evidence\\city-attempt-1.zip --session city-attempt-1` verifies and packages the local session without automatically uploading data.
