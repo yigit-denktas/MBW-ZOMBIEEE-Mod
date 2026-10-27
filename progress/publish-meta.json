@@ -1,9 +1,9 @@
 {
   "schema": "zombieee.publish-meta.v1",
-  "source_sha": "88ae53742486b922b17c9b4f72414b1b0419668d",
-  "source_short": "88ae537",
-  "generated_at": "2026-10-27T19:30:35+00:00",
-  "ledger_sha256": "33b1226ae37b50604f3e04638e2dbfe472b1b54975588af45d8a1a169bb98be7",
+  "source_sha": "1bdb905ce8f0546a2cb8f6f33251153024fe853a",
+  "source_short": "1bdb905",
+  "generated_at": "2026-10-27T19:33:36+00:00",
+  "ledger_sha256": "aa04e6278ed766f9b5142a38ae41b321b949fab53331df7d676428949708ee4a",
   "work_items": 126,
   "policy": "read-only snapshot generated from reviewed main; not a live feed"
 }
