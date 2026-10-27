@@ -1,8 +1,8 @@
 {
   "schema": "zombieee.publish-meta.v1",
-  "source_sha": "df038ca348a6de50a1e58891b20f8b776b2005ec",
-  "source_short": "df038ca",
-  "generated_at": "2026-10-27T21:17:05+00:00",
+  "source_sha": "691cc3821ff108634c3eafdb87757520efd8fe2b",
+  "source_short": "691cc38",
+  "generated_at": "2026-10-27T21:21:38+00:00",
   "ledger_sha256": "3e21d9e1b82dc19f8c63526fa16dfe0849b2edf879129db72b71742cc781bf14",
   "work_items": 126,
   "policy": "read-only snapshot generated from reviewed main; not a live feed"
