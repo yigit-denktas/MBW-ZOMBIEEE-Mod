@@ -425,7 +425,6 @@ class LiveRegionTests(PageFixture):
         "dep-summary": "status",
         "count": "status",
         "queue-count": "status",
-        "dep-zoom-level": None,  # <output> has an implicit status role
     }
 
     def test_live_regions_are_present_from_first_paint(self):
@@ -551,13 +550,15 @@ class ContrastTests(PageFixture):
             with self.subTest(label=label):
                 self.assert_ratio(label, foreground, background, self.NON_TEXT_MIN)
 
-    def test_opacity_compositing_is_not_silently_treated_as_passing(self):
-        # Keep the arithmetic honest: the default map edge composite fails 3:1,
-        # so no test may claim the rendered graph meets non-text contrast.
-        rendered = flatten("#687381", "#151922", 0.18)
-        self.assertLess(round(contrast_ratio(rendered, "#151922"), 2), self.NON_TEXT_MIN)
-        self.assertRegex(self.style, r"\.dep-edge\{[^}]*opacity:\.18",
-                         "default edge opacity changed: re-open finding A11Y-01")
+    def test_edge_contrast_is_not_opacity_composited(self):
+        # A11Y-01 remediation: opacity was removed and the declared stroke is
+        # required to clear non-text contrast. This is still a declared-colour
+        # check, not a rendered-pixel probe.
+        self.assertNotRegex(self.style, r"\.dep-edge\{[^}]*opacity:\.",
+                            "default edge opacity must stay removed (A11Y-01)")
+        self.assertRegex(self.style, r"\.dep-edge\{[^}]*stroke:#7b8798",
+                         "default edge stroke token changed: re-open A11Y-01")
+        self.assert_ratio("graph edge stroke (declared)", "#7b8798", "#151922", self.NON_TEXT_MIN)
 
 
 # ------------------------------------------------------------- claim boundaries
