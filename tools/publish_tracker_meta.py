@@ -19,7 +19,7 @@ def main() -> int:
         'source_sha': sha,
         'source_short': sha[:7],
         'generated_at': datetime.now(timezone.utc).isoformat(timespec='seconds'),
-        'ledger_sha256': hashlib.sha256(ledger.read_bytes()).hexdigest(),
+        'ledger_sha256': hashlib.sha256(ledger.read_bytes().replace(b'\r\n', b'\n')).hexdigest(),
         'work_items': len(data.get('items', [])),
         'policy': 'read-only snapshot generated from reviewed main; not a live feed',
     }
