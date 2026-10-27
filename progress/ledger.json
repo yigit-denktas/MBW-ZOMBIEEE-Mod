@@ -4810,20 +4810,20 @@
       "title": "F gate fix PR #76 integration",
       "groupId": "Gameplay",
       "milestoneId": "M3",
-      "state": "active",
+      "state": "done",
       "sourceState": "tracked",
       "required": false,
       "blocked": false,
       "dependsOn": [],
       "evidence": [
         {
-          "kind": "pr",
-          "source": "PR #76",
-          "observedOn": "2026-10-24",
+          "kind": "commit",
+          "source": "b638c56",
+          "observedOn": "2026-10-27",
           "acceptance": "review-pass"
         }
       ],
-      "completionBasis": "Pending package",
+      "completionBasis": "PKG-02 integrated: escaped/mixed gate detection fail-closed, strict tests; reviewer PASS at 1d2e69c.",
       "kind": "work-item",
       "owner": "F; reviewers PASS",
       "priority": "P1",
@@ -4842,9 +4842,9 @@
         "from": "F",
         "to": "Lead",
         "reviewer": "E",
-        "status": "waiting-external",
-        "artifact": "archive/2026-10-24/agent/f-gate-escaped-paths @ ccb6798 (PR #76 closed, unmerged)",
-        "unblock": "Rebase PKG-02 onto current main, tighten gate tests, reviewer re-check, then integrate."
+        "status": "integrated",
+        "artifact": "pkg/02-gate @ 1d2e69c; integrated b638c56",
+        "unblock": "None; full suite remains flaky on Windows recorder tests."
       }
     },
     {
@@ -4994,7 +4994,7 @@
       "owner": "Lead/F; review-b2",
       "priority": "P1",
       "criterion": "Every queue distinct; handoffs show reviewer/artifact/unblock action.",
-      "note": "Execution queues are explicit (Ready now, In progress, Waiting dependency, Waiting external, Owner action) and derive from dependsOn + workflow state + optional handoff; legacy blocked is not used for readiness. Independent recomputation at this revision: ready 3, in-progress 16, waiting-dependency 32, waiting-external 2, owner-action 1, done 72, open 54, total 126. DOM/keyboard behavior remains UNKNOWN until a reproducible browser test is committed.",
+      "note": "Execution queues are explicit (Ready now, In progress, Waiting dependency, Waiting external, Owner action) and derive from dependsOn + workflow state + optional handoff; legacy blocked is not used for readiness. Independent recomputation at this revision: ready 3, in-progress 15, waiting-dependency 32, waiting-external 1, owner-action 1, done 74, open 52, total 126. DOM/keyboard behavior remains UNKNOWN until a reproducible browser test is committed.",
       "deferReason": "Supplemental tracker/release work; not a required City outcome.",
       "implementationLane": "A",
       "workOrigin": "discovered",
@@ -5018,18 +5018,25 @@
       "title": "Tracker P1: DAG layout, path inspection, accessibility",
       "groupId": "Gameplay",
       "milestoneId": "M3",
-      "state": "active",
+      "state": "done",
       "sourceState": "tracked",
       "required": false,
       "blocked": false,
       "dependsOn": [],
-      "evidence": [],
-      "completionBasis": "Pending P1/P2 tracker package",
+      "evidence": [
+        {
+          "kind": "commit",
+          "source": "2df7ea9",
+          "observedOn": "2026-10-27",
+          "acceptance": "review-pass-fixes"
+        }
+      ],
+      "completionBasis": "PKG-102 integrated: layered DAG, path focus, zoom/pan, accessibility scaffolding; 11/11 browser tests on unrestricted host.",
       "kind": "work-item",
       "owner": "F; review-b2",
       "priority": "P1",
       "criterion": "Readable routing; keyboard/screen-reader verified; non-text contrast tested.",
-      "note": "Current map uses flex/orthogonal connectors; layered DAG, bundling, pan/zoom/path focus, WCAG 2.2 contrast/screen-reader tests remain.",
+      "note": "Current map uses flex/orthogonal connectors; layered DAG, bundling, pan/zoom/path focus, WCAG 2.2 contrast/screen-reader tests remain. | Integrated 2df7ea9; browser DOM 11/11; screen-reader/pixel contrast UNKNOWN.",
       "deferReason": "Supplemental tracker/release work; not a required City outcome.",
       "implementationLane": "A",
       "workOrigin": "discovered",
