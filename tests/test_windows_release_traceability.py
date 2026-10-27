@@ -13,7 +13,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
-from launcher.release_gate import build_release_gate  # noqa: E402
+from launcher.release_gate import SCAN_EXEMPT_FILES, build_release_gate  # noqa: E402
 
 VERSION = '0.3.0-beta.1'
 WORK_ITEM = {
@@ -154,7 +154,7 @@ class RepositoryTraceabilityTests(unittest.TestCase):
         self.assertEqual(self.trace['reviews'][0]['acceptance'], 'none')
         self.assertTrue((REPO / self.trace['reviews'][0]['record']).is_file())
         self.assertTrue(self.trace['gaps'])
-        # The real checkout passes the release gate.
+        # The real checkout passes the release gate: strict, no tolerance.
         gate = build_release_gate(root=REPO)
         self.assertTrue(gate['ok'], gate['blockers'])
         self.assertEqual(gate['acceptance'], 'none')
@@ -227,6 +227,12 @@ class GateFailClosedTests(unittest.TestCase):
         cases = {
             'tests/new_leak_fixture.py': 'C:/Users/Alice/private.txt',
             'docs/path_note.md': '/home/alice/private',
+            'docs/escaped_path_note.md':
+                r'C:\\Users\\Alice\\ZOMBIEEE',
+            'docs/mixed_path_note.md': 'C:\\Users/Alice/ZOMBIEEE',
+            'docs/mixed_path_note2.md': 'C:/Users\\Alice\\ZOMBIEEE',
+            'docs/manifest.json': json.dumps({
+                'game_root': 'C:\\Users\\Alice\\ZOMBIEEE'}),
             'reference/unc_note.md': r'\\fileserver\private\share',
             'docs/url_note.md': 'file:///C:/private/log.txt',
             'docs/token_note.md': 'ghp_' + 'a' * 30,
@@ -253,6 +259,35 @@ class GateFailClosedTests(unittest.TestCase):
             tracked.append('tests/test_diagnostics.py')
             gate = build_release_gate(root=tmp, tracked_files=tracked)
             self.assertNotIn('no_personal_local_paths', gate['blockers'])
+
+    def test_privacy_scan_ignores_non_personal_path_fragments(self):
+        # Regression: a genuine UNC share is flagged, but the same shape must
+        # not be invented inside an escaped drive path ("C:\\x\\record") or a
+        # placeholder-relative suffix ("<warband-root>\\Logs\\..."). The JSON
+        # fixture below is the real one from test_flight_receipt_summary, which
+        # must stay inside the scanned set - no exemption may hide it.
+        fragments = {
+            'docs/escaped_drive_note.json':
+                json.dumps({'sha256': {'C:\\x\\recorder.json': '0' * 64}}),
+            'docs/drive_relative_note.md': r'D:\\games\\logs\\rgl_log.txt',
+            'docs/escaped_placeholder_note.md':
+                '<warband-root>\\\\Logs\\\\rgl_log.txt',
+            'docs/placeholder_note.md':
+                '<warband-root>\\Logs\\rgl_log.txt',
+        }
+        for relative, content in fragments.items():
+            with self.subTest(relative=relative):
+                with tempfile.TemporaryDirectory() as tmp:
+                    tracked = build_fixture_repo(tmp)
+                    path = Path(tmp) / relative
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    path.write_text(content + '\n', encoding='utf-8')
+                    tracked.append(relative)
+                    gate = build_release_gate(root=tmp, tracked_files=tracked)
+                    self.assertNotIn('no_personal_local_paths',
+                                     gate['blockers'], content)
+        self.assertNotIn('tests/test_flight_receipt_summary.py',
+                         SCAN_EXEMPT_FILES)
 
     def test_git_ancestry_fails_closed_on_stale_link(self):
         with tempfile.TemporaryDirectory() as tmp:

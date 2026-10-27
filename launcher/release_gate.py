@@ -82,10 +82,15 @@ SCAN_EXEMPT_FILES = {
         'privacy-scanner regression fixtures (intentional leak strings)',
 }
 PERSONAL_PATH_RES = (
-    re.compile(r'[A-Za-z]:\\Users\\[^\\\s"|\']+'),
-    re.compile(r'[A-Za-z]:/Users/[^\s"\'<>]+'),
+    # Drive path with any mix of one-or-more backslashes/forward slashes:
+    # plain, JSON-escaped ("C:\\Users\\name") and mixed-separator forms.
+    re.compile(r'[A-Za-z]:[\\/]+Users[\\/]+[^"\\\s|<>]+'),
     re.compile(r'/(?:home|Users)/[^\s"\'<>]+'),
-    re.compile(r'\\\\[A-Za-z0-9._-]+\\[^\\\s"|\']+'),
+    # A genuine UNC path starts at a delimiter or start of text. It must not
+    # be a fragment of an escaped drive-relative path ("C:\\x\\record"), a
+    # placeholder-relative suffix ("<warband-root>\\Logs\\...") or a later
+    # component of an already-escaped path (preceding backslash).
+    re.compile(r'(?<![\w.>:<\\])(?:\\\\)+[A-Za-z0-9._-]+\\+[^\\\s"|<>]+'),
     re.compile(r'file://(?:/[A-Za-z]:)?/[^\s"\'<>]+'),
 )
 SECRET_RE = re.compile(
