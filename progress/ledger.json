@@ -5002,7 +5002,7 @@
         "to": "review-b2",
         "reviewer": "review-b2",
         "status": "in-review",
-        "artifact": "pkg/101-handoffs @ 2f2b2cb; site/index.html + progress/ledger.json; contract test in tests/test_handoff_contract.py",
+        "artifact": "pkg/101-handoffs @ 491d741; site/index.html + progress/ledger.json; tests/test_handoff_contract.py",
         "unblock": "Review the derived queue counts and keyboard queue filter; approve or return changes."
       }
     },
