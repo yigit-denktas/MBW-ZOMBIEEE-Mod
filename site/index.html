@@ -58,6 +58,17 @@ footer{border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
 .dep-lane:nth-child(even){background:transparent}
 .live-status{max-width:1180px;margin:1rem auto 0;padding:.8rem 1rem;border:1px solid #3a4250;border-left:4px solid #e6b85c;border-radius:8px;background:#171c24;color:#cfd6df;font-size:.9rem}.live-status b{color:#f4c29b}.live-status .ls-row{margin:.2rem 0}.live-status .ls-ok{color:#8fd3a8}.live-status .ls-warn{color:#e6b85c}
 .replay-lab{max-width:1180px;margin:2rem auto;padding:1rem;border:1px solid #3a4250;border-radius:10px;background:#151a22}.replay-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem}.replay-grid figure{margin:0;background:#10151c;border:1px solid #303845;border-radius:8px;overflow:hidden}.replay-grid img{display:block;width:100%;height:auto}.replay-grid figcaption{padding:.55rem .7rem;color:#9aa6b2;font-size:.82rem}.replay-grid .pending{min-height:180px;display:flex;align-items:center;justify-content:center;text-align:center;padding:1rem;color:#9aa6b2;border:1px dashed #3a4250;border-radius:8px}.replay-lab h2{margin:.2rem 0 .4rem}.replay-lab .replay-attribution{margin:.9rem 0 0;line-height:1.5}.replay-ab{margin:.9rem 0 0;padding:.75rem;border:1px dashed #3a4250;border-radius:8px;background:#11161d}.replay-ab .ab-title{margin:.1rem 0 .6rem;color:#cfd6df;font-size:.9rem}.replay-ab .ab-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.7rem}.replay-ab .ab-panel{background:#10151c;border:1px dashed #303845;border-radius:8px;padding:.8rem;color:#9aa6b2;font-size:.85rem}.replay-ab .ab-badge{display:inline-block;font-size:.7rem;border:1px solid #3a4250;border-radius:999px;padding:.05rem .45rem;color:#e6b85c}.replay-ab .ab-contract{margin:.6rem 0 0;color:#9aa6b2;font-size:.82rem}.replay-ab .ab-contract ul{margin:.3rem 0 0;padding-left:1.1rem}.quick-lane{margin:.9rem 0 0;padding:.75rem;border:1px solid #3a4250;border-left:4px solid #e6b85c;border-radius:8px;background:#11161d}.quick-lane h3{margin:.1rem 0 .45rem;font-size:1rem}.quick-lane ul{margin:.35rem 0 .2rem;padding-left:1.1rem;color:#9aa6b2;font-size:.84rem;line-height:1.45}.quick-lane .small-packages{margin:.5rem 0 0}
+.queue-section{margin:1.6rem 0;border-top:1px solid var(--line);padding-top:1rem}
+.queue-summary{display:flex;flex-wrap:wrap;gap:.5rem;margin:.8rem 0}
+.queue-chip{display:inline-flex;align-items:center;gap:.55rem;text-align:center;border-radius:999px;padding:.4rem .85rem;font-weight:650}
+.queue-chip strong{display:inline-block;min-width:2ch;text-align:center;border-radius:999px;background:#11161d;border:1px solid var(--line);padding:.05rem .42rem;font-variant-numeric:tabular-nums}
+.queue-chip[aria-pressed=true]{border-color:var(--focus);background:#37272d;box-shadow:inset 0 0 0 1px var(--focus)}
+.queue-ready strong{color:#8fd3a8}.queue-in-progress strong{color:#e6b85c}.queue-waiting-dependency strong{color:#e67b70}.queue-waiting-external strong{color:#e67e22}.queue-owner-action strong{color:#c9a7ff}.queue-all strong{color:var(--muted)}
+.queue-badge{display:inline-block;border:1px solid currentColor;border-radius:999px;padding:.05rem .45rem;font-size:.78rem;font-weight:750;white-space:nowrap}
+.q-ready{color:#8fd3a8}.q-in-progress{color:#e6b85c}.q-waiting-dependency{color:#e67b70}.q-waiting-external{color:#e67e22}.q-owner-action{color:#c9a7ff}.q-done{color:#5bbf86}
+.dep-node.state-external{border-left-color:#e67e22}.dep-node.state-owner{border-left-color:#c9a7ff}
+.item-list button small.handoff-line{color:#f4c29b}
+.detail h4{margin:.9rem 0 .2rem;font-size:.95rem}.handoff{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:.3rem .8rem;margin:.5rem 0;font-size:.9rem}.handoff dt{color:var(--muted);font-weight:700}.handoff dd{margin:0;overflow-wrap:anywhere}.handoff .handoff-unblock{color:#f4c29b}
 </style>
 </head>
 <body>
@@ -80,13 +91,28 @@ footer{border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
 <section class="dep-section" aria-labelledby="dep-heading" id="dependency-graph">
 <div class="dep-head"><div><p class="eyebrow">Execution map</p><h2 id="dep-heading">Dependencies &amp; frontier</h2><p class="muted">Every node is a real task card. Click a node to open its detail; hover to isolate its edges. Solid lines are prerequisites; dashed lines support a required outcome. The diagram is generated from the same ledger as the cards above.</p></div>
 <div class="dep-controls" role="group" aria-label="Dependency map filters"><button id="dep-frontier" aria-pressed="true">Execution frontier</button><button id="dep-all" aria-pressed="false">All required + discovered</button><button id="dep-links" aria-pressed="false">Show all links</button><button id="dep-expand" aria-pressed="false">Expand map</button></div></div>
-<div class="dep-legend" aria-label="Legend"><span><i></i> prerequisite on hover</span><span><i class="support"></i> supports required outcome on hover</span><span><b style="background:#5bbf86"></b>done</span><span><b style="background:#e6b85c"></b>active</span><span><b style="background:#e67b70"></b>blocked</span><span><b style="background:#7e8fc7"></b>required gate</span><span><b style="background:#8c7ae6"></b>ready</span><span><b style="background:#e67e22"></b>waiting</span><span class="map-build">map: ledger v3</span></div>
+<div class="dep-legend" aria-label="Legend"><span><i></i> prerequisite on hover</span><span><i class="support"></i> supports required outcome on hover</span><span><b style="background:#5bbf86"></b>done</span><span><b style="background:#e6b85c"></b>in progress</span><span><b style="background:#e67b70"></b>waiting dependency</span><span><b style="background:#e67e22"></b>waiting external</span><span><b style="background:#c9a7ff"></b>owner action</span><span><b style="background:#7e8fc7"></b>ready gate</span><span><b style="background:#8c7ae6"></b>ready</span><span class="map-build">map: ledger v4</span></div>
 <div class="dep-scroll" tabindex="0"><div class="dep-map" id="dep-map"><svg class="dep-edges" id="dep-edges" aria-hidden="true"><defs><marker id="dep-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#687381"></path></marker><marker id="dep-arrow-support" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#e67b70"></path></marker><marker id="dep-arrow-hot" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f4c29b"></path></marker></defs><g id="dep-paths"></g></svg><div class="dep-lanes" id="dep-lanes"></div></div></div>
 <p class="dep-summary" id="dep-summary" role="status"></p>
 <p class="meta" id="publish-meta">Published snapshot metadata not loaded.</p>
 <p class="meta"><a href="https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/main/docs/DEPENDENCY-GRAPH.md">Full graph and owner/occurred-while table</a></p>
 </section>
 <section class="replay-lab" aria-labelledby="replay-heading"><p class="eyebrow">Replay lab</p><h2 id="replay-heading">Movement &amp; spatial panels</h2><p class="muted">Derived occupancy/flow visualizations from sealed position samples — no captured gameplay frames are published. The current artifact is descriptive spatial data, not game art and not acceptance; no baseline-vs-variant result is claimed. A real one-parameter pair (defender_target=8 vs 4, same build/probe/formation/seed) appears here only after D fixes join reliability and seals both sides; raw frames remain private evidence and are not published. The panel below is a clearly marked skeleton, not a comparison yet.</p><div class="replay-grid"><figure><img src="replays/heatmap-task45-conditions.gif" alt="Derived occupancy heatmap animation: survivor and zombie positions across all, even, advantage, outnumbered and unknown frames; no game art" loading="lazy"><figcaption><strong>Derived occupancy heatmap</strong> — frames: all → even → advantage → outnumbered → unknown. Survivor vs zombie positions, posts 2/3/4 and north base E0. <strong>Derived from sealed position samples; no game art.</strong> Descriptive only; not a tactical, visual or win-rate acceptance claim.<br><span class="meta">Build/probe SHA: not recorded for this derived sample; formation/parameter: not recorded; cadence: 15 s-scale; date: 2026-10-24; gaps: no A/B pair and no parameter receipt.</span></figcaption></figure><div class="pending"><div><strong>Baseline vs one-parameter variant</strong><br>Pending D’s clean, join-verified defender_target=8 vs 4 pair on the same build/probe/formation/seed, plus legal/IP clearance before any capture could be considered<br><span class="meta">Derived data only; no game captures; no acceptance claim.</span></div></div></div><div class="replay-ab" aria-label="Planned derived baseline versus variant comparison"><p class="ab-title"><strong>Planned derived A/B (not yet available)</strong> — baseline <code>defender_target=8</code> vs variant <code>4</code>; same build, probe, formation and seed. Derived heatmap/analysis only; no captured frames are published. No result is claimed until D provides a metadata-complete sealed pair.</p><div class="ab-grid"><div class="ab-panel"><strong>Baseline</strong> <span class="ab-badge">pending</span><p>Reserved for the baseline derived heatmap/analysis. No artifact yet.</p></div><div class="ab-panel"><strong>Variant</strong> <span class="ab-badge">pending</span><p>Reserved for the variant derived heatmap/analysis. No artifact yet.</p></div></div><details class="ab-contract"><summary>Required pair metadata before this A/B opens</summary><ul><li>same <code>build_sha</code>, <code>probe_sha</code>, formation mode and seed on both sides;</li><li>only <code>defender_target</code> changes: 8 (baseline) vs 4 (variant), with <code>defender_reinforce</code>, <code>wave_visitors</code> and <code>defender_orders</code> recorded equal;</li><li>sealed bundle id + derived heatmap/analysis path per side; no raw frames published (IP hold);</li><li>capture cadence/date and known gaps recorded; descriptive only, no tactical or acceptance claim.</li></ul></details></div><div class="quick-lane" aria-label="Replay Lab quick lane"><p class="eyebrow">Quick lane</p><h3>3-minute smoke</h3><p>Short sealed smoke run for fast iteration. Only derived telemetry/summary and, at most, a small occupancy/analysis excerpt are eligible — no raw gameplay frames, screenshots, native art or UI. A quick lane is diagnostic, not a wave/balance acceptance claim; the baseline-vs-variant pair remains a separate, longer package.</p><ul><li>Target: one ~3-minute sealed run (wall-clock) with the same build/probe/formation identity expected on the A/B sides.</li><li>Required: sealed bundle id, build/probe SHA, formation/parameter identity, cadence/date, derived artifact path and known gaps.</li><li>Publication is prepared but gated: no page/package publication until packaging and legal/IP fit is confirmed; raw captures remain private evidence.</li></ul><p class="meta small-packages"><strong>Small-package copy ready:</strong> when cleared, a quick-lane card may link one derived summary (text and/or heatmap excerpt) — never a raw clip. No ownership, endorsement or IP claim; descriptive only, not acceptance.</p></div><p class="meta replay-attribution"><strong>Attribution / no IP claim:</strong> Derived occupancy/flow visualization from ZOMBIEEE Mod sealed position samples. Project-authored analysis; contains no Warband game art, UI, textures, models or third-party assets. Warband © TaleWorlds Entertainment; ZOMBIEEE Mod © its authors. This project is unaffiliated and claims no ownership, endorsement or redistribution rights. Raw gameplay screenshots/frames are private evidence and are not published. Attribution/takedown: <a href="https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues">open an issue</a>.</p></section>
+<section class="queue-section" aria-labelledby="queues-heading">
+<p class="eyebrow">Execution</p><h2 id="queues-heading">Queues</h2>
+<p class="muted">Readiness is derived from <code>dependsOn</code> and the optional <code>handoff</code> block. The ledger's legacy <code>blocked</code> flag is ignored, so a stale flag cannot move a card into or out of a queue.</p>
+<p class="muted">One queue per open card, in this order: unmet prerequisite → Waiting dependency; handoff status <code>waiting-external</code> → Waiting external; handoff routed to <code>owner</code> or <code>owner-action</code> → Owner action; active/review → In progress; otherwise → Ready now. Done cards are listed separately and are never counted as open.</p>
+<div class="queue-summary" id="queue-summary" role="group" aria-label="Filter work items by execution queue">
+<button type="button" class="queue-chip queue-ready" data-queue="ready" aria-pressed="false" aria-controls="items">Ready now <strong id="queue-ready-count">0</strong></button>
+<button type="button" class="queue-chip queue-in-progress" data-queue="in-progress" aria-pressed="false" aria-controls="items">In progress <strong id="queue-in-progress-count">0</strong></button>
+<button type="button" class="queue-chip queue-waiting-dependency" data-queue="waiting-dependency" aria-pressed="false" aria-controls="items">Waiting dependency <strong id="queue-waiting-dependency-count">0</strong></button>
+<button type="button" class="queue-chip queue-waiting-external" data-queue="waiting-external" aria-pressed="false" aria-controls="items">Waiting external <strong id="queue-waiting-external-count">0</strong></button>
+<button type="button" class="queue-chip queue-owner-action" data-queue="owner-action" aria-pressed="false" aria-controls="items">Owner action <strong id="queue-owner-action-count">0</strong></button>
+<button type="button" class="queue-chip queue-all" data-queue="" aria-pressed="true" aria-controls="items">All work <strong id="queue-all-count">0</strong></button>
+</div>
+<p class="meta" id="queue-help">Use Tab to reach the queue buttons and Enter or Space to filter; Left/Right arrows move between queue buttons. The filter combines with search, milestone, status and origin.</p>
+<p id="queue-count" class="meta" role="status" aria-live="polite">Queue counts load with the ledger.</p>
+</section>
 <section aria-labelledby="work-heading"><h2 id="work-heading">Explore the work</h2>
 <p class="muted">Every task has one primary milestone and criterion. Discovered work is linked to its original outcome, without counting it twice toward the City release.</p>
 <p class="discovered-note"><span class="origin-dot" aria-hidden="true">●</span> <strong>Discovered task</strong> — unplanned bug fix, audit or integration work added after the original 24-task proposal.</p>
@@ -106,42 +132,73 @@ footer{border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
 <footer><p><strong>Status:</strong> Public GitHub Pages project preview; derived analysis only, no gameplay acceptance.</p><p><strong>Attribution / no IP claim:</strong> Derived occupancy/flow visualization from ZOMBIEEE Mod sealed position samples. Project-authored analysis; contains no Warband game art, UI, textures, models or third-party assets. Warband © TaleWorlds Entertainment; ZOMBIEEE Mod © its authors. This project is unaffiliated and claims no ownership, endorsement or redistribution rights.</p><p>Raw gameplay screenshots/frames are private evidence and are not published. Takedown/contact: <a href="https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues">open an issue</a>. No gameplay verification is inferred from compiled scripts.</p></footer>
 <script>
 'use strict';
-let record=null,selectedId=null;
+let record=null,selectedId=null,queueFilter='';
 const $=id=>document.getElementById(id);
+const QUEUE_LABELS={ready:'Ready now','in-progress':'In progress','waiting-dependency':'Waiting dependency','waiting-external':'Waiting external','owner-action':'Owner action','done':'Done'};
+const QUEUE_ORDER=['ready','in-progress','waiting-dependency','waiting-external','owner-action'];
+function queueClass(q){return 'q-'+(q||'done')}
 function el(tag,text,className){const node=document.createElement(tag);if(text!==undefined)node.textContent=text;if(className)node.className=className;return node}
 function pct(done,total){return total?(100*done/total).toFixed(1)+'%':'Not measured'}
 function itemsFor(m){return record.items.filter(it=>it.milestoneId===m.id&&it.required)}
+function queueItem(id){return (record.items||[]).find(x=>x.id===id)}
+function unmetDependencies(it){return (it.dependsOn||[]).filter(id=>{const d=queueItem(id);return !d||d.state!=='done'})}
+function handoffFor(it){const h=it&&it.handoff;return h&&typeof h==='object'?h:null}
+function queueOf(it){
+ if(it.state==='done')return 'done';
+ if(unmetDependencies(it).length)return 'waiting-dependency';
+ const h=handoffFor(it);
+ if(h&&h.status==='waiting-external')return 'waiting-external';
+ if(h&&(h.status==='owner-action'||h.to==='owner'))return 'owner-action';
+ if(it.state==='active'||it.state==='review')return 'in-progress';
+ return 'ready';
+}
+function queueReason(it){
+ if(it.state==='done')return 'Marked done in the ledger';
+ const unmet=unmetDependencies(it);
+ if(unmet.length)return 'Unmet prerequisite'+(unmet.length>1?'s':'')+': '+unmet.join(', ');
+ const h=handoffFor(it);
+ if(h&&h.status==='waiting-external')return 'Handoff status waiting-external'+(h.to?' · '+h.to:'');
+ if(h&&(h.status==='owner-action'||h.to==='owner'))return 'Handoff routed to '+(h.to||'owner');
+ if(it.state==='active'||it.state==='review')return 'State '+it.state+' with no unmet prerequisite';
+ return 'No unmet prerequisite and not started';
+}
+function queueCounts(){const c={ready:0,'in-progress':0,'waiting-dependency':0,'waiting-external':0,'owner-action':0,'done':0};for(const it of record.items)c[queueOf(it)]++;return c}
+function handoffRows(h){return [['From',h.from],['To',h.to],['Reviewer',h.reviewer],['Status',h.status],['Artifact',h.artifact],['Unblock',h.unblock]].filter(r=>r[1]!==undefined&&r[1]!==null&&String(r[1]).trim()!=='')}
+function appendHandoff(d,h){d.append(el('h4','Handoff'));const dl=el('dl',undefined,'handoff');for(const [label,value] of handoffRows(h)){dl.append(el('dt',label));const dd=el('dd');const text=String(value);if(label==='Artifact'&&/^https?:\/\//.test(text)){const a=el('a',text);a.href=text;a.rel='noopener noreferrer';dd.append(a)}else dd.textContent=text;if(label==='Unblock')dd.className='handoff-unblock';dl.append(dd)}d.append(dl)}
 function selectItem(id,push,focus){const it=record.items.find(it=>it.id===id);if(!it)return;
 selectedId=id;if(push){history.pushState({item:id},'', '#'+encodeURIComponent(id))}
 document.querySelectorAll('[data-work-id]').forEach(btn=>btn.setAttribute('aria-pressed',String(btn.dataset.workId===id)));
 const d=$('detail');d.replaceChildren();d.append(el('h3',it.id+' · '+it.title));
-const state=el('p',it.state.toUpperCase(),'status');d.append(state);if(it.workOrigin==='discovered'){d.append(el('p','● Discovered '+(it.workType||'support')+' · supports '+it.supportsOutcomeId,'discovered-note'));if(it.note)d.append(el('p',it.note,'meta'));const ev=(it.evidence||[]).find(e=>typeof e.source==='string' && e.source.startsWith('https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/'));if(ev){const a=el('a','Review supporting evidence');a.href=ev.source;a.rel='noopener noreferrer';d.append(a)}}
+const state=el('p',it.state.toUpperCase(),'status');d.append(state);
+const q=queueOf(it);const qp=el('p');qp.append(el('strong','Queue: '));qp.append(el('span',QUEUE_LABELS[q]||q,'queue-badge '+queueClass(q)));qp.append(el('span',' · '+queueReason(it),'meta'));d.append(qp);
+if(it.workOrigin==='discovered'){d.append(el('p','● Discovered '+(it.workType||'support')+' · supports '+it.supportsOutcomeId,'discovered-note'));if(it.note)d.append(el('p',it.note,'meta'));const ev=(it.evidence||[]).find(e=>typeof e.source==='string' && e.source.startsWith('https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/'));if(ev){const a=el('a','Review supporting evidence');a.href=ev.source;a.rel='noopener noreferrer';d.append(a)}}
 d.append(el('p',it.criterion));d.append(el('p','Evidence: '+it.completionBasis,'meta'));
 d.append(el('p','Dependencies: '+(it.dependsOn.length?it.dependsOn.join(', '):'none'),'meta'));
 d.append(el('p','Primary gate: '+it.milestoneId+' · Priority: '+(it.priority||'not assigned'),'meta'));
+if(it.blocked)d.append(el('p','Legacy blocked flag is set but ignored; readiness is derived from dependsOn and handoff routing.','meta'));
+const h=handoffFor(it);if(h)appendHandoff(d,h);
 if(it.issueUrl){const a=el('a','Open original GitHub issue');a.href=it.issueUrl; a.rel='noopener noreferrer';d.append(a)}
 if(focus)d.focus();
 }
 function render(){if(!record)return;const q=$('search').value.trim().toLowerCase(),m=$('milestone').value,s=$('status').value;
-const origin=$('origin').value;const active=record.items.filter(it=>(!origin || (origin==='discovered'?it.workOrigin==='discovered':it.workOrigin!=='discovered'))&&(!m||it.milestoneId===m)&&(!s||it.state===s)&&(!q||(it.id+' '+it.title+' '+it.criterion).toLowerCase().includes(q)));
-const region=$('items');region.replaceChildren();active.forEach(it=>{const outer=el('div');outer.setAttribute('role','listitem');const btn=el('button',undefined);btn.dataset.workId=it.id;btn.setAttribute('aria-pressed',String(it.id===selectedId));const title=el('strong');title.append(document.createTextNode(it.id+' — '));if(it.workOrigin==='discovered'){const dot=el('span','●','origin-dot');dot.setAttribute('aria-label','Discovered task');title.append(dot)}title.append(document.createTextNode(it.title));btn.append(title);btn.append(el('small',it.milestoneId+' · '+it.state+' · '+it.priority));btn.addEventListener('click',()=>selectItem(it.id,true,true));outer.append(btn);region.append(outer)});
-$('count').textContent=active.length+' visible of '+record.items.length+' work items · '+record.items.filter(i=>i.workOrigin==='discovered').length+' discovered';
+const origin=$('origin').value;const active=record.items.filter(it=>(!queueFilter||queueOf(it)===queueFilter)&&(!origin || (origin==='discovered'?it.workOrigin==='discovered':it.workOrigin!=='discovered'))&&(!m||it.milestoneId===m)&&(!s||it.state===s)&&(!q||(it.id+' '+it.title+' '+it.criterion).toLowerCase().includes(q)));
+const region=$('items');region.replaceChildren();active.forEach(it=>{const outer=el('div');outer.setAttribute('role','listitem');const btn=el('button',undefined);btn.dataset.workId=it.id;btn.setAttribute('aria-pressed',String(it.id===selectedId));const title=el('strong');title.append(document.createTextNode(it.id+' — '));if(it.workOrigin==='discovered'){const dot=el('span','●','origin-dot');dot.setAttribute('aria-label','Discovered task');title.append(dot)}title.append(document.createTextNode(it.title));btn.append(title);const queue=queueOf(it);btn.append(el('small',it.milestoneId+' · '+it.state+' · '+(QUEUE_LABELS[queue]||queue)+' · '+it.priority));const h=handoffFor(it);if(h&&(h.from||h.to))btn.append(el('small','Handoff: '+(h.from||'?')+' \u2192 '+(h.to||'?')+' · '+(h.status||'status not set'),'handoff-line'));btn.addEventListener('click',()=>selectItem(it.id,true,true));outer.append(btn);region.append(outer)});
+$('count').textContent=active.length+' visible of '+record.items.length+' work items · '+record.items.filter(i=>i.workOrigin==='discovered').length+' discovered'+(queueFilter?' · queue '+QUEUE_LABELS[queueFilter]:'');
 if(!active.length)region.append(el('p','No work matches those filters.'));
 }
 
 let depFrontierOnly=true;
 function depItemById(id){return (record.items||[]).find(x=>x.id===id)}
-function depUnmet(it){return (it.dependsOn||[]).filter(id=>{const d=depItemById(id);return !d||d.state!=='done'})}
-function depReadiness(it){if(it.state==='done')return 'done';const u=depUnmet(it);if(u.length)return 'waiting-dependency';if(it.blocked||it.state==='blocked')return 'waiting-external';if(it.state==='active'||it.state==='review'||it.state==='ready')return 'in-progress';return 'ready'}
-function depStateClass(it){const r=depReadiness(it);if(r==='done')return 'state-done';if(r==='waiting-dependency'||r==='waiting-external')return 'state-blocked';if(r==='in-progress')return 'state-active';if(it.required)return 'state-req';return 'state-open'}
+function depReadiness(it){return queueOf(it)}
+function depStateClass(it){const r=depReadiness(it);if(r==='done')return 'state-done';if(r==='waiting-dependency')return 'state-blocked';if(r==='waiting-external')return 'state-external';if(r==='owner-action')return 'state-owner';if(r==='in-progress')return 'state-active';return it.required?'state-req':'state-open'}
 function depFindCycle(){const seen=new Set(),stack=new Set(),path=[];let found=null;function visit(id){if(found)return;if(stack.has(id)){found=path.slice(path.indexOf(id)).concat(id);return}if(seen.has(id))return;seen.add(id);stack.add(id);path.push(id);for(const d of (depItemById(id)?.dependsOn||[]))visit(d);path.pop();stack.delete(id)}for(const it of record.items)visit(it.id);return found}
 function depOwner(it){if(it.implementationLane)return it.implementationLane;const o=it.owner||'';const m=o.match(/Agent\s+([A-F])/i);return m?m[1]:'—'}
 function depNode(it){
  const b=document.createElement('button');b.type='button';b.className='dep-node '+depStateClass(it);b.dataset.workId=it.id;
  const id=document.createElement('strong');id.textContent=it.id;b.append(id);
  const sp=document.createElement('span');sp.textContent=it.title;b.append(sp);
- const small=document.createElement('small');small.textContent=depOwner(it)+' · '+(it.discoveredDuring||it.state);b.append(small);
- b.setAttribute('aria-label',it.id+' '+it.title+' · '+it.state+' · owner '+depOwner(it));b.title=it.id+' — '+(it.dependsOn&&it.dependsOn.length?'depends on: '+it.dependsOn.join(', '):'no prerequisites')+(it.supportsOutcomeId?' · supports '+it.supportsOutcomeId:'');
+ const q=queueOf(it);const small=document.createElement('small');small.textContent=depOwner(it)+' · '+(QUEUE_LABELS[q]||q);b.append(small);
+ const h=handoffFor(it);b.setAttribute('aria-label',it.id+' '+it.title+' · '+it.state+' · queue '+(QUEUE_LABELS[q]||q)+' · owner '+depOwner(it));b.title=it.id+' — '+(it.dependsOn&&it.dependsOn.length?'depends on: '+it.dependsOn.join(', '):'no prerequisites')+(it.supportsOutcomeId?' · supports '+it.supportsOutcomeId:'')+(h&&h.unblock?' · unblock: '+h.unblock:'');
  b.addEventListener('click',()=>{selectItem(it.id,true,true);const d=$('detail');if(d)d.scrollIntoView({behavior:'smooth',block:'center'});});
  b.addEventListener('mouseenter',()=>depHighlight(it.id,true));
  b.addEventListener('mouseleave',()=>depHighlight(it.id,false));
@@ -192,11 +249,12 @@ function renderDependencyMap(){
   list.forEach(it=>row.append(depNode(it)));
   lane.append(row);lanes.append(lane);
  }
- const counts=nodes.reduce((a,i)=>{const r=depReadiness(i);a.total++;a[r]=(a[r]||0)+1;if(i.required)a.req++;if(r==='done')a.done++;if(r==='waiting-dependency'||r==='waiting-external')a.blocked++;return a},{total:0,req:0,done:0,blocked:0,ready:0,'in-progress':0,'waiting-dependency':0,'waiting-external':0});
+ const counts={total:0,req:0,done:0,ready:0,'in-progress':0,'waiting-dependency':0,'waiting-external':0,'owner-action':0};
+ nodes.forEach(i=>{const r=depReadiness(i);counts.total++;counts[r]=(counts[r]||0)+1;if(i.required)counts.req++});
  const depCount={};for(const i of record.items)for(const d of (i.dependsOn||[]))depCount[d]=(depCount[d]||0)+1;
  const bottlenecks=record.items.filter(i=>i.state!=='done'&&(depCount[i.id]||0)>0).sort((a,b)=>(depCount[b.id]||0)-(depCount[a.id]||0)).slice(0,3).map(i=>i.id+' ('+(depCount[i.id]||0)+')').join(', ');
  const cycle=depFindCycle();
- summary.textContent=nodes.length+' nodes · ready '+(counts.ready||0)+' · in progress '+(counts['in-progress']||0)+' · waiting '+((counts['waiting-dependency']||0)+(counts['waiting-external']||0))+' · done '+(counts.done||0)+' · bottlenecks: '+(bottlenecks||'none')+(cycle?' · CYCLE '+cycle.join('→'):'')+(depFrontierOnly?' · execution frontier':' · all eligible work');
+ summary.textContent=nodes.length+' nodes · ready now '+(counts.ready||0)+' · in progress '+(counts['in-progress']||0)+' · waiting dependency '+(counts['waiting-dependency']||0)+' · waiting external '+(counts['waiting-external']||0)+' · owner action '+(counts['owner-action']||0)+' · done '+(counts.done||0)+' · bottlenecks: '+(bottlenecks||'none')+(cycle?' · CYCLE '+cycle.join('→'):'')+(depFrontierOnly?' · execution frontier':' · all eligible work');
  requestAnimationFrame(()=>{depDrawEdges(nodes);const n=($('dep-edges')||{}).querySelectorAll? $('dep-edges').querySelectorAll('path').length:0;summary.textContent=summary.textContent+' · '+n+' links';});
 }
 function bindDepControls(){
@@ -204,6 +262,19 @@ function bindDepControls(){
  f.addEventListener('click',()=>{depFrontierOnly=true;f.setAttribute('aria-pressed','true');a.setAttribute('aria-pressed','false');renderDependencyMap()});
  a.addEventListener('click',()=>{depFrontierOnly=false;a.setAttribute('aria-pressed','true');f.setAttribute('aria-pressed','false');renderDependencyMap()});
  let timer=null;window.addEventListener('resize',()=>{clearTimeout(timer);timer=setTimeout(()=>{if(record)renderDependencyMap()},140)});
+}
+
+function renderQueueSummary(){
+ const summary=$('queue-summary');if(!record||!summary)return;
+ const counts=queueCounts(),open=record.items.length-counts.done;
+ for(const key of QUEUE_ORDER){const chip=summary.querySelector('[data-queue="'+key+'"]');if(!chip)continue;const n=chip.querySelector('strong');if(n)n.textContent=String(counts[key]||0);chip.setAttribute('aria-pressed',String(key===queueFilter));}
+ const all=summary.querySelector('[data-queue=""]');if(all){const n=all.querySelector('strong');if(n)n.textContent=String(record.items.length);all.setAttribute('aria-pressed',String(queueFilter===''));}
+ const count=$('queue-count');if(count)count.textContent=open+' open · '+counts.done+' done · '+record.items.length+' total · '+QUEUE_ORDER.map(k=>QUEUE_LABELS[k]+' '+(counts[k]||0)).join(' · ')+'.';
+}
+function bindQueueControls(){
+ const group=$('queue-summary');if(!group||group.dataset.bound)return;group.dataset.bound='1';
+ group.addEventListener('click',e=>{const btn=e.target.closest('button[data-queue]');if(!btn)return;queueFilter=btn.dataset.queue||'';renderQueueSummary();render();});
+ group.addEventListener('keydown',e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;const buttons=Array.from(group.querySelectorAll('button[data-queue]'));const i=buttons.indexOf(document.activeElement);if(i<0)return;e.preventDefault();const next=buttons[(i+(e.key==='ArrowRight'?1:-1)+buttons.length)%buttons.length];next.focus();});
 }
 
 async function init(){try{let res=null;for(const p of ['progress/ledger.json','../progress/ledger.json']){res=await fetch(p,{cache:'no-store'});if(res.ok)break;}if(!res||!res.ok)throw new Error('HTTP '+(res?res.status:'no-response'));record=await res.json();
@@ -220,7 +291,7 @@ $('source').textContent += ' · task cards done '+allDone.length+'/'+record.item
 for(const m of record.milestones){const option=el('option',m.id+' — '+m.title);option.value=m.id;$('milestone').append(option);
 const card=el('section',undefined,'card');card.append(el('small',m.id+' · '+m.horizon));card.append(el('h3',m.title));const work=itemsFor(m),complete=work.filter(x=>x.state==='done');card.append(el('p',complete.length+'/'+work.length+' proposed leaves complete · '+pct(complete.length,work.length)));card.append(el('p',m.goal));const button=el('button','Show '+m.id+' items');button.addEventListener('click',()=>{$('milestone').value=m.id;render();$('work-heading').scrollIntoView();$('search').focus()});card.append(button);$('milestones').append(card)}
 ['search','milestone','status','origin'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',render));
-render();bindDepControls();renderDependencyMap();function selectFromHash(){const id=decodeURIComponent(location.hash.slice(1));if(id)selectItem(id,false,false)}window.addEventListener('popstate',selectFromHash);selectFromHash();
+bindQueueControls();renderQueueSummary();render();bindDepControls();renderDependencyMap();function selectFromHash(){const id=decodeURIComponent(location.hash.slice(1));if(id)selectItem(id,false,false)}window.addEventListener('popstate',selectFromHash);selectFromHash();
 }catch(error){$('source').textContent='Tracker data unavailable: '+error.message+'. Serve from repository root with python -m http.server; file:// cannot fetch local JSON.';const p=el('p','Unable to read proposed ledger; no counts inferred.');p.setAttribute('role','alert');$('milestones').append(p)}}
 init();
 </script>
