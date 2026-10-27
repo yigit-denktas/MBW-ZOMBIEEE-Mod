@@ -79,7 +79,7 @@
   "schema": "zombieee.dependency-impact.snapshot.v1",
   "source": {
     "contract_version": "0.2.0",
-    "ledger_sha256": "abed11a650ffc7542b7ab271fc3308758f6d0843032f6b6bd43c3dd38cd4d128",
+    "ledger_sha256": "353b0add0330230800e9f9e5e22ccaec052997141ea6e6c7b78d619ad8614839",
     "path": "progress/ledger.json"
   },
   "summary": {
