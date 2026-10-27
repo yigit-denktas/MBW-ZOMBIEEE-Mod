@@ -6,8 +6,8 @@ from pathlib import Path
 LEDGER = Path(__file__).resolve().parents[1] / "progress" / "ledger.json"
 FIXED_REVIEWERS = {"E", "review-b2"}
 HANDOFF_KEYS = {"from", "to", "reviewer", "status", "artifact", "unblock"}
-EXPECTED_QUEUES = {"ready": 3, "in-progress": 17, "waiting-dependency": 32,
-                   "waiting-external": 2, "owner-action": 1, "done": 71}
+EXPECTED_QUEUES = {"ready": 3, "in-progress": 16, "waiting-dependency": 32,
+                   "waiting-external": 2, "owner-action": 1, "done": 72}
 
 
 class HandoffContractTests(unittest.TestCase):

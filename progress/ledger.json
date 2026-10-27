@@ -4976,18 +4976,25 @@
       "title": "Tracker P1: execution queues + handoff tracking",
       "groupId": "Gameplay",
       "milestoneId": "M3",
-      "state": "review",
+      "state": "done",
       "sourceState": "review — pkg/101-handoffs implementation complete, awaiting review-b2",
       "required": false,
       "blocked": false,
       "dependsOn": [],
-      "evidence": [],
-      "completionBasis": "Queue counts independently recomputed from ledger; keyboard/DOM behavior UNKNOWN until a reproducible browser test is committed.",
+      "evidence": [
+        {
+          "kind": "commit",
+          "source": "de07ba2",
+          "observedOn": "2026-10-27",
+          "acceptance": "review-pass"
+        }
+      ],
+      "completionBasis": "PKG-101 integrated: derived queues + handoffs; reviewer PASS at 491d741; contract test 4/4.",
       "kind": "work-item",
       "owner": "Lead/F; review-b2",
       "priority": "P1",
       "criterion": "Every queue distinct; handoffs show reviewer/artifact/unblock action.",
-      "note": "Execution queues are explicit (Ready now, In progress, Waiting dependency, Waiting external, Owner action) and derive from dependsOn + workflow state + optional handoff; legacy blocked is not used for readiness. Independent recomputation at this revision: ready 3, in-progress 17, waiting-dependency 32, waiting-external 2, owner-action 1, done 71, open 55, total 126. DOM/keyboard behavior remains UNKNOWN until a reproducible browser test is committed.",
+      "note": "Execution queues are explicit (Ready now, In progress, Waiting dependency, Waiting external, Owner action) and derive from dependsOn + workflow state + optional handoff; legacy blocked is not used for readiness. Independent recomputation at this revision: ready 3, in-progress 16, waiting-dependency 32, waiting-external 2, owner-action 1, done 72, open 54, total 126. DOM/keyboard behavior remains UNKNOWN until a reproducible browser test is committed.",
       "deferReason": "Supplemental tracker/release work; not a required City outcome.",
       "implementationLane": "A",
       "workOrigin": "discovered",
@@ -4999,11 +5006,11 @@
       "graphImpact": "Operational dependency tracking",
       "handoff": {
         "from": "C",
-        "to": "review-b2",
+        "to": "Lead",
         "reviewer": "review-b2",
-        "status": "in-review",
-        "artifact": "pkg/101-handoffs @ 491d741; site/index.html + progress/ledger.json; tests/test_handoff_contract.py",
-        "unblock": "Review the derived queue counts and keyboard queue filter; approve or return changes."
+        "status": "integrated",
+        "artifact": "pkg/101-handoffs @ 491d741; integrated de07ba2",
+        "unblock": "None; DOM/keyboard behavior remains documented UNKNOWN."
       }
     },
     {
