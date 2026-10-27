@@ -32,10 +32,10 @@ Load this skill when any of these is true:
 Without this skill, builders in this project produced exactly these failures:
 
 1. **Escaped-path false clean.** `no_personal_local_paths` matched
-   `C:\Users\...` but not the JSON-escaped `C:\\Users\\...` stored in build
+   `<local>/...` but not the JSON-escaped `<local> JSON-escaped variant` stored in build
    manifests, so the gate reported clean while real local paths were committed.
 2. **Mixed-separator gap.** Even after fixing escaped backslashes,
-   `C:\Users/Alice` and `C:/Users\Alice` were not caught until a mixed-separator
+   `<local>/Alice` and `<local>/Alice` were not caught until a mixed-separator
    pattern and fixtures existed.
 3. **Exit-code shortcut.** `release-check` returned 2 because of known repo debt;
    the tempting fix was to assert “0 or 2” or to expect 2 universally instead of
@@ -111,7 +111,7 @@ chooses strictness under combined pressure (green suite + ship deadline + author
 - Changing `assertEqual(code, 0)` to “0 or 2” without naming blockers.
 - A `source_revision_exception` that persists after the PR branch merges.
 - Claiming “parallel lanes supported” from a plan-only test.
-- A privacy fixture that only covers `C:\Users` (single backslash).
+- A privacy fixture that only covers `<local>` (single backslash).
 - Treating a green local run as acceptance or `runtime_verified=true`.
 
 ## Checklist
@@ -133,7 +133,7 @@ For a found true positive, do this — not an exemption:
 
 ```text
 1. Keep the gate strict.
-2. Replace D:\Program Files\...\MountBlade Warband with <warband-root>
+2. Replace <warband-root> with <warband-root>
    in the A-owned docs/tracker files (or ask the owner; do not hand-edit generated data).
 3. Re-run: python -m launcher.release_gate
 4. If only the head/metadata guard remains, report that blocker and wait for the
