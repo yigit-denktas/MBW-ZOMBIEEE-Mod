@@ -73,6 +73,25 @@ footer{border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
 .dep-node.state-external{border-left-color:#e67e22}.dep-node.state-owner{border-left-color:#c9a7ff}
 .item-list button small.handoff-line{color:#f4c29b}
 .detail h4{margin:.9rem 0 .2rem;font-size:.95rem}.handoff{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:.3rem .8rem;margin:.5rem 0;font-size:.9rem}.handoff dt{color:var(--muted);font-weight:700}.handoff dd{margin:0;overflow-wrap:anywhere}.handoff .handoff-unblock{color:#f4c29b}
+.impact-section{margin:1.6rem 0;border-top:1px solid var(--line);padding-top:1rem}
+.impact-head p{max-width:86ch}
+.impact-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.75rem;margin:1rem 0}
+.impact-stat{border:1px solid var(--line);border-radius:12px;padding:.8rem 1rem;background:var(--surface)}
+.impact-stat strong{display:block;font-size:clamp(1.25rem,3vw,1.9rem);font-variant-numeric:tabular-nums}
+.impact-stat span{color:var(--muted);font-size:.86rem}
+.impact-schedule{border-left:4px solid #e6b85c;background:var(--surface);padding:.7rem 1rem;margin:1rem 0;max-width:90ch}
+.impact-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:#151922;max-width:100%}
+.impact-scroll:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.impact-table{width:100%;border-collapse:collapse;font-size:.88rem;min-width:680px}
+.impact-table th,.impact-table td{text-align:left;padding:.5rem .8rem;border-bottom:1px solid #2a303c;vertical-align:top}
+.impact-table thead th{color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.04em}
+.impact-table th:first-child,.impact-table td:first-child{width:2.75rem}
+.impact-table th:nth-child(2),.impact-table td:nth-child(2){min-width:15rem}
+.impact-table tbody tr:last-child td{border-bottom:0}
+.impact-table .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.impact-table .impact-id{display:block;color:var(--text);font-weight:700}
+.impact-table .impact-title{display:block;color:var(--muted);font-size:.82rem;overflow-wrap:anywhere}
+@media(max-width:760px){.impact-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
 <body>
@@ -117,6 +136,34 @@ footer{border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
 -->
 <p class="meta" id="publish-meta">Published snapshot metadata not loaded.</p>
 <p class="meta"><a href="https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/main/docs/DEPENDENCY-GRAPH.md">Full graph and owner/occurred-while table</a></p>
+</section>
+<section class="impact-section" aria-labelledby="impact-heading" id="dependency-impact">
+<div class="impact-head">
+<p class="eyebrow">Structural impact</p>
+<h2 id="impact-heading">Dependency impact</h2>
+<p class="muted">Derived from the committed <code>progress/dependency-impact.json</code> snapshot, which projects <code>telemetry/dependency_impact.py</code> over the same ledger as the map above. Counts are graph facts: an <em>impacted</em> open card has at least one transitive prerequisite that is not done; impacted is not blocked, failed or late.</p>
+</div>
+<div class="impact-stats" id="impact-stats" aria-label="Structural impact summary">
+<div class="impact-stat"><strong id="impact-items">—</strong><span>ledger items</span></div>
+<div class="impact-stat"><strong id="impact-open">—</strong><span>open items</span></div>
+<div class="impact-stat"><strong id="impact-impacted">—</strong><span>impacted open items</span></div>
+<div class="impact-stat"><strong id="impact-blockers">—</strong><span>consequential blockers</span></div>
+<div class="impact-stat"><strong id="impact-cycle-count">—</strong><span>dependency cycles</span></div>
+<div class="impact-stat"><strong id="impact-dependencies">—</strong><span>dependency edges</span></div>
+</div>
+<p class="impact-schedule" id="impact-schedule"><strong>Schedule unknown — no durations, effort, float, or CPM.</strong> The ledger has no duration, effort, start/finish, float or critical-path fields, so this panel reports structural dependency counts only and estimates no dates.</p>
+<p class="meta" id="impact-status" role="status" aria-live="polite">Loading impact snapshot…</p>
+<p class="meta" id="impact-table-note">Top 5 consequential blockers ranked by open downstream work. Counts are dependency-graph facts, not effort or duration; the JSON snapshot keeps additional rows. At narrow widths, scroll the table sideways for the count columns.</p>
+<div class="impact-scroll" id="impact-scroll" tabindex="0" role="region" aria-label="Top consequential blockers table, scrollable">
+<table class="impact-table" id="impact-blockers-table" aria-label="Top consequential blockers by open downstream work">
+<thead><tr><th scope="col">#</th><th scope="col">Task</th><th scope="col">State</th><th scope="col" class="num">Open downstream</th><th scope="col" class="num">Direct downstream</th><th scope="col" class="num">Required open</th></tr></thead>
+<tbody id="impact-blockers-body"><tr><td colspan="6">Loading…</td></tr></tbody>
+</table>
+</div>
+<p class="meta" id="impact-cycles-note">Cycles: not loaded.</p>
+<p class="meta" id="impact-gaps">Gaps: not loaded.</p>
+<p class="meta" id="impact-source">Snapshot source: not loaded.</p>
+<p class="meta">Structural analysis only — <code>done</code> is not acceptance, and this panel makes no runtime, schedule or delivery claim. Method: <a href="https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/blob/main/telemetry/dependency_impact.py">telemetry/dependency_impact.py</a>.</p>
 </section>
 <section class="replay-lab" aria-labelledby="replay-heading"><p class="eyebrow">Replay lab</p><h2 id="replay-heading">Movement &amp; spatial panels</h2><p class="muted">Derived occupancy/flow visualizations from sealed position samples — no captured gameplay frames are published. The current artifact is descriptive spatial data, not game art and not acceptance; no baseline-vs-variant result is claimed. A real one-parameter pair (defender_target=8 vs 4, same build/probe/formation/seed) appears here only after D fixes join reliability and seals both sides; raw frames remain private evidence and are not published. The panel below is a clearly marked skeleton, not a comparison yet.</p><div class="replay-grid"><figure><img src="replays/heatmap-task45-conditions.gif" alt="Derived occupancy heatmap animation: survivor and zombie positions across all, even, advantage, outnumbered and unknown frames; no game art" loading="lazy"><figcaption><strong>Derived occupancy heatmap</strong> — frames: all → even → advantage → outnumbered → unknown. Survivor vs zombie positions, posts 2/3/4 and north base E0. <strong>Derived from sealed position samples; no game art.</strong> Descriptive only; not a tactical, visual or win-rate acceptance claim.<br><span class="meta">Build/probe SHA: not recorded for this derived sample; formation/parameter: not recorded; cadence: 15 s-scale; date: 2026-10-24; gaps: no A/B pair and no parameter receipt.</span></figcaption></figure><div class="pending"><div><strong>Baseline vs one-parameter variant</strong><br>Pending D’s clean, join-verified defender_target=8 vs 4 pair on the same build/probe/formation/seed, plus legal/IP clearance before any capture could be considered<br><span class="meta">Derived data only; no game captures; no acceptance claim.</span></div></div></div><div class="replay-ab" aria-label="Planned derived baseline versus variant comparison"><p class="ab-title"><strong>Planned derived A/B (not yet available)</strong> — baseline <code>defender_target=8</code> vs variant <code>4</code>; same build, probe, formation and seed. Derived heatmap/analysis only; no captured frames are published. No result is claimed until D provides a metadata-complete sealed pair.</p><div class="ab-grid"><div class="ab-panel"><strong>Baseline</strong> <span class="ab-badge">pending</span><p>Reserved for the baseline derived heatmap/analysis. No artifact yet.</p></div><div class="ab-panel"><strong>Variant</strong> <span class="ab-badge">pending</span><p>Reserved for the variant derived heatmap/analysis. No artifact yet.</p></div></div><details class="ab-contract"><summary>Required pair metadata before this A/B opens</summary><ul><li>same <code>build_sha</code>, <code>probe_sha</code>, formation mode and seed on both sides;</li><li>only <code>defender_target</code> changes: 8 (baseline) vs 4 (variant), with <code>defender_reinforce</code>, <code>wave_visitors</code> and <code>defender_orders</code> recorded equal;</li><li>sealed bundle id + derived heatmap/analysis path per side; no raw frames published (IP hold);</li><li>capture cadence/date and known gaps recorded; descriptive only, no tactical or acceptance claim.</li></ul></details></div><div class="quick-lane" aria-label="Replay Lab quick lane"><p class="eyebrow">Quick lane</p><h3>3-minute smoke</h3><p>Short sealed smoke run for fast iteration. Only derived telemetry/summary and, at most, a small occupancy/analysis excerpt are eligible — no raw gameplay frames, screenshots, native art or UI. A quick lane is diagnostic, not a wave/balance acceptance claim; the baseline-vs-variant pair remains a separate, longer package.</p><ul><li>Target: one ~3-minute sealed run (wall-clock) with the same build/probe/formation identity expected on the A/B sides.</li><li>Required: sealed bundle id, build/probe SHA, formation/parameter identity, cadence/date, derived artifact path and known gaps.</li><li>Publication is prepared but gated: no page/package publication until packaging and legal/IP fit is confirmed; raw captures remain private evidence.</li></ul><p class="meta small-packages"><strong>Small-package copy ready:</strong> when cleared, a quick-lane card may link one derived summary (text and/or heatmap excerpt) — never a raw clip. No ownership, endorsement or IP claim; descriptive only, not acceptance.</p></div><p class="meta replay-attribution"><strong>Attribution / no IP claim:</strong> Derived occupancy/flow visualization from ZOMBIEEE Mod sealed position samples. Project-authored analysis; contains no Warband game art, UI, textures, models or third-party assets. Warband © TaleWorlds Entertainment; ZOMBIEEE Mod © its authors. This project is unaffiliated and claims no ownership, endorsement or redistribution rights. Raw gameplay screenshots/frames are private evidence and are not published. Attribution/takedown: <a href="https://github.com/yigit-denktas/MBW-ZOMBIEEE-Mod/issues">open an issue</a>.</p></section>
 <section class="queue-section" aria-labelledby="queues-heading">
@@ -436,6 +483,67 @@ function bindQueueControls(){
  group.addEventListener('keydown',e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;const buttons=Array.from(group.querySelectorAll('button[data-queue]'));const i=buttons.indexOf(document.activeElement);if(i<0)return;e.preventDefault();const next=buttons[(i+(e.key==='ArrowRight'?1:-1)+buttons.length)%buttons.length];next.focus();});
 }
 
+function impactCell(tag,text,className){const cell=document.createElement(tag);if(text!==undefined)cell.textContent=text;if(className)cell.className=className;return cell}
+function renderImpactBlockers(rows){
+ const body=$('impact-blockers-body');if(!body)return;
+ body.replaceChildren();
+ if(!rows.length){const tr=document.createElement('tr');const td=impactCell('td','No consequential blockers in this snapshot.');td.colSpan=6;tr.append(td);body.append(tr);return}
+ for(const row of rows.slice(0,5)){
+  const tr=document.createElement('tr');
+  tr.append(impactCell('td',String(row.rank),'num'));
+  const task=impactCell('td');
+  task.append(impactCell('strong',String(row.id),'impact-id'));
+  task.append(impactCell('span',String(row.title||''),'impact-title'));
+  tr.append(task);
+  tr.append(impactCell('td',String(row.state||'unknown')+(row.blocked?' · blocked flag':'')));
+  tr.append(impactCell('td',String(row.open_transitive_dependents_count),'num'));
+  tr.append(impactCell('td',String(row.direct_dependents_count),'num'));
+  tr.append(impactCell('td',String(row.required_open_transitive_dependents_count),'num'));
+  body.append(tr);
+ }
+}
+function renderImpact(data){
+ const summary=data.summary||{};
+ const set=(id,value)=>{const n=$(id);if(n)n.textContent=String(value)};
+ set('impact-items',summary.items);
+ set('impact-open',summary.open);
+ set('impact-impacted',summary.impacted);
+ set('impact-blockers',summary.consequential_blockers);
+ set('impact-cycle-count',summary.cycles);
+ set('impact-dependencies',summary.dependencies);
+ const blockers=Array.isArray(data.top_blockers)?data.top_blockers:[];
+ renderImpactBlockers(blockers);
+ const total=data.blockers_total!==undefined?data.blockers_total:summary.consequential_blockers;
+ const status=$('impact-status');
+ if(status)status.textContent='Impact snapshot loaded · top '+Math.min(blockers.length,5)+' of '+total+' consequential blockers shown · schedule status '+String((data.schedule&&data.schedule.status)||'unknown')+'.';
+ const cycles=Array.isArray(data.cycles)?data.cycles:[];
+ const cycleNote=$('impact-cycles-note');
+ if(cycleNote)cycleNote.textContent=cycles.length?('Dependency cycles: '+cycles.length+' — '+cycles.map(c=>String(c.cycle_id)+' ('+(c.members||[]).join(', ')+')').join('; ')+'. Dependency order inside a cycle is undefined.'):'Dependency cycles: 0 — none detected.';
+ const gaps=Array.isArray(data.gaps)?data.gaps:[];
+ const gapNote=$('impact-gaps');
+ if(gapNote)gapNote.textContent='Snapshot gaps: '+(gaps.length?gaps.map(g=>String(g.code)).join(', ')+'. Gap details are in the JSON; schedule_unknown is explicit.':'none.');
+ const source=data.source||{};
+ const digest=String(source.ledger_sha256||'unknown');
+ const src=$('impact-source');
+ if(src)src.textContent='Ledger content digest '+digest.slice(0,16)+'… · contract '+String(source.contract_version||'unknown')+' · snapshot '+String(data.schema||'unknown')+' · generated by '+String(data.generated_by||'unknown')+'.';
+}
+async function initImpact(){
+ const status=$('impact-status');if(!status)return;
+ try{
+  const base=location.pathname.indexOf('/site/')>=0?'../progress/':'progress/';
+  const fallback=base==='progress/'?'../progress/':'progress/';
+  let res=null;
+  for(const p of [base+'dependency-impact.json',fallback+'dependency-impact.json']){res=await fetch(p,{cache:'no-store'});if(res.ok)break}
+  if(!res||!res.ok)throw new Error('HTTP '+(res?res.status:'no-response'));
+  const data=await res.json();
+  if(!data||typeof data!=='object'||!data.summary||!Array.isArray(data.top_blockers))throw new Error('unexpected snapshot shape');
+  renderImpact(data);
+ }catch(error){
+  status.textContent='Impact snapshot unavailable: '+error.message+'. No impact numbers inferred.';
+  const body=$('impact-blockers-body');
+  if(body){const tr=document.createElement('tr');const td=impactCell('td','Snapshot not loaded; the dependency map above is unaffected.');td.colSpan=6;tr.append(td);body.replaceChildren(tr)}
+ }
+}
 async function init(){try{let res=null;for(const p of ['progress/ledger.json','../progress/ledger.json']){res=await fetch(p,{cache:'no-store'});if(res.ok)break;}if(!res||!res.ok)throw new Error('HTTP '+(res?res.status:'no-response'));record=await res.json();
  try{let mr=null;for(const p of ['progress/publish-meta.json','../progress/publish-meta.json']){mr=await fetch(p,{cache:'no-store'});if(mr.ok)break;}if(mr&&mr.ok){const m=await mr.json();const el=document.getElementById('publish-meta');let status='not a live feed';try{const lr=await fetch('progress/ledger.json',{cache:'no-store'});if(lr.ok&&window.crypto&&crypto.subtle){const text=await lr.text();const norm=text.replace(/\r\n/g,'\n');const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(norm));const hex=Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,'0')).join('');status=(m.ledger_sha256&&hex===String(m.ledger_sha256).toLowerCase())?'snapshot matches published ledger':'STALE: published ledger hash differs';}}catch(e){status='ledger hash check unavailable'}if(el)el.textContent='Published snapshot · source '+String(m.source_sha||'unknown').slice(0,12)+' · generated '+(m.generated_at||'unknown')+' · '+status;}}catch(e){}if(!Array.isArray(record.items)||!Array.isArray(record.milestones))throw Error('Invalid ledger');
 const req=record.items.filter(i=>i.required),done=req.filter(i=>i.state==='done');
@@ -453,6 +561,7 @@ const card=el('section',undefined,'card');card.append(el('small',m.id+' · '+m.h
 bindQueueControls();renderQueueSummary();render();bindDepControls();renderDependencyMap();function selectFromHash(){const id=decodeURIComponent(location.hash.slice(1));if(id)selectItem(id,false,false)}window.addEventListener('popstate',selectFromHash);selectFromHash();
 }catch(error){$('source').textContent='Tracker data unavailable: '+error.message+'. Serve from repository root with python -m http.server; file:// cannot fetch local JSON.';const p=el('p','Unable to read proposed ledger; no counts inferred.');p.setAttribute('role','alert');$('milestones').append(p)}}
 init();
+initImpact();
 </script>
 
 <script>(function(){fetch('progress/live-status.json',{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(s){if(!s)return;var el=document.getElementById('live-status');if(!el)return;el.innerHTML='<b>LIVE · '+(s.phase||'status')+'</b><div class="ls-row">'+(s.build||'')+'</div><div class="ls-row">'+(s.now||'')+'</div><div class="ls-row">'+(s.next||'')+'</div><div class="ls-row" style="opacity:.7">Updated '+(s.updated||'')+' · acceptance='+(s.acceptance?'yes':'no')+'</div>'}).catch(function(){})})();</script>
