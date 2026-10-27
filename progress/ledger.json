@@ -5011,6 +5011,33 @@
       "originReason": "Owner audit 2026-10-24.",
       "discoveredDuring": "2026-10-24 tracker audit",
       "graphImpact": "Operational dependency tracking"
+    },
+    {
+      "id": "ZOM-DISC-104",
+      "title": "Tracker P1: published-snapshot freshness verification + publisher",
+      "groupId": "Gameplay",
+      "milestoneId": "M3",
+      "state": "done",
+      "sourceState": "tracked",
+      "required": false,
+      "blocked": false,
+      "dependsOn": [],
+      "evidence": [],
+      "completionBasis": "Implementation + browser verification",
+      "kind": "work-item",
+      "owner": "Lead/F",
+      "priority": "P1",
+      "criterion": "Publisher copies only public files; browser shows MATCH/STALE; source SHA in meta.",
+      "note": "Site hashes fetched ledger and compares publish-meta ledger_sha256 (MATCH/STALE); tools/publish_tracker.py publishes only index/ledger/live-status/meta and pins source SHA. Browser verified.",
+      "deferReason": "Supplemental tracker/release work; not a required City outcome.",
+      "implementationLane": "A",
+      "workOrigin": "discovered",
+      "workType": "task",
+      "supportsOutcomeId": "ZOM-WAVE-01",
+      "accountingScope": "supplemental-nonadditive",
+      "originReason": "Owner audit 2026-10-24: remaining tracker gaps.",
+      "discoveredDuring": "2026-10-24 tracker audit",
+      "graphImpact": "Operational dependency tracking"
     }
   ],
   "warnings": [
